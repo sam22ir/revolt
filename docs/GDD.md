@@ -211,7 +211,7 @@ Details and conventions live in `CLAUDE.md`. Summary:
 | Mobile | Capacitor (Android first, iOS later) |
 | Shared rules | One TypeScript package used by client and server; pure functions of `(state, now)` |
 | Backend (M2+) | Cloudflare: Workers (game actions), D1 (accounts and persistent state), Durable Objects (map regions, alliances, chat via WebSockets; alarms for timers and events), Cron Triggers (daily resets, events) |
-| Auth | TBD at milestone 2 |
+| Auth | Guest account per device first; link a Google account to move devices. Self-hosted on Workers + D1 (library e.g. Better Auth, confirmed at M2); no paid auth service |
 | Tests | Vitest (rules), Playwright (screenshots of the running game) |
 | i18n | i18next |
 | Analytics/crashes | Firebase (free tier), milestone 7 |
@@ -230,7 +230,7 @@ Base screen, resources, buildings, upgrade timers, offline with local save.
 - Done when: an isometric base shows the HQ and the three producer buildings; resources accrue over real time, including while the app is closed; upgrades cost resources, show a countdown and complete correctly after an app restart; the UI works in Arabic (RTL), French and English; shared rules have Vitest coverage for production, costs and timers.
 
 ### M2 — Accounts and cloud saves
-- Done when: a player can sign up and sign in; state is stored server-side; the server computes all resources and timers; the same account loads on a second device; tampering with local state has no effect.
+- Done when: a new player gets a guest account automatically and can link a Google account; state is stored server-side; the server computes all resources and timers; signing in with the linked Google account on a second device loads the same base; tampering with local state has no effect.
 
 ### M3 — Shared world map
 - Done when: two accounts on one server see each other's bases on a scrollable map with coordinates; NPC targets of several levels exist; a march travels, fights a deterministic battle and returns; a battle report is delivered.
@@ -252,7 +252,6 @@ Base screen, resources, buildings, upgrade timers, offline with local save.
 ## 12. Open questions
 
 - [ ] **Game name.** Code name `revolt` until decided. Candidates to consider: *Free Lands*, an Arabic title (e.g. based on *Thawra*). Avoid names that echo current political parties or slogans (e.g. "Liberation Front" ≈ FLN, "Long March").
-- [ ] **Auth provider** for milestone 2 on Cloudflare.
 - [ ] **Scale path:** whether Durable Objects are enough at thousands of players, or a dedicated game server (e.g. Nakama) is needed later.
 - [ ] **Art hire trigger:** what budget or player count justifies the first artist.
 - [ ] **Premium currency name** and themed names for all buildings and units.

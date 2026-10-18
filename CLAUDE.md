@@ -9,7 +9,7 @@ Mobile MMO strategy game set in real anti-colonial revolutions (Algeria first, V
 
 - Client: Phaser + TypeScript + Vite. Versions are whatever is in `package.json`; check with `npm view <pkg> version` before adding a dependency, don't assume from memory.
 - Mobile: Capacitor (Android first).
-- Backend (from M2): Cloudflare Workers + D1 + Durable Objects + Cron Triggers. Auth is undecided.
+- Backend (from M2): Cloudflare Workers + D1 + Durable Objects + Cron Triggers. Auth: guest account per device, then link Google; self-hosted on Workers + D1 (see GDD §10).
 - Tests: Vitest for rules, Playwright for screenshots of the running game.
 - i18n: i18next with `ar`, `fr`, `en`.
 - Package manager: pnpm workspaces.
