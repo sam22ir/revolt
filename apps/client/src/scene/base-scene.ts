@@ -64,9 +64,11 @@ export class BaseScene extends Phaser.Scene {
     const cam = this.cameras.main;
     const world = this.buildingCenter(id);
     // The camera zooms around its center, which fitCamera() points at viewCenter.
+    // That gives game (device) pixels; displayScale is game px per CSS px, as input uses it.
+    const { x: sx, y: sy } = this.scale.displayScale;
     return {
-      x: (world.x - this.viewCenter.x) * cam.zoom + cam.width / 2,
-      y: (world.y - this.viewCenter.y) * cam.zoom + cam.height / 2,
+      x: ((world.x - this.viewCenter.x) * cam.zoom + cam.width / 2) / sx,
+      y: ((world.y - this.viewCenter.y) * cam.zoom + cam.height / 2) / sy,
     };
   }
 
@@ -78,14 +80,21 @@ export class BaseScene extends Phaser.Scene {
   private fitCamera(): void {
     const cam = this.cameras.main;
     const { width, height } = this.scale.gameSize;
-    const usableH = Math.max(100, height - HUD_TOP - HUD_BOTTOM);
-    const zoom = Math.min((width - 16) / MAP_WORLD_WIDTH, usableH / (MAP_WORLD_HEIGHT + 80));
+    // Game size is in device pixels; the HUD margins are CSS pixels.
+    const px = this.scale.displayScale.y;
+    const hudTop = HUD_TOP * px;
+    const hudBottom = HUD_BOTTOM * px;
+    const usableH = Math.max(100 * px, height - hudTop - hudBottom);
+    const zoom = Math.min((width - 16 * px) / MAP_WORLD_WIDTH, usableH / (MAP_WORLD_HEIGHT + 80));
     cam.setZoom(zoom);
     const center = mapCenter();
     // Shift the view so the map sits between the HUD and the bottom edge.
-    const offset = (HUD_TOP - HUD_BOTTOM) / 2 / zoom;
+    const offset = (hudTop - hudBottom) / 2 / zoom;
     this.viewCenter = { x: center.x, y: center.y - 30 - offset };
     cam.centerOn(this.viewCenter.x, this.viewCenter.y);
+    // Rasterize level numbers at the on-screen scale so they stay crisp when zoomed in.
+    const textResolution = Math.max(1, Math.ceil(zoom));
+    for (const view of this.views.values()) view.label.setResolution(textResolution);
   }
 
   private drawGround(): void {

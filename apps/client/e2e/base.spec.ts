@@ -102,6 +102,36 @@ test("language switcher changes language and direction, and is remembered", asyn
   await expect(page.locator("html")).toHaveAttribute("lang", "ar");
 });
 
+test("the canvas renders at the device pixel ratio", async ({ page }) => {
+  await page.goto("/");
+  await waitForGame(page);
+  const expectSharpCanvas = async (): Promise<void> => {
+    const size = await page.evaluate(() => {
+      const canvas = document.querySelector("canvas")!;
+      const rect = canvas.getBoundingClientRect();
+      return { dpr: window.devicePixelRatio, width: canvas.width, height: canvas.height, cssWidth: rect.width, cssHeight: rect.height };
+    });
+    // Pixel 7 is 2.625×; a CSS-resolution canvas would make this 1.
+    expect(size.dpr).toBeGreaterThan(2);
+    expect(size.width).toBe(Math.round(size.cssWidth * size.dpr));
+    expect(size.height).toBe(Math.round(size.cssHeight * size.dpr));
+    // The canvas still fills the viewport in CSS pixels.
+    expect(size.cssWidth).toBe(page.viewportSize()!.width);
+    expect(size.cssHeight).toBe(page.viewportSize()!.height);
+  };
+  await expectSharpCanvas();
+
+  // Rotating the phone resizes the canvas, and taps still land on buildings.
+  const { width, height } = page.viewportSize()!;
+  await page.setViewportSize({ width: height, height: width });
+  await expect
+    .poll(() => page.evaluate(() => document.querySelector("canvas")!.width === Math.round(window.innerWidth * window.devicePixelRatio)))
+    .toBe(true);
+  await expectSharpCanvas();
+  await tapBuilding(page, "armory");
+  await expect(page.locator(".panel")).toHaveAttribute("data-building", "armory");
+});
+
 test("a corrupt save falls back to a fresh base", async ({ page }) => {
   await page.clock.setFixedTime(T0);
   await page.addInitScript(() => localStorage.setItem("revolt.save", "{not json"));

@@ -29,7 +29,8 @@ html, body {
 }
 
 #game { position: fixed; inset: 0; }
-#game canvas { display: block; touch-action: none; }
+/* The canvas backing store is in device pixels (scene/hidpi-scale.ts); CSS owns its display size. */
+#game canvas { display: block; touch-action: none; inline-size: 100% !important; block-size: 100% !important; }
 
 /* Overlay: transparent to taps except on its panels. */
 #ui {

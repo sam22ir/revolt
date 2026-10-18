@@ -4,6 +4,7 @@ import { changeLanguage, initI18n } from "./i18n/i18n.ts";
 import { loadLanguagePref, storeLanguagePref } from "./i18n/language-pref.ts";
 import { detectLanguage } from "./i18n/languages.ts";
 import { BaseScene } from "./scene/base-scene.ts";
+import { followParentSize, hiDpiScaleConfig } from "./scene/hidpi-scale.ts";
 import { createGameStore } from "./state/game-store.ts";
 import { mountUi } from "./ui/app-ui.ts";
 import "./ui/style.css";
@@ -30,14 +31,17 @@ const start = async (): Promise<void> => {
   });
 
   scene = new BaseScene(store, (id: BuildingId | null) => ui.select(id));
-  new Phaser.Game({
+  const gameRoot = document.getElementById("game");
+  if (gameRoot === null) throw new Error("#game missing");
+  const game = new Phaser.Game({
     type: Phaser.AUTO,
-    parent: "game",
+    parent: gameRoot,
     backgroundColor: "#3d4a3a",
-    scale: { mode: Phaser.Scale.RESIZE, width: "100%", height: "100%" },
+    scale: hiDpiScaleConfig(gameRoot),
     banner: false,
     scene,
   });
+  followParentSize(game, gameRoot);
 
   window.setInterval(store.tick, TICK_MS);
   const persist = (): void => {
