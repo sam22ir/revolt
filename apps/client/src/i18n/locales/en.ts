@@ -1,0 +1,38 @@
+export const en = {
+  app: { title: "revolt (prototype)" },
+  resource: {
+    food: "Provisions",
+    materiel: "Arms",
+    funds: "Funds",
+    support: "Popular support",
+  },
+  building: {
+    hq: { name: "Command post", desc: "Sets the level limit for every other building and raises storage." },
+    farm: { name: "Farm", desc: "Produces provisions." },
+    armory: { name: "Armory", desc: "Produces arms." },
+    treasury: { name: "Treasury", desc: "Collects funds." },
+  },
+  panel: {
+    level: "Level {{level}}",
+    production: "Production",
+    perHour: "{{amount}}/h",
+    storage: "Storage limit",
+    nextLevel: "Upgrade to level {{level}}",
+    cost: "Cost",
+    duration: "Time",
+    upgrade: "Upgrade",
+    upgrading: "Upgrading to level {{level}}",
+    maxLevel: "Maximum level reached",
+    close: "Close",
+  },
+  reason: {
+    queue_busy: "Another upgrade is in progress",
+    max_level: "Maximum level reached",
+    hq_gate: "Requires command post level {{level}}",
+    insufficient: "Not enough resources",
+  },
+  queue: { idle: "Builders idle — tap a building", busy: "{{building}} → level {{level}}" },
+  time: { h: "{{count}} h", m: "{{count}} min", s: "{{count}} s", done: "Done" },
+  settings: { language: "Language" },
+  language: { en: "English", fr: "Français", ar: "العربية" },
+} as const;
