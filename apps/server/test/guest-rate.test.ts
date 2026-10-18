@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { ipBucket } from "../src/client-ip.ts";
-import { deleteOldGuestRate } from "../src/db/guest-rate.ts";
+import { deleteOldGuestRate, guestRateWindow } from "../src/db/guest-rate.ts";
 import { body, HOUR, startServer, T0, type Server } from "./harness.ts";
 
 const LIMIT = 3;
@@ -27,6 +27,21 @@ describe("guest creation is rate-limited per client IP", () => {
     for (let i = 0; i <= LIMIT; i++) await guest("203.0.113.7");
     const n = await server.env.DB.prepare("SELECT COUNT(*) AS n FROM accounts").first<{ n: number }>();
     expect(n?.n).toBe(LIMIT);
+  });
+
+  test("the counter statement writes no row once the bucket is full", async () => {
+    // Same SQL as takeGuestSlot, run with .run() to read D1's row-write metering.
+    const sql = `INSERT INTO guest_rate (bucket, window_start, count) VALUES (?, ?, 1)
+       ON CONFLICT (bucket, window_start) DO UPDATE SET count = count + 1 WHERE count < ?
+       RETURNING count`;
+    const take = async (): Promise<number> => {
+      const r = await server.env.DB.prepare(sql).bind("b", guestRateWindow(T0), 2).run();
+      // Our Db slice only types `changes`; D1 and Miniflare also report `rows_written`.
+      return (r.meta as { rows_written?: number }).rows_written ?? -1;
+    };
+    expect(await take()).toBeGreaterThan(0);
+    expect(await take()).toBeGreaterThan(0);
+    expect(await take()).toBe(0);
   });
 
   test("the limit is checked before the body is read", async () => {
