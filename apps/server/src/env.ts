@@ -8,7 +8,16 @@ export interface Env {
   readonly GOOGLE_CLIENT_IDS: string;
   /** Comma-separated origins allowed by CORS. */
   readonly ALLOWED_ORIGINS: string;
+  /** Guest accounts one client IP (IPv6: /64) may create per hour. Unset or invalid: `DEFAULT_GUEST_LIMIT_PER_HOUR`. */
+  readonly GUEST_LIMIT_PER_HOUR?: string;
 }
+
+export const DEFAULT_GUEST_LIMIT_PER_HOUR = 30;
+
+export const guestLimitPerHour = (env: Env): number => {
+  const n = Number(env.GUEST_LIMIT_PER_HOUR);
+  return Number.isInteger(n) && n > 0 ? n : DEFAULT_GUEST_LIMIT_PER_HOUR;
+};
 
 /** Things the entry module decides: the clock and where Google's signing keys come from. */
 export interface Deps {

@@ -14,6 +14,8 @@
   ],
   "vars": {
     "GOOGLE_CLIENT_IDS": "mock-client-id",
-    "ALLOWED_ORIGINS": "http://localhost:5173,http://localhost:4173,http://localhost:4174"
+    "ALLOWED_ORIGINS": "http://localhost:5173,http://localhost:4173,http://localhost:4174",
+    // The e2e suite makes every guest from one IP with a pinned clock.
+    "GUEST_LIMIT_PER_HOUR": "100000"
   }
 }

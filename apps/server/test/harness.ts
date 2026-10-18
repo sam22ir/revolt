@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT, type CryptoKey, type JWK } from "jose";
 import { convertV4MiniflareOptions, Miniflare } from "miniflare";
 import { handle } from "../src/app.ts";
@@ -11,11 +11,16 @@ export const HOUR = 60 * MIN;
 export const DAY = 24 * HOUR;
 export const CLIENT_ID = "test-web-client-id";
 
-const MIGRATION = readFileSync(new URL("../migrations/0001_init.sql", import.meta.url), "utf8");
+const MIGRATIONS_DIR = new URL("../migrations/", import.meta.url);
+const MIGRATIONS = readdirSync(MIGRATIONS_DIR)
+  .filter((f) => f.endsWith(".sql"))
+  .sort()
+  .map((f) => readFileSync(new URL(f, MIGRATIONS_DIR), "utf8"));
 
-/** D1's exec() splits on newlines, so apply the migration statement by statement. */
+/** D1's exec() splits on newlines, so apply the migrations, in order, statement by statement. */
 const migrate = async (db: Db): Promise<void> => {
-  const stmts = MIGRATION.replace(/--.*$/gm, "")
+  const stmts = MIGRATIONS.join(";\n")
+    .replace(/--.*$/gm, "")
     .split(";")
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
@@ -57,7 +62,7 @@ export interface Server {
   now: number;
   readonly google: Keypair;
   readonly env: Env;
-  readonly request: (method: string, path: string, opts?: { token?: string; body?: unknown; raw?: string; origin?: string }) => Promise<Response>;
+  readonly request: (method: string, path: string, opts?: { token?: string; body?: unknown; raw?: string; origin?: string; ip?: string }) => Promise<Response>;
   /** A valid Google ID token for `sub` at the current server time. */
   readonly idToken: (sub: string, email?: string, overrides?: Partial<IdTokenClaims>) => Promise<string>;
   readonly dispose: () => Promise<void>;
@@ -80,6 +85,7 @@ export const startServer = async (envOverrides: Partial<Env> = {}): Promise<Serv
       const headers = new Headers();
       if (opts.token !== undefined) headers.set("authorization", `Bearer ${opts.token}`);
       if (opts.origin !== undefined) headers.set("origin", opts.origin);
+      if (opts.ip !== undefined) headers.set("cf-connecting-ip", opts.ip);
       const body = opts.raw ?? (opts.body === undefined ? undefined : JSON.stringify(opts.body));
       return handle(new Request(`http://api.test${path}`, { method, headers, body }), env, {
         now: () => server.now,

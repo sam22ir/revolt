@@ -16,6 +16,8 @@
     // The Google *web* client ID(s), comma-separated. Empty disables Google sign-in. See docs/google-oauth-setup.md.
     "GOOGLE_CLIENT_IDS": "",
     // Vite dev and preview, and the Capacitor Android/iOS WebView origins.
-    "ALLOWED_ORIGINS": "http://localhost:5173,http://localhost:4173,https://localhost,capacitor://localhost"
+    "ALLOWED_ORIGINS": "http://localhost:5173,http://localhost:4173,https://localhost,capacitor://localhost",
+    // Guest accounts per client IP (IPv6: /64) per hour. Mobile carriers share IPs (CGNAT), so keep it generous.
+    "GUEST_LIMIT_PER_HOUR": "30"
   }
 }

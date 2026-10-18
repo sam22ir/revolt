@@ -8,6 +8,7 @@ export const ERROR_CODES = [
   "invalid_google_token",
   "google_not_configured",
   "payload_too_large",
+  "rate_limited",
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 
@@ -19,6 +20,7 @@ const STATUS: Record<ErrorCode, number> = {
   invalid_google_token: 401,
   google_not_configured: 503,
   payload_too_large: 413,
+  rate_limited: 429,
 };
 
 export class HttpError extends Error {
