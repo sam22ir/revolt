@@ -12,6 +12,7 @@ export {
   nextLevelQuote,
   remainingMs,
   startUpgrade,
+  UPGRADE_BLOCK_REASONS,
   type UpgradeBlockReason,
   type UpgradeCheck,
   type UpgradeQuote,

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { BUILDING_IDS, MAX_BUILDING_LEVEL, type BaseState, type BuildingId } from "@revolt/rules";
+import { BUILDING_IDS, type BaseState, type BuildingId } from "@revolt/rules";
 import type { GameStore } from "../state/game-store.ts";
 import { BUILDING_STYLES } from "./building-style.ts";
 import {
@@ -122,9 +122,7 @@ export class BaseScene extends Phaser.Scene {
 
   private createBuilding(id: BuildingId): BuildingView {
     const body = this.add.graphics();
-    // Hit area covers the tallest version so it never shrinks below the drawing.
-    const hull = this.hull(id, MAX_BUILDING_LEVEL);
-    body.setInteractive(new Phaser.Geom.Polygon(hull.map((p) => new Phaser.Math.Vector2(p.x, p.y))), Phaser.Geom.Polygon.Contains);
+    body.setInteractive(new Phaser.Geom.Polygon(this.points(this.hull(id, 1))), Phaser.Geom.Polygon.Contains);
     body.on(Phaser.Input.Events.GAMEOBJECT_POINTER_UP, () => this.onSelect(id));
     const progress = this.add.graphics();
     const badge = this.add.graphics();
@@ -155,6 +153,9 @@ export class BaseScene extends Phaser.Scene {
     const h = this.wallHeight(id, level);
     const g = view.body;
     g.clear();
+    // Hit area follows the drawn outline, so taller neighbours never steal taps.
+    const hitArea: unknown = g.input?.hitArea;
+    if (hitArea instanceof Phaser.Geom.Polygon) hitArea.setTo(this.points(this.hull(id, level)));
     const [top, right, bottom, left] = this.footprint(id);
     const up = (p: Vec): Vec => ({ x: p.x, y: p.y - h });
     // Shadow, then walls, then roof.

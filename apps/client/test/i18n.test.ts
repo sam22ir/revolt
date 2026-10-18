@@ -1,4 +1,4 @@
-import { BUILDING_IDS, RESOURCE_IDS } from "@revolt/rules";
+import { BUILDING_IDS, RESOURCE_IDS, UPGRADE_BLOCK_REASONS } from "@revolt/rules";
 import { describe, expect, test } from "vitest";
 import { detectLanguage, LANGUAGES, textDirection } from "../src/i18n/languages.ts";
 import { ar } from "../src/i18n/locales/ar.ts";
@@ -11,7 +11,6 @@ const keys = (obj: object, prefix = ""): string[] =>
   );
 
 const LOCALES = { en, fr, ar };
-const REASONS = ["queue_busy", "max_level", "hq_gate", "insufficient"];
 
 describe("locales", () => {
   test("en, fr and ar have identical key sets", () => {
@@ -36,7 +35,7 @@ describe("locales", () => {
       expect(all.has(`building.${id}.name`), id).toBe(true);
       expect(all.has(`building.${id}.desc`), id).toBe(true);
     }
-    for (const r of REASONS) expect(all.has(`reason.${r}`), r).toBe(true);
+    for (const r of UPGRADE_BLOCK_REASONS) expect(all.has(`reason.${r}`), r).toBe(true);
     for (const l of LANGUAGES) expect(all.has(`language.${l}`), l).toBe(true);
   });
 });

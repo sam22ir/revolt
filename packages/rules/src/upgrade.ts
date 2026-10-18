@@ -4,7 +4,9 @@ import type { BuildingId } from "./building-id.ts";
 import { BUILDINGS, MAX_BUILDING_LEVEL } from "./data/buildings.ts";
 import { canAfford, subtractResources, type Resources } from "./resources.ts";
 
-export type UpgradeBlockReason = "queue_busy" | "max_level" | "hq_gate" | "insufficient";
+export const UPGRADE_BLOCK_REASONS = ["queue_busy", "max_level", "hq_gate", "insufficient"] as const;
+
+export type UpgradeBlockReason = (typeof UPGRADE_BLOCK_REASONS)[number];
 
 export interface UpgradeQuote {
   readonly toLevel: number;

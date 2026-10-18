@@ -40,6 +40,9 @@ export const createHud = (languageSwitcher: HTMLElement): Hud => {
   bar.append(list, languageSwitcher);
   const queue = el("div", "queue-pill");
   queue.setAttribute("role", "status");
+  const queueLabel = el("span", "queue-label");
+  const queueTime = el("span", "queue-time");
+  queue.append(queueLabel, queueTime);
   root.append(bar, queue);
 
   const update = (state: BaseState, now: number): void => {
@@ -57,11 +60,13 @@ export const createHud = (languageSwitcher: HTMLElement): Hud => {
     }
     const job = state.queue;
     if (job === null) {
-      queue.textContent = t("queue.idle");
+      queueLabel.textContent = t("queue.idle");
+      queueTime.textContent = "";
       queue.classList.remove("busy");
     } else {
       const label = t("queue.busy", { building: t(`building.${job.building}.name`), level: formatAmount(lang, job.toLevel) });
-      queue.textContent = `${label} · ${formatDuration(job.endsAt - now)}`;
+      queueLabel.textContent = label;
+      queueTime.textContent = formatDuration(job.endsAt - now);
       queue.classList.add("busy");
     }
   };

@@ -103,11 +103,14 @@ html, body {
   font-size: 13px;
   background: rgb(43 42 36 / 0.7);
   color: var(--paper);
+  display: flex;
+  gap: 8px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   pointer-events: none;
 }
+.queue-label { overflow: hidden; text-overflow: ellipsis; min-inline-size: 0; }
+.queue-time { flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.queue-time:empty { display: none; }
 .queue-pill.busy { background: rgb(224 176 64 / 0.92); color: var(--ink); font-weight: 600; }
 
 .panel {
@@ -124,6 +127,8 @@ html, body {
 .panel-head { display: flex; align-items: center; gap: 10px; }
 .panel-title { margin: 0; font-size: 20px; }
 .panel-level {
+  flex-shrink: 0;
+  white-space: nowrap;
   font-size: 13px;
   font-weight: 600;
   padding-block: 2px;
