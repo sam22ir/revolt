@@ -1,11 +1,14 @@
-import { advance, startUpgrade, type BaseState, type BuildingId } from "@revolt/rules";
-import { ApiError, type AccountView, type Api, type Snapshot } from "../net/api.ts";
+import { advance, startTraining, startUpgrade, type BaseState, type BuildingId, type TroopId, type Troops } from "@revolt/rules";
+import { ApiError, type AccountView, type Api, type MarchRefusal, type Snapshot } from "../net/api.ts";
 import { loadSession, storeSession } from "../net/session.ts";
 import { loadState, SAVE_KEY } from "./save.ts";
 
 export type Listener = (state: BaseState, now: number) => void;
 
 export type SyncStatus = "online" | "offline";
+
+/** What the server said to a march. "unreachable" means the request never got an answer. */
+export type MarchOutcome = { readonly ok: true } | { readonly ok: false; readonly reason: MarchRefusal | "unreachable" };
 
 export interface GameStore {
   readonly state: () => BaseState;
@@ -17,6 +20,17 @@ export interface GameStore {
   readonly tick: () => void;
   /** Predicts the upgrade locally, then replaces the prediction with the server's answer. */
   readonly upgrade: (building: BuildingId) => void;
+  /** Predicts the training batch locally, then replaces the prediction with the server's answer. */
+  readonly train: (troop: TroopId, count: number) => void;
+  /**
+   * Sends a march at an NPC target. No prediction: the server picks the id and timing.
+   * Resolves with the server's verdict; the state is updated from its answer either way.
+   */
+  readonly march: (target: string, troops: Troops) => Promise<MarchOutcome>;
+  /** The device's bearer token; it changes when a Google sign-in switches base. */
+  readonly token: () => string;
+  /** Called after the session token changed. */
+  readonly onSessionChange: (fn: () => void) => () => void;
   /** Reloads the state from the server. */
   readonly resync: () => Promise<void>;
   readonly signInWithGoogle: (idToken: string) => Promise<void>;
@@ -64,6 +78,7 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
   let offset = session.now - clock();
   let status: SyncStatus = "online";
   const listeners = new Set<Listener>();
+  const sessionListeners = new Set<() => void>();
 
   const now = (): number => clock() + offset;
   const notify = (): void => {
@@ -107,6 +122,28 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
       notify();
       api.upgrade(token, building).then(accept, () => void resync());
     },
+    train: (troop, count) => {
+      const predicted = startTraining(state, troop, count, now());
+      if (!predicted.ok) return;
+      state = predicted.state;
+      notify();
+      api.train(token, troop, count).then(accept, () => void resync());
+    },
+    march: async (target, troops) => {
+      try {
+        const res = await api.march(token, target, troops);
+        accept(res);
+        return res.ok ? { ok: true } : { ok: false, reason: res.reason };
+      } catch {
+        void resync();
+        return { ok: false, reason: "unreachable" };
+      }
+    },
+    token: () => token,
+    onSessionChange: (fn) => {
+      sessionListeners.add(fn);
+      return () => sessionListeners.delete(fn);
+    },
     resync,
     signInWithGoogle: async (idToken) => {
       const res = await api.signInWithGoogle(token, idToken);
@@ -114,6 +151,7 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
       storeSession(storage, token);
       account = res.account;
       accept(res);
+      for (const fn of sessionListeners) fn();
     },
     subscribe: (fn) => {
       listeners.add(fn);
