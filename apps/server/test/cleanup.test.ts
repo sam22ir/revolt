@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { runCleanup, STALE_GUEST_MS } from "../src/cleanup.ts";
-import worker from "../src/index.ts";
+import { scheduled } from "../src/scheduled.ts";
 import { body, DAY, HOUR, newGuest, startServer, T0, type Server } from "./harness.ts";
 
 let server: Server;
@@ -124,9 +124,34 @@ describe("stale guest cleanup", () => {
   test("the Worker's scheduled handler runs it at the trigger's scheduled time", async () => {
     const id = await abandonedGuest();
     const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    await worker.scheduled({ scheduledTime: T0 + STALE_GUEST_MS }, server.env);
+    await scheduled(T0 + STALE_GUEST_MS, server.env, { map: () => ({ removeAccounts: async () => 0 }) as never });
     expect(log).toHaveBeenCalledWith("cleanup: 1 stale guests, 1 rate windows deleted");
     log.mockRestore();
     expect(await exists(id)).toEqual(gone);
+  });
+
+  test("a deleted guest's reports go with it, and its base leaves the map", async () => {
+    const g = await newGuest(server);
+    const snap = await body(await server.request("GET", "/v1/map", { token: g.token }));
+    const npc = snap.npcs.find((n: { level: number }) => n.level === 1);
+    const sent = await body(await server.request("POST", "/v1/intent", { token: g.token, body: { type: "march", target: npc.id, troops: { infantry: 10 } } }));
+    server.now = sent.state.marches[0].returnAt;
+    await server.fireAlarm();
+    await server.request("POST", "/v1/logout", { token: g.token });
+    const id = g.res.account.id as string;
+    const reports = async (): Promise<unknown> => server.env.DB.prepare("SELECT COUNT(*) AS n FROM reports WHERE account_id = ?").bind(id).first();
+    expect(await reports()).toEqual({ n: 1 });
+    const removed: string[][] = [];
+    await runCleanup(server.env.DB, server.now + STALE_GUEST_MS, undefined, async (name, ids) => {
+      expect(name).toBe("algeria-1");
+      removed.push(ids);
+      await server.map(name).host.run(server.now, (s) => s.removeAccounts(ids));
+    });
+    expect(removed).toEqual([[id]]);
+    expect(await reports()).toEqual({ n: 0 });
+    expect(await exists(id)).toEqual(gone);
+    const other = await newGuest(server);
+    const after = await body(await server.request("GET", "/v1/map", { token: other.token }));
+    expect(after.bases).toHaveLength(1);
   });
 });

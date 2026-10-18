@@ -1,7 +1,7 @@
 import { createBaseState, importM1Save, isBaseState, migrateBaseState } from "@revolt/rules";
 import { hashToken, newToken } from "../auth/tokens.ts";
 import { ipBucket } from "../client-ip.ts";
-import { insertAccount } from "../db/accounts.ts";
+import { DEFAULT_SERVER, insertAccount } from "../db/accounts.ts";
 import { insertBase } from "../db/bases.ts";
 import { takeGuestSlot } from "../db/guest-rate.ts";
 import { insertSession } from "../db/sessions.ts";
@@ -29,6 +29,6 @@ export const createGuest = async (ctx: Ctx): Promise<Response> => {
     insertBase(db, id, state, ctx.now),
     await insertSession(db, token, id, ctx.now),
   ]);
-  const account = accountView({ id, googleSub: null, googleEmail: null });
+  const account = accountView({ id, googleSub: null, googleEmail: null, server: DEFAULT_SERVER });
   return json({ token, account, state, now: ctx.now, imported }, 201);
 };

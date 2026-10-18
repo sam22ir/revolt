@@ -4,15 +4,21 @@ export interface Account {
   readonly id: string;
   readonly googleSub: string | null;
   readonly googleEmail: string | null;
+  /** The map server this account plays on (GDD §5). */
+  readonly server: string;
 }
 
 interface AccountRow {
   readonly id: string;
   readonly google_sub: string | null;
   readonly google_email: string | null;
+  readonly server: string;
 }
 
-const toAccount = (r: AccountRow): Account => ({ id: r.id, googleSub: r.google_sub, googleEmail: r.google_email });
+const toAccount = (r: AccountRow): Account => ({ id: r.id, googleSub: r.google_sub, googleEmail: r.google_email, server: r.server });
+
+/** Every account plays on the Algeria server until more backgrounds exist (GDD §2, M6). */
+export const DEFAULT_SERVER = "algeria-1";
 
 export const insertAccount = (
   db: Db,
@@ -23,12 +29,12 @@ export const insertAccount = (
     .bind(a.id, a.now, a.googleSub ?? null, a.googleEmail ?? null, a.importedM1 === true ? 1 : 0);
 
 export const findAccountById = async (db: Db, id: string): Promise<Account | null> => {
-  const r = await db.prepare("SELECT id, google_sub, google_email FROM accounts WHERE id = ?").bind(id).first<AccountRow>();
+  const r = await db.prepare("SELECT id, google_sub, google_email, server FROM accounts WHERE id = ?").bind(id).first<AccountRow>();
   return r === null ? null : toAccount(r);
 };
 
 export const findAccountByGoogleSub = async (db: Db, sub: string): Promise<Account | null> => {
-  const r = await db.prepare("SELECT id, google_sub, google_email FROM accounts WHERE google_sub = ?").bind(sub).first<AccountRow>();
+  const r = await db.prepare("SELECT id, google_sub, google_email, server FROM accounts WHERE google_sub = ?").bind(sub).first<AccountRow>();
   return r === null ? null : toAccount(r);
 };
 

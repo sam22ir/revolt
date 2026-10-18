@@ -1,9 +1,12 @@
 import type { JWTVerifyGetKey } from "jose";
 import type { Db } from "./db/db.ts";
+import type { MapApi, MapNamespace } from "./map/map-client.ts";
 
 /** Bindings and vars from wrangler config. */
 export interface Env {
   readonly DB: Db;
+  /** One WorldMap Durable Object per server map (GDD §5). */
+  readonly WORLD_MAP: MapNamespace;
   /** Comma-separated Google OAuth client IDs accepted as `aud` (the web client ID). Empty disables Google. */
   readonly GOOGLE_CLIENT_IDS: string;
   /** Comma-separated origins allowed by CORS. */
@@ -19,10 +22,11 @@ export const guestLimitPerHour = (env: Env): number => {
   return Number.isInteger(n) && n > 0 ? n : DEFAULT_GUEST_LIMIT_PER_HOUR;
 };
 
-/** Things the entry module decides: the clock and where Google's signing keys come from. */
+/** Things the entry module decides: the clock, where Google's signing keys come from, and how to reach a map. */
 export interface Deps {
   readonly now: () => number;
   readonly googleKeys: JWTVerifyGetKey;
+  readonly map: (env: Env, server: string) => MapApi;
 }
 
 export const csv = (v: string): string[] =>

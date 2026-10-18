@@ -12,8 +12,22 @@ export const hashToken = async (token: string): Promise<string> => {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 };
 
+const TOKEN = /^[A-Za-z0-9_-]{20,200}$/;
+
 /** Extracts the token from `Authorization: Bearer <token>`. */
 export const bearerToken = (req: Request): string | null => {
-  const m = /^Bearer ([A-Za-z0-9_-]{20,200})$/.exec(req.headers.get("authorization") ?? "");
-  return m?.[1] ?? null;
+  const m = /^Bearer (\S+)$/.exec(req.headers.get("authorization") ?? "");
+  return m?.[1] !== undefined && TOKEN.test(m[1]) ? m[1] : null;
+};
+
+/**
+ * Browsers cannot set headers on a WebSocket, so the map socket offers the token as a
+ * subprotocol: `Sec-WebSocket-Protocol: revolt.v1, auth.<token>`. This keeps it out of URLs and logs.
+ */
+export const protocolToken = (req: Request): string | null => {
+  for (const p of (req.headers.get("sec-websocket-protocol") ?? "").split(",")) {
+    const v = p.trim();
+    if (v.startsWith("auth.") && TOKEN.test(v.slice(5))) return v.slice(5);
+  }
+  return null;
 };

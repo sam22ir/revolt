@@ -5,6 +5,9 @@
   "compatibility_date": "2026-10-01",
   // Daily cleanup (src/cleanup.ts). Locally: `wrangler dev --test-scheduled`, then GET /cdn-cgi/local/scheduled.
   "triggers": { "crons": ["0 3 * * *"] },
+  // One WorldMap Durable Object per server map (src/map/world-map.ts). SQLite storage: the only kind on the Free plan.
+  "durable_objects": { "bindings": [{ "name": "WORLD_MAP", "class_name": "WorldMap" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["WorldMap"] }],
   "d1_databases": [
     {
       "binding": "DB",

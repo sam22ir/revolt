@@ -32,8 +32,10 @@ export interface Authed {
 }
 
 /** Resolves the bearer token to its session and account, refreshing `last_used_at` (at most hourly). */
-export const authenticate = async (ctx: Ctx): Promise<Authed> => {
-  const token = bearerToken(ctx.req);
+export const authenticate = (ctx: Ctx): Promise<Authed> => authenticateToken(ctx, bearerToken(ctx.req));
+
+/** As `authenticate`, for a token that came some other way (the map WebSocket's subprotocol). */
+export const authenticateToken = async (ctx: Ctx, token: string | null): Promise<Authed> => {
   if (token === null) throw new HttpError("unauthorized");
   const session = await findSession(ctx.env.DB, token);
   const account = session === null ? null : await findAccountById(ctx.env.DB, session.accountId);

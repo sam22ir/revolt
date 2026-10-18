@@ -1,7 +1,7 @@
 import { createBaseState } from "@revolt/rules";
 import { verifyGoogleIdToken, type GoogleIdentity } from "../auth/google.ts";
 import { newToken } from "../auth/tokens.ts";
-import { findAccountByGoogleSub, insertAccount, linkGoogle, type Account } from "../db/accounts.ts";
+import { DEFAULT_SERVER, findAccountByGoogleSub, insertAccount, linkGoogle, type Account } from "../db/accounts.ts";
 import { isUniqueViolation } from "../db/db.ts";
 import { insertBase } from "../db/bases.ts";
 import { endSession, insertSession } from "../db/sessions.ts";
@@ -18,7 +18,7 @@ const createLinkedAccount = async (ctx: Ctx, who: GoogleIdentity): Promise<Accou
       insertAccount(db, { id, now: ctx.now, googleSub: who.sub, googleEmail: who.email }),
       insertBase(db, id, createBaseState(ctx.now), ctx.now),
     ]);
-    return { id, googleSub: who.sub, googleEmail: who.email };
+    return { id, googleSub: who.sub, googleEmail: who.email, server: DEFAULT_SERVER };
   } catch (e) {
     const owner = isUniqueViolation(e) ? await findAccountByGoogleSub(db, who.sub) : null;
     if (owner === null) throw e;
