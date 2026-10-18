@@ -1,0 +1,19 @@
+// Local end-to-end tests only: settable clock and a fake Google issuer. Never deploy this config.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "revolt-server-e2e",
+  "main": "src/e2e-entry.ts",
+  "compatibility_date": "2026-10-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "revolt-e2e",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "GOOGLE_CLIENT_IDS": "mock-client-id",
+    "ALLOWED_ORIGINS": "http://localhost:5173,http://localhost:4173,http://localhost:4174"
+  }
+}
