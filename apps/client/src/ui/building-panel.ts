@@ -38,6 +38,7 @@ const structureKey = (id: BuildingId, state: BaseState, check: UpgradeCheck): st
 
 export const createBuildingPanel = (deps: PanelDeps): BuildingPanel => {
   const root = el("section", "panel");
+  root.dataset.testid = "building-panel";
   root.hidden = true;
   root.setAttribute("aria-live", "polite");
   let current: BuildingId | null = null;

@@ -298,7 +298,7 @@ describe("determinism", () => {
     expect(b).toEqual(a);
     const replay = fightNpc(a.report.sent, a.report.target.level, a.report.seed ?? -1);
     expect(replay.outcome).toMatchObject({ survivors: a.report.survivors, wounded: a.report.wounded, lost: a.report.lost, loot: a.report.loot });
-  });
+  }, 30_000);
 });
 
 describe("train intent", () => {

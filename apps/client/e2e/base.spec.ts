@@ -7,7 +7,7 @@ const API = "http://localhost:8788";
 const SHOTS = "test-results/screens";
 
 /** Any untranslated i18n key that leaked into the page, e.g. "panel.upgrade". */
-const RAW_KEY = /\b(app|resource|building|panel|reason|queue|time|settings|language|account|sync)\.[a-z_]+\b/;
+const RAW_KEY = /\b(app|resource|building|panel|reason|queue|time|settings|language|account|sync|nav|troop|npc|terrain|map|march|train|report)\.[a-z_]+\b/;
 
 type BuildingId = "hq" | "farm" | "armory" | "treasury";
 
@@ -68,7 +68,7 @@ for (const { locale, lang, dir, upgrade } of LOCALES) {
 
       // A producer is gated by the HQ level at the start.
       await tapBuilding(page, "farm");
-      await expect(page.locator(".panel")).toBeVisible();
+      await expect(page.getByTestId("building-panel")).toBeVisible();
       await expect(page.getByTestId("upgrade")).toBeDisabled();
       await expect(page.getByTestId("reason")).toBeVisible();
       await expectNoRawKeys(page);
@@ -76,7 +76,7 @@ for (const { locale, lang, dir, upgrade } of LOCALES) {
 
       // Upgrade the HQ: cost is paid and a countdown starts.
       await tapBuilding(page, "hq");
-      await expect(page.locator(".panel")).toHaveAttribute("data-building", "hq");
+      await expect(page.getByTestId("building-panel")).toHaveAttribute("data-building", "hq");
       const button = page.getByTestId("upgrade");
       await expect(button).toHaveText(upgrade);
       await expect(button).toBeEnabled();
@@ -100,7 +100,7 @@ for (const { locale, lang, dir, upgrade } of LOCALES) {
       // 300 + 120/h for 1 h.
       await expect(page.locator('.res[data-resource="food"] .res-amount')).toHaveText("420");
       await tapBuilding(page, "hq");
-      await expect(page.locator(".panel-level")).toContainText("2");
+      await expect(page.getByTestId("building-panel").locator(".panel-level")).toContainText("2");
       await expect(page.getByTestId("countdown")).toHaveCount(0);
       await expect(page.locator(".queue-pill")).not.toHaveClass(/busy/);
 
@@ -153,7 +153,7 @@ test("the canvas renders at the device pixel ratio", async ({ page }) => {
     .toBe(true);
   await expectSharpCanvas();
   await tapBuilding(page, "armory");
-  await expect(page.locator(".panel")).toHaveAttribute("data-building", "armory");
+  await expect(page.getByTestId("building-panel")).toHaveAttribute("data-building", "armory");
 });
 
 test("a corrupt M1 save falls back to a fresh guest base", async ({ page, request }) => {
@@ -184,7 +184,7 @@ test("an M1 local save is moved into the new guest account once", async ({ page,
   await waitForGame(page);
   await expect(food(page)).toHaveText("1,234");
   await tapBuilding(page, "hq");
-  await expect(page.locator(".panel-level")).toContainText("2");
+  await expect(page.getByTestId("building-panel").locator(".panel-level")).toContainText("2");
   expect(await page.evaluate(() => localStorage.getItem("revolt.save"))).toBeNull();
 });
 
@@ -235,7 +235,7 @@ for (const { locale, lang } of [
       await page.getByTestId("account").click();
       const panel = page.getByTestId("account-panel");
       await expect(panel).toBeVisible();
-      await expect(page.locator(".panel")).toBeHidden();
+      await expect(page.getByTestId("building-panel")).toBeHidden();
       await expectNoRawKeys(page);
       await page.screenshot({ path: `${SHOTS}/${lang}-5-account-guest.png` });
       await page.getByTestId("mock-google-email").fill(email);
