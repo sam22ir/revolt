@@ -1,4 +1,4 @@
-import { createBaseState, importM1Save, isBaseState } from "@revolt/rules";
+import { createBaseState, importM1Save, isBaseState, migrateBaseState } from "@revolt/rules";
 import { hashToken, newToken } from "../auth/tokens.ts";
 import { ipBucket } from "../client-ip.ts";
 import { insertAccount } from "../db/accounts.ts";
@@ -18,7 +18,8 @@ export const createGuest = async (ctx: Ctx): Promise<Response> => {
   const bucket = await hashToken(`guest:${ipBucket(ctx.req)}`);
   if (!(await takeGuestSlot(ctx.env.DB, bucket, ctx.now, guestLimitPerHour(ctx.env)))) throw new HttpError("rate_limited");
   const body = await readJson(ctx.req);
-  const imported = "importSave" in body && isBaseState(body.importSave);
+  // Saves from M1 predate the barracks and troops; migrate before the shape check.
+  const imported = "importSave" in body && isBaseState(migrateBaseState(body.importSave));
   const state = imported ? importM1Save(body.importSave, ctx.now) : createBaseState(ctx.now);
   const id = crypto.randomUUID();
   const token = newToken();

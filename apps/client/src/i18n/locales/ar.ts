@@ -13,6 +13,7 @@ export const ar: LocaleShape = {
     farm: { name: "المزرعة", desc: "تنتج المؤن." },
     armory: { name: "مخزن السلاح", desc: "ينتج السلاح." },
     treasury: { name: "الخزينة", desc: "تجمع الأموال." },
+    barracks: { name: "الثكنة", desc: "تدرّب المقاتلين. كلما ارتفع مستواها كبرت الدفعات." },
   },
   panel: {
     level: "المستوى {{level}}",

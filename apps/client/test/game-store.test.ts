@@ -55,7 +55,7 @@ const fakeApi = (serverState: BaseState, validTokens = new Set(["tok-1"])) => {
 
 describe("game store", () => {
   test("first launch creates a guest, imports the M1 save once and removes it", async () => {
-    const m1 = { ...createBaseState(T0), levels: { hq: 2, farm: 1, armory: 1, treasury: 1 } };
+    const m1 = { ...createBaseState(T0), levels: { hq: 2, farm: 1, armory: 1, treasury: 1, barracks: 1 } };
     const storage = memoryStorage({ [SAVE_KEY]: serializeSave(m1) });
     const f = fakeApi(createBaseState(T0));
     await connectGameStore({ api: f.api, storage, clock: () => T0 });

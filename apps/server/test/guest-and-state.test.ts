@@ -1,4 +1,4 @@
-import { advance, createBaseState, M1_IMPORT_MAX_LEVEL, startUpgrade, storageCap } from "@revolt/rules";
+import { advance, createBaseState, M1_IMPORT_MAX_LEVEL, START_TROOPS, startUpgrade, storageCap, ZERO_TROOPS } from "@revolt/rules";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { body, DAY, HOUR, newGuest, startServer, T0, type Server } from "./harness.ts";
 
@@ -99,8 +99,24 @@ describe("M1 save import", () => {
 
   test("a forged save is bounded", async () => {
     const a = await newGuest(server, forged);
-    expect(a.res.state.levels).toEqual({ hq: M1_IMPORT_MAX_LEVEL, farm: 3, armory: 3, treasury: 3 });
+    expect(a.res.state.levels).toEqual({ hq: M1_IMPORT_MAX_LEVEL, farm: 3, armory: 3, treasury: 3, barracks: 1 });
     expect(a.res.state.resources).toEqual(storageCap(M1_IMPORT_MAX_LEVEL));
+  });
+
+  test("a save can never bring troops, wounded, training or marches", async () => {
+    const army = { infantry: 1_000_000, scouts: 1_000_000, heavy: 1_000_000, porters: 0 };
+    const march = { id: "x", target: { npcId: "n", level: 1, x: 1, y: 1 }, from: { x: 0, y: 0 }, troops: army, departAt: T0, arriveAt: T0, returnAt: T0 + 1, outcome: null };
+    const a = await newGuest(server, {
+      ...forged,
+      levels: { ...forged.levels, barracks: 10 },
+      troops: army,
+      wounded: army,
+      training: { troop: "heavy", count: 1_000_000, startedAt: T0 - DAY, endsAt: T0 - DAY + 1 },
+      marches: [march],
+    });
+    expect(a.res.imported).toBe(true);
+    expect(a.res.state).toMatchObject({ troops: START_TROOPS, wounded: ZERO_TROOPS, training: null, marches: [] });
+    expect(a.res.state.levels.barracks).toBe(M1_IMPORT_MAX_LEVEL);
   });
 
   test("clearing the session and importing again only ever yields another bounded base", async () => {

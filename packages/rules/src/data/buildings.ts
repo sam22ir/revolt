@@ -13,7 +13,8 @@ export interface BuildingLevel {
 }
 
 export interface BuildingDef {
-  readonly produces: ResourceId;
+  /** The resource this building produces, or null (e.g. the barracks trains troops instead). */
+  readonly produces: ResourceId | null;
   readonly levels: readonly BuildingLevel[];
 }
 
@@ -89,6 +90,21 @@ export const BUILDINGS: Readonly<Record<BuildingId, BuildingDef>> = {
       { cost: c(3500, 3050, 2200), durationSec: 14400, ratePerHour: 980 },
       { cost: c(6000, 5200, 3800), durationSec: 28800, ratePerHour: 1250 },
       { cost: c(10000, 8700, 6400), durationSec: 57600, ratePerHour: 1580 },
+    ],
+  },
+  barracks: {
+    produces: null,
+    levels: [
+      { cost: FREE, durationSec: 0, ratePerHour: 0 },
+      { cost: c(80, 80, 60), durationSec: 60, ratePerHour: 0 },
+      { cost: c(160, 160, 120), durationSec: 300, ratePerHour: 0 },
+      { cost: c(320, 320, 240), durationSec: 900, ratePerHour: 0 },
+      { cost: c(640, 640, 480), durationSec: 1800, ratePerHour: 0 },
+      { cost: c(1200, 1200, 900), durationSec: 3600, ratePerHour: 0 },
+      { cost: c(2100, 2100, 1600), durationSec: 7200, ratePerHour: 0 },
+      { cost: c(3600, 3600, 2700), durationSec: 14400, ratePerHour: 0 },
+      { cost: c(6000, 6000, 4500), durationSec: 28800, ratePerHour: 0 },
+      { cost: c(10000, 10000, 7500), durationSec: 57600, ratePerHour: 0 },
     ],
   },
 };

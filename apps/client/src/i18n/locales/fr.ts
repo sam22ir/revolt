@@ -16,6 +16,7 @@ export const fr: LocaleShape = {
     farm: { name: "Ferme", desc: "Produit des vivres." },
     armory: { name: "Armurerie", desc: "Produit des armes." },
     treasury: { name: "Trésorerie", desc: "Collecte des fonds." },
+    barracks: { name: "Caserne", desc: "Forme les troupes. Plus le niveau est élevé, plus les groupes sont grands." },
   },
   panel: {
     level: "Niveau {{level}}",

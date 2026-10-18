@@ -58,7 +58,7 @@ describe("startUpgrade", () => {
   });
 
   test("rejects at max level", () => {
-    const s = base({ levels: { hq: MAX_BUILDING_LEVEL, farm: 1, armory: 1, treasury: 1 } });
+    const s = base({ levels: { hq: MAX_BUILDING_LEVEL, farm: 1, armory: 1, treasury: 1, barracks: 1 } });
     expect(startUpgrade(s, "hq", T0)).toMatchObject({ ok: false, reason: "max_level" });
   });
 

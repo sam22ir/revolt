@@ -1,4 +1,4 @@
-import { isBaseState, type BaseState } from "@revolt/rules";
+import { isBaseState, migrateBaseState, type BaseState } from "@revolt/rules";
 import type { Db, DbStatement } from "./db.ts";
 
 export interface StoredBase {
@@ -17,7 +17,8 @@ export const loadBase = async (db: Db, accountId: string): Promise<StoredBase | 
     .bind(accountId)
     .first<{ state: string; version: number }>();
   if (r === null) return null;
-  const state: unknown = JSON.parse(r.state);
+  // Rows written before M3 have no barracks, troops or marches.
+  const state = migrateBaseState(JSON.parse(r.state));
   if (!isBaseState(state)) throw new Error(`corrupt base for ${accountId}`);
   return { state, version: r.version };
 };

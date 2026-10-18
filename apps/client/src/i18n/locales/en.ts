@@ -11,6 +11,7 @@ export const en = {
     farm: { name: "Farm", desc: "Produces provisions." },
     armory: { name: "Armory", desc: "Produces arms." },
     treasury: { name: "Treasury", desc: "Collects funds." },
+    barracks: { name: "Barracks", desc: "Trains troops. Higher levels train bigger batches." },
   },
   panel: {
     level: "Level {{level}}",

@@ -5,6 +5,9 @@ import { storageCap } from "./production.ts";
 import { mapResources } from "./resources.ts";
 import { nextLevelQuote } from "./upgrade.ts";
 import { isBaseState } from "./validate-state.ts";
+import { migrateBaseState } from "./migrate-state.ts";
+import { START_TROOPS } from "./data/start.ts";
+import { ZERO_TROOPS } from "./troops.ts";
 
 const clampLevels = (levels: BaseState["levels"]): BaseState["levels"] => {
   const hq = Math.min(levels.hq, M1_IMPORT_MAX_LEVEL);
@@ -28,7 +31,8 @@ const plausibleJob = (job: UpgradeJob, levels: BaseState["levels"], now: number)
  * Anything malformed gives a fresh base; levels, resources, the queue and timestamps are
  * clamped so a forged save gains at most a small, bounded head start.
  */
-export const importM1Save = (candidate: unknown, now: number): BaseState => {
+export const importM1Save = (raw: unknown, now: number): BaseState => {
+  const candidate = migrateBaseState(raw);
   if (!isBaseState(candidate)) return createBaseState(now);
   const levels = clampLevels(candidate.levels);
   const cap = storageCap(levels.hq);
@@ -36,6 +40,11 @@ export const importM1Save = (candidate: unknown, now: number): BaseState => {
     resources: mapResources((id) => Math.min(Math.max(0, candidate.resources[id]), cap[id])),
     levels,
     queue: candidate.queue === null ? null : plausibleJob(candidate.queue, levels, now),
+    // Troops and marches never come from a client save.
+    troops: START_TROOPS,
+    wounded: ZERO_TROOPS,
+    training: null,
+    marches: [],
     lastUpdated: Math.min(candidate.lastUpdated, now),
   };
 };

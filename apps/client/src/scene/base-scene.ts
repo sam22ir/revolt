@@ -120,7 +120,7 @@ export class BaseScene extends Phaser.Scene {
     // Scattered rocks and shrubs for a mountain-camp feel.
     const props: readonly [number, number, number][] = [
       [0.4, 0.5, 0x6b6b5f], [3.0, 0.3, 0x55703f], [0.3, 2.6, 0x55703f], [5.6, 2.8, 0x6b6b5f],
-      [3.0, 5.6, 0x55703f], [5.6, 5.5, 0x6b6b5f], [3.4, 3.2, 0x6b6b5f], [1.3, 5.7, 0x55703f],
+      [5.7, 0.4, 0x55703f], [5.6, 5.5, 0x6b6b5f], [3.4, 3.2, 0x6b6b5f], [1.3, 5.7, 0x55703f],
     ];
     for (const [gx, gy, color] of props) {
       const p = isoToWorld(gx, gy);
@@ -225,6 +225,10 @@ export class BaseScene extends Phaser.Scene {
       g.fillStyle(0x7a5a32, 1);
       g.fillRect(mid.x - 18, mid.y - 16, 16, 14);
       g.fillRect(mid.x + 2, mid.y - 12, 16, 12);
+    } else if (id === "barracks") {
+      // Rows of bunks on the roof.
+      g.fillStyle(0x4f3a26, 1);
+      for (let i = 0; i < 3; i++) g.fillRect(mid.x - 15, mid.y - 14 + i * 7, 30, 4);
     } else {
       // Coin stacks.
       g.fillStyle(0xf2d65c, 1);

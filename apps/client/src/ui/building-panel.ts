@@ -68,11 +68,13 @@ export const createBuildingPanel = (deps: PanelDeps): BuildingPanel => {
       dd.append(el("span", undefined, value));
       stats.append(dt, dd);
     };
-    addStat(
-      t("panel.production"),
-      t("panel.perHour", { amount: `+${formatAmount(lang, rateAt(id, level))}` }),
-      resourceIcon(def.produces),
-    );
+    if (def.produces !== null) {
+      addStat(
+        t("panel.production"),
+        t("panel.perHour", { amount: `+${formatAmount(lang, rateAt(id, level))}` }),
+        resourceIcon(def.produces),
+      );
+    }
     if (id === "hq") addStat(t("panel.storage"), formatAmount(lang, storageCap(level).food));
 
     root.append(head, desc, stats);
@@ -115,9 +117,13 @@ export const createBuildingPanel = (deps: PanelDeps): BuildingPanel => {
     meta.append(
       el("dt", undefined, t("panel.duration")),
       el("dd", undefined, formatDuration(check.durationMs)),
-      el("dt", undefined, t("panel.production")),
-      el("dd", undefined, t("panel.perHour", { amount: `+${formatAmount(lang, rateAt(id, check.toLevel))}` })),
     );
+    if (def.produces !== null) {
+      meta.append(
+        el("dt", undefined, t("panel.production")),
+        el("dd", undefined, t("panel.perHour", { amount: `+${formatAmount(lang, rateAt(id, check.toLevel))}` })),
+      );
+    }
     const button = el("button", "upgrade-btn", t("panel.upgrade"));
     button.type = "button";
     button.disabled = !check.ok;

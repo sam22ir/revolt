@@ -4,12 +4,13 @@ import { describe, expect, test } from "vitest";
 import { BUILDING_IDS, BUILDINGS, MAX_BUILDING_LEVEL, RESOURCE_IDS, STORAGE_CAPS } from "../src/index.ts";
 
 describe("balance tables", () => {
-  test("every building has one row per level, increasing in rate and time", () => {
+  test("every building has one row per level, increasing in rate (producers) and time", () => {
     for (const id of BUILDING_IDS) {
       const rows = BUILDINGS[id].levels;
       expect(rows).toHaveLength(MAX_BUILDING_LEVEL);
       for (let i = 1; i < rows.length; i++) {
-        expect(rows[i]!.ratePerHour, `${id} L${i + 1} rate`).toBeGreaterThan(rows[i - 1]!.ratePerHour);
+        if (BUILDINGS[id].produces === null) expect(rows[i]!.ratePerHour, `${id} L${i + 1} rate`).toBe(0);
+        else expect(rows[i]!.ratePerHour, `${id} L${i + 1} rate`).toBeGreaterThan(rows[i - 1]!.ratePerHour);
         expect(rows[i]!.durationSec, `${id} L${i + 1} time`).toBeGreaterThan(rows[i - 1]!.durationSec);
       }
     }

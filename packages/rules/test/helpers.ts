@@ -9,7 +9,7 @@ export const DAY = 24 * HOUR;
 /** A base with HQ at level 2, so producers can be upgraded to level 2. */
 export const base = (overrides: Partial<BaseState> = {}): BaseState => ({
   ...createBaseState(T0),
-  levels: { hq: 2, farm: 1, armory: 1, treasury: 1 },
+  levels: { hq: 2, farm: 1, armory: 1, treasury: 1, barracks: 1 },
   ...overrides,
 });
 

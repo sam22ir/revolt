@@ -18,7 +18,7 @@ export const productionPerHour = (levels: Readonly<Record<BuildingId, number>>):
   const out = { ...ZERO_RESOURCES };
   for (const id of BUILDING_IDS) {
     const def = BUILDINGS[id];
-    out[def.produces] += levelRow(def.levels, levels[id]).ratePerHour;
+    if (def.produces !== null) out[def.produces] += levelRow(def.levels, levels[id]).ratePerHour;
   }
   return out;
 };

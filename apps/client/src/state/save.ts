@@ -1,4 +1,4 @@
-import { isBaseState, type BaseState } from "@revolt/rules";
+import { isBaseState, migrateBaseState, type BaseState } from "@revolt/rules";
 
 export const SAVE_KEY = "revolt.save";
 export const SAVE_VERSION = 1;
@@ -13,8 +13,10 @@ export const parseSave = (raw: string | null): BaseState | null => {
   if (raw === null) return null;
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (typeof parsed !== "object" || parsed === null || !("version" in parsed) || !("state" in parsed) || parsed.version !== SAVE_VERSION || !isBaseState(parsed.state)) return null;
-    return parsed.state;
+    if (typeof parsed !== "object" || parsed === null || !("version" in parsed) || !("state" in parsed) || parsed.version !== SAVE_VERSION) return null;
+    // M1 saves predate the barracks and troops.
+    const state = migrateBaseState(parsed.state);
+    return isBaseState(state) ? state : null;
   } catch {
     return null;
   }

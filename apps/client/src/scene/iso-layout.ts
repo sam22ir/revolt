@@ -18,6 +18,7 @@ export const PLOTS: Readonly<Record<BuildingId, Plot>> = {
   farm: { gx: 0.2, gy: 3.5, size: 2 },
   armory: { gx: 3.5, gy: 0.2, size: 2 },
   treasury: { gx: 3.7, gy: 3.7, size: 1.6 },
+  barracks: { gx: 2.3, gy: 4.2, size: 1.4 },
 };
 
 export interface Vec {
