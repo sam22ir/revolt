@@ -3,6 +3,8 @@
   "name": "revolt-server",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-01",
+  // Daily cleanup (src/cleanup.ts). Locally: `wrangler dev --test-scheduled`, then GET /cdn-cgi/local/scheduled.
+  "triggers": { "crons": ["0 3 * * *"] },
   "d1_databases": [
     {
       "binding": "DB",

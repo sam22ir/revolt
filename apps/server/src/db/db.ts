@@ -6,6 +6,7 @@ export interface DbStatement {
   bind(...values: unknown[]): DbStatement;
   first<T = Record<string, unknown>>(): Promise<T | null>;
   run(): Promise<{ meta: { changes: number } }>;
+  all<T = Record<string, unknown>>(): Promise<{ results: T[] }>;
 }
 
 export interface Db {
