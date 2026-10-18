@@ -1,12 +1,31 @@
-import { expect, test, type Page } from "@playwright/test";
+import { devices, expect, test, type APIRequestContext, type Page } from "@playwright/test";
+
+const devicesPixel = () => devices["Pixel 7"];
 
 const T0 = new Date("2026-06-01T12:00:00Z").getTime();
+const API = "http://localhost:8788";
 const SHOTS = "test-results/screens";
 
 /** Any untranslated i18n key that leaked into the page, e.g. "panel.upgrade". */
-const RAW_KEY = /\b(app|resource|building|panel|reason|queue|time|settings|language)\.[a-z_]+\b/;
+const RAW_KEY = /\b(app|resource|building|panel|reason|queue|time|settings|language|account|sync)\.[a-z_]+\b/;
 
 type BuildingId = "hq" | "farm" | "armory" | "treasury";
+
+/** Sets the e2e Worker's clock; null returns it to real time. The server owns time. */
+const serverClock = async (request: APIRequestContext, now: number | null): Promise<void> => {
+  const res = await request.post(`${API}/__test/clock`, { data: { now } });
+  expect(res.ok()).toBe(true);
+};
+
+/** Moves both clocks: the device's (prediction only) and the server's (the truth). */
+const setTime = async (page: Page, request: APIRequestContext, now: number): Promise<void> => {
+  await serverClock(request, now);
+  await page.clock.setFixedTime(now);
+};
+
+test.beforeEach(async ({ request }) => {
+  await serverClock(request, null);
+});
 
 const waitForGame = async (page: Page): Promise<void> => {
   await page.waitForFunction(() => window.__revolt !== undefined);
@@ -35,8 +54,8 @@ for (const { locale, lang, dir, upgrade } of LOCALES) {
   test.describe(`${lang}`, () => {
     test.use({ locale });
 
-    test(`base, gating, upgrade countdown and completion after restart (${lang})`, async ({ page }) => {
-      await page.clock.setFixedTime(T0);
+    test(`base, gating, upgrade countdown and completion after restart (${lang})`, async ({ page, request }) => {
+      await setTime(page, request, T0);
       await page.goto("/");
       await waitForGame(page);
 
@@ -67,10 +86,15 @@ for (const { locale, lang, dir, upgrade } of LOCALES) {
       await expectNoRawKeys(page);
       await page.screenshot({ path: `${SHOTS}/${lang}-3-hq-upgrading.png` });
 
+      // The upgrade lives on the server; the device keeps only its session token.
+      const local = await page.evaluate(() => ({ save: localStorage.getItem("revolt.save"), session: localStorage.getItem("revolt.session") }));
+      expect(local.save).toBeNull();
+      expect(local.session).toMatch(/^[A-Za-z0-9_-]{43}$/);
+      const server = await request.get(`${API}/v1/state`, { headers: { authorization: `Bearer ${local.session}` } });
+      expect((await server.json()).state.queue.building).toBe("hq");
+
       // "Close the app" for an hour: the upgrade completes and resources accrue.
-      const saved = await page.evaluate(() => localStorage.getItem("revolt.save"));
-      expect(saved).toContain('"queue":{"building":"hq"');
-      await page.clock.setFixedTime(T0 + 60 * 60 * 1000);
+      await setTime(page, request, T0 + 60 * 60 * 1000);
       await page.reload();
       await waitForGame(page);
       // 300 + 120/h for 1 h.
@@ -88,8 +112,8 @@ for (const { locale, lang, dir, upgrade } of LOCALES) {
   });
 }
 
-test("language switcher changes language and direction, and is remembered", async ({ page }) => {
-  await page.clock.setFixedTime(T0);
+test("language switcher changes language and direction, and is remembered", async ({ page, request }) => {
+  await setTime(page, request, T0);
   await page.goto("/");
   await waitForGame(page);
   await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
@@ -132,10 +156,112 @@ test("the canvas renders at the device pixel ratio", async ({ page }) => {
   await expect(page.locator(".panel")).toHaveAttribute("data-building", "armory");
 });
 
-test("a corrupt save falls back to a fresh base", async ({ page }) => {
-  await page.clock.setFixedTime(T0);
+test("a corrupt M1 save falls back to a fresh guest base", async ({ page, request }) => {
+  await setTime(page, request, T0);
   await page.addInitScript(() => localStorage.setItem("revolt.save", "{not json"));
   await page.goto("/");
   await waitForGame(page);
   await expect(page.locator('.res[data-resource="food"] .res-amount')).toHaveText("500");
 });
+
+const food = (page: Page) => page.locator('.res[data-resource="food"] .res-amount');
+
+const m1Save = (state: object): string => JSON.stringify({ version: 1, state });
+const M1_STATE = {
+  resources: { food: 1234, materiel: 900, funds: 800, support: 10 },
+  levels: { hq: 2, farm: 1, armory: 1, treasury: 1 },
+  queue: null,
+  lastUpdated: T0,
+};
+
+test("an M1 local save is moved into the new guest account once", async ({ page, request }) => {
+  await setTime(page, request, T0);
+  // Only before the first session exists, like a device upgrading from M1.
+  await page.addInitScript((save) => {
+    if (localStorage.getItem("revolt.session") === null) localStorage.setItem("revolt.save", save);
+  }, m1Save(M1_STATE));
+  await page.goto("/");
+  await waitForGame(page);
+  await expect(food(page)).toHaveText("1,234");
+  await tapBuilding(page, "hq");
+  await expect(page.locator(".panel-level")).toContainText("2");
+  expect(await page.evaluate(() => localStorage.getItem("revolt.save"))).toBeNull();
+});
+
+test("tampering with local storage has no effect", async ({ page, request }) => {
+  await setTime(page, request, T0);
+  await page.goto("/");
+  await waitForGame(page);
+  await expect(food(page)).toHaveText("500");
+
+  // A forged save next to a live session is ignored, and so is a forged queue.
+  const rich = { ...M1_STATE, resources: { food: 99999, materiel: 99999, funds: 99999, support: 9999 }, levels: { hq: 10, farm: 10, armory: 10, treasury: 10 } };
+  await page.evaluate((save) => localStorage.setItem("revolt.save", save), m1Save(rich));
+  await page.reload();
+  await waitForGame(page);
+  await expect(food(page)).toHaveText("500");
+  await tapBuilding(page, "farm");
+  await expect(page.getByTestId("upgrade")).toBeDisabled();
+
+  // A request carrying forged numbers changes nothing either.
+  const token = await page.evaluate(() => localStorage.getItem("revolt.session"));
+  const res = await request.post(`${API}/v1/intent`, {
+    headers: { authorization: `Bearer ${token}` },
+    data: { type: "upgrade", building: "farm", resources: rich.resources, state: rich },
+  });
+  expect((await res.json()).ok).toBe(false);
+  await page.reload();
+  await waitForGame(page);
+  await expect(food(page)).toHaveText("500");
+});
+
+for (const { locale, lang } of [
+  { locale: "en-US", lang: "en" },
+  { locale: "ar-DZ", lang: "ar" },
+] as const) {
+  test.describe(`${lang} account`, () => {
+    test.use({ locale });
+
+    test(`a linked Google account loads the same base on a second device (${lang})`, async ({ page, browser, request }) => {
+      const email = `player-${lang}-${Date.now()}@example.com`;
+      await setTime(page, request, T0);
+      await page.goto("/");
+      await waitForGame(page);
+
+      // Device A: upgrade the HQ as a guest, then link Google.
+      await tapBuilding(page, "hq");
+      await page.getByTestId("upgrade").click();
+      await expect(page.getByTestId("countdown")).toBeVisible();
+      await page.getByTestId("account").click();
+      const panel = page.getByTestId("account-panel");
+      await expect(panel).toBeVisible();
+      await expect(page.locator(".panel")).toBeHidden();
+      await expectNoRawKeys(page);
+      await page.screenshot({ path: `${SHOTS}/${lang}-5-account-guest.png` });
+      await page.getByTestId("mock-google-email").fill(email);
+      await page.getByTestId("google-sign-in").click();
+      await expect(page.getByTestId("account-status")).toContainText(email);
+      await expectNoRawKeys(page);
+      await page.screenshot({ path: `${SHOTS}/${lang}-6-account-linked.png` });
+
+      // Device B: a fresh phone starts as a new guest, then signs in with the same Google account.
+      const other = await browser.newContext({ ...devicesPixel(), locale });
+      const pageB = await other.newPage();
+      await pageB.clock.setFixedTime(T0);
+      await pageB.goto("/");
+      await waitForGame(pageB);
+      await expect(pageB.locator(".queue-pill")).not.toHaveClass(/busy/);
+      await pageB.getByTestId("account").click();
+      await pageB.getByTestId("mock-google-email").fill(email);
+      await pageB.getByTestId("google-sign-in").click();
+      await expect(pageB.getByTestId("account-status")).toContainText(email);
+      // The same base: the HQ upgrade started on device A is running here too.
+      await expect(pageB.locator(".queue-pill")).toHaveClass(/busy/);
+      await expect(food(pageB)).toHaveText("300");
+      await pageB.reload();
+      await waitForGame(pageB);
+      await expect(pageB.locator(".queue-pill")).toHaveClass(/busy/);
+      await other.close();
+    });
+  });
+}

@@ -23,18 +23,11 @@ export const parseSave = (raw: string | null): BaseState | null => {
 export const serializeSave = (state: BaseState): string =>
   JSON.stringify({ version: SAVE_VERSION, state } satisfies SaveFile);
 
+/** Reads a pre-M2 local save, which is imported once into a new guest account. */
 export const loadState = (storage: Storage): BaseState | null => {
   try {
     return parseSave(storage.getItem(SAVE_KEY));
   } catch {
     return null;
-  }
-};
-
-export const storeState = (storage: Storage, state: BaseState): void => {
-  try {
-    storage.setItem(SAVE_KEY, serializeSave(state));
-  } catch {
-    // Storage full or blocked (private mode): the game keeps running unsaved.
   }
 };

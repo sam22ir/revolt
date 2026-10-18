@@ -114,7 +114,8 @@ html, body {
 .queue-time:empty { display: none; }
 .queue-pill.busy { background: rgb(224 176 64 / 0.92); color: var(--ink); font-weight: 600; }
 
-.panel {
+.panel,
+.account-panel {
   margin: var(--gutter);
   padding: 14px 16px 16px;
   background: var(--paper);
@@ -123,7 +124,8 @@ html, body {
   max-block-size: 55vh;
   overflow-y: auto;
 }
-.panel[hidden] { display: none; }
+.panel[hidden],
+.account-panel[hidden] { display: none; }
 
 .panel-head { display: flex; align-items: center; gap: 10px; }
 .panel-title { margin: 0; font-size: 20px; }
@@ -200,5 +202,48 @@ html, body {
 
 @media (min-width: 720px) {
   .hud-resources { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .panel { align-self: center; inline-size: 420px; }
+  .panel, .account-panel { align-self: center; inline-size: 420px; }
+}
+
+.account-open {
+  font: inherit;
+  font-size: 13px;
+  color: var(--paper);
+  background: rgb(43 42 36 / 0.82);
+  border: 1px solid rgb(244 234 214 / 0.3);
+  border-radius: var(--radius);
+  padding-block: 8px;
+  padding-inline: 10px;
+  min-block-size: 40px;
+}
+.account-email { font-weight: 700; }
+.account-actions { display: flex; flex-direction: column; gap: 8px; margin-block-start: 8px; }
+.account-field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.account-field input {
+  font: inherit;
+  font-size: 15px;
+  padding-block: 8px;
+  padding-inline: 10px;
+  border: 1px solid var(--paper-2);
+  border-radius: 8px;
+}
+.sync-offline {
+  align-self: center;
+  margin: 0;
+  padding-block: 4px;
+  padding-inline: 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  background: var(--bad);
+  color: var(--paper);
+}
+.sync-offline[hidden] { display: none; }
+.boot-status {
+  margin: auto;
+  padding-block: 10px;
+  padding-inline: 16px;
+  border-radius: var(--radius);
+  background: rgb(43 42 36 / 0.82);
+  color: var(--paper);
+  font-size: 15px;
 }

@@ -13,9 +13,10 @@ interface Chip {
 export interface Hud {
   readonly root: HTMLElement;
   readonly update: (state: BaseState, now: number) => void;
+  readonly setOffline: (offline: boolean) => void;
 }
 
-export const createHud = (languageSwitcher: HTMLElement): Hud => {
+export const createHud = (controls: readonly HTMLElement[]): Hud => {
   const root = el("header", "hud");
   const bar = el("div", "hud-bar");
   const list = el("ul", "hud-resources");
@@ -37,13 +38,17 @@ export const createHud = (languageSwitcher: HTMLElement): Hud => {
     list.append(li);
     chips.set(id, { amount, rate, fill });
   }
-  bar.append(list, languageSwitcher);
+  bar.append(list, ...controls);
   const queue = el("div", "queue-pill");
   queue.setAttribute("role", "status");
   const queueLabel = el("span", "queue-label");
   const queueTime = el("span", "queue-time");
   queue.append(queueLabel, queueTime);
-  root.append(bar, queue);
+  const offline = el("p", "sync-offline", t("sync.offline"));
+  offline.setAttribute("role", "status");
+  offline.dataset.testid = "offline";
+  offline.hidden = true;
+  root.append(bar, queue, offline);
 
   const update = (state: BaseState, now: number): void => {
     const lang = currentLanguage();
@@ -71,5 +76,5 @@ export const createHud = (languageSwitcher: HTMLElement): Hud => {
     }
   };
 
-  return { root, update };
+  return { root, update, setOffline: (v) => (offline.hidden = !v) };
 };
