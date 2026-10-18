@@ -223,7 +223,7 @@ Details and conventions live in `CLAUDE.md`. Summary:
 
 ## 11. Milestones
 
-Each milestone is done only when its acceptance criteria pass **on a real Android phone** (browser build is fine for M1).
+Each milestone is done only when its acceptance criteria pass **on a real Android phone**. Exception: M1 was accepted on emulated phone tests (Playwright, Pixel 7 profile, en/ar/fr); its real-device check happens together with the Capacitor Android shell setup.
 
 ### M1 — Single-player prototype
 Base screen, resources, buildings, upgrade timers, offline with local save.
