@@ -5,12 +5,14 @@ import {
   storageCap,
   type BaseState,
   type BuildingId,
+  type TroopId,
   type UpgradeCheck,
 } from "@revolt/rules";
 import { formatAmount, formatDuration } from "../format.ts";
 import { currentLanguage, t } from "../i18n/i18n.ts";
 import { el } from "./dom.ts";
 import { resourceIcon } from "./icons.ts";
+import { createTrainingSection } from "./training-section.ts";
 
 export interface BuildingPanel {
   readonly root: HTMLElement;
@@ -21,6 +23,7 @@ export interface BuildingPanel {
 
 interface PanelDeps {
   readonly onUpgrade: (id: BuildingId) => void;
+  readonly onTrain: (troop: TroopId, count: number) => void;
   readonly onClose: () => void;
 }
 
@@ -41,6 +44,7 @@ export const createBuildingPanel = (deps: PanelDeps): BuildingPanel => {
   let key = "";
   let countdown: HTMLElement | null = null;
   let progressFill: HTMLElement | null = null;
+  const training = createTrainingSection({ onTrain: deps.onTrain });
 
   const render = (id: BuildingId, state: BaseState, check: UpgradeCheck): void => {
     const lang = currentLanguage();
@@ -145,7 +149,10 @@ export const createBuildingPanel = (deps: PanelDeps): BuildingPanel => {
     if (k !== key) {
       render(current, state, check);
       key = k;
+      // Training lives in the barracks' panel; its DOM is kept between rebuilds so typing survives.
+      if (current === "barracks") root.append(training.root);
     }
+    if (current === "barracks") training.update(state, now);
     const job = state.queue;
     if (job !== null && countdown !== null && progressFill !== null) {
       countdown.textContent = formatDuration(job.endsAt - now);

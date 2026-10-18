@@ -205,7 +205,8 @@ export class WorldScene extends Phaser.Scene {
   private setView(next: View): void {
     this.needsInitialCenter = false;
     this.view = this.snapshot === null ? next : clampCenter(next, this.snapshot.size);
-    this.applyView();
+    // `centerOn` may be called before the scene has started and has a camera.
+    if (this.ready) this.applyView();
   }
 
   private applyView(): void {

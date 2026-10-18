@@ -16,7 +16,8 @@ export interface Hud {
   readonly setOffline: (offline: boolean) => void;
 }
 
-export const createHud = (controls: readonly HTMLElement[]): Hud => {
+/** `controls` sit beside the resources, `nav` is the row of view buttons below them, `extras` hang under the queue pill. */
+export const createHud = (controls: readonly HTMLElement[], nav: readonly HTMLElement[], extras: readonly HTMLElement[]): Hud => {
   const root = el("header", "hud");
   const bar = el("div", "hud-bar");
   const list = el("ul", "hud-resources");
@@ -48,7 +49,9 @@ export const createHud = (controls: readonly HTMLElement[]): Hud => {
   offline.setAttribute("role", "status");
   offline.dataset.testid = "offline";
   offline.hidden = true;
-  root.append(bar, queue, offline);
+  const navRow = el("div", "hud-nav");
+  navRow.append(...nav);
+  root.append(bar, navRow, queue, ...extras, offline);
 
   const update = (state: BaseState, now: number): void => {
     const lang = currentLanguage();

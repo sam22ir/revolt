@@ -1,16 +1,21 @@
 import Phaser from "phaser";
-import type { BuildingId } from "@revolt/rules";
+import type { BuildingId, MapSnapshot } from "@revolt/rules";
 import { changeLanguage, initI18n } from "./i18n/i18n.ts";
 import { loadLanguagePref, storeLanguagePref } from "./i18n/language-pref.ts";
 import { detectLanguage } from "./i18n/languages.ts";
 import { BaseScene } from "./scene/base-scene.ts";
 import { followParentSize, hiDpiScaleConfig } from "./scene/hidpi-scale.ts";
-import { createApi, defaultApiUrl } from "./net/api.ts";
+import { showScene } from "./scene/scene-switch.ts";
+import { WorldScene } from "./scene/world-scene.ts";
+import { createApi, defaultApiUrl, mapSocketUrl } from "./net/api.ts";
 import { googleSignIn } from "./net/google.ts";
+import { createMapSocket } from "./net/map-socket.ts";
 import { connectGameStore, type GameStore } from "./state/game-store.ts";
+import { createWorldStore } from "./state/world-store.ts";
 import { mountUi } from "./ui/app-ui.ts";
 import { showBootStatus } from "./ui/boot-status.ts";
 import "./ui/style.css";
+import "./ui/map.css";
 
 const TICK_MS = 250;
 const RETRY_MS = [1000, 2000, 5000, 10_000];
@@ -37,47 +42,78 @@ const start = async (): Promise<void> => {
   const api = createApi(apiUrl);
   // The device clock only predicts between server answers; rules only ever receive `now`.
   const store = await connect(uiRoot, () => connectGameStore({ api, storage, clock: () => Date.now() }));
+  const socket = createMapSocket({ url: mapSocketUrl(apiUrl), token: store.token });
+  const world = createWorldStore({ api, game: store, socket, storage });
 
-  let scene: BaseScene | null = null;
+  let baseScene: BaseScene | null = null;
+  let worldScene: WorldScene | null = null;
+  let game: Phaser.Game | null = null;
   const ui = mountUi(uiRoot, {
     google: googleSignIn(apiUrl),
     store,
+    world,
     onLanguage: async (lang) => {
       storeLanguagePref(storage, lang);
       await changeLanguage(lang);
     },
-    onSelectionChange: (id) => scene?.setSelected(id),
+    onSelectionChange: (id) => baseScene?.setSelected(id),
+    onTileSelectionChange: (tile) => worldScene?.setSelectedTile(tile),
+    onViewChange: (view) => {
+      if (game !== null) showScene(game, view === "map" ? "world" : "base");
+    },
   });
 
-  scene = new BaseScene(store, (id: BuildingId | null) => ui.select(id));
+  baseScene = new BaseScene(store, (id: BuildingId | null) => ui.select(id));
+  worldScene = new WorldScene(store, world, { onSelect: ui.selectTile, onCenter: ui.setCenter });
   const gameRoot = document.getElementById("game");
   if (gameRoot === null) throw new Error("#game missing");
-  const game = new Phaser.Game({
+  // The base scene starts; the world scene waits until the map is first opened.
+  game = new Phaser.Game({
     type: Phaser.AUTO,
     parent: gameRoot,
     backgroundColor: "#3d4a3a",
     scale: hiDpiScaleConfig(gameRoot),
     banner: false,
-    scene,
+    scene: [baseScene, worldScene],
   });
   followParentSize(game, gameRoot);
 
+  world.start();
   window.setInterval(store.tick, TICK_MS);
   // Coming back to the app, or while offline: ask the server again.
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") void store.resync();
+    if (document.visibilityState === "visible") {
+      void store.resync();
+      void world.refreshReports();
+    }
   });
   window.setInterval(() => {
     if (store.status() === "offline") void store.resync();
   }, RETRY_MS[RETRY_MS.length - 1]);
 
-  // Read-only hook so screenshot tests can tap buildings.
-  window.__revolt = { buildingScreenPoint: (id: BuildingId) => scene.buildingScreenPoint(id) };
+  const scene = worldScene;
+  // Read-only hooks so screenshot tests can tap buildings and map tiles.
+  window.__revolt = {
+    buildingScreenPoint: (id: BuildingId) => baseScene.buildingScreenPoint(id),
+    map: {
+      snapshot: () => world.snapshot(),
+      tileScreenPoint: (x, y) => scene.tileScreenPoint(x, y),
+      centerOn: (x, y) => scene.centerOn(x, y),
+    },
+  };
 };
 
 declare global {
   interface Window {
-    __revolt?: { buildingScreenPoint: (id: BuildingId) => { x: number; y: number } };
+    __revolt?: {
+      buildingScreenPoint: (id: BuildingId) => { x: number; y: number };
+      map: {
+        snapshot: () => MapSnapshot | null;
+        /** CSS-pixel position of a tile's middle on the map view; null until the map has been opened. */
+        tileScreenPoint: (x: number, y: number) => { x: number; y: number } | null;
+        centerOn: (x: number, y: number) => void;
+      };
+    };
   }
 }
 
