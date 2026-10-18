@@ -42,7 +42,7 @@ The client never sends numbers the server reads: an intent names an action and a
 - `POST /v1/auth/google` verifies a Google ID token (signature against Google's keys, issuer, audience = our web client ID, expiry). If that Google account already owns a base, the device switches to it (second device); if the device is a guest, Google is linked to its base; if the device's account is linked to a different Google account, a new account is created.
 - A guest base left behind when a device switches stays in D1 unused. Cleanup is a later job.
 
-Why not Better Auth: its anonymous plugin links by creating a new user and deleting the guest, so the base would have to be moved in a hook; it is built around cookies and OAuth redirects, which a Capacitor app would have to work around; and its Google provider cannot easily be pointed at a local mock. Verifying Google ID tokens needs no client secret and no redirect handling, and the only dependency is `jose`.
+Why not Better Auth (1.7): its anonymous plugin links by creating a new user and deleting the guest, so the base would have to be moved in a hook. Verifying Google ID tokens ourselves needs no client secret and no redirect handling, a local signing key makes a trivial mock, and the only dependency is `jose`, where Better Auth brings zod, kysely, several database adapters and telemetry.
 
 ## Tests
 

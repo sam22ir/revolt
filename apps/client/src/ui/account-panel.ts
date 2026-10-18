@@ -46,9 +46,13 @@ export const createAccountPanel = (deps: AccountDeps): AccountPanel => {
     } else {
       const actions = el("div", "account-actions");
       root.append(el("p", "panel-desc", linked === null ? t("account.linkHint") : t("account.switchHint")));
-      deps.google.mount(actions, linked === null ? t("account.link") : t("account.switch"), (idToken) => {
-        deps.onIdToken(idToken).catch(() => render(account, true));
-      });
+      const failed = (): void => render(account, true);
+      deps.google.mount(
+        actions,
+        linked === null ? t("account.link") : t("account.switch"),
+        (idToken) => void deps.onIdToken(idToken).catch(failed),
+        failed,
+      );
       root.append(actions);
     }
     if (error) {

@@ -10,11 +10,11 @@ import { el } from "../ui/dom.ts";
  */
 export interface GoogleSignIn {
   /** Renders the sign-in control into `container` and calls `onIdToken` when the player signs in. */
-  readonly mount: (container: HTMLElement, label: string, onIdToken: (idToken: string) => void) => void;
+  readonly mount: (container: HTMLElement, label: string, onIdToken: (idToken: string) => void, onError: () => void) => void;
 }
 
 const mockSignIn = (apiUrl: string): GoogleSignIn => ({
-  mount: (container, label, onIdToken) => {
+  mount: (container, label, onIdToken, onError) => {
     const field = el("label", "account-field");
     field.append(el("span", undefined, t("account.mockEmail")));
     const input = el("input");
@@ -32,7 +32,7 @@ const mockSignIn = (apiUrl: string): GoogleSignIn => ({
       const q = new URLSearchParams({ sub: `mock:${email}`, email });
       void fetch(`${apiUrl}/__test/google-token?${q.toString()}`)
         .then((r) => r.json() as Promise<{ idToken: string }>)
-        .then((r) => onIdToken(r.idToken));
+        .then((r) => onIdToken(r.idToken), onError);
     });
     container.append(field, button);
   },
