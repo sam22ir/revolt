@@ -4,7 +4,7 @@ import { newToken } from "../auth/tokens.ts";
 import { findAccountByGoogleSub, insertAccount, linkGoogle, type Account } from "../db/accounts.ts";
 import { isUniqueViolation } from "../db/db.ts";
 import { insertBase } from "../db/bases.ts";
-import { insertSession } from "../db/sessions.ts";
+import { endSession, insertSession } from "../db/sessions.ts";
 import { csv } from "../env.ts";
 import { HttpError, json, readJson } from "../http.ts";
 import { accountView, authenticate, currentBase, type Ctx } from "./context.ts";
@@ -51,11 +51,12 @@ const resolveAccount = async (ctx: Ctx, current: Account, who: GoogleIdentity): 
  * - Google account already linked somewhere: this device switches to that account (the second-device case).
  * - Current account is a guest: Google is linked to it, keeping its base.
  * - Current account is linked to another Google account: a new account is created for this one.
+ * On a switch the device's old session ends, so a guest left behind becomes eligible for cleanup.
  */
 export const postGoogle = async (ctx: Ctx): Promise<Response> => {
   const audiences = csv(ctx.env.GOOGLE_CLIENT_IDS);
   if (audiences.length === 0) throw new HttpError("google_not_configured");
-  const { token, account: current } = await authenticate(ctx);
+  const { token, session, account: current } = await authenticate(ctx);
   const { idToken } = await readJson(ctx.req);
   if (typeof idToken !== "string" || idToken.length > 8192) throw new HttpError("bad_request");
   const who = await verifyGoogleIdToken(idToken, ctx.deps.googleKeys, audiences, ctx.now);
@@ -66,7 +67,8 @@ export const postGoogle = async (ctx: Ctx): Promise<Response> => {
   let outToken = token;
   if (switched) {
     outToken = newToken();
-    await (await insertSession(ctx.env.DB, outToken, target.id, ctx.now)).run();
+    const db = ctx.env.DB;
+    await db.batch([await insertSession(db, outToken, target.id, ctx.now), ...endSession(db, session, ctx.now)]);
   }
   const { state } = await currentBase(ctx, target.id);
   return json({ token: outToken, account: accountView(target), state, now: ctx.now, switched });

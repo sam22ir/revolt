@@ -4,6 +4,7 @@ import type { Ctx } from "./handlers/context.ts";
 import { postGoogle } from "./handlers/google.ts";
 import { createGuest } from "./handlers/guest.ts";
 import { postIntent } from "./handlers/intent.ts";
+import { postLogout } from "./handlers/logout.ts";
 import { getState } from "./handlers/state.ts";
 
 type Handler = (ctx: Ctx) => Promise<Response>;
@@ -13,6 +14,7 @@ const ROUTES: Record<string, Handler> = {
   "GET /v1/state": getState,
   "POST /v1/intent": postIntent,
   "POST /v1/auth/google": postGoogle,
+  "POST /v1/logout": postLogout,
 };
 
 const route = async (req: Request, env: Env, deps: Deps): Promise<Response> => {

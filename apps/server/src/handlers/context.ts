@@ -3,7 +3,7 @@ import { bearerToken } from "../auth/tokens.ts";
 import type { Account } from "../db/accounts.ts";
 import { findAccountById } from "../db/accounts.ts";
 import { loadBase } from "../db/bases.ts";
-import { accountIdForToken } from "../db/sessions.ts";
+import { findSession, touchSession, type Session } from "../db/sessions.ts";
 import type { Deps, Env } from "../env.ts";
 import { HttpError } from "../http.ts";
 
@@ -27,16 +27,19 @@ export const accountView = (a: Account): AccountView => ({
 
 export interface Authed {
   readonly token: string;
+  readonly session: Session;
   readonly account: Account;
 }
 
+/** Resolves the bearer token to its session and account, refreshing `last_used_at` (at most hourly). */
 export const authenticate = async (ctx: Ctx): Promise<Authed> => {
   const token = bearerToken(ctx.req);
   if (token === null) throw new HttpError("unauthorized");
-  const id = await accountIdForToken(ctx.env.DB, token);
-  const account = id === null ? null : await findAccountById(ctx.env.DB, id);
-  if (account === null) throw new HttpError("unauthorized");
-  return { token, account };
+  const session = await findSession(ctx.env.DB, token);
+  const account = session === null ? null : await findAccountById(ctx.env.DB, session.accountId);
+  if (session === null || account === null) throw new HttpError("unauthorized");
+  await touchSession(ctx.env.DB, session, ctx.now);
+  return { token, session, account };
 };
 
 /** The account's base brought up to `now`. Reads never write: `advance` is pure. */
