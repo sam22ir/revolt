@@ -1,0 +1,17 @@
+{
+  "name": "revolt",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.8.1",
+  "scripts": {
+    "test": "pnpm -r --workspace-concurrency=1 test",
+    "typecheck": "pnpm -r --workspace-concurrency=1 typecheck",
+    "dev": "pnpm --filter @revolt/client dev",
+    "build": "pnpm --filter @revolt/client build",
+    "test:e2e": "pnpm --filter @revolt/client test:e2e"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2",
+    "vitest": "5.0.5"
+  }
+}
