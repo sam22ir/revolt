@@ -3,9 +3,10 @@ import { devices, expect, test, type APIRequestContext, type Browser, type Page 
 const T0 = new Date("2026-07-01T12:00:00Z").getTime();
 const API = "http://localhost:8788";
 const SHOTS = "test-results/screens";
-// Known headless artifact: with Chromium's default headless GL, the WebGL canvas shows black above a
-// DOM panel that scrolls (barracks, long reports). ANGLE SwiftShader renders it correctly but is too
-// slow for this suite, so these screenshots may show black there; check on a phone.
+// Known, unexplained: in headless Chromium the WebGL canvas shows black above a DOM panel that scrolls
+// (barracks, long reports), so some screenshots below show a black area. It does not happen with
+// `overflow: visible` on the panel and is hidden by ANGLE SwiftShader (too slow for this suite). Not
+// confirmed on a real phone; see the M3 notes.
 
 /** Any untranslated i18n key that leaked into the page. */
 const RAW_KEY = /\b(app|resource|building|panel|reason|queue|time|settings|language|account|sync|map|march|report|troop|npc|terrain|train|result)\.[a-z_]+\b/;
@@ -83,6 +84,20 @@ for (const { locale, lang, dir } of LOCALES) {
     // Each sees both camps; tapping the other's tile shows its tag.
     await openMap(a, 2);
     await openMap(b, 2);
+
+    // The map scrolls: the coordinates readout follows a drag.
+    const coords = a.getByTestId("coords");
+    await a.evaluate(() => window.__revolt!.map!.centerOn(32, 32));
+    await expect(coords).toHaveText(/32.*32/);
+    const centred = await coords.innerText();
+    const box = (await a.locator("canvas").boundingBox())!;
+    await a.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await a.mouse.down();
+    await a.mouse.move(box.x + box.width / 2 - 140, box.y + box.height / 2 - 160, { steps: 8 });
+    await a.mouse.up();
+    await expect(coords).not.toHaveText(centred);
+    await expectNoRawKeys(a);
+
     for (const [me, them] of [[a, b], [b, a]] as const) {
       const theirOwn = await ownCamp(them);
       const other = await me.evaluate(({ x, y }) => window.__revolt!.map!.snapshot()!.bases.find((p) => p.x === x && p.y === y)!, theirOwn);
