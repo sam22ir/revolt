@@ -4,10 +4,11 @@ import { API, expectNoRawKeys, mapEpoch, openGame, openMap, ownCamp, screenshot,
 const LOCALES = [
   { locale: "en-US", lang: "en", dir: "ltr" },
   { locale: "ar-DZ", lang: "ar", dir: "rtl" },
+  { locale: "fr-FR", lang: "fr", dir: "ltr" },
 ] as const;
 
 // After the alliance spec's slots (files run in name order).
-const FIRST_SLOT = 2;
+const FIRST_SLOT = 3;
 
 for (const [i, { locale, lang, dir }] of LOCALES.entries()) {
   test(`two players share the map; a march fights and returns with a report (${lang})`, { tag: "@screenshots" }, async ({ browser, request }) => {

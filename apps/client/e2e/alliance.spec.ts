@@ -5,6 +5,7 @@ import { API, expectNoRawKeys, mapEpoch, openGame, openMap, screenshot, setTime,
 const LOCALES = [
   { locale: "en-US", lang: "en", dir: "ltr", name: "Free Lands", say: "Salut, on se retrouve au col", reply: "Understood" },
   { locale: "ar-DZ", lang: "ar", dir: "rtl", name: "الحرية", say: "مرحبا بالجميع، نلتقي عند الممر", reply: "علم" },
+  { locale: "fr-FR", lang: "fr", dir: "ltr", name: "Terres libres", say: "Salut, on se retrouve au col", reply: "Bien reçu" },
 ] as const;
 
 /** A short unique tag (alliances on a server share one namespace across the whole e2e run). */
