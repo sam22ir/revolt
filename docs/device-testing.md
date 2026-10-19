@@ -1,5 +1,7 @@
 # Testing on a real phone (M1)
 
+**Easiest:** open the deployed build, `https://revolt-server.nafaa-store.workers.dev` (see `deploy.md`), in Chrome on the phone. The steps below serve a local build instead.
+
 GDD §11 allows the browser build for M1, so there is no app shell yet. Serve the production build from this machine and open it in Chrome on an Android phone.
 
 ## 1. Build and serve
