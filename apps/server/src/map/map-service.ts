@@ -396,19 +396,21 @@ export class MapService {
     return { value: removed, events: removed > 0 ? [MAP_CHANGED] : [] };
   }
 
-  /** Game time of the next thing to resolve, or null if nothing is pending. */
+  /**
+   * Game time of the next thing to resolve, or null if nothing is pending. Separate small queries rather than one
+   * compound SELECT: a Durable Object's SQLite allows far fewer compound terms than Node's does.
+   */
   nextDueAt(): number | null {
-    const r = this.rows<{ due: number | null }>(
-      `SELECT MIN(due) AS due FROM (
-         SELECT arrive_at AS due FROM marches WHERE phase = 'outbound'
-         UNION ALL SELECT return_at FROM marches WHERE phase = 'returning'
-         UNION ALL SELECT depart_at + ? FROM marches WHERE phase = 'pending' AND rally_id IS NULL
-         UNION ALL SELECT arrive_at FROM rallies WHERE status = 'open'
-         UNION ALL SELECT return_at FROM rallies WHERE status = 'done'
-         UNION ALL SELECT respawn_at FROM npcs WHERE respawn_at IS NOT NULL)`,
-      PENDING_TIMEOUT_MS,
-    )[0];
-    return r?.due ?? null;
+    const due = (query: string, ...bindings: number[]): number | null => this.rows<{ due: number | null }>(query, ...bindings)[0]?.due ?? null;
+    const times = [
+      due("SELECT MIN(arrive_at) AS due FROM marches WHERE phase = 'outbound'"),
+      due("SELECT MIN(return_at) AS due FROM marches WHERE phase = 'returning'"),
+      due("SELECT MIN(depart_at) + ? AS due FROM marches WHERE phase = 'pending' AND rally_id IS NULL", PENDING_TIMEOUT_MS),
+      due("SELECT MIN(arrive_at) AS due FROM rallies WHERE status = 'open'"),
+      due("SELECT MIN(return_at) AS due FROM rallies WHERE status = 'done'"),
+      due("SELECT MIN(respawn_at) AS due FROM npcs WHERE respawn_at IS NOT NULL"),
+    ].filter((t): t is number => t !== null);
+    return times.length === 0 ? null : Math.min(...times);
   }
 
   /** Where the viewer's base is, placing it on a free tile first if needed. The handle is its public name. */
