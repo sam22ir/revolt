@@ -22,10 +22,6 @@ const PHONE_DPR = devices["Pixel 7"].deviceScaleFactor;
 export const API = "http://localhost:8788";
 export const SHOTS = "test-results/screens";
 
-// Known, unexplained: in headless Chromium the WebGL canvas shows black above a DOM panel that scrolls
-// (barracks, long reports), so some screenshots below show a black area. It does not happen with
-// `overflow: visible` on the panel and is hidden by ANGLE SwiftShader (too slow for this suite). Not
-// confirmed on a real phone; see the M3 notes.
 
 /** Any untranslated i18n key that leaked into the page. */
 export const RAW_KEY = /\b(app|resource|building|panel|reason|queue|time|settings|language|account|sync|map|march|report|troop|npc|terrain|train|result|alliance|chat|help|rally|nav|tab)\.[a-z_]+\b/;

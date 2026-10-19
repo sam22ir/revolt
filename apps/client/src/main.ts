@@ -111,6 +111,7 @@ const start = async (): Promise<void> => {
       snapshot: () => world.snapshot(),
       tileScreenPoint: (x, y) => scene.tileScreenPoint(x, y),
       centerOn: (x, y) => scene.centerOn(x, y),
+      zoom: () => scene.currentZoom(),
     },
     alliance: {
       snapshot: () => ({ alliance: alliance.alliance(), help: alliance.help(), messages: alliance.messages() }),
@@ -129,6 +130,7 @@ declare global {
         /** CSS-pixel position of a tile's middle on the map view; null until the map has been opened. */
         tileScreenPoint: (x: number, y: number) => { x: number; y: number } | null;
         centerOn: (x: number, y: number) => void;
+        zoom: () => number;
       };
       alliance: {
         /** The alliance store as it is now, for tests: membership, open help requests and the chat log. */

@@ -179,6 +179,11 @@ export class WorldScene extends Phaser.Scene {
   }
 
   /** Centers the view on a tile. Works before the scene has started. */
+  /** The current zoom, for tests. */
+  currentZoom(): number {
+    return this.view.zoom;
+  }
+
   centerOn(x: number, y: number): void {
     this.needsInitialCenter = false;
     const c = tileCenter(x, y);

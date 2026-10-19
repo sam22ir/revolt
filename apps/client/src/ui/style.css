@@ -122,7 +122,9 @@ html, body {
   padding: 14px 16px 16px;
   background: var(--paper);
   border-radius: 16px;
-  box-shadow: 0 -4px 24px rgb(0 0 0 / 0.35);
+  /* Not box-shadow: on a scrolling element above the WebGL canvas it made headless Chromium paint the canvas
+     area above the panel solid white/black. drop-shadow renders the same and does not. */
+  filter: drop-shadow(0 -4px 12px rgb(0 0 0 / 0.35));
   max-block-size: 55vh;
   overflow-y: auto;
 }
