@@ -39,21 +39,36 @@ export const expectNoRawKeys = async (page: Page): Promise<void> => {
 
 /** Opens the map and waits until it shows at least `bases` camps (earlier tests share the same map). */
 export const openMap = async (page: Page, bases: number): Promise<void> => {
+  await page.bringToFront();
   await page.getByTestId("map-toggle").click();
   await expect.poll(() => page.evaluate(() => window.__revolt?.map?.snapshot()?.bases.length ?? 0)).toBeGreaterThanOrEqual(bases);
 };
 
 export const ownCamp = (page: Page) => page.evaluate(() => window.__revolt!.map!.snapshot()!.bases.find((x) => x.mine)!);
 
-/** Centres the map on a tile and taps it, again if the first tap did not open the tile panel (a tap can land mid-redraw). */
+/**
+ * Centres the map on a tile and taps it, until the tile panel shows that tile's coordinates. On a loaded machine the
+ * game draws a frame every half second or so, so a tap can be missed or land on the tile next to it: retry, and
+ * fall back to a mouse click (the same gesture for the game).
+ */
 export const tapTile = async (page: Page, tile: Point): Promise<void> => {
-  for (let attempt = 0; attempt < 3; attempt++) {
+  // Two contexts share one headless browser; a page that is not in front gets no animation frames, so Phaser
+  // would neither re-centre nor see the tap.
+  await page.bringToFront();
+  const coords = new RegExp(`(^|\\D)${tile.x}\\D+${tile.y}(\\D|$)`);
+  const showsTile = async (): Promise<boolean> => {
+    const shown = await page.getByTestId("tile-panel").waitFor({ state: "visible", timeout: 2500 }).then(() => true, () => false);
+    return shown && coords.test(await page.getByTestId("tile-coords").innerText());
+  };
+  for (let attempt = 0; attempt < 4; attempt++) {
     await page.evaluate(({ x, y }) => window.__revolt!.map!.centerOn(x, y), tile);
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(600);
     const p = await page.evaluate(({ x, y }) => window.__revolt!.map!.tileScreenPoint(x, y), tile);
     if (p === null) throw new Error("tile not on screen");
-    await page.touchscreen.tap(p.x, p.y);
-    if (await page.getByTestId("tile-panel").waitFor({ state: "visible", timeout: 2000 }).then(() => true, () => false)) return;
+    if (attempt % 2 === 0) await page.touchscreen.tap(p.x, p.y);
+    else await page.mouse.click(p.x, p.y);
+    if (await showsTile()) return;
   }
+  throw new Error(`could not select tile ${tile.x},${tile.y}`);
 };
 
