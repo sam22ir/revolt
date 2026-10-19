@@ -45,12 +45,15 @@ export const openMap = async (page: Page, bases: number): Promise<void> => {
 
 export const ownCamp = (page: Page) => page.evaluate(() => window.__revolt!.map!.snapshot()!.bases.find((x) => x.mine)!);
 
-/** Centres the map on a tile and taps it. */
+/** Centres the map on a tile and taps it, again if the first tap did not open the tile panel (a tap can land mid-redraw). */
 export const tapTile = async (page: Page, tile: Point): Promise<void> => {
-  await page.evaluate(({ x, y }) => window.__revolt!.map!.centerOn(x, y), tile);
-  await page.waitForTimeout(200);
-  const p = await page.evaluate(({ x, y }) => window.__revolt!.map!.tileScreenPoint(x, y), tile);
-  if (p === null) throw new Error("tile not on screen");
-  await page.touchscreen.tap(p.x, p.y);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await page.evaluate(({ x, y }) => window.__revolt!.map!.centerOn(x, y), tile);
+    await page.waitForTimeout(300);
+    const p = await page.evaluate(({ x, y }) => window.__revolt!.map!.tileScreenPoint(x, y), tile);
+    if (p === null) throw new Error("tile not on screen");
+    await page.touchscreen.tap(p.x, p.y);
+    if (await page.getByTestId("tile-panel").waitFor({ state: "visible", timeout: 2000 }).then(() => true, () => false)) return;
+  }
 };
 

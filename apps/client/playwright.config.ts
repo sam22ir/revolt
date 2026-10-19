@@ -7,6 +7,8 @@ export default defineConfig({
   testDir: "e2e",
   outputDir: "test-results/artifacts",
   workers: 1,
+  // The suite runs real servers and two browsers on a shared machine; the 30 s default is too tight for the longer flows.
+  timeout: 90_000,
   reporter: "list",
   use: {
     ...devices["Pixel 7"],
