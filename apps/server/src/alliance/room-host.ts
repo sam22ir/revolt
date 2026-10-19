@@ -56,6 +56,25 @@ export class RoomHost {
     this.broadcast({ type: "chat", message: r.message });
   }
 
+  /**
+   * `onFrame` after asking the database (the truth) whether the sender is still a member. The Worker's `memberChanged`
+   * call is best effort, so a kicked player's socket could otherwise keep posting until it reconnected. A failed lookup
+   * drops the message rather than letting it through.
+   */
+  async onFrameChecked(socket: RoomSocket, data: unknown, now: number, isMember: (accountId: string) => Promise<boolean>): Promise<void> {
+    let member: boolean;
+    try {
+      member = await isMember(socket.accountId);
+    } catch {
+      return;
+    }
+    if (!member) {
+      this.memberChanged(socket.accountId, null);
+      return;
+    }
+    this.onFrame(socket, data, now);
+  }
+
   broadcast(msg: AllianceServerMessage): void {
     const data = RoomHost.frame(msg);
     for (const s of this.ports.sockets()) {

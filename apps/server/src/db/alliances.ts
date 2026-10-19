@@ -25,6 +25,10 @@ interface MembershipRow {
   readonly joined_at: number;
 }
 
+/** Whether the account is (still) a member of this alliance. */
+export const isMemberOf = async (db: Db, accountId: string, allianceId: string): Promise<boolean> =>
+  (await db.prepare("SELECT 1 AS x FROM alliance_members WHERE account_id = ? AND alliance_id = ?").bind(accountId, allianceId).first()) !== null;
+
 /** The alliance an account belongs to, if any. */
 export const findMembership = async (db: Db, accountId: string): Promise<Membership | null> => {
   const r = await db

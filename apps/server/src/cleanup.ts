@@ -103,6 +103,18 @@ export interface CleanupResult {
  * deleted: the map and chat rooms are cleaned first (idempotent), so a failure leaves rows that the next run retries
  * rather than camps with no owner.
  */
+/** Which of these alliance ids no longer exist. */
+export const missingAlliances = async (db: Db, ids: readonly string[]): Promise<string[]> => {
+  const missing: string[] = [];
+  for (let i = 0; i < ids.length; i += CHUNK) {
+    const part = ids.slice(i, i + CHUNK);
+    const rows = await db.prepare(`SELECT id FROM alliances WHERE id IN (${part.map(() => "?").join(",")})`).bind(...part).all<{ id: string }>();
+    const live = new Set(rows.results.map((r) => r.id));
+    missing.push(...part.filter((id) => !live.has(id)));
+  }
+  return missing;
+};
+
 export type OnDeleted = (server: string, ids: string[], endedAlliances: string[]) => Promise<void>;
 
 /**

@@ -41,6 +41,7 @@ export const durableRoom = (env: Env, allianceId: string): RoomApi => {
       headers.set("x-account-id", who.accountId);
       headers.set("x-handle", who.handle);
       headers.set("x-rank", who.rank);
+      headers.set("x-alliance-id", allianceId);
       return stub.fetch(new Request(req.url, { headers }));
     },
     memberChanged: (accountId, rank) => stub.memberChanged(accountId, rank),

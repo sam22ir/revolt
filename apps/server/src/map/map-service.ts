@@ -377,6 +377,11 @@ export class MapService {
     return r === undefined ? null : { x: r.x, y: r.y };
   }
 
+  /** Alliances that have an HQ here, so the daily job can drop the ones whose alliance no longer exists. */
+  hqAllianceIds(): string[] {
+    return this.rows<{ alliance_id: string }>("SELECT alliance_id FROM alliance_hqs ORDER BY alliance_id").map((r) => r.alliance_id);
+  }
+
   /** An alliance ended: its HQ leaves the map and its former members lose the tag. Rallies already out finish as they are. */
   removeAlliance(allianceId: string): MapOp<null> {
     const hq = this.rows("DELETE FROM alliance_hqs WHERE alliance_id = ? RETURNING alliance_id", allianceId).length;

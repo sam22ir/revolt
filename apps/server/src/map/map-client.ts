@@ -15,6 +15,7 @@ export interface MapStub {
   joinRally(map: string, viewer: MapViewer, rallyId: string, troops: Troops, now: number): Promise<SendMarchResult>;
   setHq(map: string, viewer: MapViewer, x: number, y: number, now: number): Promise<HqResult>;
   hqOf(map: string, allianceId: string): Promise<MapPoint | null>;
+  hqAllianceIds(map: string): Promise<string[]>;
   setAlliance(map: string, viewer: MapViewer, now: number): Promise<void>;
   removeAlliance(map: string, allianceId: string, now: number): Promise<void>;
   removeAccounts(ids: string[], now: number): Promise<number>;
@@ -35,6 +36,7 @@ export interface MapApi {
   joinRally(viewer: MapViewer, rallyId: string, troops: Troops, now: number): Promise<SendMarchResult>;
   setHq(viewer: MapViewer, x: number, y: number, now: number): Promise<HqResult>;
   hqOf(allianceId: string): Promise<MapPoint | null>;
+  hqAllianceIds(): Promise<string[]>;
   /** Tells the map a player's name or alliance changed, so everyone's snapshot shows it. */
   setAlliance(viewer: MapViewer, now: number): Promise<void>;
   removeAlliance(allianceId: string, now: number): Promise<void>;
@@ -53,6 +55,7 @@ export const durableMap = (env: Env, server: string): MapApi => {
     joinRally: (v, rallyId, troops, now) => stub.joinRally(server, v, rallyId, troops, now),
     setHq: (v, x, y, now) => stub.setHq(server, v, x, y, now),
     hqOf: (allianceId) => stub.hqOf(server, allianceId),
+    hqAllianceIds: () => stub.hqAllianceIds(server),
     setAlliance: (v, now) => stub.setAlliance(server, v, now),
     removeAlliance: (allianceId, now) => stub.removeAlliance(server, allianceId, now),
     removeAccounts: (ids, now) => stub.removeAccounts(ids, now),

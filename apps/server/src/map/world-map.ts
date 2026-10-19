@@ -87,6 +87,10 @@ export class WorldMap extends DurableObject<Env> {
     return this.mapHost().service.hqOf(allianceId);
   }
 
+  async hqAllianceIds(_map: string): Promise<string[]> {
+    return this.mapHost().service.hqAllianceIds();
+  }
+
   async setAlliance(_map: string, viewer: MapViewer, now: number): Promise<void> {
     await this.mapHost().run(now, (s) => s.setAlliance(viewer));
   }
