@@ -1,7 +1,5 @@
 import { devices, expect, test, type APIRequestContext, type Page } from "@playwright/test";
-import { expectNoRawKeys } from "./helpers.ts";
-
-const devicesPixel = () => devices["Pixel 7"];
+import { expectNoRawKeys, PHONE, screenshot, waitForGame } from "./helpers.ts";
 
 const T0 = new Date("2026-06-01T12:00:00Z").getTime();
 const API = "http://localhost:8788";
@@ -26,12 +24,6 @@ test.beforeEach(async ({ request }) => {
   await serverClock(request, null);
 });
 
-const waitForGame = async (page: Page): Promise<void> => {
-  await page.waitForFunction(() => window.__revolt !== undefined);
-  await page.locator("canvas").waitFor();
-  // Let Phaser draw a few frames.
-  await page.waitForTimeout(400);
-};
 
 /** Like a player: an open building panel covers part of the base, so close it before tapping the next building. */
 const tapBuilding = async (page: Page, id: BuildingId): Promise<void> => {
@@ -52,7 +44,7 @@ for (const { locale, lang, dir, upgrade } of LOCALES) {
   test.describe(`${lang}`, () => {
     test.use({ locale });
 
-    test(`base, gating, upgrade countdown and completion after restart (${lang})`, async ({ page, request }) => {
+    test(`base, gating, upgrade countdown and completion after restart (${lang})`, { tag: "@screenshots" }, async ({ page, request }) => {
       await setTime(page, request, T0);
       await page.goto("/");
       await waitForGame(page);
@@ -62,7 +54,7 @@ for (const { locale, lang, dir, upgrade } of LOCALES) {
       await expect(page.locator("html")).toHaveAttribute("dir", dir);
       await expect(page.locator(".res")).toHaveCount(4);
       await expectNoRawKeys(page);
-      await page.screenshot({ path: `${SHOTS}/${lang}-1-base.png` });
+      await screenshot(page, `${SHOTS}/${lang}-1-base.png`);
 
       // A producer is gated by the HQ level at the start.
       await tapBuilding(page, "farm");
@@ -70,7 +62,7 @@ for (const { locale, lang, dir, upgrade } of LOCALES) {
       await expect(page.getByTestId("upgrade")).toBeDisabled();
       await expect(page.getByTestId("reason")).toBeVisible();
       await expectNoRawKeys(page);
-      await page.screenshot({ path: `${SHOTS}/${lang}-2-farm-gated.png` });
+      await screenshot(page, `${SHOTS}/${lang}-2-farm-gated.png`);
 
       // Upgrade the HQ: cost is paid and a countdown starts.
       await tapBuilding(page, "hq");
@@ -82,7 +74,7 @@ for (const { locale, lang, dir, upgrade } of LOCALES) {
       await expect(page.getByTestId("countdown")).toBeVisible();
       await expect(page.locator('.res[data-resource="food"] .res-amount')).toHaveText("300");
       await expectNoRawKeys(page);
-      await page.screenshot({ path: `${SHOTS}/${lang}-3-hq-upgrading.png` });
+      await screenshot(page, `${SHOTS}/${lang}-3-hq-upgrading.png`);
 
       // The upgrade lives on the server; the device keeps only its session token.
       const local = await page.evaluate(() => ({ save: localStorage.getItem("revolt.save"), session: localStorage.getItem("revolt.session") }));
@@ -105,7 +97,7 @@ for (const { locale, lang, dir, upgrade } of LOCALES) {
       // Now the farm can be upgraded.
       await tapBuilding(page, "farm");
       await expect(page.getByTestId("upgrade")).toBeEnabled();
-      await page.screenshot({ path: `${SHOTS}/${lang}-4-after-restart.png` });
+      await screenshot(page, `${SHOTS}/${lang}-4-after-restart.png`);
     });
   });
 }
@@ -124,34 +116,38 @@ test("language switcher changes language and direction, and is remembered", asyn
   await expect(page.locator("html")).toHaveAttribute("lang", "ar");
 });
 
-test("the canvas renders at the device pixel ratio", async ({ page }) => {
-  await page.goto("/");
-  await waitForGame(page);
-  const expectSharpCanvas = async (): Promise<void> => {
-    const size = await page.evaluate(() => {
-      const canvas = document.querySelector("canvas")!;
-      const rect = canvas.getBoundingClientRect();
-      return { dpr: window.devicePixelRatio, width: canvas.width, height: canvas.height, cssWidth: rect.width, cssHeight: rect.height };
-    });
-    // Pixel 7 is 2.625×; a CSS-resolution canvas would make this 1.
-    expect(size.dpr).toBeGreaterThan(2);
-    expect(size.width).toBe(Math.round(size.cssWidth * size.dpr));
-    expect(size.height).toBe(Math.round(size.cssHeight * size.dpr));
-    // The canvas still fills the viewport in CSS pixels.
-    expect(size.cssWidth).toBe(page.viewportSize()!.width);
-    expect(size.cssHeight).toBe(page.viewportSize()!.height);
-  };
-  await expectSharpCanvas();
+test.describe("at Pixel 7's real pixel ratio", () => {
+  test.use({ deviceScaleFactor: devices["Pixel 7"].deviceScaleFactor });
 
-  // Rotating the phone resizes the canvas, and taps still land on buildings.
-  const { width, height } = page.viewportSize()!;
-  await page.setViewportSize({ width: height, height: width });
-  await expect
-    .poll(() => page.evaluate(() => document.querySelector("canvas")!.width === Math.round(window.innerWidth * window.devicePixelRatio)))
-    .toBe(true);
-  await expectSharpCanvas();
-  await tapBuilding(page, "armory");
-  await expect(page.getByTestId("building-panel")).toHaveAttribute("data-building", "armory");
+  test("the canvas renders at the device pixel ratio", async ({ page }) => {
+    await page.goto("/");
+    await waitForGame(page);
+    const expectSharpCanvas = async (): Promise<void> => {
+      const size = await page.evaluate(() => {
+        const canvas = document.querySelector("canvas")!;
+        const rect = canvas.getBoundingClientRect();
+        return { dpr: window.devicePixelRatio, width: canvas.width, height: canvas.height, cssWidth: rect.width, cssHeight: rect.height };
+      });
+      // Pixel 7 is 2.625×; a CSS-resolution canvas would make this 1.
+      expect(size.dpr).toBeGreaterThan(2);
+      expect(size.width).toBe(Math.round(size.cssWidth * size.dpr));
+      expect(size.height).toBe(Math.round(size.cssHeight * size.dpr));
+      // The canvas still fills the viewport in CSS pixels.
+      expect(size.cssWidth).toBe(page.viewportSize()!.width);
+      expect(size.cssHeight).toBe(page.viewportSize()!.height);
+    };
+    await expectSharpCanvas();
+
+    // Rotating the phone resizes the canvas, and taps still land on buildings.
+    const { width, height } = page.viewportSize()!;
+    await page.setViewportSize({ width: height, height: width });
+    await expect
+      .poll(() => page.evaluate(() => document.querySelector("canvas")!.width === Math.round(window.innerWidth * window.devicePixelRatio)))
+      .toBe(true);
+    await expectSharpCanvas();
+    await tapBuilding(page, "armory");
+    await expect(page.getByTestId("building-panel")).toHaveAttribute("data-building", "armory");
+  });
 });
 
 test("a corrupt M1 save falls back to a fresh guest base", async ({ page, request }) => {
@@ -220,7 +216,7 @@ for (const { locale, lang } of [
   test.describe(`${lang} account`, () => {
     test.use({ locale });
 
-    test(`a linked Google account loads the same base on a second device (${lang})`, async ({ page, browser, request }) => {
+    test(`a linked Google account loads the same base on a second device (${lang})`, { tag: "@screenshots" }, async ({ page, browser, request }) => {
       const email = `player-${lang}-${Date.now()}@example.com`;
       await setTime(page, request, T0);
       await page.goto("/");
@@ -235,15 +231,15 @@ for (const { locale, lang } of [
       await expect(panel).toBeVisible();
       await expect(page.getByTestId("building-panel")).toBeHidden();
       await expectNoRawKeys(page);
-      await page.screenshot({ path: `${SHOTS}/${lang}-5-account-guest.png` });
+      await screenshot(page, `${SHOTS}/${lang}-5-account-guest.png`);
       await page.getByTestId("mock-google-email").fill(email);
       await page.getByTestId("google-sign-in").click();
       await expect(page.getByTestId("account-status")).toContainText(email);
       await expectNoRawKeys(page);
-      await page.screenshot({ path: `${SHOTS}/${lang}-6-account-linked.png` });
+      await screenshot(page, `${SHOTS}/${lang}-6-account-linked.png`);
 
       // Device B: a fresh phone starts as a new guest, then signs in with the same Google account.
-      const other = await browser.newContext({ ...devicesPixel(), locale });
+      const other = await browser.newContext({ ...PHONE, locale });
       const pageB = await other.newPage();
       await pageB.clock.setFixedTime(T0);
       await pageB.goto("/");

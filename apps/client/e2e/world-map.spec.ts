@@ -1,17 +1,21 @@
 import { expect, test } from "@playwright/test";
-import { API, expectNoRawKeys, openGame, openMap, ownCamp, setTime, SHOTS, T0, tapTile } from "./helpers.ts";
+import { API, expectNoRawKeys, mapEpoch, openGame, openMap, ownCamp, screenshot, setTime, SHOTS, tapTile } from "./helpers.ts";
 
 const LOCALES = [
   { locale: "en-US", lang: "en", dir: "ltr" },
   { locale: "ar-DZ", lang: "ar", dir: "rtl" },
 ] as const;
 
-for (const { locale, lang, dir } of LOCALES) {
-  test(`two players share the map; a march fights and returns with a report (${lang})`, async ({ browser, request }) => {
+// After the alliance spec's slots (files run in name order).
+const FIRST_SLOT = 2;
+
+for (const [i, { locale, lang, dir }] of LOCALES.entries()) {
+  test(`two players share the map; a march fights and returns with a report (${lang})`, { tag: "@screenshots" }, async ({ browser, request }) => {
     test.setTimeout(240_000);
-    await setTime([], request, T0);
-    const a = await openGame(browser, locale);
-    const b = await openGame(browser, locale);
+    const t0 = mapEpoch(FIRST_SLOT + i);
+    await setTime([], request, t0);
+    const a = await openGame(browser, locale, t0);
+    const b = await openGame(browser, locale, t0);
     await expect(a.locator("html")).toHaveAttribute("dir", dir);
 
     // Train a batch of porters in the barracks; it completes on the server clock.
@@ -24,8 +28,8 @@ for (const { locale, lang, dir } of LOCALES) {
     await a.getByTestId("train-submit").click();
     await expect(a.getByTestId("training-batch")).toBeVisible();
     await expectNoRawKeys(a);
-    await a.screenshot({ path: `${SHOTS}/${lang}-m3-0-training.png` });
-    await setTime([a, b], request, T0 + 60_000);
+    await screenshot(a, `${SHOTS}/${lang}-m3-0-training.png`);
+    await setTime([a, b], request, t0 + 60_000);
     await expect(a.getByTestId("troops-home")).toContainText("5");
 
     // Each sees both camps; tapping the other's tile shows its tag.
@@ -54,7 +58,7 @@ for (const { locale, lang, dir } of LOCALES) {
       await expect(me.getByTestId("tile-panel")).toContainText(other.tag);
     }
     await expectNoRawKeys(a);
-    await a.screenshot({ path: `${SHOTS}/${lang}-m3-1-other-camp.png` });
+    await screenshot(a, `${SHOTS}/${lang}-m3-1-other-camp.png`);
 
     // Pick the nearest level-1 target and send all ten starting infantry.
     const npc = await a.evaluate(() => {
@@ -68,7 +72,7 @@ for (const { locale, lang, dir } of LOCALES) {
     await expect(a.getByTestId("march-dialog")).toBeVisible();
     await a.getByTestId("march-count-infantry").fill("10");
     await expectNoRawKeys(a);
-    await a.screenshot({ path: `${SHOTS}/${lang}-m3-2-send-march.png` });
+    await screenshot(a, `${SHOTS}/${lang}-m3-2-send-march.png`);
     await a.getByTestId("march-submit").click();
     await expect(a.getByTestId("march-dialog")).toBeHidden();
 
@@ -81,7 +85,7 @@ for (const { locale, lang, dir } of LOCALES) {
     const m = state.state.marches[0];
     expect(state.state.troops.infantry).toBe(0);
     await expectNoRawKeys(a);
-    await a.screenshot({ path: `${SHOTS}/${lang}-m3-3-marching.png` });
+    await screenshot(a, `${SHOTS}/${lang}-m3-3-marching.png`);
 
     // Arrival: the map's alarm fights the battle and pushes the report.
     await setTime([a, b], request, m.arriveAt);
@@ -89,7 +93,7 @@ for (const { locale, lang, dir } of LOCALES) {
     await a.getByTestId("report-toast-open").click();
     await expect(a.getByTestId("report")).toBeVisible();
     await expectNoRawKeys(a);
-    await a.screenshot({ path: `${SHOTS}/${lang}-m3-4-report.png` });
+    await screenshot(a, `${SHOTS}/${lang}-m3-4-report.png`);
 
     // Return: the survivors are home, the march is gone from both maps.
     await setTime([a, b], request, m.returnAt);

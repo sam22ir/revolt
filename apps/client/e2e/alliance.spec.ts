@@ -1,6 +1,6 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { terrainAt } from "@revolt/rules";
-import { API, expectNoRawKeys, openGame, openMap, setTime, SHOTS, T0, tapTile, type Point } from "./helpers.ts";
+import { API, expectNoRawKeys, mapEpoch, openGame, openMap, screenshot, setTime, SHOTS, tapTile, type Point } from "./helpers.ts";
 
 const LOCALES = [
   { locale: "en-US", lang: "en", dir: "ltr", name: "Free Lands", say: "Salut, on se retrouve au col", reply: "Understood" },
@@ -17,12 +17,13 @@ const stateOf = async (request: APIRequestContext, page: Page): Promise<Record<s
 
 const toggleAlliance = (page: Page) => page.getByTestId("alliance-open").click();
 
-for (const { locale, lang, dir, name, say, reply } of LOCALES) {
-  test(`found, join, chat, help, HQ and rally across two accounts (${lang})`, async ({ browser, request }) => {
+for (const [slot, { locale, lang, dir, name, say, reply }] of LOCALES.entries()) {
+  test(`found, join, chat, help, HQ and rally across two accounts (${lang})`, { tag: "@screenshots" }, async ({ browser, request }) => {
     test.setTimeout(300_000);
-    await setTime([], request, T0);
-    const a = await openGame(browser, locale);
-    const b = await openGame(browser, locale);
+    const t0 = mapEpoch(slot);
+    await setTime([], request, t0);
+    const a = await openGame(browser, locale, t0);
+    const b = await openGame(browser, locale, t0);
     const tag = unique();
     const allianceName = `${name} ${tag}`;
     await expect(a.locator("html")).toHaveAttribute("dir", dir);
@@ -32,7 +33,7 @@ for (const { locale, lang, dir, name, say, reply } of LOCALES) {
     await expect(a.getByTestId("alliance-panel")).toBeVisible();
     await a.getByTestId("alliance-name").fill(allianceName);
     await a.getByTestId("alliance-tag").fill(tag);
-    await a.screenshot({ path: `${SHOTS}/${lang}-m4-1-found.png` });
+    await screenshot(a, `${SHOTS}/${lang}-m4-1-found.png`);
     await a.getByTestId("alliance-create").click();
     await expect(a.getByTestId("member")).toHaveCount(1);
     const aHandle = await a.evaluate(() => window.__revolt!.alliance!.snapshot().alliance!.members.find((m) => m.me)!.handle);
@@ -47,7 +48,7 @@ for (const { locale, lang, dir, name, say, reply } of LOCALES) {
     await expect(a.getByTestId("member")).toHaveCount(2);
     await expect(a.locator(`[data-testid="member"][data-handle="${aHandle}"]`)).toHaveCount(1);
     await expectNoRawKeys(b);
-    await a.screenshot({ path: `${SHOTS}/${lang}-m4-2-members.png` });
+    await screenshot(a, `${SHOTS}/${lang}-m4-2-members.png`);
 
     // Chat, live both ways; text is shown as text, with automatic direction.
     for (const p of [a, b]) await p.getByTestId("tab-chat").click();
@@ -63,7 +64,7 @@ for (const { locale, lang, dir, name, say, reply } of LOCALES) {
     await expect(b.getByTestId("chat-message").filter({ hasText: "<img src=x onerror=alert(1)>" })).toHaveCount(1);
     expect(await b.locator("img").count()).toBe(0);
     await expectNoRawKeys(a);
-    await b.screenshot({ path: `${SHOTS}/${lang}-m4-3-chat.png` });
+    await screenshot(b, `${SHOTS}/${lang}-m4-3-chat.png`);
 
     // A upgrades the command post and asks for help; B helps and the upgrade is done at once.
     await toggleAlliance(a);
@@ -74,7 +75,7 @@ for (const { locale, lang, dir, name, say, reply } of LOCALES) {
     await a.getByTestId("help-ask").click();
     await b.getByTestId("tab-help").click();
     await expect(b.getByTestId("help-request")).toHaveCount(1);
-    await b.screenshot({ path: `${SHOTS}/${lang}-m4-4-help.png` });
+    await screenshot(b, `${SHOTS}/${lang}-m4-4-help.png`);
     await b.getByTestId("help-request").getByTestId("help-give").click();
     await expect.poll(async () => (await stateOf(request, a)).queue).toBeNull();
     expect((await stateOf(request, a)).levels.hq).toBe(2);
@@ -97,7 +98,7 @@ for (const { locale, lang, dir, name, say, reply } of LOCALES) {
     await expect.poll(() => b.evaluate(() => window.__revolt!.map!.snapshot()!.hqs.map((h) => `${h.tag}:${h.x},${h.y}`))).toContain(`${tag}:${spot!.x},${spot!.y}`);
     await tapTile(b, spot);
     await expect(b.getByTestId("tile-panel")).toContainText(tag);
-    await b.screenshot({ path: `${SHOTS}/${lang}-m4-5-hq.png` });
+    await screenshot(b, `${SHOTS}/${lang}-m4-5-hq.png`);
 
     // A calls a rally on the fortified line; B joins; both fight one battle and get a report.
     const npc = snap.npcs.find((n) => n.level === 4)!;
@@ -107,7 +108,7 @@ for (const { locale, lang, dir, name, say, reply } of LOCALES) {
     await a.getByTestId("rally-start").click();
     await expect(a.getByTestId("rally-gather")).toBeVisible();
     await a.getByTestId("march-count-infantry").fill("10");
-    await a.screenshot({ path: `${SHOTS}/${lang}-m4-6-rally-start.png` });
+    await screenshot(a, `${SHOTS}/${lang}-m4-6-rally-start.png`);
     await a.getByTestId("march-submit").click();
     await expect(a.getByTestId("march-dialog")).toBeHidden();
 
@@ -120,7 +121,7 @@ for (const { locale, lang, dir, name, say, reply } of LOCALES) {
     await b.getByTestId("march-submit").click();
     await expect(b.getByTestId("march-dialog")).toBeHidden();
     await expectNoRawKeys(b);
-    await b.screenshot({ path: `${SHOTS}/${lang}-m4-7-rally-joined.png` });
+    await screenshot(b, `${SHOTS}/${lang}-m4-7-rally-joined.png`);
 
     const march = (await stateOf(request, a)).marches[0];
     expect(march.rallyId).toBeTruthy();
@@ -134,7 +135,7 @@ for (const { locale, lang, dir, name, say, reply } of LOCALES) {
       await expect(p.getByTestId("report")).toBeVisible();
       await expectNoRawKeys(p);
     }
-    await b.screenshot({ path: `${SHOTS}/${lang}-m4-8-rally-report.png` });
+    await screenshot(b, `${SHOTS}/${lang}-m4-8-rally-report.png`);
     const seeds = await Promise.all(
       [a, b].map(async (p) => (await (await request.get(`${API}/v1/reports`, { headers: { authorization: `Bearer ${await token(p)}` } })).json()).reports[0].seed),
     );

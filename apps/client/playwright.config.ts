@@ -9,9 +9,13 @@ export default defineConfig({
   workers: 1,
   // The suite runs real servers and two browsers on a shared machine; the 30 s default is too tight for the longer flows.
   timeout: 90_000,
+  // The game draws a frame every half second or so on this machine, so an effect can take longer than the default 5 s to show.
+  expect: { timeout: 15_000 },
   reporter: "list",
   use: {
+    // Pixel 7 at 1× pixel ratio; screenshots switch to the real ratio (see PHONE in e2e/helpers.ts).
     ...devices["Pixel 7"],
+    deviceScaleFactor: 1,
     baseURL: "http://localhost:4173",
   },
   projects: [{ name: "phone-chromium" }],
