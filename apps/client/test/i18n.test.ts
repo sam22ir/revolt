@@ -1,5 +1,9 @@
 import {
+  ALLIANCE_ACTIONS,
+  ALLIANCE_BLOCK_REASONS,
+  ALLIANCE_RANKS,
   BUILDING_IDS,
+  HELP_KINDS,
   MARCH_BLOCK_REASONS,
   MARCH_PHASES,
   MARCH_RESULTS,
@@ -68,8 +72,20 @@ describe("locales", () => {
     }
   });
 
+  test("alliance ranks, actions, help kinds and every alliance refusal have keys", () => {
+    const all = new Set(keys(en));
+    for (const rank of ALLIANCE_RANKS) expect(all.has(`alliance.rank.${rank}`), rank).toBe(true);
+    for (const action of ALLIANCE_ACTIONS) expect(all.has(`alliance.action.${action}`), action).toBe(true);
+    for (const kind of HELP_KINDS) expect(all.has(`help.kind.${kind}`), kind).toBe(true);
+    // The two refusals the chat socket can send are shown like any other reason.
+    for (const r of [...ALLIANCE_BLOCK_REASONS, "rate_limited", "bad_text"]) expect(all.has(`reason.${r}`), r).toBe(true);
+    expect(all.has("march.phase.gathering")).toBe(true);
+  });
+
   test("the new names and descriptions are translated, not copied from English", () => {
-    const names = keys(en).filter((k) => /^(troop|npc)\./.test(k) || /^terrain\./.test(k));
+    const names = keys(en).filter(
+      (k) => /^(troop|npc)\./.test(k) || /^terrain\./.test(k) || /^(alliance\.(tab|rank|action)|help\.kind)\./.test(k) || /^reason\.(already_member|name_taken|alliance_full)$/.test(k),
+    );
     const at = (locale: object, k: string): unknown => k.split(".").reduce<unknown>((o, p) => (o as Record<string, unknown>)[p], locale);
     for (const k of names) {
       expect(at(ar, k), `ar:${k}`).not.toBe(at(en, k));
