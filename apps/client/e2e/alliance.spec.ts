@@ -51,6 +51,14 @@ for (const [slot, { locale, lang, dir, name, say, reply }] of LOCALES.entries())
     await expectNoRawKeys(b);
     await screenshot(a, `${SHOTS}/${lang}-m4-2-members.png`);
 
+    // The leave question covers the whole screen, not just the panel it sits in (a CSS filter on the panel would shrink it).
+    await b.getByTestId("alliance-leave").click();
+    const box = await b.getByTestId("alliance-confirm").boundingBox();
+    const view = b.viewportSize()!;
+    expect(box).toMatchObject({ x: 0, y: 0, width: view.width, height: view.height });
+    await b.getByTestId("confirm-no").click();
+    await expect(b.getByTestId("alliance-confirm")).toBeHidden();
+
     // Chat, live both ways; text is shown as text, with automatic direction.
     for (const p of [a, b]) await p.getByTestId("tab-chat").click();
     await a.getByTestId("chat-input").fill(say);

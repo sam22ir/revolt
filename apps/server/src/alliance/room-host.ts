@@ -18,12 +18,17 @@ export interface RoomPorts {
 }
 
 const WS_POLICY = 1008;
+/** How long a membership check in the database is trusted. */
+export const MEMBER_RECHECK_MS = 30_000;
 
 /**
  * The room's behaviour, apart from the runtime: what happens on connect, on a chat frame, and when the Worker
  * reports a change. Shared by the Durable Object and the Node tests.
  */
 export class RoomHost {
+  /** When each member was last confirmed in the database (by account id: socket objects are rebuilt on every event). */
+  private readonly checkedAt = new Map<string, number>();
+
   constructor(
     private readonly chat: ChatRoom,
     private readonly ports: RoomPorts,
@@ -59,9 +64,16 @@ export class RoomHost {
   /**
    * `onFrame` after asking the database (the truth) whether the sender is still a member. The Worker's `memberChanged`
    * call is best effort, so a kicked player's socket could otherwise keep posting until it reconnected. A failed lookup
-   * drops the message rather than letting it through.
+   * drops the message rather than letting it through. A member confirmed within the last 30 s is not asked again.
    */
   async onFrameChecked(socket: RoomSocket, data: unknown, now: number, isMember: (accountId: string) => Promise<boolean>): Promise<void> {
+    // At most one database read per member per MEMBER_RECHECK_MS, however many frames arrive: otherwise one
+    // member spamming frames could spend the free tier's D1 reads (the chat rate limit comes after this check).
+    const checked = this.checkedAt.get(socket.accountId);
+    if (checked !== undefined && now >= checked && now - checked < MEMBER_RECHECK_MS) {
+      this.onFrame(socket, data, now);
+      return;
+    }
     let member: boolean;
     try {
       member = await isMember(socket.accountId);
@@ -72,6 +84,7 @@ export class RoomHost {
       this.memberChanged(socket.accountId, null);
       return;
     }
+    this.checkedAt.set(socket.accountId, now);
     this.onFrame(socket, data, now);
   }
 
@@ -88,6 +101,7 @@ export class RoomHost {
 
   /** The Worker changed a member: a new rank, or `null` if they left or were removed (their sockets are closed). */
   memberChanged(accountId: string, rank: AllianceRank | null): void {
+    if (rank === null) this.checkedAt.delete(accountId);
     for (const s of [...this.ports.sockets()]) {
       if (s.accountId !== accountId) continue;
       if (rank === null) {
