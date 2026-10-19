@@ -1,5 +1,5 @@
 import { advance, startTraining, startUpgrade, type BaseState, type BuildingId, type TroopId, type Troops } from "@revolt/rules";
-import { ApiError, type AccountView, type Api, type MarchRefusal, type Snapshot } from "../net/api.ts";
+import { ApiError, type AccountView, type Api, type RallyRefusal, type Snapshot } from "../net/api.ts";
 import { loadSession, storeSession } from "../net/session.ts";
 import { loadState, SAVE_KEY } from "./save.ts";
 
@@ -7,8 +7,8 @@ export type Listener = (state: BaseState, now: number) => void;
 
 export type SyncStatus = "online" | "offline";
 
-/** What the server said to a march. "unreachable" means the request never got an answer. */
-export type MarchOutcome = { readonly ok: true } | { readonly ok: false; readonly reason: MarchRefusal | "unreachable" };
+/** What the server said to a march or rally. "unreachable" means the request never got an answer. */
+export type MarchOutcome = { readonly ok: true } | { readonly ok: false; readonly reason: RallyRefusal | "unreachable" };
 
 export interface GameStore {
   readonly state: () => BaseState;
@@ -27,6 +27,13 @@ export interface GameStore {
    * Resolves with the server's verdict; the state is updated from its answer either way.
    */
   readonly march: (target: string, troops: Troops) => Promise<MarchOutcome>;
+  /**
+   * Starts a rally at an NPC target: the troops leave home at once and the march (with its `rallyId`)
+   * waits for the gathering to end. `gather` is one of `RALLY_GATHER_OPTIONS_MS`.
+   */
+  readonly startRally: (target: string, troops: Troops, gather: number) => Promise<MarchOutcome>;
+  /** Joins a gathering rally of the player's alliance with these troops. */
+  readonly joinRally: (rally: string, troops: Troops) => Promise<MarchOutcome>;
   /** The device's bearer token; it changes when a Google sign-in switches base. */
   readonly token: () => string;
   /** Called after the session token changed. */
@@ -106,6 +113,18 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
     }
   };
 
+  /** Marches and rallies are not predicted: the server picks the id and timing, so its answer is the new state. */
+  const sendIntent = async (send: () => Promise<Snapshot & ({ ok: true } | { ok: false; reason: RallyRefusal })>): Promise<MarchOutcome> => {
+    try {
+      const res = await send();
+      accept(res);
+      return res.ok ? { ok: true } : { ok: false, reason: res.reason };
+    } catch {
+      void resync();
+      return { ok: false, reason: "unreachable" };
+    }
+  };
+
   return {
     state: () => state,
     now,
@@ -129,16 +148,9 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
       notify();
       api.train(token, troop, count).then(accept, () => void resync());
     },
-    march: async (target, troops) => {
-      try {
-        const res = await api.march(token, target, troops);
-        accept(res);
-        return res.ok ? { ok: true } : { ok: false, reason: res.reason };
-      } catch {
-        void resync();
-        return { ok: false, reason: "unreachable" };
-      }
-    },
+    march: (target, troops) => sendIntent(() => api.march(token, target, troops)),
+    startRally: (target, troops, gather) => sendIntent(() => api.rallyStart(token, target, troops, gather)),
+    joinRally: (rally, troops) => sendIntent(() => api.rallyJoin(token, rally, troops)),
     token: () => token,
     onSessionChange: (fn) => {
       sessionListeners.add(fn);

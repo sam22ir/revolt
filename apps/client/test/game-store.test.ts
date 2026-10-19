@@ -203,6 +203,30 @@ describe("game store: training and marches", () => {
     expect(store.state().marches).toHaveLength(0);
   });
 
+  test("starting and joining a rally take the server's state, with the rally's march in it", async () => {
+    const f = fakeApi(createBaseState(T0));
+    const troops = { infantry: 3, scouts: 0, heavy: 0, porters: 0 };
+    const sent: string[] = [];
+    const store = await connect({
+      ...f.api,
+      rallyStart: async (_t, target, tr, gather) => {
+        sent.push(`start:${target}:${gather}`);
+        const timing = { departAt: T0 + gather, arriveAt: T0 + gather + 1000, returnAt: T0 + gather + 2000 };
+        const r = startMarch(createBaseState(T0), { id: "m1", target: { npcId: target, level: 4, x: 1, y: 1 }, from: { x: 0, y: 0 }, troops: tr, rallyId: "r1", ...timing }, T0);
+        return r.ok ? { ok: true, state: r.state, now: T0 } : { ok: false, reason: r.reason, state: r.state, now: T0 };
+      },
+      rallyJoin: async (_t, rally) => {
+        sent.push(`join:${rally}`);
+        return { ok: false, reason: "rally_closed", state: createBaseState(T0), now: T0 };
+      },
+    });
+    expect(await store.startRally("npc-4", troops, 60_000)).toEqual({ ok: true });
+    expect(store.state().marches[0]?.rallyId).toBe("r1");
+    expect(store.state().troops.infantry).toBe(7);
+    expect(await store.joinRally("r1", troops)).toEqual({ ok: false, reason: "rally_closed" });
+    expect(sent).toEqual(["start:npc-4:60000", "join:r1"]);
+  });
+
   test("an unreachable server is reported, not thrown", async () => {
     const f = fakeApi(createBaseState(T0));
     const store = await connect({ ...f.api, march: async () => Promise.reject(new Error("network")) });
