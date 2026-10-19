@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { terrainAt, TERRAIN_IDS, type MapMarchView, type MapSnapshot, type NpcKind, type TerrainId } from "@revolt/rules";
 import type { GameStore } from "../state/game-store.ts";
+import { drawableTag } from "../state/tile-info.ts";
 import type { WorldStore } from "../state/world-store.ts";
 import { createGesture, type Gesture } from "./gesture.ts";
 import type { Vec } from "./iso-layout.ts";
@@ -57,6 +58,10 @@ const NPC_COLORS: Readonly<Record<NpcKind, number>> = {
   outpost: 0x46506a,
   fortified_line: 0x2c2f3d,
 };
+
+/** Alliance HQs: a pennant, teal for the player's own alliance, violet for the others. */
+const HQ_OWN = 0x2f9e8f;
+const HQ_OTHER = 0x6a55a8;
 
 const GOLD = 0xe0b040;
 const INK = 0x2b2a24;
@@ -348,6 +353,29 @@ export class WorldScene extends Phaser.Scene {
       }
       label.setResolution(px).setText(String(n.level)).setPosition(centre.x, centre.y).setScale(labelScale).setVisible(showLabels);
     }
+
+    // Alliance HQs, drawn over the camps and NPCs they stand among. The only alliance text on the canvas is the
+    // ASCII tag, and only if it looks like one.
+    const hqs = snap.hqs.filter(inRange).sort((a, b) => a.x + a.y - (b.x + b.y));
+    for (const h of hqs) {
+      const c = tileCenter(h.x, h.y);
+      const size = TILE_H * 0.4 * k;
+      if (h.mine) this.outlineTile(g, h, HQ_OWN, 3 / zoom);
+      this.drawHq(g, { x: c.x, y: c.y }, size, h.mine);
+      const tag = drawableTag(h.tag);
+      if (tag === null) continue;
+      const key = `hq:${h.x},${h.y}`;
+      live.add(key);
+      let label = this.labels.get(key);
+      if (label === undefined) {
+        label = this.add
+          .text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: `${LABEL_PX - 2}px`, fontStyle: "bold", color: "#fff8e6", stroke: "#2b2a24", strokeThickness: 3 })
+          .setOrigin(0.5, 1)
+          .setDepth(3);
+        this.labels.set(key, label);
+      }
+      label.setResolution(px).setText(tag).setPosition(c.x, c.y - size * 3.6).setScale(labelScale).setVisible(showLabels);
+    }
     for (const [id, label] of this.labels) {
       if (live.has(id)) continue;
       label.destroy();
@@ -389,6 +417,27 @@ export class WorldScene extends Phaser.Scene {
     g.fillPoints(poly([up(t), up(r), up(b), up(l)]), true);
     g.lineStyle(1.5, INK, 0.6);
     g.strokePoints(poly([up(t), up(r), up(b), up(l)]), true);
+  }
+
+  /** A pennant on a pole, about `size * 3` high in world pixels: not a box, circle or hexagon, so it is never mistaken for a camp or NPC. */
+  private drawHq(g: Phaser.GameObjects.Graphics, c: Vec, size: number, mine: boolean): void {
+    const colour = mine ? HQ_OWN : HQ_OTHER;
+    const top = c.y - size * 3;
+    g.fillStyle(0x000000, 0.22);
+    g.fillEllipse(c.x + size * 0.2, c.y + size * 0.2, size * 2.2, size * 0.8);
+    g.fillStyle(INK, 1);
+    g.fillEllipse(c.x, c.y, size * 1.6, size * 0.6);
+    g.lineStyle(Math.max(2, size * 0.14), INK, 1);
+    g.lineBetween(c.x, c.y, c.x, top);
+    const flag = [
+      { x: c.x, y: top },
+      { x: c.x + size * 1.9, y: top + size * 0.65 },
+      { x: c.x, y: top + size * 1.3 },
+    ];
+    g.fillStyle(colour, 1);
+    g.fillPoints(poly(flag), true);
+    g.lineStyle(Math.max(1.5, size * 0.1), mine ? GOLD : PAPER, 1);
+    g.strokePoints(poly(flag), true);
   }
 
   /** Each kind has its own silhouette as well as colour: circle, square, hexagon. */

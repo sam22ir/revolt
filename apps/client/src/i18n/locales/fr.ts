@@ -221,7 +221,7 @@ export const fr: LocaleShape = {
   rally: {
     list: "Ralliements",
     empty: "Aucun ralliement pour l'instant. Un officier ou le chef peut en lancer un contre une cible de la carte.",
-    led: "Mené par {{handle}}",
+    led: "Mené par",
     gathering: "Rassemblement : {{time}}",
     marching: "En marche",
     participants: "{{count}} / {{max}} joueurs",
@@ -232,7 +232,6 @@ export const fr: LocaleShape = {
     joinTitle: "Rejoindre le ralliement",
     gatherTime: "Durée du rassemblement",
     needed: "Cette cible exige un ralliement d'alliance.",
-    joinSending: "Envoi…",
     activeHere: "Ralliements contre cette cible",
   },
   queue: { idle: "Ouvriers libres — touchez un bâtiment", busy: "{{building}} → niveau {{level}}" },

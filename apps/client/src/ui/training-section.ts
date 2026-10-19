@@ -1,5 +1,6 @@
 import {
   checkTraining,
+  helpableJob,
   maxTrainingBatch,
   RESOURCE_IDS,
   TROOP_IDS,
@@ -15,11 +16,14 @@ import { troopList } from "./troop-format.ts";
 
 export interface TrainingSection {
   readonly root: HTMLElement;
-  readonly update: (state: BaseState, now: number) => void;
+  /** `canAskHelp`: the player is in an alliance and has no open request for the running batch. */
+  readonly update: (state: BaseState, now: number, canAskHelp?: boolean) => void;
+  readonly showHelpNote: (text: string) => void;
 }
 
 interface TrainingDeps {
   readonly onTrain: (troop: TroopId, count: number) => void;
+  readonly onAskHelp: () => void;
 }
 
 /**
@@ -48,7 +52,18 @@ export const createTrainingSection = (deps: TrainingDeps): TrainingSection => {
   const batchFill = el("div", "progress-fill");
   batchBar.append(batchFill);
   const batchTime = el("p", "countdown");
-  batch.append(batchLabel, batchBar, batchTime);
+  const askHelp = el("button", "help-btn", t("help.ask"));
+  askHelp.type = "button";
+  askHelp.hidden = true;
+  askHelp.dataset.testid = "help-ask-training";
+  askHelp.dataset.kind = "training";
+  askHelp.addEventListener("click", deps.onAskHelp);
+  const helpNote = el("p", "help-note-line");
+  helpNote.setAttribute("role", "status");
+  helpNote.dataset.testid = "help-ask-training-error";
+  helpNote.hidden = true;
+  let noteTimer: number | null = null;
+  batch.append(batchLabel, batchBar, batchTime, askHelp, helpNote);
 
   const select = el("select", "troop-select");
   select.dataset.testid = "troop-select";
@@ -111,6 +126,7 @@ export const createTrainingSection = (deps: TrainingDeps): TrainingSection => {
 
   let latest: BaseState | null = null;
   let latestNow = 0;
+  let canAsk = false;
 
   const clampCount = (value: number): number => {
     const max = latest === null ? 1 : maxTrainingBatch(latest.levels.barracks);
@@ -155,6 +171,7 @@ export const createTrainingSection = (deps: TrainingDeps): TrainingSection => {
       const frac = Math.min(1, Math.max(0, (latestNow - job.startedAt) / Math.max(1, job.endsAt - job.startedAt)));
       batchFill.style.inlineSize = `${(frac * 100).toFixed(1)}%`;
     }
+    askHelp.hidden = !(canAsk && helpableJob(state, "training", latestNow) !== null);
 
     role.textContent = t(`troop.${troop}.desc`);
     select.value = troop;
@@ -187,10 +204,17 @@ export const createTrainingSection = (deps: TrainingDeps): TrainingSection => {
 
   return {
     root,
-    update: (state, now) => {
+    update: (state, now, canAskHelp = false) => {
       latest = state;
       latestNow = now;
+      canAsk = canAskHelp;
       render();
+    },
+    showHelpNote: (text) => {
+      helpNote.textContent = text;
+      helpNote.hidden = false;
+      if (noteTimer !== null) window.clearTimeout(noteTimer);
+      noteTimer = window.setTimeout(() => (helpNote.hidden = true), 4000);
     },
   };
 };

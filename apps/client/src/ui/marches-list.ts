@@ -3,11 +3,15 @@ import { formatAmount, formatDuration } from "../format.ts";
 import { currentLanguage, t } from "../i18n/i18n.ts";
 import { el } from "./dom.ts";
 
-export type MarchStage = "outbound" | "fighting" | "returning";
+export type MarchStage = "gathering" | "outbound" | "fighting" | "returning";
 
-/** Where a march of the player's base is: out, waiting for its battle result, or coming home. */
+/**
+ * Where a march of the player's base is: waiting for its rally to gather, out, waiting for its battle
+ * result, or coming home. A rally's troops leave home when it starts but only march at `departAt`.
+ */
 export const marchStage = (m: MarchState, now: number): MarchStage => {
   if (m.outcome !== null) return "returning";
+  if (m.rallyId !== undefined && now < m.departAt) return "gathering";
   return now < m.arriveAt ? "outbound" : "fighting";
 };
 
@@ -66,7 +70,8 @@ export const createMarchesList = (): MarchesList => {
         if (row !== null) row.dataset.stage = stage;
         // After the battle the result is the news; before it, the leg of the journey.
         refs.stage.textContent = m.outcome === null ? t(`march.phase.${stage}`) : `${t(`march.result.${m.outcome.result}`)} · ${t("march.phase.returning")}`;
-        if (stage === "outbound") refs.time.textContent = t("march.arrivesIn", { time: formatDuration(m.arriveAt - now) });
+        if (stage === "gathering") refs.time.textContent = t("march.departsIn", { time: formatDuration(m.departAt - now) });
+        else if (stage === "outbound") refs.time.textContent = t("march.arrivesIn", { time: formatDuration(m.arriveAt - now) });
         else if (stage === "returning") refs.time.textContent = t("march.returnsIn", { time: formatDuration(m.returnAt - now) });
         else refs.time.textContent = "";
       }

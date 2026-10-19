@@ -1,4 +1,4 @@
-import { RESOURCE_IDS, productionPerHour, storageCap, type BaseState, type ResourceId } from "@revolt/rules";
+import { RESOURCE_IDS, helpableJob, productionPerHour, storageCap, type BaseState, type ResourceId } from "@revolt/rules";
 import { formatAmount, formatDuration } from "../format.ts";
 import { currentLanguage, t } from "../i18n/i18n.ts";
 import { el } from "./dom.ts";
@@ -12,12 +12,25 @@ interface Chip {
 
 export interface Hud {
   readonly root: HTMLElement;
-  readonly update: (state: BaseState, now: number) => void;
+  /** `canAskHelp`: the player is in an alliance and has no open request for the running upgrade. */
+  readonly update: (state: BaseState, now: number, canAskHelp?: boolean) => void;
+  /** A short message under the help button (a refusal), gone after a few seconds. */
+  readonly showHelpNote: (text: string) => void;
   readonly setOffline: (offline: boolean) => void;
 }
 
-/** `controls` sit beside the resources, `nav` is the row of view buttons below them, `extras` hang under the queue pill. */
-export const createHud = (controls: readonly HTMLElement[], nav: readonly HTMLElement[], extras: readonly HTMLElement[]): Hud => {
+const NOTE_MS = 4000;
+
+/**
+ * `controls` sit beside the resources, `nav` is the row of view buttons below them, `extras` hang under the queue pill.
+ * `onAskHelp` is the button under the pill that asks the alliance to speed up the running upgrade.
+ */
+export const createHud = (
+  controls: readonly HTMLElement[],
+  nav: readonly HTMLElement[],
+  extras: readonly HTMLElement[],
+  onAskHelp: () => void,
+): Hud => {
   const root = el("header", "hud");
   const bar = el("div", "hud-bar");
   const list = el("ul", "hud-resources");
@@ -45,15 +58,27 @@ export const createHud = (controls: readonly HTMLElement[], nav: readonly HTMLEl
   const queueLabel = el("span", "queue-label");
   const queueTime = el("span", "queue-time");
   queue.append(queueLabel, queueTime);
+  // The pill ignores taps (it floats over the map), so the button is a sibling.
+  const helpBtn = el("button", "help-btn", t("help.ask"));
+  helpBtn.type = "button";
+  helpBtn.hidden = true;
+  helpBtn.dataset.testid = "help-ask";
+  helpBtn.dataset.kind = "upgrade";
+  helpBtn.addEventListener("click", onAskHelp);
+  const helpNote = el("p", "help-note-line");
+  helpNote.setAttribute("role", "status");
+  helpNote.dataset.testid = "help-ask-error";
+  helpNote.hidden = true;
+  let noteTimer: number | null = null;
   const offline = el("p", "sync-offline", t("sync.offline"));
   offline.setAttribute("role", "status");
   offline.dataset.testid = "offline";
   offline.hidden = true;
   const navRow = el("div", "hud-nav");
   navRow.append(...nav);
-  root.append(bar, navRow, queue, ...extras, offline);
+  root.append(bar, navRow, queue, helpBtn, helpNote, ...extras, offline);
 
-  const update = (state: BaseState, now: number): void => {
+  const update = (state: BaseState, now: number, canAskHelp = false): void => {
     const lang = currentLanguage();
     const cap = storageCap(state.levels.hq);
     const rate = productionPerHour(state.levels);
@@ -77,7 +102,15 @@ export const createHud = (controls: readonly HTMLElement[], nav: readonly HTMLEl
       queueTime.textContent = formatDuration(job.endsAt - now);
       queue.classList.add("busy");
     }
+    helpBtn.hidden = !(canAskHelp && helpableJob(state, "upgrade", now) !== null);
   };
 
-  return { root, update, setOffline: (v) => (offline.hidden = !v) };
+  const showHelpNote = (text: string): void => {
+    helpNote.textContent = text;
+    helpNote.hidden = false;
+    if (noteTimer !== null) window.clearTimeout(noteTimer);
+    noteTimer = window.setTimeout(() => (helpNote.hidden = true), NOTE_MS);
+  };
+
+  return { root, update, showHelpNote, setOffline: (v) => (offline.hidden = !v) };
 };

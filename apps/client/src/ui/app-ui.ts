@@ -1,11 +1,13 @@
-import type { BattleReport, BuildingId } from "@revolt/rules";
+import type { BattleReport, BuildingId, HelpKind } from "@revolt/rules";
 import { formatAmount } from "../format.ts";
 import type { Language } from "../i18n/languages.ts";
 import type { GoogleSignIn } from "../net/google.ts";
 import type { TileRef } from "../scene/world-scene.ts";
+import type { AllianceStore } from "../state/alliance-store.ts";
 import type { GameStore } from "../state/game-store.ts";
 import type { WorldStore } from "../state/world-store.ts";
 import { createAccountPanel } from "./account-panel.ts";
+import { createAlliancePanel, type AllianceTab } from "./alliance-panel.ts";
 import { createBuildingPanel } from "./building-panel.ts";
 import { el } from "./dom.ts";
 import { createHud } from "./hud.ts";
@@ -30,6 +32,7 @@ export interface AppUi {
 interface UiDeps {
   readonly store: GameStore;
   readonly world: WorldStore;
+  readonly alliance: AllianceStore;
   readonly onLanguage: (lang: Language) => Promise<void>;
   readonly onSelectionChange: (id: BuildingId | null) => void;
   readonly onTileSelectionChange: (tile: TileRef | null) => void;
@@ -43,6 +46,7 @@ interface Controls {
   showBuilding: (id: BuildingId | null) => void;
   showTile: (tile: TileRef | null) => void;
   closeAccount: () => void;
+  closeAlliance: () => void;
   closeReports: () => void;
   openReport: (id: string) => void;
   announce: (report: BattleReport) => void;
@@ -59,11 +63,15 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
   let selected: BuildingId | null = null;
   let selectedTile: TileRef | null = null;
   let center: TileRef | null = null;
+  // Kept here, not in the panel, so a language change (which rebuilds the overlay) does not close it.
+  const allianceView: { open: boolean; tab: AllianceTab } = { open: false, tab: "members" };
+  let disposeAlliance = noop;
   const ctl: Controls = {
     refresh: noop,
     showBuilding: noop,
     showTile: noop,
     closeAccount: noop,
+    closeAlliance: noop,
     closeReports: noop,
     openReport: noop,
     announce: noop,
@@ -78,6 +86,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
     if (id !== null) {
       ctl.closeAccount();
       ctl.closeReports();
+      ctl.closeAlliance();
     }
     ctl.showBuilding(id);
     deps.onSelectionChange(id);
@@ -90,6 +99,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
     if (tile !== null) {
       ctl.closeAccount();
       ctl.closeReports();
+      ctl.closeAlliance();
     }
     ctl.showTile(tile);
     deps.onTileSelectionChange(tile);
@@ -105,7 +115,11 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
     deps.onViewChange(next);
   };
 
+  /** The player can ask the alliance for help on a job of this kind: they have an alliance and no open request for it. */
+  const canAskHelp = (kind: HelpKind): boolean => deps.alliance.alliance() !== null && deps.alliance.ownRequest(kind, deps.store.now()) === null;
+
   const build = (): void => {
+    disposeAlliance();
     const switcher = createLanguageSwitcher((lang) => {
       void deps.onLanguage(lang).then(build);
     });
@@ -117,6 +131,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       select(null);
       selectTile(null);
       reports.toggle(false);
+      alliance.toggle(false);
       account.toggle();
     });
 
@@ -135,24 +150,77 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
     reportsButton.append(reportsLabel, badge);
     reportsButton.addEventListener("click", () => reports.toggle());
 
+    const allianceButton = el("button", "nav-btn");
+    allianceButton.type = "button";
+    allianceButton.dataset.testid = "alliance-open";
+    const allianceLabel = el("span", undefined, t("nav.alliance"));
+    const allianceBadge = el("span", "badge");
+    allianceBadge.dataset.testid = "alliance-badge";
+    allianceBadge.hidden = true;
+    allianceButton.append(allianceLabel, allianceBadge);
+    allianceButton.addEventListener("click", () => alliance.toggle());
+
     const coords = el("div", "coord-pill");
     coords.dataset.testid = "coords";
     coords.hidden = true;
     const marches = createMarchesList();
 
-    const hud = createHud([accountButton, switcher], [mapToggle, reportsButton], [marches.root, coords]);
+    // Asking for help is refused now and then (no job any more, already asked); say why for a moment.
+    const askHelp = (kind: HelpKind, note: (text: string) => void): void => {
+      void deps.alliance.requestHelp(kind).then((outcome) => {
+        if (!outcome.ok) note(t(`reason.${outcome.reason}`));
+      });
+    };
+    const hud = createHud([accountButton, switcher], [mapToggle, allianceButton, reportsButton], [marches.root, coords], () =>
+      askHelp("upgrade", (text) => hud.showHelpNote(text)),
+    );
     const panel = createBuildingPanel({
       onUpgrade: (id) => deps.store.upgrade(id),
       onTrain: (troop, count) => deps.store.train(troop, count),
+      onAskTrainingHelp: () => askHelp("training", (text) => panel.showTrainingHelpNote(text)),
       onClose: () => select(null),
     });
-    const dialog = createMarchDialog({ onSend: (id, troops) => deps.store.march(id, troops), onClosed: noop });
-    const tilePanel = createTilePanel({ onClose: () => selectTile(null), onSendMarch: (npc) => dialog.open(npc) });
+    const dialog = createMarchDialog({
+      onSend: (id, troops) => deps.store.march(id, troops),
+      onRallyStart: (id, troops, gatherMs) => deps.store.startRally(id, troops, gatherMs),
+      onRallyJoin: (rallyId, troops) => deps.store.joinRally(rallyId, troops),
+      onClosed: noop,
+    });
+    const tilePanel = createTilePanel({
+      onClose: () => selectTile(null),
+      onSendMarch: (npc) => dialog.open(npc),
+      onStartRally: (npc) => dialog.open(npc, { kind: "rally_start" }),
+      onJoinRally: (npc, rally) => dialog.open(npc, { kind: "rally_join", rally }),
+      onPlaceHq: (tile) => deps.alliance.placeHq(tile.x, tile.y),
+    });
+    const alliance = createAlliancePanel({
+      store: deps.alliance,
+      myHandle: () => deps.store.account().handle,
+      now: () => deps.store.now(),
+      snapshot: () => deps.world.snapshot(),
+      onJoinRally: (rally) => {
+        const { npcId, ...where } = rally.target;
+        dialog.open({ id: npcId, ...where }, { kind: "rally_join", rally });
+      },
+      onOpen: () => {
+        select(null);
+        selectTile(null);
+        ctl.closeAccount();
+        ctl.closeReports();
+      },
+      initial: allianceView,
+      onChange: (state) => {
+        allianceView.open = state.open;
+        allianceView.tab = state.tab;
+      },
+    });
+    disposeAlliance = alliance.dispose;
     const reports = createReportsPanel({
       onOpen: () => {
         select(null);
         selectTile(null);
         ctl.closeAccount();
+        ctl.closeAlliance();
         deps.world.markSeen();
       },
       onClose: noop,
@@ -161,26 +229,31 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
 
     panel.show(selected);
     tilePanel.show(selectedTile);
-    root.replaceChildren(hud.root, panel.root, tilePanel.root, account.root, reports.root, toast.root, dialog.root);
+    root.replaceChildren(hud.root, panel.root, tilePanel.root, alliance.root, account.root, reports.root, toast.root, dialog.root);
 
     ctl.refresh = () => {
       const state = deps.store.state();
       const now = deps.store.now();
       const snapshot = deps.world.snapshot();
-      hud.update(state, now);
+      hud.update(state, now, canAskHelp("upgrade"));
       hud.setOffline(deps.store.status() === "offline");
-      panel.update(state, now);
+      panel.update(state, now, canAskHelp("training"));
       marches.update(state, now);
-      tilePanel.update(snapshot);
+      tilePanel.update(snapshot, { alliance: deps.alliance.alliance(), now });
+      alliance.update();
       dialog.update(state, snapshot);
       account.update(deps.store.account());
       const unread = deps.world.unread();
       badge.hidden = unread === 0;
       badge.textContent = formatAmount(currentLanguage(), unread);
+      const chatUnread = deps.alliance.unread();
+      allianceBadge.hidden = chatUnread === 0;
+      allianceBadge.textContent = formatAmount(currentLanguage(), chatUnread);
     };
     ctl.showBuilding = panel.show;
     ctl.showTile = tilePanel.show;
     ctl.closeAccount = () => account.toggle(false);
+    ctl.closeAlliance = () => alliance.toggle(false);
     ctl.closeReports = () => reports.toggle(false);
     ctl.openReport = reports.showReport;
     ctl.announce = (report) => {
@@ -209,6 +282,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
   build();
   deps.store.subscribe(() => ctl.refresh());
   deps.world.subscribeSnapshot(() => ctl.refresh());
+  deps.alliance.subscribe(() => ctl.refresh());
   deps.world.subscribeReports((_reports, fresh) => {
     ctl.updateReports();
     ctl.refresh();

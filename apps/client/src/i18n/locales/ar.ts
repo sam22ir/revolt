@@ -218,7 +218,7 @@ export const ar: LocaleShape = {
   rally: {
     list: "الحشود",
     empty: "لا حشود الآن. يمكن لضابط أو للقائد بدء حشد ضد هدف على الخريطة.",
-    led: "بقيادة {{handle}}",
+    led: "بقيادة",
     gathering: "التجمّع: {{time}}",
     marching: "في الطريق",
     participants: "{{count}} / {{max}} لاعبين",
@@ -229,7 +229,6 @@ export const ar: LocaleShape = {
     joinTitle: "الانضمام إلى الحشد",
     gatherTime: "مدة التجمّع",
     needed: "هذا الهدف يتطلب حشدًا من التحالف.",
-    joinSending: "جارٍ الانضمام…",
     activeHere: "حشود ضد هذا الهدف",
   },
   queue: { idle: "العمال متفرغون — اضغط على مبنى", busy: "{{building}} ← المستوى {{level}}" },

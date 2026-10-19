@@ -39,7 +39,13 @@ export const createAccountPanel = (deps: AccountDeps): AccountPanel => {
     else {
       status.append(t("account.linked"), " ", el("bdi", "account-email", linked.email));
     }
-    root.append(head, status);
+    // The name other players see in alliances and chat. It is ASCII, so it reads left to right in every language.
+    const handle = el("p", "panel-desc");
+    handle.dataset.testid = "account-handle";
+    const handleValue = el("bdi", "account-email", account.handle);
+    handleValue.setAttribute("dir", "ltr");
+    handle.append(`${t("account.handleLabel")}: `, handleValue);
+    root.append(head, status, handle);
 
     if (deps.google === null) {
       root.append(el("p", "panel-sub", t("account.googleUnavailable")));
@@ -65,7 +71,7 @@ export const createAccountPanel = (deps: AccountDeps): AccountPanel => {
   let last: AccountView | null = null;
   const update = (account: AccountView): void => {
     last = account;
-    const k = `${account.id}|${account.google?.email ?? (account.google === null ? "-" : "?")}`;
+    const k = `${account.id}|${account.handle}|${account.google?.email ?? (account.google === null ? "-" : "?")}`;
     if (k === key) return;
     key = k;
     render(account, false);

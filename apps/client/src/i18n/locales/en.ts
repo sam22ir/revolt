@@ -216,7 +216,7 @@ export const en = {
   rally: {
     list: "Rallies",
     empty: "No rallies right now. An officer or the leader can start one against a target on the map.",
-    led: "Led by {{handle}}",
+    led: "Led by",
     gathering: "Gathering: {{time}}",
     marching: "On the march",
     participants: "{{count}} / {{max}} players",
@@ -227,7 +227,6 @@ export const en = {
     joinTitle: "Join the rally",
     gatherTime: "Gathering time",
     needed: "This target needs an alliance rally.",
-    joinSending: "Joining…",
     activeHere: "Rallies against this target",
   },
   queue: { idle: "Builders idle — tap a building", busy: "{{building}} → level {{level}}" },

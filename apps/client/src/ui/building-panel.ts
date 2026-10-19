@@ -18,12 +18,15 @@ export interface BuildingPanel {
   readonly root: HTMLElement;
   readonly show: (id: BuildingId | null) => void;
   readonly selected: () => BuildingId | null;
-  readonly update: (state: BaseState, now: number) => void;
+  /** `canAskTrainingHelp`: the player is in an alliance and has no open request for the running training batch. */
+  readonly update: (state: BaseState, now: number, canAskTrainingHelp?: boolean) => void;
+  readonly showTrainingHelpNote: (text: string) => void;
 }
 
 interface PanelDeps {
   readonly onUpgrade: (id: BuildingId) => void;
   readonly onTrain: (troop: TroopId, count: number) => void;
+  readonly onAskTrainingHelp: () => void;
   readonly onClose: () => void;
 }
 
@@ -45,7 +48,7 @@ export const createBuildingPanel = (deps: PanelDeps): BuildingPanel => {
   let key = "";
   let countdown: HTMLElement | null = null;
   let progressFill: HTMLElement | null = null;
-  const training = createTrainingSection({ onTrain: deps.onTrain });
+  const training = createTrainingSection({ onTrain: deps.onTrain, onAskHelp: deps.onAskTrainingHelp });
 
   const render = (id: BuildingId, state: BaseState, check: UpgradeCheck): void => {
     const lang = currentLanguage();
@@ -143,7 +146,7 @@ export const createBuildingPanel = (deps: PanelDeps): BuildingPanel => {
     root.append(next);
   };
 
-  const update = (state: BaseState, now: number): void => {
+  const update = (state: BaseState, now: number, canAskTrainingHelp = false): void => {
     if (current === null) return;
     const check = checkUpgrade(state, current);
     const k = structureKey(current, state, check);
@@ -153,7 +156,7 @@ export const createBuildingPanel = (deps: PanelDeps): BuildingPanel => {
       // Training lives in the barracks' panel; its DOM is kept between rebuilds so typing survives.
       if (current === "barracks") root.append(training.root);
     }
-    if (current === "barracks") training.update(state, now);
+    if (current === "barracks") training.update(state, now, canAskTrainingHelp);
     const job = state.queue;
     if (job !== null && countdown !== null && progressFill !== null) {
       countdown.textContent = formatDuration(job.endsAt - now);
@@ -171,5 +174,6 @@ export const createBuildingPanel = (deps: PanelDeps): BuildingPanel => {
     },
     selected: () => current,
     update,
+    showTrainingHelpNote: training.showHelpNote,
   };
 };
