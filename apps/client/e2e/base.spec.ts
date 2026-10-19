@@ -1,5 +1,5 @@
 import { devices, expect, test, type APIRequestContext, type Page } from "@playwright/test";
-import { expectNoRawKeys, PHONE, screenshot, waitForGame } from "./helpers.ts";
+import { expectNoRawKeys, mapEpoch, openMap, ownCamp, PHONE, screenshot, setTime as setMapTime, tapTile, waitForGame } from "./helpers.ts";
 
 const T0 = new Date("2026-06-01T12:00:00Z").getTime();
 const API = "http://localhost:8788";
@@ -147,6 +147,20 @@ test.describe("at Pixel 7's real pixel ratio", () => {
     await expectSharpCanvas();
     await tapBuilding(page, "armory");
     await expect(page.getByTestId("building-panel")).toHaveAttribute("data-building", "armory");
+  });
+
+  // The other tests tap the map at 1×; the map converts CSS taps to tiles through the pixel ratio, so check it at 2.625×.
+  test("map taps land on the right tile at the device pixel ratio", async ({ page, request }) => {
+    // Not real time (the beforeEach default): the map never settles backwards, and the later map tests run in July.
+    await setMapTime([page], request, mapEpoch(0));
+    await page.goto("/");
+    await waitForGame(page);
+    expect(await page.evaluate(() => window.devicePixelRatio)).toBeGreaterThan(2);
+    await openMap(page, 1);
+    const camp = await ownCamp(page);
+    // tapTile retries until the panel shows this tile; assert it explicitly too.
+    await tapTile(page, camp);
+    await expect(page.getByTestId("tile-coords")).toHaveText(new RegExp(`(^|\\D)${camp.x}\\D+${camp.y}(\\D|$)`));
   });
 });
 
