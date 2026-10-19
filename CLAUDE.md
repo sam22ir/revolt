@@ -43,6 +43,7 @@ docs/             GDD and design notes
 
 ## Testing
 
+- **Test and screenshot only `en` and `ar`.** French stays supported in the app (keep `fr` strings complete), but don't add `fr` to e2e specs, screenshots or CI, and drop it from existing ones when touching them.
 - Every rules change comes with Vitest tests, including the timestamp edge cases (cap reached, time going backwards, very long offline gaps).
 - UI changes: look at the `en` and `ar` Playwright screenshots before calling it done. Get them from the PR's CI run (artifact `e2e-results`, folder `screens/`), or locally from a run of the affected spec (`apps/client/test-results/screens/`).
 - Run `pnpm test` (~22 s) and `pnpm typecheck` before committing.

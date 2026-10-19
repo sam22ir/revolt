@@ -53,13 +53,15 @@ test("a scrolling panel does not blank the game canvas above it", async ({ brows
   // The panel scrolls, and the game's colours are still visible above it (a regression painted it flat white or black).
   const scrolls = await page.getByTestId("building-panel").evaluate((e) => e.scrollHeight > e.clientHeight);
   expect(scrolls).toBe(true);
+  // A point 30 px above the panel, wherever its top edge is.
+  const probeY = Math.round((await page.getByTestId("building-panel").boundingBox())!.y) - 30;
   const shot = (await page.screenshot()).toString("base64");
-  const [r, g, b] = await page.evaluate(async (b64) => {
+  const [r, g, b] = await page.evaluate(async ([b64, probeY]) => {
     const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${b64}`)).blob());
     const ctx = new OffscreenCanvas(bitmap.width, bitmap.height).getContext("2d")!;
     ctx.drawImage(bitmap, 0, 0);
-    return [...ctx.getImageData(200, 270, 1, 1).data];
-  }, shot);
+    return [...ctx.getImageData(200, probeY, 1, 1).data];
+  }, [shot, probeY] as const);
   expect(r! + g! + b!).toBeGreaterThan(60); // not black
   expect(r! + g! + b!).toBeLessThan(600); // not white
 });

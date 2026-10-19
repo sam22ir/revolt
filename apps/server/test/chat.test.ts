@@ -1,4 +1,5 @@
 import { CHAT_HISTORY, CHAT_MAX_LENGTH, CHAT_RATE_MAX, CHAT_RATE_WINDOW_MS } from "@revolt/rules";
+import { MEMBER_RECHECK_MS } from "../src/alliance/room-host.ts";
 import { isMemberOf } from "../src/db/alliances.ts";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { connectChat, MANY_GUESTS, player, post, say, team } from "./alliance-helpers.ts";
@@ -187,5 +188,21 @@ describe("a socket that outlived its membership", () => {
       throw new Error("D1 down");
     });
     expect(b.received.filter((m) => m.type === "chat")).toHaveLength(1);
+  });
+
+  test("the database is asked at most once per member per half minute, however many frames arrive", async () => {
+    const t = await team(server, 2);
+    const a = await connectChat(server, t.members[0]!, t.allianceId);
+    let asked = 0;
+    const isMember = async (): Promise<boolean> => {
+      asked++;
+      return true;
+    };
+    const host = server.room(t.allianceId).host;
+    for (let i = 0; i < 50; i++) await host.onFrameChecked(a, "garbage", server.now, isMember);
+    for (let i = 0; i < 10; i++) await host.onFrameChecked(a, JSON.stringify({ type: "chat", text: `m${i}` }), server.now + i, isMember);
+    expect(asked).toBe(1);
+    await host.onFrameChecked(a, "garbage", server.now + MEMBER_RECHECK_MS + 1, isMember);
+    expect(asked).toBe(2);
   });
 });
