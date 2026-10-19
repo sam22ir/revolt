@@ -44,8 +44,12 @@ docs/             GDD and design notes
 ## Testing
 
 - Every rules change comes with Vitest tests, including the timestamp edge cases (cap reached, time going backwards, very long offline gaps).
-- UI changes: run the Playwright screenshot check in `en` and `ar` and look at the images before calling it done.
-- Run `pnpm test` and `pnpm typecheck` before committing.
+- UI changes: look at the `en` and `ar` Playwright screenshots before calling it done. Get them from the PR's CI run (artifact `e2e-results`, folder `screens/`), or locally from a run of the affected spec (`apps/client/test-results/screens/`).
+- Run `pnpm test` (~22 s) and `pnpm typecheck` before committing.
+- Locally, run only the quick e2e: `pnpm --filter @revolt/client test:e2e:quick` (~25 s, skips the `@screenshots` flows). The full e2e (`pnpm test:e2e`, en and ar screenshots) runs in GitHub Actions on every PR and on `main`.
+- `main` requires both CI checks ("Typecheck and unit tests", "Playwright e2e (en and ar)") before a PR can merge.
+- Server tests run on in-process `node:sqlite` (`apps/server/test/sqlite-db.ts`); only `miniflare-smoke.test.ts` uses Miniflare's D1. Keep it that way: Miniflare costs ~1 s per start and ~40 ms per query.
+- This machine is slow (2 cores, runs hot): never run two test suites at once, and don't run the full e2e locally when CI can.
 
 ## Working in this repo
 
