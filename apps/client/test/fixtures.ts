@@ -1,4 +1,5 @@
 import type { BattleReport, MapSnapshot } from "@revolt/rules";
+import type { Api } from "../src/net/api.ts";
 
 export const SNAPSHOT: MapSnapshot = {
   map: "m",
@@ -32,4 +33,36 @@ export const REPORT: BattleReport = {
   rounds: 2,
   loot: { food: 50, materiel: 0, funds: 0, support: 0 },
   seed: 9,
+};
+
+const unused = async (): Promise<never> => {
+  throw new Error("unused");
+};
+
+/** The alliance and rally calls, for fake Apis in tests that never make them. */
+export const UNUSED_ALLIANCE_API: Pick<
+  Api,
+  | "rallyStart"
+  | "rallyJoin"
+  | "searchAlliances"
+  | "getAlliance"
+  | "createAlliance"
+  | "joinAlliance"
+  | "leaveAlliance"
+  | "memberAction"
+  | "placeHq"
+  | "requestHelp"
+  | "giveHelp"
+> = {
+  rallyStart: unused,
+  rallyJoin: unused,
+  searchAlliances: unused,
+  getAlliance: unused,
+  createAlliance: unused,
+  joinAlliance: unused,
+  leaveAlliance: unused,
+  memberAction: unused,
+  placeHq: unused,
+  requestHelp: unused,
+  giveHelp: unused,
 };

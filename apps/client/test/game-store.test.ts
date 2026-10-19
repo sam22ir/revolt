@@ -15,9 +15,10 @@ import { ApiError, type AccountView, type Api, type IntentResult, type MarchRepl
 import { SESSION_KEY } from "../src/net/session.ts";
 import { connectGameStore } from "../src/state/game-store.ts";
 import { SAVE_KEY, serializeSave } from "../src/state/save.ts";
+import { UNUSED_ALLIANCE_API } from "./fixtures.ts";
 
 const T0 = Date.UTC(2026, 9, 1);
-const GUEST: AccountView = { id: "acc-1", google: null };
+const GUEST: AccountView = { id: "acc-1", handle: "ABC234", google: null };
 
 const memoryStorage = (init: Record<string, string> = {}): Storage => {
   const m = new Map(Object.entries(init));
@@ -39,6 +40,7 @@ const fakeApi = (serverState: BaseState, validTokens = new Set(["tok-1"])) => {
   let state = serverState;
   let imported: BaseState | null = null;
   const api: Api = {
+    ...UNUSED_ALLIANCE_API,
     createGuest: async (importSave) => {
       calls.push("guest");
       imported = importSave;
