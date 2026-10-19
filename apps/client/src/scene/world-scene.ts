@@ -3,7 +3,9 @@ import { terrainAt, TERRAIN_IDS, type MapMarchView, type MapSnapshot, type NpcKi
 import type { GameStore } from "../state/game-store.ts";
 import { drawableTag } from "../state/tile-info.ts";
 import type { WorldStore } from "../state/world-store.ts";
+import { artUrl, diamondSpec, iconSpec, textureKey } from "../art/art.ts";
 import { createGesture, type Gesture } from "./gesture.ts";
+import { SpritePool, type SpriteSpec } from "./sprite-pool.ts";
 import type { Vec } from "./iso-layout.ts";
 import {
   centerTile,
@@ -42,7 +44,7 @@ const TAP_SLOP = 8;
 /** Below this zoom tiles are too small for outlines and level numbers. */
 const GRID_ZOOM = 0.45;
 const LABEL_ZOOM = 0.35;
-const LABEL_PX = 14;
+const LABEL_PX = 18;
 
 // [light, dark] per terrain: a checker of two shades keeps tiles readable without outlines.
 const TERRAIN_COLORS: Readonly<Record<TerrainId, readonly [number, number]>> = {
@@ -52,19 +54,35 @@ const TERRAIN_COLORS: Readonly<Record<TerrainId, readonly [number, number]>> = {
   mountain: [0x80796f, 0x77716a],
 };
 
-const NPC_COLORS: Readonly<Record<NpcKind, number>> = {
-  patrol: 0xb5402f,
-  convoy: 0xd09a30,
-  outpost: 0x46506a,
-  fortified_line: 0x2c2f3d,
+/** Below this zoom there are too many tiles to draw as sprites; flat colours read fine at that size. */
+const ART_ZOOM = 0.3;
+/** The painted tile for each terrain; "hills" has no tile of its own, so terraced fields stand in. */
+const TERRAIN_ART: Readonly<Record<TerrainId, string>> = {
+  plain: "map/terrain_plain",
+  hills: "map/terrain_terraces",
+  forest: "map/terrain_forest",
+  mountain: "map/terrain_mountain",
 };
+/** Each NPC kind keeps its own silhouette: watch tower, cart medallion, stone yard, star fort. */
+const NPC_ART: Readonly<Record<NpcKind, string>> = {
+  patrol: "map/outpost_watch",
+  convoy: "map/marker_convoy",
+  outpost: "map/outpost_barracks",
+  fortified_line: "map/outpost_fort",
+};
+const BASE_ART = "buildings/hq";
+const MARKER_ART = ["map/marker_march", "map/marker_return", "map/marker_battle", "map/marker_rally"] as const;
+const ART_KEYS: readonly string[] = [...Object.values(TERRAIN_ART), ...Object.values(NPC_ART), BASE_ART, ...MARKER_ART];
+/** How long the battle marker shows at the target after a column arrives. */
+const BATTLE_FLASH_MS = 5000;
+/** Tile sprites are drawn a hair wider than the tile so neighbours do not show seams. */
+const TILE_BLEED = 1.03;
 
 /** Alliance HQs: a pennant, teal for the player's own alliance, violet for the others. */
 const HQ_OWN = 0x2f9e8f;
 const HQ_OTHER = 0x6a55a8;
 
 const GOLD = 0xe0b040;
-const INK = 0x2b2a24;
 const PAPER = 0xf4ead6;
 
 /** Phaser's typings want `Vector2`s for polygon points; markers are few, so allocating them is fine. */
@@ -100,6 +118,10 @@ export class WorldScene extends Phaser.Scene {
   private markers!: Phaser.GameObjects.Graphics;
   private marchLayer!: Phaser.GameObjects.Graphics;
   private readonly labels = new Map<string, Phaser.GameObjects.Text>();
+  private terrainPool!: SpritePool;
+  private markerPool!: SpritePool;
+  private marchPool!: SpritePool;
+  private readonly specs = new Map<string, SpriteSpec>();
   // Reused for every tile so a repaint allocates nothing.
   private readonly quad: [Phaser.Math.Vector2, Phaser.Math.Vector2, Phaser.Math.Vector2, Phaser.Math.Vector2] = [
     new Phaser.Math.Vector2(),
@@ -116,11 +138,20 @@ export class WorldScene extends Phaser.Scene {
     super("world");
   }
 
+  preload(): void {
+    // Loaded the first time the map is opened, so none of it is part of the base screen's download.
+    for (const key of ART_KEYS) if (!this.textures.exists(textureKey(key))) this.load.image(textureKey(key), artUrl(key));
+  }
+
   create(): void {
     this.cameras.main.setBackgroundColor(BACKGROUND);
+    // Depths: rim 0, terrain tiles just above it (0.1 to 0.9 by row), markers 1 to 2, outlines 2.5, marches 3, labels 4.
     this.ground = this.add.graphics().setDepth(0);
-    this.markers = this.add.graphics().setDepth(1);
-    this.marchLayer = this.add.graphics().setDepth(2);
+    this.terrainPool = new SpritePool(this);
+    this.markers = this.add.graphics().setDepth(2.5);
+    this.markerPool = new SpritePool(this);
+    this.marchLayer = this.add.graphics().setDepth(3);
+    this.marchPool = new SpritePool(this);
 
     this.gesture = createGesture(
       {
@@ -269,24 +300,54 @@ export class WorldScene extends Phaser.Scene {
 
   // --- terrain ------------------------------------------------------------
 
+  /** Spec of a painted sprite on a tile diamond, cached. */
+  private tileSpec(key: string, widthTiles = 1): SpriteSpec {
+    const id = `${key}|${widthTiles}`;
+    let spec = this.specs.get(id);
+    if (spec === undefined) {
+      spec = diamondSpec(key, TILE_W * widthTiles);
+      this.specs.set(id, spec);
+    }
+    return spec;
+  }
+
+  private iconSpecAt(key: string, width: number): SpriteSpec {
+    const id = `${key}|icon|${width}`;
+    let spec = this.specs.get(id);
+    if (spec === undefined) {
+      spec = iconSpec(key, width);
+      this.specs.set(id, spec);
+    }
+    return spec;
+  }
+
   private paintGround(snap: MapSnapshot, range: TileRange): void {
     const grid = this.view.zoom >= GRID_ZOOM;
-    const key = `${range.x0},${range.x1},${range.y0},${range.y1}|${grid}`;
+    const art = this.view.zoom >= ART_ZOOM;
+    const key = `${range.x0},${range.x1},${range.y0},${range.y1}|${grid}|${art}`;
     if (key === this.groundKey) return;
     this.groundKey = key;
     const g = this.ground;
     g.clear();
     this.paintRim(g, snap.size);
+    this.terrainPool.begin();
     const q = this.quad;
     const hw = TILE_W / 2;
     const hh = TILE_H / 2;
-    if (grid) g.lineStyle(1.5, 0x000000, 0.18);
+    if (!art && grid) g.lineStyle(1.5, 0x000000, 0.18);
     for (let x = range.x0; x <= range.x1; x++) {
       for (let y = range.y0; y <= range.y1; y++) {
         const id = this.terrain[y * snap.size + x] ?? 0;
         const id2 = TERRAIN_IDS[id] ?? "plain";
-        g.fillStyle(TERRAIN_COLORS[id2][(x + y) & 1] ?? 0, 1);
         const p = tileToWorld(x, y);
+        if (art) {
+          // Mirror about half the tiles so a field of one terrain does not repeat a visible pattern.
+          const flip = ((x * 73856093) ^ (y * 19349663)) % 2 === 0;
+          const depth = 0.1 + (0.8 * (x + y)) / (2 * snap.size);
+          this.terrainPool.place(this.tileSpec(TERRAIN_ART[id2], TILE_BLEED), p.x, p.y + hh, depth, 1, flip);
+          continue;
+        }
+        g.fillStyle(TERRAIN_COLORS[id2][(x + y) & 1] ?? 0, 1);
         q[0].set(p.x, p.y);
         q[1].set(p.x + hw, p.y + hh);
         q[2].set(p.x, p.y + TILE_H);
@@ -295,6 +356,7 @@ export class WorldScene extends Phaser.Scene {
         if (grid) g.strokePoints(q, true);
       }
     }
+    this.terrainPool.end();
   }
 
   /** The slab edge below the map's two near sides, so the land has some thickness. */
@@ -325,16 +387,16 @@ export class WorldScene extends Phaser.Scene {
 
     if (sel !== null) this.outlineTile(g, sel, 0xfff1b8, 3.5 / zoom);
 
+    this.markerPool.begin();
+    const depthOf = (t: { x: number; y: number }): number => 1 + (t.x + t.y) / (2 * snap.size);
     // Back to front so nearer markers overlap farther ones.
     const bases = snap.bases.filter(inRange).sort((a, b) => a.x + a.y - (b.x + b.y));
     for (const b of bases) {
-      const marker: Marker = { c: tileCenter(b.x, b.y), size: TILE_H * 0.3 * k };
-      if (b.mine) {
-        this.outlineTile(g, b, GOLD, 3 / zoom);
-        this.drawCamp(g, { ...marker, size: marker.size * 1.25 }, 0xf2d65c, 0xc79a2a, 0xa57d1c);
-      } else {
-        this.drawCamp(g, marker, 0xd9d2c0, 0xa39c8a, 0x857f6f);
-      }
+      const c = tileCenter(b.x, b.y);
+      if (b.mine) this.outlineTile(g, b, GOLD, 3 / zoom);
+      // A base is a small headquarters; other players' are cooler in tone so the two read apart.
+      const img = this.markerPool.place(this.tileSpec(BASE_ART, (b.mine ? 1.5 : 1.25) * 1.0), c.x, c.y, depthOf(b), k);
+      if (!b.mine) img.setTint(0xbfc6dc);
     }
 
     const showLabels = zoom >= LABEL_ZOOM;
@@ -343,30 +405,34 @@ export class WorldScene extends Phaser.Scene {
     const px = this.pixelRatio();
     const labelScale = Math.min(1, zoom / 0.8) / zoom;
     for (const n of npcs) {
-      const size = TILE_H * 0.42 * k;
       const c = tileCenter(n.x, n.y);
-      const centre = { x: c.x, y: c.y - size * 0.7 };
-      this.drawNpc(g, n.kind, centre, size);
+      if (n.kind === "convoy") this.markerPool.place(this.iconSpecAt(NPC_ART.convoy, TILE_H * 1.1), c.x, c.y, depthOf(n), k);
+      else this.markerPool.place(this.tileSpec(NPC_ART[n.kind], 1.15), c.x, c.y, depthOf(n), k);
+      const centre = { x: c.x, y: c.y + TILE_H * 0.18 * k };
       live.add(n.id);
       let label = this.labels.get(n.id);
       if (label === undefined) {
         label = this.add
-          .text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: `${LABEL_PX}px`, fontStyle: "bold", color: "#fff8e6" })
+          .text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: `${LABEL_PX}px`, fontStyle: "bold", color: "#fff8e6", stroke: "#2b2a24", strokeThickness: 4 })
           .setOrigin(0.5)
-          .setDepth(3);
+          .setDepth(4);
         this.labels.set(n.id, label);
       }
       label.setResolution(px).setText(String(n.level)).setPosition(centre.x, centre.y).setScale(labelScale).setVisible(showLabels);
     }
 
-    // Alliance HQs, drawn over the camps and NPCs they stand among. The only alliance text on the canvas is the
-    // ASCII tag, and only if it looks like one.
+    // Alliance HQs: a flag medallion ringed teal (the player's own alliance) or violet, drawn over the camps and NPCs
+    // they stand among. The only alliance text on the canvas is the ASCII tag, and only if it looks like one.
     const hqs = snap.hqs.filter(inRange).sort((a, b) => a.x + a.y - (b.x + b.y));
     for (const h of hqs) {
       const c = tileCenter(h.x, h.y);
       const size = TILE_H * 0.4 * k;
       if (h.mine) this.outlineTile(g, h, HQ_OWN, 3 / zoom);
-      this.drawHq(g, { x: c.x, y: c.y }, size, h.mine);
+      const r = TILE_H * 0.62 * k;
+      const centre = { x: c.x, y: c.y - size * 1.3 };
+      this.markerPool.place(this.iconSpecAt("map/marker_rally", r * 2), centre.x, centre.y, 2 + depthOf(h) * 0.01, 1);
+      g.lineStyle(Math.max(2, r * 0.14), h.mine ? HQ_OWN : HQ_OTHER, 1);
+      g.strokeCircle(centre.x, centre.y, r * 1.02);
       const tag = drawableTag(h.tag);
       if (tag === null) continue;
       const key = `hq:${h.x},${h.y}`;
@@ -376,11 +442,12 @@ export class WorldScene extends Phaser.Scene {
         label = this.add
           .text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: `${LABEL_PX - 2}px`, fontStyle: "bold", color: "#fff8e6", stroke: "#2b2a24", strokeThickness: 3 })
           .setOrigin(0.5, 1)
-          .setDepth(3);
+          .setDepth(4);
         this.labels.set(key, label);
       }
-      label.setResolution(px).setText(tag).setPosition(c.x, c.y - size * 3.6).setScale(labelScale).setVisible(showLabels);
+      label.setResolution(px).setText(tag).setPosition(c.x, centre.y - r * 1.15).setScale(labelScale).setVisible(showLabels);
     }
+    this.markerPool.end();
     for (const [id, label] of this.labels) {
       if (live.has(id)) continue;
       label.destroy();
@@ -402,84 +469,26 @@ export class WorldScene extends Phaser.Scene {
     );
   }
 
-  /** A small iso box: `m.size` is its footprint's half-height. */
-  private drawCamp(g: Phaser.GameObjects.Graphics, m: Marker, top: number, left: number, right: number): void {
-    const a = m.size;
-    const h = a * 1.5;
-    const { x, y } = m.c;
-    const t = { x, y: y - a };
-    const r = { x: x + 2 * a, y };
-    const b = { x, y: y + a };
-    const l = { x: x - 2 * a, y };
-    const up = (p: Vec): Vec => ({ x: p.x, y: p.y - h });
-    g.fillStyle(0x000000, 0.2);
-    g.fillPoints(poly([r, b, l, { x: b.x + a, y: b.y + a * 0.6 }]), true);
-    g.fillStyle(left, 1);
-    g.fillPoints(poly([l, b, up(b), up(l)]), true);
-    g.fillStyle(right, 1);
-    g.fillPoints(poly([b, r, up(r), up(b)]), true);
-    g.fillStyle(top, 1);
-    g.fillPoints(poly([up(t), up(r), up(b), up(l)]), true);
-    g.lineStyle(1.5, INK, 0.6);
-    g.strokePoints(poly([up(t), up(r), up(b), up(l)]), true);
-  }
-
-  /** A pennant on a pole, about `size * 3` high in world pixels: not a box, circle or hexagon, so it is never mistaken for a camp or NPC. */
-  private drawHq(g: Phaser.GameObjects.Graphics, c: Vec, size: number, mine: boolean): void {
-    const colour = mine ? HQ_OWN : HQ_OTHER;
-    const top = c.y - size * 3;
-    g.fillStyle(0x000000, 0.22);
-    g.fillEllipse(c.x + size * 0.2, c.y + size * 0.2, size * 2.2, size * 0.8);
-    g.fillStyle(INK, 1);
-    g.fillEllipse(c.x, c.y, size * 1.6, size * 0.6);
-    g.lineStyle(Math.max(2, size * 0.14), INK, 1);
-    g.lineBetween(c.x, c.y, c.x, top);
-    const flag = [
-      { x: c.x, y: top },
-      { x: c.x + size * 1.9, y: top + size * 0.65 },
-      { x: c.x, y: top + size * 1.3 },
-    ];
-    g.fillStyle(colour, 1);
-    g.fillPoints(poly(flag), true);
-    g.lineStyle(Math.max(1.5, size * 0.1), mine ? GOLD : PAPER, 1);
-    g.strokePoints(poly(flag), true);
-  }
-
-  /** Each kind has its own silhouette as well as colour: circle, square, hexagon. */
-  private drawNpc(g: Phaser.GameObjects.Graphics, kind: NpcKind, c: Vec, r: number): void {
-    g.fillStyle(0x000000, 0.22);
-    g.fillEllipse(c.x + r * 0.2, c.y + r * 0.95, r * 1.9, r * 0.7);
-    g.fillStyle(NPC_COLORS[kind], 1);
-    g.lineStyle(Math.max(2, r * 0.12), PAPER, 1);
-    if (kind === "patrol") {
-      g.fillCircle(c.x, c.y, r);
-      g.strokeCircle(c.x, c.y, r);
-    } else if (kind === "convoy") {
-      g.fillRoundedRect(c.x - r, c.y - r, 2 * r, 2 * r, r * 0.25);
-      g.strokeRoundedRect(c.x - r, c.y - r, 2 * r, 2 * r, r * 0.25);
-    } else {
-      const hex = Array.from({ length: 6 }, (_, i) => ({
-        x: c.x + r * 1.1 * Math.cos((Math.PI / 3) * i),
-        y: c.y + r * 1.1 * Math.sin((Math.PI / 3) * i),
-      }));
-      g.fillPoints(poly(hex), true);
-      g.strokePoints(poly(hex), true);
-    }
-  }
-
   // --- marches ------------------------------------------------------------
 
   private paintMarches(snap: MapSnapshot, range: TileRange): void {
     const g = this.marchLayer;
     if (snap.marches.length === 0) {
-      if (this.marchesDrawn) g.clear();
+      if (this.marchesDrawn) {
+        g.clear();
+        this.marchPool.begin();
+        this.marchPool.end();
+      }
       this.marchesDrawn = false;
       return;
     }
     this.marchesDrawn = true;
     g.clear();
+    this.marchPool.begin();
     const now = this.store.now();
     const zoom = this.view.zoom;
+    // Medallions keep a thumb's worth of screen size: 30 CSS px, however far you zoom.
+    const size = 30 / zoom;
     for (const m of snap.marches) {
       if (!this.touches(m, range)) continue;
       const pos = marchPosition(m, now);
@@ -490,12 +499,14 @@ export class WorldScene extends Phaser.Scene {
       g.lineStyle(2 / zoom, colour, m.mine ? 0.75 : 0.35);
       g.lineBetween(a.x, a.y, b.x, b.y);
       const p = tileCenter(pos.at.x, pos.at.y);
-      const r = 6 / zoom;
-      g.fillStyle(INK, 0.9);
-      g.fillCircle(p.x, p.y, r + 2 / zoom);
-      g.fillStyle(pos.leg === "outbound" ? colour : 0x9ec27a, 1);
-      g.fillCircle(p.x, p.y, r);
+      const img = this.marchPool.place(this.iconSpecAt(pos.leg === "outbound" ? "map/marker_march" : "map/marker_return", size), p.x, p.y, 3.1);
+      if (!m.mine) img.setAlpha(0.7);
+      // The fight shows for a moment at the target when the column gets there.
+      if (now >= m.arriveAt && now < m.arriveAt + BATTLE_FLASH_MS) {
+        this.marchPool.place(this.iconSpecAt("map/marker_battle", size * 1.3), b.x, b.y - size * 0.4, 3.2);
+      }
     }
+    this.marchPool.end();
   }
 
   /** Whether the march's bounding box meets the drawn tile range. */

@@ -11,7 +11,7 @@ import {
 import { formatAmount, formatDuration } from "../format.ts";
 import { currentLanguage, t } from "../i18n/i18n.ts";
 import { el } from "./dom.ts";
-import { resourceIcon } from "./icons.ts";
+import { resourceIcon, troopIcon } from "./icons.ts";
 import { troopList } from "./troop-format.ts";
 
 export interface TrainingSection {
@@ -74,6 +74,9 @@ export const createTrainingSection = (deps: TrainingDeps): TrainingSection => {
     select.append(opt);
   }
   const role = el("p", "panel-desc");
+  const roleRow = el("div", "troop-role");
+  const roleIcon = el("span", "troop-role-icon");
+  roleRow.append(roleIcon, role);
 
   const input = el("input", "troop-input");
   input.type = "number";
@@ -122,7 +125,7 @@ export const createTrainingSection = (deps: TrainingDeps): TrainingSection => {
   const reason = el("p", "panel-reason");
   reason.dataset.testid = "train-reason";
 
-  root.append(home, batch, select, role, countRow, costs, meta, submit, reason);
+  root.append(home, batch, select, roleRow, countRow, costs, meta, submit, reason);
 
   let latest: BaseState | null = null;
   let latestNow = 0;
@@ -174,6 +177,10 @@ export const createTrainingSection = (deps: TrainingDeps): TrainingSection => {
     askHelp.hidden = !(canAsk && helpableJob(state, "training", latestNow) !== null);
 
     role.textContent = t(`troop.${troop}.desc`);
+    if (roleIcon.dataset.troop !== troop) {
+      roleIcon.dataset.troop = troop;
+      roleIcon.replaceChildren(troopIcon(troop));
+    }
     select.value = troop;
     const max = maxTrainingBatch(state.levels.barracks);
     if (count > max) count = max;
