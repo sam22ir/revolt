@@ -209,10 +209,13 @@ export const createAllianceStore = ({ api, game, socket }: AllianceDeps): Allian
     loaded: () => loaded,
     ownRequest: (kind, now) => help.find((r) => r.mine && r.kind === kind && r.endsAt > now) ?? null,
     setChatOpen: (open) => {
+      // The panel calls this on every redraw, and a redraw follows every notice: only a change may notify.
+      if (chatOpen === open) return;
       chatOpen = open;
       if (!open) return;
+      const before = seenId;
       markSeen();
-      notify();
+      if (seenId !== before) notify();
     },
     start: () => {
       if (started) return;

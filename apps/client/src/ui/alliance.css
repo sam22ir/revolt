@@ -1,0 +1,188 @@
+/* Alliances (M4): panel, chat, help requests, rallies. Logical properties only, so Arabic mirrors. */
+
+.alliance-panel { max-block-size: 70vh; display: flex; flex-direction: column; }
+.alliance-body { min-block-size: 0; display: flex; flex-direction: column; }
+.alliance-panel .dialog-backdrop { position: fixed; }
+
+.alliance-input {
+  inline-size: 100%;
+  min-block-size: 44px;
+  padding-inline: 10px;
+  font: inherit;
+  font-size: 16px;
+  border: 1px solid var(--paper-2);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+}
+.alliance-tag-input { text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
+.alliance-status { margin-block: 6px; }
+.alliance-field { display: flex; flex-direction: column; gap: 4px; margin-block-end: 8px; font-size: 13px; }
+
+.alliance-list, .member-list, .help-list, .rally-list { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.alliance-row, .member-row, .help-row, .rally-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-block: 8px;
+  padding-inline: 12px;
+  border-radius: 10px;
+  background: var(--paper-2);
+}
+.member-row.me { outline: 2px solid var(--gold); }
+.alliance-row-text, .help-text, .rally-text, .member-who { flex: 1; min-inline-size: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+.alliance-row-name { font-weight: 700; overflow-wrap: anywhere; }
+.alliance-row-tag, .alliance-tag-badge {
+  font-weight: 700;
+  font-size: 12px;
+  padding-block: 1px;
+  padding-inline: 6px;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--paper);
+  unicode-bidi: isolate;
+}
+.alliance-row-count, .help-progress, .help-time, .rally-time, .rally-people, .rally-leader { font-size: 12px; opacity: 0.75; font-variant-numeric: tabular-nums; }
+.alliance-head { display: flex; align-items: center; gap: 8px; }
+.alliance-name-title { margin: 0; font-size: 17px; overflow-wrap: anywhere; }
+.alliance-create { margin-block-start: 12px; border-block-start: 1px solid var(--paper-2); padding-block-start: 4px; }
+
+.member-handle { font-weight: 700; font-variant-numeric: tabular-nums; unicode-bidi: isolate; }
+.member-you { font-size: 12px; opacity: 0.7; }
+.member-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.rank-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding-block: 1px;
+  padding-inline: 7px;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+}
+.rank-badge[data-rank="leader"] { background: var(--gold); }
+.rank-badge[data-rank="officer"] { background: #cfdcb6; }
+
+.small-btn {
+  min-block-size: 40px;
+  padding-inline: 12px;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  cursor: pointer;
+}
+.small-btn.primary { background: var(--ok); color: #fff; border-color: var(--ok); }
+.small-btn.danger { color: var(--bad); border-color: var(--bad); }
+.small-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.alliance-join {
+  min-block-size: 40px;
+  padding-inline: 14px;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 700;
+  background: var(--ok);
+  color: #fff;
+  cursor: pointer;
+}
+.alliance-join:disabled { background: #9a9282; cursor: not-allowed; }
+
+/* Tabs */
+.tab-bar { display: flex; gap: 4px; margin-block-end: 8px; }
+.tab-btn {
+  flex: 1;
+  min-block-size: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding-inline: 6px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  border: 0;
+  border-radius: 8px;
+  background: var(--paper-2);
+  color: var(--ink);
+  cursor: pointer;
+}
+.tab-btn.active { background: var(--ink); color: var(--paper); }
+.tab-badge { min-inline-size: 18px; block-size: 18px; line-height: 18px; font-size: 11px; }
+
+/* Chat */
+.alliance-chat { display: flex; flex-direction: column; gap: 6px; min-block-size: 0; }
+.chat-log {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  block-size: 34vh;
+  min-block-size: 140px;
+  overflow-y: auto;
+  border-radius: 10px;
+  background: rgb(0 0 0 / 0.05);
+  overscroll-behavior: contain;
+}
+.chat-msg {
+  max-inline-size: 85%;
+  align-self: flex-start;
+  padding-block: 5px;
+  padding-inline: 10px;
+  border-radius: 12px;
+  background: var(--paper-2);
+}
+/* Own lines sit on the other side: logical, so they mirror in Arabic. */
+.chat-msg.mine { align-self: flex-end; background: #dcebc6; }
+.chat-meta { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+.chat-handle { font-weight: 700; unicode-bidi: isolate; }
+.chat-time { opacity: 0.6; font-variant-numeric: tabular-nums; }
+.chat-text { margin: 2px 0 0; font-size: 14px; overflow-wrap: anywhere; white-space: pre-wrap; }
+.chat-form { display: flex; gap: 6px; }
+.chat-send {
+  min-inline-size: 72px;
+  min-block-size: 44px;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 700;
+  background: var(--ok);
+  color: #fff;
+  cursor: pointer;
+}
+.chat-error { margin-block: 0; text-align: start; }
+.chat-status { margin: 0; color: var(--bad); }
+
+.help-kind { font-size: 12px; opacity: 0.8; }
+.help-note { font-size: 12px; opacity: 0.7; }
+.rally-target { flex-basis: 100%; }
+
+/* Ask-for-help button under the HUD queue pill and in the training section */
+.help-btn {
+  align-self: center;
+  min-block-size: 36px;
+  padding-inline: 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  border: 0;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--ink);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
+  cursor: pointer;
+}
+.help-note-line { align-self: center; margin: 0; font-size: 12px; color: var(--paper); background: var(--bad); padding-block: 2px; padding-inline: 10px; border-radius: 999px; }
+
+/* Rally gather choice in the troop dialog */
+.rally-gather-field { display: flex; flex-direction: column; gap: 4px; margin-block-end: 8px; font-size: 13px; }
+
+.confirm-text { font-size: 16px; opacity: 1; }
+
+/* A rally column waiting at home for the gathering to end */
+.march-row[data-stage="gathering"] { background: rgb(106 85 168 / 0.9); }
