@@ -225,11 +225,11 @@ export const transferLeadership = async (db: Db, leaderId: string, targetId: str
              AND EXISTS (SELECT 1 FROM alliance_members t WHERE t.account_id = ? AND t.alliance_id = ? AND t.rank = 'leader')`,
         )
         .bind(leaderId, allianceId, targetId, allianceId),
+      // A row is written only on failure (the CHECK then rolls the batch back); `IS NOT 1` counts NULL as failure too.
       db
         .prepare(
-          `INSERT INTO batch_assert (ok) SELECT CASE WHEN
-             (SELECT rank FROM alliance_members WHERE account_id = ?) = 'leader' AND (SELECT rank FROM alliance_members WHERE account_id = ?) = 'officer'
-           THEN 1 ELSE 0 END`,
+          `INSERT INTO batch_assert (ok) SELECT 0 WHERE
+             ((SELECT rank FROM alliance_members WHERE account_id = ?) = 'leader' AND (SELECT rank FROM alliance_members WHERE account_id = ?) = 'officer') IS NOT 1`,
         )
         .bind(targetId, leaderId),
     ]);

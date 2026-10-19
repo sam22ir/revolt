@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { runCleanup, STALE_GUEST_MS } from "../src/cleanup.ts";
 import { scheduled } from "../src/scheduled.ts";
-import { MANY_GUESTS, post, team, type Player } from "./alliance-helpers.ts";
+import { join, MANY_GUESTS, player, post, team, type Player } from "./alliance-helpers.ts";
 import { body, DAY, HOUR, newGuest, startServer, T0, type Server } from "./harness.ts";
 import { getMap } from "./map-helpers.ts";
 
@@ -168,8 +168,16 @@ describe("cleanup and alliances", () => {
   const ended: string[] = [];
 
   test("a deleted leader's alliance goes to its oldest officer, else its oldest member", async () => {
-    const t = await team(server, 4);
-    const [first, second, third] = t.members as [Player, Player, Player];
+    // Members join at distinct times, so "oldest" is well defined (ties would fall back to a random account id).
+    const t = await team(server, 1);
+    const members: Player[] = [];
+    for (let i = 0; i < 3; i++) {
+      server.now += 1000;
+      const m = await player(server);
+      await join(server, m, t.allianceId);
+      members.push(m);
+    }
+    const [first, second, third] = members as [Player, Player, Player];
     await post(server, t.leader, "/v1/alliance/promote", { handle: third.handle });
     await abandon(t.leader.token);
     await runCleanup(server.env.DB, later());

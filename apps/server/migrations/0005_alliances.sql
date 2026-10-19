@@ -53,4 +53,5 @@ CREATE TABLE help_given (
 
 -- A D1 batch is one transaction, but an UPDATE that changes no row does not abort it. A statement that
 -- inserts 0 here fails the CHECK, which rolls the whole batch back: the way to say "all of this or none".
+-- Rows are only ever inserted to fail, so the table stays empty (no write on success).
 CREATE TABLE batch_assert (ok INTEGER NOT NULL CHECK (ok = 1));

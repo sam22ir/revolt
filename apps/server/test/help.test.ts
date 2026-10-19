@@ -31,6 +31,8 @@ const train = async (p: Player, kind: "training" | "upgrade" = "training", ms = 
 
 const request = (p: Player, kind: unknown = "training"): Promise<Json> => post(server, p, "/v1/help/request", { kind });
 const give = (p: Player, requestId: string): Promise<Json> => post(server, p, "/v1/help/give", { requestId });
+/** `batch_assert` only ever receives a row to make a batch fail, so it must stay empty. */
+const assertRows = async (): Promise<number> => (await server.env.DB.prepare("SELECT COUNT(*) AS n FROM batch_assert").first<{ n: number }>())?.n ?? -1;
 const endsAt = async (p: Player): Promise<number> => (await getState(server, p.token)).training.endsAt;
 
 describe("asking for help", () => {
@@ -169,6 +171,7 @@ describe("races", () => {
     const given = await server.env.DB.prepare("SELECT COUNT(*) AS n FROM help_given WHERE request_id = ?").bind(req.id).first<{ n: number }>();
     expect(given?.n).toBe(MAX_HELPS_PER_REQUEST);
     expect(await endsAt(t.leader)).toBe(end - MAX_HELPS_PER_REQUEST * HELP_REDUCTION_MS);
+    expect(await assertRows()).toBe(0);
   });
 
   test("the same helper twice at once: one help, one 'already helped', nothing recorded without effect", async () => {
@@ -205,6 +208,7 @@ describe("races", () => {
     const given = await server.env.DB.prepare("SELECT COUNT(*) AS n FROM help_given WHERE request_id = ?").bind(req.id).first<{ n: number }>();
     expect(given?.n).toBe(row?.helps);
     expect(await endsAt(t.leader)).toBe(T0 + TRAIN_MS - (row?.helps ?? 0) * HELP_REDUCTION_MS);
+    expect(await assertRows()).toBe(0);
   });
 });
 

@@ -89,11 +89,10 @@ export const postHelpGive = async (ctx: Ctx): Promise<Response> => {
           )
           .bind(JSON.stringify(reduced.state), ctx.now, req.accountId, base.version, req.id, account.id),
         // All or nothing: `changes()` is the base update just above, and the marker proves the request update was ours.
+        // A row is written only when this fails (and the CHECK then rolls the batch back), so the table stays empty.
+        // `IS NOT 1` counts a missing row (NULL) as a failure too, which `NOT (...)` would not.
         db
-          .prepare(
-            `INSERT INTO batch_assert (ok) SELECT CASE WHEN changes() = 1
-               AND (SELECT last_helper FROM help_requests WHERE id = ?) = ? THEN 1 ELSE 0 END`,
-          )
+          .prepare(`INSERT INTO batch_assert (ok) SELECT 0 WHERE (changes() = 1 AND (SELECT last_helper FROM help_requests WHERE id = ?) = ?) IS NOT 1`)
           .bind(req.id, account.id),
       ]);
     } catch (e) {

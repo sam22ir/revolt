@@ -1,4 +1,5 @@
 import { devices, expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import { expectNoRawKeys } from "./helpers.ts";
 
 const devicesPixel = () => devices["Pixel 7"];
 
@@ -6,8 +7,6 @@ const T0 = new Date("2026-06-01T12:00:00Z").getTime();
 const API = "http://localhost:8788";
 const SHOTS = "test-results/screens";
 
-/** Any untranslated i18n key that leaked into the page, e.g. "panel.upgrade". */
-const RAW_KEY = /\b(app|resource|building|panel|reason|queue|time|settings|language|account|sync|nav|troop|npc|terrain|map|march|train|report)\.[a-z_]+\b/;
 
 type BuildingId = "hq" | "farm" | "armory" | "treasury";
 
@@ -34,15 +33,14 @@ const waitForGame = async (page: Page): Promise<void> => {
   await page.waitForTimeout(400);
 };
 
+/** Like a player: an open building panel covers part of the base, so close it before tapping the next building. */
 const tapBuilding = async (page: Page, id: BuildingId): Promise<void> => {
+  const panel = page.getByTestId("building-panel");
+  if (await panel.isVisible()) await panel.locator(".panel-close").click();
   const p = await page.evaluate((b) => window.__revolt!.buildingScreenPoint(b), id);
   await page.touchscreen.tap(p.x, p.y);
 };
 
-const expectNoRawKeys = async (page: Page): Promise<void> => {
-  const text = await page.locator("#ui").innerText();
-  expect(text).not.toMatch(RAW_KEY);
-};
 
 const LOCALES = [
   { locale: "en-US", lang: "en", dir: "ltr", upgrade: "Upgrade" },

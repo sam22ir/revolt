@@ -234,6 +234,7 @@ describe("ranks and removal", () => {
     expect(await act(t.leader, "transfer", b.handle)).toMatchObject({ ok: false, reason: "no_permission" });
     const rows = await server.env.DB.prepare("SELECT COUNT(*) AS n FROM alliance_members WHERE alliance_id = ? AND rank = 'leader'").bind(t.allianceId).first<{ n: number }>();
     expect(rows?.n).toBe(1);
+    expect((await server.env.DB.prepare("SELECT COUNT(*) AS n FROM batch_assert").first<{ n: number }>())?.n).toBe(0);
     // The old leader can leave now; the new one cannot until last.
     expect(await post(server, t.leader, "/v1/alliance/leave")).toMatchObject({ ok: true });
     expect(await post(server, a, "/v1/alliance/leave")).toMatchObject({ ok: false, reason: "leader_must_transfer" });
