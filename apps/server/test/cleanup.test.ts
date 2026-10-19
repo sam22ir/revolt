@@ -106,7 +106,7 @@ describe("stale guest cleanup", () => {
 
   test("each run deletes at most its limit; the rest go on the next run", async () => {
     const db = server.env.DB;
-    // One statement each: Miniflare's batch costs ~40 ms per statement.
+    // One statement each rather than one insert per account.
     const seq = "WITH RECURSIVE n(i) AS (SELECT 0 UNION ALL SELECT i + 1 FROM n WHERE i < 119)";
     await db.prepare(`${seq} INSERT INTO accounts (id, created_at) SELECT 'stale-' || i, ? FROM n`).bind(T0).run();
     await db.prepare(`${seq} INSERT INTO bases (account_id, state, version, updated_at) SELECT 'stale-' || i, '{}', 1, ? FROM n`).bind(T0).run();

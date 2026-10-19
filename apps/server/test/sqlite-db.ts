@@ -7,6 +7,12 @@ type Row = Record<string, unknown>;
 const toSql = (v: unknown): SQLInputValue => (typeof v === "boolean" ? Number(v) : (v as SQLInputValue));
 
 /**
+ * Yields to the event loop as a real D1 round trip does, so concurrent requests interleave between
+ * queries. Without it, the race tests (e.g. two helpers racing for the last help) never race.
+ */
+const io = (): Promise<void> => new Promise((resolve) => setImmediate(resolve));
+
+/**
  * Our `Db` slice on an in-memory `node:sqlite` database, for tests. Miniflare's D1 takes ~40 ms per
  * query (a round trip to workerd); this takes microseconds. Same SQLite, same error messages.
  * `miniflare-smoke.test.ts` keeps the real D1 path covered.
@@ -18,11 +24,18 @@ export const sqliteDb = (): { db: Db; close: () => void } => {
     return {
       bind: (...values) => statement(sql, values.map(toSql)),
       first: async <T = Row>() => {
+        await io();
         const row = sqlite.prepare(sql).get(...binds);
         return (row === undefined ? null : { ...row }) as T | null;
       },
-      run: async () => exec(),
-      all: async <T = Row>() => ({ results: sqlite.prepare(sql).all(...binds).map((r) => ({ ...r })) as T[] }),
+      run: async () => {
+        await io();
+        return exec();
+      },
+      all: async <T = Row>() => {
+        await io();
+        return { results: sqlite.prepare(sql).all(...binds).map((r) => ({ ...r })) as T[] };
+      },
       // Used by batch: runs synchronously inside its transaction.
       exec,
     };
@@ -31,13 +44,15 @@ export const sqliteDb = (): { db: Db; close: () => void } => {
     prepare: (sql) => statement(sql, []),
     // D1 runs a batch as one transaction: any failing statement rolls back the whole batch.
     batch: async (stmts) => {
+      await io();
       sqlite.exec("BEGIN");
       try {
         const results = stmts.map((s) => (s as ReturnType<typeof statement>).exec());
         sqlite.exec("COMMIT");
         return results;
       } catch (e) {
-        sqlite.exec("ROLLBACK");
+        // Keep the statement's own error if SQLite already ended the transaction.
+        if (sqlite.isTransaction) sqlite.exec("ROLLBACK");
         throw e;
       }
     },
