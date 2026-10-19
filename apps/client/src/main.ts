@@ -80,6 +80,9 @@ const start = async (): Promise<void> => {
     backgroundColor: "#3d4a3a",
     scale: hiDpiScaleConfig(gameRoot),
     banner: false,
+    // By default Phaser also listens on the whole window, so a tap on a DOM panel or button would reach
+    // the scene underneath it (selecting a building or tile behind the alliance panel, say). Listen on the canvas only.
+    input: { windowEvents: false },
     scene: [baseScene, worldScene],
   });
   followParentSize(game, gameRoot);
