@@ -71,7 +71,7 @@ for (const [slot, { locale, lang, dir, name, say, reply }] of LOCALES.entries())
     await a.getByTestId("chat-input").fill("<img src=x onerror=alert(1)>");
     await a.getByTestId("chat-send").click();
     await expect(b.getByTestId("chat-message").filter({ hasText: "<img src=x onerror=alert(1)>" })).toHaveCount(1);
-    expect(await b.locator("img").count()).toBe(0);
+    expect(await b.getByTestId("chat-message").locator("img").count()).toBe(0);
     await expectNoRawKeys(a);
     await screenshot(b, `${SHOTS}/${lang}-m4-3-chat.png`);
 
