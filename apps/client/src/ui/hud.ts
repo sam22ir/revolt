@@ -86,7 +86,8 @@ export const createHud = (
       const chip = chips.get(id);
       if (chip === undefined) continue;
       chip.amount.textContent = formatAmount(lang, state.resources[id]);
-      chip.rate.textContent = t("panel.perHour", { amount: `+${formatAmount(lang, rate[id])}` });
+      // LRI…PDI keeps the sign before the number in Arabic ("+100/سا", not "100+").
+      chip.rate.textContent = t("panel.perHour", { amount: `\u2066+${formatAmount(lang, rate[id])}\u2069` });
       const frac = Math.min(1, state.resources[id] / cap[id]);
       chip.fill.style.inlineSize = `${(frac * 100).toFixed(1)}%`;
       chip.fill.classList.toggle("full", frac >= 1);
