@@ -186,3 +186,7 @@
 
 /* A rally column waiting at home for the gathering to end */
 .march-row[data-stage="gathering"] { background: rgb(106 85 168 / 0.9); }
+
+.member-row { flex-wrap: wrap; }
+.member-who { flex: 1 1 9rem; }
+.help-who { display: flex; align-items: baseline; gap: 8px; }
