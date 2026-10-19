@@ -1,12 +1,15 @@
-import { BUILDING_IDS, parseTroops, startTraining, startUpgrade, TROOP_IDS, type BaseState, type BuildingId, type TroopId, type Troops } from "@revolt/rules";
+import { advance, BUILDING_IDS, canPerform, parseTroops, startTraining, startUpgrade, TROOP_IDS, type BaseState, type BuildingId, type TroopId, type Troops } from "@revolt/rules";
 import { loadBase, saveBase } from "../db/bases.ts";
 import { HttpError, json, readJson } from "../http.ts";
 import { authenticate, type Ctx } from "./context.ts";
+import { viewerFor } from "./viewer.ts";
 
 export type Intent =
   | { readonly type: "upgrade"; readonly building: BuildingId }
   | { readonly type: "train"; readonly troop: TroopId; readonly count: number }
-  | { readonly type: "march"; readonly target: string; readonly troops: Troops };
+  | { readonly type: "march"; readonly target: string; readonly troops: Troops }
+  | { readonly type: "rally_start"; readonly target: string; readonly troops: Troops; readonly gather: number }
+  | { readonly type: "rally_join"; readonly rally: string; readonly troops: Troops };
 
 const MAX_TARGET_ID = 64;
 
@@ -20,6 +23,14 @@ export const parseIntent = (body: Record<string, unknown>): Intent => {
   if (type === "march" && typeof body.target === "string" && body.target.length > 0 && body.target.length <= MAX_TARGET_ID) {
     const troops = parseTroops(body.troops);
     if (troops !== null) return { type, target: body.target, troops };
+  }
+  if (type === "rally_start" && typeof body.target === "string" && body.target.length > 0 && body.target.length <= MAX_TARGET_ID && typeof body.gather === "number") {
+    const troops = parseTroops(body.troops);
+    if (troops !== null) return { type, target: body.target, troops, gather: body.gather };
+  }
+  if (type === "rally_join" && typeof body.rally === "string" && body.rally.length > 0 && body.rally.length <= MAX_TARGET_ID) {
+    const troops = parseTroops(body.troops);
+    if (troops !== null) return { type, rally: body.rally, troops };
   }
   throw new HttpError("bad_request");
 };
@@ -42,6 +53,13 @@ const changeBase = async (ctx: Ctx, accountId: string, apply: (s: BaseState) => 
   throw new HttpError("conflict");
 };
 
+/** A refusal the Worker decides itself (before the map is asked), with the player's current base state. */
+const refusedIntent = async (ctx: Ctx, accountId: string, reason: string): Promise<Response> => {
+  const stored = await loadBase(ctx.env.DB, accountId);
+  if (stored === null) throw new HttpError("not_found");
+  return json({ ok: false, reason, state: advance(stored.state, ctx.now), now: ctx.now });
+};
+
 /**
  * POST /v1/intent — validates the intent with the shared rules at server time and saves it.
  * A rule rejection (e.g. not enough resources) is a normal answer: `ok: false` with a reason.
@@ -56,7 +74,23 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
     case "train":
       return changeBase(ctx, account.id, (s) => startTraining(s, intent.troop, intent.count, ctx.now));
     case "march": {
-      const r = await ctx.deps.map(ctx.env, account.server).sendMarch(account.id, intent.target, intent.troops, ctx.now);
+      const { viewer } = await viewerFor(ctx, account);
+      const r = await ctx.deps.map(ctx.env, account.server).sendMarch(viewer, intent.target, intent.troops, ctx.now);
+      if ("error" in r) throw new HttpError(r.error);
+      return json({ ...r, now: ctx.now });
+    }
+    case "rally_start": {
+      const { viewer, membership } = await viewerFor(ctx, account);
+      if (membership === null) return refusedIntent(ctx, account.id, "not_member");
+      if (!canPerform(membership.rank, "start_rally")) return refusedIntent(ctx, account.id, "no_permission");
+      const r = await ctx.deps.map(ctx.env, account.server).startRally(viewer, intent.target, intent.troops, intent.gather, ctx.now);
+      if ("error" in r) throw new HttpError(r.error);
+      return json({ ...r, now: ctx.now });
+    }
+    case "rally_join": {
+      const { viewer, membership } = await viewerFor(ctx, account);
+      if (membership === null) return refusedIntent(ctx, account.id, "not_member");
+      const r = await ctx.deps.map(ctx.env, account.server).joinRally(viewer, intent.rally, intent.troops, ctx.now);
       if ("error" in r) throw new HttpError(r.error);
       return json({ ...r, now: ctx.now });
     }

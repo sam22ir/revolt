@@ -7,9 +7,12 @@ import { handle } from "../src/app.ts";
 import type { Db } from "../src/db/db.ts";
 import { DEFAULT_SERVER } from "../src/db/accounts.ts";
 import type { Env } from "../src/env.ts";
+import { ChatRoom } from "../src/alliance/chat-room.ts";
+import { RoomHost, type RoomSocket } from "../src/alliance/room-host.ts";
+import type { RoomApi } from "../src/alliance/room-client.ts";
 import type { MapApi } from "../src/map/map-client.ts";
 import { MapHost } from "../src/map/map-host.ts";
-import { MapService } from "../src/map/map-service.ts";
+import { MapService, type MapOp } from "../src/map/map-service.ts";
 import type { MapSql } from "../src/map/map-sql.ts";
 
 export const T0 = Date.UTC(2026, 9, 1, 12);
@@ -108,25 +111,93 @@ const createTestMap = (db: Db, seed: number): TestMap => {
 };
 
 /** The Worker's view of a test map, mirroring `WorldMap`'s RPC methods. */
-const testMapApi = (tm: TestMap, server: string): MapApi => ({
-  view: (accountId, now) =>
+const testMapApi = (tm: TestMap, server: string): MapApi => {
+  const run = <T>(now: number, op: (s: MapService) => MapOp<T> | Promise<MapOp<T>>): Promise<T> =>
     tm.host.run(now, (s) => {
       s.rememberName(server);
-      return s.view(accountId, now);
-    }),
-  sendMarch: (accountId, npcId, troops, now) =>
-    tm.host.run(now, (s) => {
-      s.rememberName(server);
-      return s.sendMarch(accountId, npcId, troops, now);
-    }),
-  removeAccounts: (ids, now) => tm.host.run(now, (s) => s.removeAccounts(ids)),
-  connect: async (_req, accountId, now) => {
-    const socket: TestSocket = { accountId, received: [], open: true };
-    tm.sockets.push(socket);
-    const snapshot = await tm.host.run(now, (s) => s.view(accountId, now));
-    socket.received.push({ type: "map", snapshot });
-    // Node cannot build a 101; tests read the socket from `server.lastSocket`.
-    return new Response(null, { status: 200, headers: { "x-test-socket": String(tm.sockets.length - 1) } });
+      return op(s);
+    });
+  return {
+    view: (v, now) => run(now, (s) => s.view(v, now)),
+    sendMarch: (v, npcId, troops, now) => run(now, (s) => s.sendMarch(v, npcId, troops, now)),
+    startRally: (v, npcId, troops, gatherMs, now) => run(now, (s) => s.startRally(v, npcId, troops, gatherMs, now)),
+    joinRally: (v, rallyId, troops, now) => run(now, (s) => s.joinRally(v, rallyId, troops, now)),
+    setHq: (v, x, y, now) => run(now, (s) => s.setHq(v, x, y, now)),
+    hqOf: async (allianceId) => tm.host.service.hqOf(allianceId),
+    setAlliance: (v, now) => run(now, (s) => s.setAlliance(v)).then(() => undefined),
+    removeAlliance: (allianceId, now) => run(now, (s) => s.removeAlliance(allianceId)).then(() => undefined),
+    removeAccounts: (ids, now) => run(now, (s) => s.removeAccounts(ids)),
+    connect: async (_req, v, now) => {
+      const socket: TestSocket = { accountId: v.accountId, received: [], open: true };
+      tm.sockets.push(socket);
+      const snapshot = await run(now, (s) => s.view(v, now));
+      socket.received.push({ type: "map", snapshot });
+      // Node cannot build a 101; tests read the socket from `server.map().sockets`.
+      return new Response(null, { status: 200, headers: { "x-test-socket": String(tm.sockets.length - 1) } });
+    },
+  };
+};
+
+/** A connected chat client in tests: it records what the room pushes. */
+export interface TestRoomSocket extends RoomSocket {
+  readonly received: Json[];
+  open: boolean;
+  closeCode: number | null;
+}
+
+/** One alliance's chat room as the Durable Object runs it: the same ChatRoom and RoomHost, on `node:sqlite`. */
+export interface TestRoom {
+  readonly host: RoomHost;
+  readonly sockets: TestRoomSocket[];
+  readonly sql: MapSql;
+  /** Types the room was told about with `notify`. */
+  readonly notices: string[];
+  disbanded: boolean;
+}
+
+const createTestRoom = (): TestRoom => {
+  const sqlite = new DatabaseSync(":memory:");
+  const sql: MapSql = { exec: (q, ...b) => sqlite.prepare(q).all(...b) as never };
+  const room: TestRoom = {
+    sql,
+    sockets: [],
+    notices: [],
+    disbanded: false,
+    host: new RoomHost(new ChatRoom(sql), { sockets: () => room.sockets.filter((s) => s.open), persist: () => undefined }),
+  };
+  return room;
+};
+
+const testRoomApi = (room: TestRoom): RoomApi => ({
+  connect: async (_req, who) => {
+    const socket: TestRoomSocket = {
+      accountId: who.accountId,
+      handle: who.handle,
+      rank: who.rank,
+      received: [],
+      open: true,
+      closeCode: null,
+      send: (d) => {
+        if (!socket.open) throw new Error("closed");
+        socket.received.push(JSON.parse(d));
+      },
+      close: (code) => {
+        socket.open = false;
+        socket.closeCode = code;
+      },
+    };
+    room.sockets.push(socket);
+    room.host.welcome(socket);
+    return new Response(null, { status: 200, headers: { "x-test-socket": String(room.sockets.length - 1) } });
+  },
+  memberChanged: async (accountId, rank) => room.host.memberChanged(accountId, rank),
+  notify: async (type) => {
+    room.notices.push(type);
+    room.host.broadcast({ type });
+  },
+  disband: async () => {
+    room.disbanded = true;
+    room.host.disband();
   },
 });
 
@@ -141,6 +212,8 @@ export interface Server {
   readonly dispose: () => Promise<void>;
   /** The map of a server (default: Algeria), created on first use. */
   readonly map: (name?: string) => TestMap;
+  /** The chat room of an alliance, created on first use. */
+  readonly room: (allianceId: string) => TestRoom;
   /** Fires the map's alarm at the current server time, as the Durable Object would. */
   readonly fireAlarm: (name?: string) => Promise<void>;
   /** Seed for the maps' random source (placement, tags, battle seeds). */
@@ -157,8 +230,9 @@ export const startServer = async (envOverrides: Partial<Env> = {}): Promise<Serv
   const google = await keypair("google-1");
   // The DO namespace is never reached in Node tests: `deps.map` stands in for it.
   const noNamespace = { idFromName: () => { throw new Error("no DO in tests"); }, get: () => { throw new Error("no DO in tests"); } };
-  const env: Env = { DB: db, WORLD_MAP: noNamespace, GOOGLE_CLIENT_IDS: CLIENT_ID, ALLOWED_ORIGINS: "http://localhost:4173", ...envOverrides };
+  const env: Env = { DB: db, WORLD_MAP: noNamespace, ALLIANCE_ROOM: noNamespace, GOOGLE_CLIENT_IDS: CLIENT_ID, ALLOWED_ORIGINS: "http://localhost:4173", ...envOverrides };
   const maps = new Map<string, TestMap>();
+  const rooms = new Map<string, TestRoom>();
   const server: Server = {
     now: T0,
     google,
@@ -174,6 +248,7 @@ export const startServer = async (envOverrides: Partial<Env> = {}): Promise<Serv
         now: () => server.now,
         googleKeys: createLocalJWKSet({ keys: [google.jwk] }),
         map: (_env, name) => testMapApi(server.map(name), name),
+        room: (_env, allianceId) => testRoomApi(server.room(allianceId)),
       });
     },
     idToken: (sub, email, overrides = {}) => {
@@ -189,6 +264,14 @@ export const startServer = async (envOverrides: Partial<Env> = {}): Promise<Serv
         maps.set(name, tm);
       }
       return tm;
+    },
+    room: (allianceId) => {
+      let r = rooms.get(allianceId);
+      if (r === undefined) {
+        r = createTestRoom();
+        rooms.set(allianceId, r);
+      }
+      return r;
     },
     fireAlarm: (name) => server.map(name).host.wake(server.now),
   };

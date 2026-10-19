@@ -32,7 +32,7 @@ describe("GET /v1/map", () => {
     const raw = JSON.stringify(seenByA);
     expect(raw).not.toContain(a.res.account.id);
     expect(raw).not.toContain(b.res.account.id);
-    for (const base of seenByA.bases) expect(base.tag).toMatch(/^[A-Z2-9]{4}$/);
+    for (const base of seenByA.bases) expect(base.tag).toMatch(/^[A-Z2-9]{6}$/);
   });
 
   test("NPC targets of every level exist, on free tiles", async () => {

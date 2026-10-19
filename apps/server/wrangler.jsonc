@@ -6,8 +6,17 @@
   // Daily cleanup (src/cleanup.ts). Locally: `wrangler dev --test-scheduled`, then GET /cdn-cgi/local/scheduled.
   "triggers": { "crons": ["0 3 * * *"] },
   // One WorldMap Durable Object per server map (src/map/world-map.ts). SQLite storage: the only kind on the Free plan.
-  "durable_objects": { "bindings": [{ "name": "WORLD_MAP", "class_name": "WorldMap" }] },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["WorldMap"] }],
+  // One AllianceRoom per alliance (src/alliance/alliance-room.ts): its chat.
+  "durable_objects": {
+    "bindings": [
+      { "name": "WORLD_MAP", "class_name": "WorldMap" },
+      { "name": "ALLIANCE_ROOM", "class_name": "AllianceRoom" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["WorldMap"] },
+    { "tag": "v2", "new_sqlite_classes": ["AllianceRoom"] }
+  ],
   "d1_databases": [
     {
       "binding": "DB",

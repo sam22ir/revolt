@@ -17,11 +17,14 @@ export interface Ctx {
 
 export interface AccountView {
   readonly id: string;
+  /** The player's public name; other players see this, never the id. */
+  readonly handle: string;
   readonly google: { readonly email: string | null } | null;
 }
 
 export const accountView = (a: Account): AccountView => ({
   id: a.id,
+  handle: a.handle,
   google: a.googleSub === null ? null : { email: a.googleEmail },
 });
 

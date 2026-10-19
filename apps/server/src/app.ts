@@ -5,6 +5,20 @@ import { postGoogle } from "./handlers/google.ts";
 import { createGuest } from "./handlers/guest.ts";
 import { postIntent } from "./handlers/intent.ts";
 import { postLogout } from "./handlers/logout.ts";
+import {
+  connectAlliance,
+  getAlliance,
+  getAlliances,
+  postCreateAlliance,
+  postDemote,
+  postHq,
+  postJoinAlliance,
+  postKick,
+  postLeaveAlliance,
+  postPromote,
+  postTransfer,
+} from "./handlers/alliance.ts";
+import { postHelpGive, postHelpRequest } from "./handlers/help.ts";
 import { connectMap, getMap, getReports } from "./handlers/map.ts";
 import { getState } from "./handlers/state.ts";
 
@@ -18,6 +32,18 @@ const ROUTES: Record<string, Handler> = {
   "POST /v1/logout": postLogout,
   "GET /v1/map": getMap,
   "GET /v1/reports": getReports,
+  "GET /v1/alliances": getAlliances,
+  "GET /v1/alliance": getAlliance,
+  "POST /v1/alliance": postCreateAlliance,
+  "POST /v1/alliance/join": postJoinAlliance,
+  "POST /v1/alliance/leave": postLeaveAlliance,
+  "POST /v1/alliance/kick": postKick,
+  "POST /v1/alliance/promote": postPromote,
+  "POST /v1/alliance/demote": postDemote,
+  "POST /v1/alliance/transfer": postTransfer,
+  "POST /v1/alliance/hq": postHq,
+  "POST /v1/help/request": postHelpRequest,
+  "POST /v1/help/give": postHelpGive,
 };
 
 const route = async (req: Request, env: Env, deps: Deps): Promise<Response> => {
@@ -32,14 +58,15 @@ const route = async (req: Request, env: Env, deps: Deps): Promise<Response> => {
   }
 };
 
-/** The map WebSocket: its 101 answer goes back untouched (no CORS for WebSockets). */
-const MAP_SOCKET = "/v1/map/ws";
+/** The WebSockets: their 101 answers go back untouched (no CORS for WebSockets). */
+const SOCKETS: Record<string, Handler> = { "/v1/map/ws": connectMap, "/v1/alliance/ws": connectAlliance };
 
 /** The whole API. Entry modules supply the clock, Google keys and the map. */
 export const handle = async (req: Request, env: Env, deps: Deps): Promise<Response> => {
-  if (req.method === "GET" && new URL(req.url).pathname === MAP_SOCKET) {
+  const socket = req.method === "GET" ? SOCKETS[new URL(req.url).pathname] : undefined;
+  if (socket !== undefined) {
     try {
-      return await connectMap({ req, env, deps, now: deps.now() });
+      return await socket({ req, env, deps, now: deps.now() });
     } catch (e) {
       if (e instanceof HttpError) return errorResponse(e.code);
       throw e;

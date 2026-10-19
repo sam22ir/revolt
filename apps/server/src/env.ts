@@ -1,5 +1,6 @@
 import type { JWTVerifyGetKey } from "jose";
 import type { Db } from "./db/db.ts";
+import type { RoomApi, RoomNamespace } from "./alliance/room-client.ts";
 import type { MapApi, MapNamespace } from "./map/map-client.ts";
 
 /** Bindings and vars from wrangler config. */
@@ -7,6 +8,8 @@ export interface Env {
   readonly DB: Db;
   /** One WorldMap Durable Object per server map (GDD §5). */
   readonly WORLD_MAP: MapNamespace;
+  /** One AllianceRoom Durable Object per alliance: its chat. */
+  readonly ALLIANCE_ROOM: RoomNamespace;
   /** Comma-separated Google OAuth client IDs accepted as `aud` (the web client ID). Empty disables Google. */
   readonly GOOGLE_CLIENT_IDS: string;
   /** Comma-separated origins allowed by CORS. */
@@ -27,6 +30,7 @@ export interface Deps {
   readonly now: () => number;
   readonly googleKeys: JWTVerifyGetKey;
   readonly map: (env: Env, server: string) => MapApi;
+  readonly room: (env: Env, allianceId: string) => RoomApi;
 }
 
 export const csv = (v: string): string[] =>

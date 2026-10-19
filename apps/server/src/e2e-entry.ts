@@ -5,6 +5,8 @@
  */
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT, type CryptoKey, type JWK } from "jose";
 import { handle } from "./app.ts";
+import { AllianceRoom } from "./alliance/alliance-room.ts";
+import { durableRoom } from "./alliance/room-client.ts";
 import { durableMap } from "./map/map-client.ts";
 import { WorldMap } from "./map/world-map.ts";
 import { GOOGLE_ISSUERS } from "./auth/google.ts";
@@ -29,6 +31,7 @@ const mockIssuer = (): Promise<MockIssuer> =>
 const deps: Deps = {
   now,
   map: durableMap,
+  room: durableRoom,
   googleKeys: async (header, token) => createLocalJWKSet({ keys: [(await mockIssuer()).jwk] })(header, token),
 };
 
@@ -45,7 +48,7 @@ class WorldMapE2E extends WorldMap {
     await this.ctx.storage.setAlarm(Date.now());
   }
 }
-export { WorldMapE2E as WorldMap };
+export { WorldMapE2E as WorldMap, AllianceRoom };
 
 /** POST /__test/clock `{ now: number | null }` — null returns to real time. Moves the Worker's and the map's clocks. */
 const setClock = async (req: Request, env: Env): Promise<Response> => {

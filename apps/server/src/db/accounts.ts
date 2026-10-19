@@ -1,4 +1,5 @@
-import type { Db, DbStatement } from "./db.ts";
+import { HANDLE_ALPHABET, HANDLE_LENGTH } from "@revolt/rules";
+import { isUniqueViolation, type Db, type DbStatement } from "./db.ts";
 
 export interface Account {
   readonly id: string;
@@ -6,6 +7,8 @@ export interface Account {
   readonly googleEmail: string | null;
   /** The map server this account plays on (GDD §5). */
   readonly server: string;
+  /** The player's public name until players can choose one. Unique per server. */
+  readonly handle: string;
 }
 
 interface AccountRow {
@@ -13,28 +16,49 @@ interface AccountRow {
   readonly google_sub: string | null;
   readonly google_email: string | null;
   readonly server: string;
+  readonly handle: string;
 }
 
-const toAccount = (r: AccountRow): Account => ({ id: r.id, googleSub: r.google_sub, googleEmail: r.google_email, server: r.server });
+const toAccount = (r: AccountRow): Account => ({ id: r.id, googleSub: r.google_sub, googleEmail: r.google_email, server: r.server, handle: r.handle });
 
 /** Every account plays on the Algeria server until more backgrounds exist (GDD §2, M6). */
 export const DEFAULT_SERVER = "algeria-1";
 
 export const insertAccount = (
   db: Db,
-  a: { id: string; now: number; googleSub?: string; googleEmail?: string | null; importedM1?: boolean },
+  a: { id: string; handle: string; now: number; googleSub?: string; googleEmail?: string | null; importedM1?: boolean },
 ): DbStatement =>
   db
-    .prepare("INSERT INTO accounts (id, created_at, google_sub, google_email, imported_m1) VALUES (?, ?, ?, ?, ?)")
-    .bind(a.id, a.now, a.googleSub ?? null, a.googleEmail ?? null, a.importedM1 === true ? 1 : 0);
+    .prepare("INSERT INTO accounts (id, created_at, google_sub, google_email, imported_m1, handle) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(a.id, a.now, a.googleSub ?? null, a.googleEmail ?? null, a.importedM1 === true ? 1 : 0, a.handle);
+
+/** A random handle from the tag alphabet (32^6, about a billion). */
+export const newHandle = (): string => {
+  const bytes = crypto.getRandomValues(new Uint8Array(HANDLE_LENGTH));
+  return [...bytes].map((b) => HANDLE_ALPHABET[b % HANDLE_ALPHABET.length]).join("");
+};
+
+/** True if the error is the handle index refusing a duplicate (as opposed to the Google id, say). */
+export const isHandleCollision = (e: unknown): boolean => isUniqueViolation(e) && e instanceof Error && /handle/i.test(e.message);
+
+/** Runs `attempt` with a fresh handle, again with another if that handle was already taken. */
+export const withNewHandle = async <T>(attempt: (handle: string) => Promise<T>): Promise<T> => {
+  for (let i = 0; ; i++) {
+    try {
+      return await attempt(newHandle());
+    } catch (e) {
+      if (!isHandleCollision(e) || i >= 5) throw e;
+    }
+  }
+};
 
 export const findAccountById = async (db: Db, id: string): Promise<Account | null> => {
-  const r = await db.prepare("SELECT id, google_sub, google_email, server FROM accounts WHERE id = ?").bind(id).first<AccountRow>();
+  const r = await db.prepare("SELECT id, google_sub, google_email, server, handle FROM accounts WHERE id = ?").bind(id).first<AccountRow>();
   return r === null ? null : toAccount(r);
 };
 
 export const findAccountByGoogleSub = async (db: Db, sub: string): Promise<Account | null> => {
-  const r = await db.prepare("SELECT id, google_sub, google_email, server FROM accounts WHERE google_sub = ?").bind(sub).first<AccountRow>();
+  const r = await db.prepare("SELECT id, google_sub, google_email, server, handle FROM accounts WHERE google_sub = ?").bind(sub).first<AccountRow>();
   return r === null ? null : toAccount(r);
 };
 

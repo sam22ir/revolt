@@ -1,11 +1,13 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { runCleanup, STALE_GUEST_MS } from "../src/cleanup.ts";
 import { scheduled } from "../src/scheduled.ts";
+import { MANY_GUESTS, post, team, type Player } from "./alliance-helpers.ts";
 import { body, DAY, HOUR, newGuest, startServer, T0, type Server } from "./harness.ts";
+import { getMap } from "./map-helpers.ts";
 
 let server: Server;
 beforeEach(async () => {
-  server = await startServer();
+  server = await startServer(MANY_GUESTS);
 });
 afterEach(() => server.dispose());
 
@@ -118,14 +120,14 @@ describe("stale guest cleanup", () => {
 
   test("also deletes expired rate-limit windows", async () => {
     await abandonedGuest();
-    expect(await runCleanup(server.env.DB, T0 + 2 * HOUR)).toEqual({ guests: 0, rateWindows: 1 });
+    expect(await runCleanup(server.env.DB, T0 + 2 * HOUR)).toMatchObject({ guests: 0, rateWindows: 1, helpRequests: 0 });
   });
 
   test("the Worker's scheduled handler runs it at the trigger's scheduled time", async () => {
     const id = await abandonedGuest();
     const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    await scheduled(T0 + STALE_GUEST_MS, server.env, { map: () => ({ removeAccounts: async () => 0 }) as never });
-    expect(log).toHaveBeenCalledWith("cleanup: 1 stale guests, 1 rate windows deleted");
+    await scheduled(T0 + STALE_GUEST_MS, server.env, { map: () => ({ removeAccounts: async () => 0, removeAlliance: async () => undefined }) as never, room: () => ({ disband: async () => undefined }) as never });
+    expect(log).toHaveBeenCalledWith("cleanup: 1 stale guests, 1 rate windows, 0 help requests deleted");
     log.mockRestore();
     expect(await exists(id)).toEqual(gone);
   });
@@ -154,4 +156,126 @@ describe("stale guest cleanup", () => {
     const after = await body(await server.request("GET", "/v1/map", { token: other.token }));
     expect(after.bases).toHaveLength(1);
   });
+});
+
+describe("cleanup and alliances", () => {
+  /** A guest that logged out, so the next cleanup 30 days later deletes it (a leader, a member, ...). */
+  const abandon = async (token: string): Promise<void> => void (await server.request("POST", "/v1/logout", { token }));
+  const rank = async (id: string): Promise<string | null> =>
+    (await server.env.DB.prepare("SELECT rank FROM alliance_members WHERE account_id = ?").bind(id).first<{ rank: string }>())?.rank ?? null;
+  const later = (): number => server.now + STALE_GUEST_MS;
+
+  const ended: string[] = [];
+
+  test("a deleted leader's alliance goes to its oldest officer, else its oldest member", async () => {
+    const t = await team(server, 4);
+    const [first, second, third] = t.members as [Player, Player, Player];
+    await post(server, t.leader, "/v1/alliance/promote", { handle: third.handle });
+    await abandon(t.leader.token);
+    await runCleanup(server.env.DB, later());
+    expect(await rank(t.leader.id)).toBeNull();
+    expect(await rank(third.id)).toBe("leader");
+    expect([await rank(first.id), await rank(second.id)]).toEqual(["member", "member"]);
+    // The next leader is deleted too: nobody is an officer, so the oldest member takes over.
+    server.now = later();
+    await abandon(third.token);
+    await runCleanup(server.env.DB, later());
+    expect(await rank(first.id)).toBe("leader");
+    const leaders = await server.env.DB.prepare("SELECT COUNT(*) AS n FROM alliance_members WHERE alliance_id = ? AND rank = 'leader'").bind(t.allianceId).first<{ n: number }>();
+    expect(leaders?.n).toBe(1);
+  });
+
+  test("a leader and the member who would succeed deleted together: the one who stays takes over", async () => {
+    const t = await team(server, 3);
+    const [a, b] = t.members as [Player, Player];
+    await abandon(t.leader.token);
+    await abandon(a.token);
+    await runCleanup(server.env.DB, later());
+    expect(await rank(b.id)).toBe("leader");
+    expect(await rank(a.id)).toBeNull();
+  });
+
+  test("an alliance whose members are all deleted ends: row, HQ and chat room, help requests too", async () => {
+    const t = await team(server, 2);
+    const m = t.members[0]!;
+    await getMap(server, t.leader.token);
+    await getMap(server, m.token);
+    const row = await server.env.DB.prepare("SELECT state FROM bases WHERE account_id = ?").bind(m.id).first<{ state: string }>();
+    const state = JSON.parse(row?.state ?? "{}");
+    state.training = { troop: "infantry", count: 20, startedAt: T0, endsAt: T0 + 3_600_000 };
+    await server.env.DB.prepare("UPDATE bases SET state = ? WHERE account_id = ?").bind(JSON.stringify(state), m.id).run();
+    await post(server, m, "/v1/help/request", { kind: "training" });
+    await post(server, t.leader, "/v1/help/give", { requestId: (await server.env.DB.prepare("SELECT id FROM help_requests").first<{ id: string }>())?.id });
+    await abandon(t.leader.token);
+    await abandon(m.token);
+    const closed: string[] = [];
+    await runCleanup(server.env.DB, later(), undefined, async (name, ids, ended) => {
+      for (const id of ended) closed.push(id);
+      await server.map(name).host.run(server.now, (s) => s.removeAccounts(ids));
+      for (const id of ended) server.room(id).host.disband();
+    });
+    expect(closed).toEqual([t.allianceId]);
+    const count = async (sql: string): Promise<number> => (await server.env.DB.prepare(sql).first<{ n: number }>())?.n ?? -1;
+    expect(await count("SELECT COUNT(*) AS n FROM alliances")).toBe(0);
+    expect(await count("SELECT COUNT(*) AS n FROM alliance_members")).toBe(0);
+    expect(await count("SELECT COUNT(*) AS n FROM help_requests")).toBe(0);
+    expect(await count("SELECT COUNT(*) AS n FROM help_given")).toBe(0);
+    expect(await count("SELECT COUNT(*) AS n FROM accounts WHERE id IN ('" + t.leader.id + "', '" + m.id + "')")).toBe(0);
+  });
+
+  test("the map and rooms are cleaned BEFORE any database row is deleted", async () => {
+    const t = await team(server, 1);
+    await abandon(t.leader.token);
+    const seen: { accounts: number; alliances: number }[] = [];
+    await runCleanup(server.env.DB, later(), undefined, async () => {
+      const a = await server.env.DB.prepare("SELECT COUNT(*) AS n FROM accounts WHERE id = ?").bind(t.leader.id).first<{ n: number }>();
+      const b = await server.env.DB.prepare("SELECT COUNT(*) AS n FROM alliances").first<{ n: number }>();
+      seen.push({ accounts: a?.n ?? -1, alliances: b?.n ?? -1 });
+    });
+    expect(seen).toEqual([{ accounts: 1, alliances: 1 }]);
+  });
+
+  test("if cleaning the map fails nothing is deleted, and the next run finishes the job", async () => {
+    const t = await team(server, 1);
+    await abandon(t.leader.token);
+    await expect(
+      runCleanup(server.env.DB, later(), undefined, async () => {
+        throw new Error("map unreachable");
+      }),
+    ).rejects.toThrow("map unreachable");
+    expect(await rank(t.leader.id)).toBe("leader");
+    expect(await runCleanup(server.env.DB, later())).toMatchObject({ guests: 1 });
+    expect(await rank(t.leader.id)).toBeNull();
+  });
+
+  test("the scheduled handler ends the room and the HQ of an emptied alliance", async () => {
+    const t = await team(server, 1);
+    await abandon(t.leader.token);
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    await scheduled(later(), server.env, {
+      map: (_e, name) => ({ removeAccounts: async () => 0, removeAlliance: async (id: string) => void ended.push(`map:${name}:${id}`) }) as never,
+      room: (_e, id) => ({ disband: async () => void ended.push(`room:${id}`) }) as never,
+    });
+    log.mockRestore();
+    expect(ended).toEqual([`room:${t.allianceId}`, `map:algeria-1:${t.allianceId}`]);
+  });
+
+  test("an account that gains a session before the batch runs is neither deleted nor replaced as leader", async () => {
+    const t = await team(server, 2);
+    await abandon(t.leader.token);
+    await runCleanup(server.env.DB, later(), undefined, async () => {
+      // The leader signs in again between planning and the write.
+      await server.env.DB.prepare("INSERT INTO sessions (token_hash, account_id, created_at, last_used_at) VALUES ('h', ?, 1, 1)").bind(t.leader.id).run();
+    });
+    expect(await rank(t.leader.id)).toBe("leader");
+    expect(await rank(t.members[0]!.id)).toBe("member");
+  });
+
+  test("old help requests are dropped after a day", async () => {
+    const t = await team(server, 2);
+    await server.env.DB.prepare("INSERT INTO help_requests (id, account_id, kind, job_started_at, ends_at, created_at, helps) VALUES ('r1', ?, 'training', 1, ?, 1, 0)").bind(t.leader.id, T0).run();
+    expect(await runCleanup(server.env.DB, T0 + 24 * HOUR - 1)).toMatchObject({ helpRequests: 0 });
+    expect(await runCleanup(server.env.DB, T0 + 24 * HOUR + 1)).toMatchObject({ helpRequests: 1 });
+  });
+
 });

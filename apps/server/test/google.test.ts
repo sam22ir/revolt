@@ -20,7 +20,7 @@ describe("linking Google", () => {
     const b = await body(res);
     expect(b.switched).toBe(false);
     expect(b.token).toBe(a.token);
-    expect(b.account).toEqual({ id: a.res.account.id, google: { email: "player@example.com" } });
+    expect(b.account).toEqual({ id: a.res.account.id, handle: a.res.account.handle, google: { email: "player@example.com" } });
     expect(b.state.queue.building).toBe("hq");
   });
 
