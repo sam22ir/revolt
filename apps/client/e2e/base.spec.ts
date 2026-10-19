@@ -6,7 +6,7 @@ const API = "http://localhost:8788";
 const SHOTS = "test-results/screens";
 
 
-type BuildingId = "hq" | "farm" | "armory" | "treasury";
+type BuildingId = "hq" | "farm" | "armory" | "treasury" | "barracks";
 
 /** Sets the e2e Worker's clock; null returns it to real time. The server owns time. */
 const serverClock = async (request: APIRequestContext, now: number | null): Promise<void> => {
@@ -147,6 +147,16 @@ test.describe("at Pixel 7's real pixel ratio", () => {
     await expectSharpCanvas();
     await tapBuilding(page, "armory");
     await expect(page.getByTestId("building-panel")).toHaveAttribute("data-building", "armory");
+  });
+
+  // The painted sprites overlap in the quincunx layout; each tap must still open the building it landed on.
+  test("every building opens its own panel when tapped at the device pixel ratio", async ({ page }) => {
+    await page.goto("/");
+    await waitForGame(page);
+    for (const id of ["hq", "farm", "armory", "treasury", "barracks"] as const) {
+      await tapBuilding(page, id);
+      await expect(page.getByTestId("building-panel")).toHaveAttribute("data-building", id);
+    }
   });
 
   // The other tests tap the map at 1×; the map converts CSS taps to tiles through the pixel ratio, so check it at 2.625×.

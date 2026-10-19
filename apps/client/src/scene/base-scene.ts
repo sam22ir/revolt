@@ -209,7 +209,7 @@ export class BaseScene extends Phaser.Scene {
     const frac = Math.min(1, Math.max(0, (now - job.startedAt) / total));
     const c = plotCenter(PLOTS[id]);
     const w = 70;
-    const y = c.y + 18;
+    const y = c.y - 6;
     g.fillStyle(0x2b2a24, 0.85);
     g.fillRoundedRect(c.x - w / 2 - 3, y - 3, w + 6, 14, 6);
     g.fillStyle(0xe0b040, 1);
