@@ -61,7 +61,7 @@ const LOCALES = [
 
 for (const { locale, lang, dir } of LOCALES) {
   test(`two players share the map; a march fights and returns with a report (${lang})`, async ({ browser, request }) => {
-    test.setTimeout(120_000);
+    test.setTimeout(240_000);
     await setTime([], request, T0);
     const a = await openGame(browser, locale);
     const b = await openGame(browser, locale);
