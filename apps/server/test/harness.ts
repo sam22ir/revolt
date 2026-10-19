@@ -4,6 +4,7 @@ import { seededRng } from "@revolt/rules";
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT, type CryptoKey, type JWK } from "jose";
 import { convertV4MiniflareOptions, Miniflare } from "miniflare";
 import { handle } from "../src/app.ts";
+import { sqliteDb } from "./sqlite-db.ts";
 import type { Db } from "../src/db/db.ts";
 import { DEFAULT_SERVER } from "../src/db/accounts.ts";
 import type { Env } from "../src/env.ts";
@@ -220,12 +221,23 @@ export interface Server {
   mapSeed: number;
 }
 
-export const startServer = async (envOverrides: Partial<Env> = {}): Promise<Server> => {
+/** Real D1 in workerd (slow: ~40 ms a query), or the same SQLite in-process. */
+const openDb = async (miniflare: boolean): Promise<{ db: Db; dispose: () => Promise<void> }> => {
+  if (!miniflare) {
+    const { db, close } = sqliteDb();
+    return { db, dispose: async () => close() };
+  }
   const mf = new Miniflare(
     convertV4MiniflareOptions({ modules: true, script: "export default { fetch: () => new Response('') }", d1Databases: ["DB"] }),
   );
   // Miniflare's D1 type is its own copy of the Workers one; it fits our Db slice structurally.
   const db = (await mf.getD1Database("DB")) as unknown as Db;
+  return { db, dispose: () => mf.dispose() };
+};
+
+/** `miniflare: true` runs on real D1; only `miniflare-smoke.test.ts` needs it. */
+export const startServer = async (envOverrides: Partial<Env> = {}, opts: { miniflare?: boolean } = {}): Promise<Server> => {
+  const { db, dispose } = await openDb(opts.miniflare ?? false);
   await migrate(db);
   const google = await keypair("google-1");
   // The DO namespace is never reached in Node tests: `deps.map` stands in for it.
@@ -255,7 +267,7 @@ export const startServer = async (envOverrides: Partial<Env> = {}): Promise<Serv
       const t = Math.floor(server.now / 1000);
       return signIdToken(google, { sub, email, iat: t, exp: t + 3600, ...overrides });
     },
-    dispose: () => mf.dispose(),
+    dispose,
     mapSeed: 1,
     map: (name = DEFAULT_SERVER) => {
       let tm = maps.get(name);
