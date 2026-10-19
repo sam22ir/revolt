@@ -34,7 +34,7 @@ Rolls the Worker (code and assets) to the previous version. D1 migrations are no
 cd apps/server && npx wrangler delete revolt-server && npx wrangler d1 delete revolt-db
 ```
 
-Deleting the Worker also deletes its Durable Objects and their data. After deleting `revolt-db`, local dev is unaffected, but rerun `pnpm --filter @revolt/server db:migrate:local` if you recreate it under another name.
+If `wrangler delete` refuses because of the Durable Objects (not verified), first deploy a migration `{ "tag": "v3", "deleted_classes": ["WorldMap", "AllianceRoom"] }` with the bindings removed; that permanently deletes the game data. After deleting `revolt-db`, local dev is unaffected; rerun `pnpm --filter @revolt/server db:migrate:local` if you recreate it.
 
 ## Open it on the phone
 
