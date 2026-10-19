@@ -192,7 +192,6 @@ export const ar: LocaleShape = {
     confirmDisband: "أنت آخر الأعضاء. المغادرة تحلّ التحالف. هل تتابع؟",
     confirmYes: "تأكيد",
     confirmNo: "إلغاء",
-    working: "لحظة من فضلك…",
   },
   chat: {
     log: "دردشة التحالف",
@@ -207,7 +206,6 @@ export const ar: LocaleShape = {
     kind: { upgrade: "ترقية", training: "تدريب" },
     list: "طلبات المساعدة",
     empty: "لا أحد يحتاج إلى مساعدة الآن.",
-    entry: "{{handle}} · {{kind}}",
     progress: "تمت المساعدة {{count}} من {{max}}",
     timeLeft: "متبقٍ {{time}}",
     give: "مساعدة",
@@ -229,7 +227,6 @@ export const ar: LocaleShape = {
     joinTitle: "الانضمام إلى الحشد",
     gatherTime: "مدة التجمّع",
     needed: "هذا الهدف يتطلب حشدًا من التحالف.",
-    activeHere: "حشود ضد هذا الهدف",
   },
   queue: { idle: "العمال متفرغون — اضغط على مبنى", busy: "{{building}} ← المستوى {{level}}" },
   time: { h: "{{count}} سا", m: "{{count}} د", s: "{{count}} ثا", done: "اكتمل" },

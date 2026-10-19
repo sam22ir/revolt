@@ -195,7 +195,6 @@ export const fr: LocaleShape = {
     confirmDisband: "Vous êtes le dernier membre. Partir dissout l'alliance. Continuer ?",
     confirmYes: "Confirmer",
     confirmNo: "Annuler",
-    working: "Un instant…",
   },
   chat: {
     log: "Discussion de l'alliance",
@@ -210,7 +209,6 @@ export const fr: LocaleShape = {
     kind: { upgrade: "Amélioration", training: "Entraînement" },
     list: "Demandes d'aide",
     empty: "Personne n'a besoin d'aide pour le moment.",
-    entry: "{{handle}} · {{kind}}",
     progress: "Aidé {{count}} fois sur {{max}}",
     timeLeft: "Encore {{time}}",
     give: "Aider",
@@ -232,7 +230,6 @@ export const fr: LocaleShape = {
     joinTitle: "Rejoindre le ralliement",
     gatherTime: "Durée du rassemblement",
     needed: "Cette cible exige un ralliement d'alliance.",
-    activeHere: "Ralliements contre cette cible",
   },
   queue: { idle: "Ouvriers libres — touchez un bâtiment", busy: "{{building}} → niveau {{level}}" },
   time: { h: "{{count}} h", m: "{{count}} min", s: "{{count}} s", done: "Terminé" },

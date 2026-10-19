@@ -60,7 +60,8 @@ const keyOf = (tile: TileRef, info: TileInfo | null, snapshot: MapSnapshot | nul
         what = `npc:${info.npc.id}:${info.npc.level}:${rank}:${snapshot === null ? "" : ralliesAt(snapshot, info.npc.id).map((r) => `${r.id}.${r.joined ? 1 : 0}.${r.participants}.${ctx.now < r.gatherUntil ? 1 : 0}`).join(",")}`;
         break;
       case "empty":
-        what = `empty:${rank}:${ctx.alliance?.hq === null || ctx.alliance === null ? "-" : "hq"}`;
+        // Where the HQ stands now: placing or moving it changes the button, and re-enables it.
+        what = `empty:${rank}:${ctx.alliance?.hq ? `${ctx.alliance.hq.x},${ctx.alliance.hq.y}` : "-"}`;
         break;
       case "hq":
         what = `hq:${info.hq.tag}:${info.hq.mine ? ctx.alliance?.name ?? "" : ""}`;

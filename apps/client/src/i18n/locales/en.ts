@@ -190,7 +190,6 @@ export const en = {
     confirmDisband: "You are the last member. Leaving disbands the alliance. Continue?",
     confirmYes: "Confirm",
     confirmNo: "Cancel",
-    working: "Please wait…",
   },
   chat: {
     log: "Alliance chat",
@@ -205,7 +204,6 @@ export const en = {
     kind: { upgrade: "Upgrade", training: "Training" },
     list: "Help requests",
     empty: "No one needs help right now.",
-    entry: "{{handle}} · {{kind}}",
     progress: "Helped {{count}} of {{max}}",
     timeLeft: "{{time}} left",
     give: "Help",
@@ -227,7 +225,6 @@ export const en = {
     joinTitle: "Join the rally",
     gatherTime: "Gathering time",
     needed: "This target needs an alliance rally.",
-    activeHere: "Rallies against this target",
   },
   queue: { idle: "Builders idle — tap a building", busy: "{{building}} → level {{level}}" },
   time: { h: "{{count}} h", m: "{{count}} min", s: "{{count}} s", done: "Done" },
