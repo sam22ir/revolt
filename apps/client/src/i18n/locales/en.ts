@@ -40,6 +40,7 @@ export const en = {
     no_troops: "Send at least one fighting unit",
     not_enough_troops: "Not enough troops at home",
     too_many_marches: "All march slots are in use",
+    rally_only: "Only an alliance rally can take on this target",
     target_gone: "That target is already gone",
     unreachable: "Could not reach the server. Try again.",
   },
@@ -54,6 +55,7 @@ export const en = {
     patrol: { name: "Colonial patrol", desc: "A small armed patrol watching the roads." },
     convoy: { name: "Supply convoy", desc: "Vehicles carrying supplies for the garrison, lightly guarded." },
     outpost: { name: "Colonial outpost", desc: "A fortified post held by the colonial army." },
+    fortified_line: { name: "Fortified line", desc: "A chain of fortified posts held by the colonial army. Too strong for one column: it takes an alliance rally." },
   },
   terrain: { plain: "Plain", hills: "Hills", forest: "Forest", mountain: "Mountain" },
   map: {

@@ -1,5 +1,25 @@
 export { advance } from "./advance.ts";
 export {
+  ALLIANCE_ACTIONS,
+  ALLIANCE_BLOCK_REASONS,
+  ALLIANCE_RANKS,
+  canKick,
+  canPerform,
+  demotedRank,
+  isAllianceRank,
+  nameKey,
+  promotedRank,
+  validateAllianceName,
+  validateAllianceTag,
+  validateChatText,
+  type AllianceAction,
+  type AllianceBlockReason,
+  type AllianceRank,
+} from "./alliance.ts";
+export * from "./data/alliance.ts";
+export { HELP_KINDS, helpableJob, isHelpKind, reduceJob, type HelpKind, type HelpableJob } from "./help.ts";
+export { apportion, isGatherOption, resolveRally, rallyTiming, splitOutcome, type RallyParticipant, type RallyShare } from "./rally.ts";
+export {
   createBaseState,
   MARCH_RESULTS,
   type BaseState,
@@ -76,7 +96,16 @@ export {
 export { isBaseState } from "./validate-state.ts";
 export {
   MARCH_PHASES,
+  type AllianceClientMessage,
+  type AllianceListItem,
+  type AllianceMemberView,
+  type AllianceServerMessage,
+  type AllianceView,
   type BattleReport,
+  type ChatMessage,
+  type HelpRequestView,
+  type MapHqView,
+  type RallyView,
   type MapBaseView,
   type MapMarchView,
   type MapNpcView,

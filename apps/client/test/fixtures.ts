@@ -5,14 +5,16 @@ export const SNAPSHOT: MapSnapshot = {
   terrainSeed: 7,
   size: 64,
   bases: [
-    { x: 10, y: 12, tag: "ABC", mine: true },
-    { x: 30, y: 8, tag: "XYZ", mine: false },
+    { x: 10, y: 12, tag: "ABC", mine: true, alliance: null },
+    { x: 30, y: 8, tag: "XYZ", mine: false, alliance: null },
   ],
   npcs: [
     { id: "npc-1", x: 14, y: 16, kind: "patrol", level: 1 },
     { id: "npc-2", x: 40, y: 40, kind: "outpost", level: 3 },
   ],
   marches: [],
+  hqs: [],
+  rallies: [],
   now: 1000,
 };
 

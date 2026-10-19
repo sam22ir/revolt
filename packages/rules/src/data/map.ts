@@ -2,7 +2,7 @@
 export const MAP_SIZE = 64;
 
 /** NPC targets alive at once, per level (index 0 = level 1). */
-export const NPC_COUNT_BY_LEVEL: readonly number[] = [16, 10, 6];
+export const NPC_COUNT_BY_LEVEL: readonly number[] = [16, 10, 6, 2];
 
 /** Marches one player may have out at once. */
 export const MAX_MARCHES = 2;

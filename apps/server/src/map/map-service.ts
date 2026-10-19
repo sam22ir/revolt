@@ -159,6 +159,7 @@ export class MapService {
         x: b.x,
         y: b.y,
         mine: b.account_id === viewer,
+        alliance: null,
       })),
       npcs: this.rows<NpcRow>("SELECT id, level, x, y FROM npcs WHERE respawn_at IS NULL ORDER BY id").map((n) => ({
         id: n.id,
@@ -177,6 +178,8 @@ export class MapService {
         arriveAt: m.arrive_at,
         returnAt: m.return_at,
       })),
+      hqs: [],
+      rallies: [],
       now,
     };
   }

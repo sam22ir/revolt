@@ -50,6 +50,8 @@ export interface MarchState {
   readonly departAt: number;
   readonly arriveAt: number;
   readonly returnAt: number;
+  /** The rally this march belongs to, if it joined one. Its timing is the rally's. */
+  readonly rallyId?: string;
   /** Set by the map server when the march arrives; the march comes home lazily at `returnAt`. */
   readonly outcome: MarchOutcome | null;
 }

@@ -55,6 +55,7 @@ const NPC_COLORS: Readonly<Record<NpcKind, number>> = {
   patrol: 0xb5402f,
   convoy: 0xd09a30,
   outpost: 0x46506a,
+  fortified_line: 0x2c2f3d,
 };
 
 const GOLD = 0xe0b040;

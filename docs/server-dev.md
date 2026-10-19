@@ -57,6 +57,31 @@ Each server has one map, owned by one `WorldMap` Durable Object (`src/map/world-
 - **Free-tier budget.** DO requests count HTTP, RPC, WebSocket messages and alarms (100,000 a day on the Free plan). Each map change sends one message per connected client, so watch this as players grow.
 - **Test clock.** In the e2e build, `POST /__test/clock` also sets the map's clock and fires its alarm, so Playwright exercises alarm → battle → push.
 
+## Alliances (M4): API contract
+
+Players are named by a **handle** (`account.handle`, 6 characters from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, unique per server) until players can pick names. It is the name in member lists, chat, help requests and on the map (`bases[].tag`). **No account id is ever sent to another player**: members are addressed by handle, help requests and rallies by opaque ids. Alliance names and chat are player-written text: the client draws them in the DOM overlay only (`textContent`, `dir="auto"`), never in Phaser; the map canvas draws only the ASCII alliance tag.
+
+Rule refusals (a reason the player can fix) answer HTTP 200 with `{ ok: false, reason, now }`; reasons are `ALLIANCE_BLOCK_REASONS` (`packages/rules/src/alliance.ts`) shown as `reason.<code>`. Malformed bodies are 400, a missing or unknown token 401. Types are in `packages/rules/src/wire.ts`.
+
+| Route | Body | Answer |
+| --- | --- | --- |
+| `GET /v1/alliances?q=` | | `{ alliances: AllianceListItem[], now }` — up to 20 on the player's server, name prefix match (all alliances are open in M4) |
+| `GET /v1/alliance` | | `{ alliance: AllianceView \| null, help: HelpRequestView[], now }` — mine, with open help requests of members (`endsAt > now`) |
+| `POST /v1/alliance` | `{ name, tag }` | `{ ok: true, alliance, now }`; reasons `already_member`, `bad_name`, `bad_tag`, `name_taken`, `tag_taken` |
+| `POST /v1/alliance/join` | `{ id }` | `{ ok: true, alliance, now }`; reasons `already_member`, `alliance_gone`, `alliance_full` |
+| `POST /v1/alliance/leave` | | `{ ok: true, alliance: null, now }`; reasons `not_member`, `leader_must_transfer` (a leader may leave only as the last member, which disbands the alliance) |
+| `POST /v1/alliance/kick`, `/promote`, `/demote`, `/transfer` | `{ handle }` | `{ ok: true, alliance, now }`; reasons `not_member`, `no_permission`, `target_not_found`, `target_rank` |
+| `POST /v1/alliance/hq` | `{ x, y }` | `{ ok: true, alliance, now }` (leader only); reasons `no_permission`, `bad_tile`, `tile_taken`, `hq_cooldown` (once per hour) |
+| `POST /v1/help/request` | `{ kind: "upgrade" \| "training" }` | `{ ok: true, request: HelpRequestView, now }`; reasons `not_member`, `no_job`, `already_requested` |
+| `POST /v1/help/give` | `{ requestId }` | `{ ok: true, request, now }`; reasons `not_member`, `request_gone`, `own_request`, `already_helped`, `help_full`. Each help ends the requester's job `HELP_REDUCTION_MS` sooner (never before now), at most `MAX_HELPS_PER_REQUEST` times |
+| `POST /v1/intent` | `{ type: "rally_start", target, troops, gather }` | as a march: `{ ok, reason?, state, now }`. `gather` is one of `RALLY_GATHER_OPTIONS_MS`. Reasons: the march ones, `not_member`, `no_permission` (officer or leader), `bad_gather`, `target_gone` |
+| `POST /v1/intent` | `{ type: "rally_join", rally, troops }` | as above. Reasons: the march ones, `not_member`, `rally_gone`, `rally_closed` (gathering over), `rally_full`, `already_in_rally` |
+| `GET /v1/alliance/ws` | WebSocket | chat and change notices (below); 403 if the player is in no alliance |
+
+- **Troops of a rally leave home when a player starts or joins it**, with the rally's timing (`departAt` = end of gathering, `arriveAt`/`returnAt` at the fixed `RALLY_SPEED`), so the march appears in `state.marches` at once with a `rallyId`. The rally fights one battle with everyone's troops against the NPC; each participant gets a report with their own share, and the loss, wounded and loot split is exact (`splitOutcome`). Level-4 targets are `rallyOnly`: a solo `march` intent is refused with `rally_only`.
+- **Map snapshot** (`GET /v1/map`, map WebSocket) gains `bases[].alliance` (tag or null), `hqs[]` (alliance HQs, visible to everyone) and `rallies[]` (only the player's own alliance sees them; the seed is never included).
+- **Alliance WebSocket.** Same authentication as the map socket (`Sec-WebSocket-Protocol: revolt.v1, auth.<token>`, `Origin` checked). On connect the server sends `history` (up to `CHAT_HISTORY` messages), then pushes `chat`, `members_changed`, `help_changed`, `kicked` and `error`. The client sends `{ type: "chat", text }` (≤ `CHAT_MAX_LENGTH` characters, one line, no control or bidi-format characters; at most `CHAT_RATE_MAX` per `CHAT_RATE_WINDOW_MS`). Chat is stored only in the alliance's Durable Object (last 100 messages).
+
 ## Accounts and Google
 
 - A first launch calls `POST /v1/guest` and stores the token in `localStorage` (`revolt.session`). It is the only game data on the device.

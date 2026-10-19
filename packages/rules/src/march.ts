@@ -5,7 +5,7 @@ import { TROOPS } from "./data/troops.ts";
 import { COMBAT_TROOP_IDS, TROOP_IDS } from "./troop-id.ts";
 import { hasTroops, subtractTroops, type Troops } from "./troops.ts";
 
-export const MARCH_BLOCK_REASONS = ["no_troops", "not_enough_troops", "too_many_marches"] as const;
+export const MARCH_BLOCK_REASONS = ["no_troops", "not_enough_troops", "too_many_marches", "rally_only"] as const;
 
 export type MarchBlockReason = (typeof MARCH_BLOCK_REASONS)[number];
 

@@ -4,13 +4,39 @@
  */
 import type { MapPoint, MarchResult } from "./base-state.ts";
 import type { NpcKind } from "./data/npcs.ts";
+import type { AllianceRank } from "./alliance.ts";
+import type { HelpKind } from "./help.ts";
 import type { Resources } from "./resources.ts";
 import type { Troops } from "./troops.ts";
 
 export interface MapBaseView extends MapPoint {
-  /** Short public tag for a camp; account ids are never sent to other players. */
+  /** The player's public handle; account ids are never sent to other players. */
   readonly tag: string;
   readonly mine: boolean;
+  /** Tag of the player's alliance, or null. */
+  readonly alliance: string | null;
+}
+
+export interface MapHqView extends MapPoint {
+  /** The alliance's tag (ASCII, the only alliance text drawn on the map canvas). */
+  readonly tag: string;
+  readonly mine: boolean;
+}
+
+/** A rally gathering or marching. Only the viewer's own alliance sees its rallies; the seed is never sent. */
+export interface RallyView {
+  readonly id: string;
+  /** Handle of the player who started it. */
+  readonly leader: string;
+  readonly target: { readonly npcId: string; readonly kind: NpcKind; readonly level: number } & MapPoint;
+  /** Epoch ms: joining closes here and the march leaves. */
+  readonly gatherUntil: number;
+  readonly arriveAt: number;
+  readonly returnAt: number;
+  readonly participants: number;
+  readonly maxParticipants: number;
+  /** Whether the viewer has joined. */
+  readonly joined: boolean;
 }
 
 export interface MapNpcView extends MapPoint {
@@ -40,6 +66,8 @@ export interface MapSnapshot {
   readonly bases: readonly MapBaseView[];
   readonly npcs: readonly MapNpcView[];
   readonly marches: readonly MapMarchView[];
+  readonly hqs: readonly MapHqView[];
+  readonly rallies: readonly RallyView[];
   /** Server time, epoch ms. */
   readonly now: number;
 }
@@ -69,3 +97,73 @@ export type MapServerMessage =
   | { readonly type: "report"; readonly report: BattleReport }
   /** The player's base changed on the server (e.g. a battle outcome); fetch `/v1/state` again. */
   | { readonly type: "base_changed"; readonly now: number };
+
+// --- Alliances (M4) ---------------------------------------------------------------------------------------
+// No wire type here ever carries an account id: players are named by handle, requests and rallies by opaque ids.
+
+export interface AllianceMemberView {
+  readonly handle: string;
+  readonly rank: AllianceRank;
+  /** Epoch ms. */
+  readonly joinedAt: number;
+  readonly me: boolean;
+}
+
+export interface AllianceView {
+  readonly id: string;
+  readonly name: string;
+  readonly tag: string;
+  readonly myRank: AllianceRank;
+  readonly members: readonly AllianceMemberView[];
+  readonly maxMembers: number;
+  /** Where the alliance HQ stands on the map, or null until the leader places it. */
+  readonly hq: MapPoint | null;
+}
+
+export interface AllianceListItem {
+  readonly id: string;
+  readonly name: string;
+  readonly tag: string;
+  readonly members: number;
+  readonly maxMembers: number;
+}
+
+/** A member's call for help on a running upgrade or training. */
+export interface HelpRequestView {
+  readonly id: string;
+  readonly handle: string;
+  readonly kind: HelpKind;
+  /** Epoch ms the job ends, shortened by every help. */
+  readonly endsAt: number;
+  readonly helps: number;
+  readonly maxHelps: number;
+  readonly mine: boolean;
+  /** Whether the viewer already helped this request. */
+  readonly helped: boolean;
+}
+
+export interface ChatMessage {
+  /** Increases by one per message within an alliance's room. */
+  readonly id: number;
+  /** Epoch ms, server time. */
+  readonly at: number;
+  readonly handle: string;
+  readonly rank: AllianceRank;
+  /** Plain text. Render with `textContent` and `dir="auto"`, never as HTML. */
+  readonly text: string;
+}
+
+/** Server → client messages on the alliance WebSocket. */
+export type AllianceServerMessage =
+  | { readonly type: "history"; readonly messages: readonly ChatMessage[] }
+  | { readonly type: "chat"; readonly message: ChatMessage }
+  /** Membership, ranks or HQ changed: fetch `GET /v1/alliance` again. */
+  | { readonly type: "members_changed" }
+  /** A help request was made or answered: fetch `GET /v1/alliance` again, and `/v1/state` if it was yours. */
+  | { readonly type: "help_changed" }
+  /** The player is no longer in this alliance; the server closes the socket after this. */
+  | { readonly type: "kicked" }
+  | { readonly type: "error"; readonly reason: "rate_limited" | "bad_text" };
+
+/** Client → server messages on the alliance WebSocket. */
+export type AllianceClientMessage = { readonly type: "chat"; readonly text: string };

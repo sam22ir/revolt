@@ -45,6 +45,7 @@ export const fr: LocaleShape = {
     no_troops: "Envoyez au moins une unité de combat",
     not_enough_troops: "Pas assez de troupes à la base",
     too_many_marches: "Tous les emplacements de marche sont occupés",
+    rally_only: "Seul un rassemblement d’alliance peut attaquer cette cible",
     target_gone: "Cette cible a déjà disparu",
     unreachable: "Serveur injoignable. Réessayez.",
   },
@@ -59,6 +60,7 @@ export const fr: LocaleShape = {
     patrol: { name: "Patrouille coloniale", desc: "Une petite patrouille armée qui surveille les routes." },
     convoy: { name: "Convoi de ravitaillement", desc: "Des véhicules qui transportent les vivres de la garnison, peu escortés." },
     outpost: { name: "Poste colonial", desc: "Un poste fortifié tenu par l’armée coloniale." },
+    fortified_line: { name: "Ligne fortifiée", desc: "Une chaîne de postes fortifiés tenus par l’armée coloniale. Trop forte pour une seule colonne : il faut un rassemblement d’alliance." },
   },
   terrain: { plain: "Plaine", hills: "Collines", forest: "Forêt", mountain: "Montagne" },
   map: {

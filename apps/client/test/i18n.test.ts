@@ -78,7 +78,7 @@ describe("locales", () => {
   });
 
   test("NPC names stay an army or institution, never a people", () => {
-    for (const kind of NPC_KINDS) expect(en.npc[kind].name).toMatch(/patrol|convoy|outpost/i);
+    for (const kind of NPC_KINDS) expect(en.npc[kind].name).toMatch(/patrol|convoy|outpost|line/i);
   });
 });
 
