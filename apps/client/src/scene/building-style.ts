@@ -16,4 +16,5 @@ export const BUILDING_STYLES: Readonly<Record<BuildingId, BuildingStyle>> = {
   armory: { top: 0x8f9298, left: 0x6c6f75, right: 0x55575c, height: 46 },
   treasury: { top: 0xd8c27a, left: 0xb39b52, right: 0x8f7a3b, height: 40 },
   barracks: { top: 0xb08a6a, left: 0x8a6646, right: 0x6e4f34, height: 36 },
+  hero_hall: { top: 0x9a7fb0, left: 0x75608a, right: 0x5a4a6c, height: 44 },
 };

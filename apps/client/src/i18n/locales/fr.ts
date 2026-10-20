@@ -17,6 +17,7 @@ export const fr: LocaleShape = {
     armory: { name: "Armurerie", desc: "Produit des armes." },
     treasury: { name: "Trésorerie", desc: "Collecte des fonds." },
     barracks: { name: "Caserne", desc: "Forme les troupes. Plus le niveau est élevé, plus les groupes sont grands." },
+    hero_hall: { name: "Salle des héros", desc: "Recrute des héros et relève leur plafond de niveau." },
   },
   panel: {
     level: "Niveau {{level}}",
@@ -35,6 +36,13 @@ export const fr: LocaleShape = {
     max: "Max",
   },
   reason: {
+    hero_hall_level: "Requiert la salle des héros niveau {{level}}",
+    not_enough_shards: "Pas assez d'éclats",
+    hall_cap: "Le plafond de niveau de la salle des héros est atteint",
+    not_owned: "Vous n'avez pas ce héros",
+    duplicate_hero: "Ce héros est déjà dans cette expédition",
+    too_many_deputies: "Une expédition emmène deux adjoints au maximum",
+    hero_busy: "Ce héros est déjà en expédition",
     queue_busy: "Une autre amélioration est en cours",
     max_level: "Niveau maximal atteint",
     hq_gate: "Nécessite le poste de commandement niveau {{level}}",
@@ -256,4 +264,30 @@ export const fr: LocaleShape = {
     offline: "Hors ligne — reconnexion…",
   },
   language: { en: "English", fr: "Français", ar: "العربية" },
+  // Hero strings: placeholder roster. The fr and ar wording needs native review.
+  hero: {
+    mountain_guide: { name: "Guide de la montagne", desc: "Un habitant qui connaît chaque sentier de crête. Inspiré des combattants des montagnes de la révolution." },
+    dock_foreman: { name: "Contremaître du port", desc: "Organise les dockers en une foule disciplinée." },
+    iron_quartermaster: { name: "Intendant de fer", desc: "Assure le ravitaillement et la marche des colonnes lourdes." },
+    hill_commander: { name: "Commandant des collines", desc: "Un vétéran qui tient la ligne quand d'autres céderaient." },
+  },
+  skill: {
+    ridge_signal: { name: "Signal de crête", desc: "Les éclaireurs frappent plus fort tant que ce héros commande." },
+    night_march: { name: "Marche de nuit", desc: "Réduit les dégâts subis par toute la force." },
+    local_knowledge: { name: "Connaissance du terrain", desc: "Les éclaireurs frappent plus fort." },
+    crowd_rush: { name: "Ruée de la foule", desc: "L'infanterie frappe plus fort tant que ce héros commande." },
+    union_discipline: { name: "Discipline syndicale", desc: "Réduit les dégâts subis par toute la force." },
+    steady_hands: { name: "Mains sûres", desc: "L'infanterie frappe plus fort." },
+    breach_charge: { name: "Charge de percée", desc: "Les unités lourdes frappent bien plus fort tant que ce héros commande." },
+    shield_wall: { name: "Mur de boucliers", desc: "Réduit les dégâts subis par toute la force." },
+    heavy_stock: { name: "Stock lourd", desc: "Les unités lourdes frappent plus fort." },
+    last_stand: { name: "Dernier rempart", desc: "L'infanterie frappe beaucoup plus fort tant que ce héros commande." },
+    iron_line: { name: "Ligne de fer", desc: "Réduit fortement les dégâts subis par toute la force." },
+    veteran_drill: { name: "Exercice des vétérans", desc: "L'infanterie frappe bien plus fort." },
+  },
+  rarity: {
+    common: "Commun",
+    rare: "Rare",
+    legendary: "Légendaire",
+  },
 };

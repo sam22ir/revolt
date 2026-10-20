@@ -99,7 +99,7 @@ describe("M1 save import", () => {
 
   test("a forged save is bounded", async () => {
     const a = await newGuest(server, forged);
-    expect(a.res.state.levels).toEqual({ hq: M1_IMPORT_MAX_LEVEL, farm: 3, armory: 3, treasury: 3, barracks: 1 });
+    expect(a.res.state.levels).toEqual({ hq: M1_IMPORT_MAX_LEVEL, farm: 3, armory: 3, treasury: 3, barracks: 1, hero_hall: 1 });
     expect(a.res.state.resources).toEqual(storageCap(M1_IMPORT_MAX_LEVEL));
   });
 
