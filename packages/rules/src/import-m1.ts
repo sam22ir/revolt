@@ -7,6 +7,7 @@ import { nextLevelQuote } from "./upgrade.ts";
 import { isBaseState } from "./validate-state.ts";
 import { migrateBaseState } from "./migrate-state.ts";
 import { START_TROOPS } from "./data/start.ts";
+import { EMPTY_HERO_ROSTER } from "./hero-roster.ts";
 import { ZERO_TROOPS } from "./troops.ts";
 
 const clampLevels = (levels: BaseState["levels"]): BaseState["levels"] => {
@@ -40,10 +41,11 @@ export const importM1Save = (raw: unknown, now: number): BaseState => {
     resources: mapResources((id) => Math.min(Math.max(0, candidate.resources[id]), cap[id])),
     levels,
     queue: candidate.queue === null ? null : plausibleJob(candidate.queue, levels, now),
-    // Troops and marches never come from a client save.
+    // Troops, heroes and marches never come from a client save.
     troops: START_TROOPS,
     wounded: ZERO_TROOPS,
     training: null,
+    heroes: EMPTY_HERO_ROSTER,
     marches: [],
     lastUpdated: Math.min(candidate.lastUpdated, now),
   };

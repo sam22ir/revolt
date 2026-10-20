@@ -18,9 +18,9 @@ describe("importM1Save", () => {
   });
 
   test("forged levels are capped, and producers never exceed the HQ", () => {
-    const forged: BaseState = { ...base(), levels: { hq: 10, farm: 10, armory: 2, treasury: 1, barracks: 1 } };
-    expect(importM1Save(forged, NOW).levels).toEqual({ hq: M1_IMPORT_MAX_LEVEL, farm: M1_IMPORT_MAX_LEVEL, armory: 2, treasury: 1, barracks: 1 });
-    const lopsided: BaseState = { ...base(), levels: { hq: 1, farm: 3, armory: 1, treasury: 1, barracks: 1 } };
+    const forged: BaseState = { ...base(), levels: { hq: 10, farm: 10, armory: 2, treasury: 1, barracks: 1, hero_hall: 1 } };
+    expect(importM1Save(forged, NOW).levels).toEqual({ hq: M1_IMPORT_MAX_LEVEL, farm: M1_IMPORT_MAX_LEVEL, armory: 2, treasury: 1, barracks: 1, hero_hall: 1 });
+    const lopsided: BaseState = { ...base(), levels: { hq: 1, farm: 3, armory: 1, treasury: 1, barracks: 1, hero_hall: 1 } };
     expect(importM1Save(lopsided, NOW).levels.farm).toBe(1);
   });
 
@@ -47,6 +47,6 @@ describe("importM1Save", () => {
     const future = { ...job, startedAt: NOW + 1, endsAt: NOW + 30_001 };
     expect(importM1Save(base({ queue: future }), NOW).queue).toBeNull();
     const gated = { ...job, building: "farm" as const, toLevel: 2 };
-    expect(importM1Save({ ...base(), levels: { hq: 1, farm: 1, armory: 1, treasury: 1, barracks: 1 }, queue: gated }, NOW).queue).toBeNull();
+    expect(importM1Save({ ...base(), levels: { hq: 1, farm: 1, armory: 1, treasury: 1, barracks: 1, hero_hall: 1 }, queue: gated }, NOW).queue).toBeNull();
   });
 });
