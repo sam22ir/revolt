@@ -14,6 +14,7 @@ export const ar: LocaleShape = {
     armory: { name: "مخزن السلاح", desc: "ينتج السلاح." },
     treasury: { name: "الخزينة", desc: "تجمع الأموال." },
     barracks: { name: "الثكنة", desc: "تدرّب المقاتلين. كلما ارتفع مستواها كبرت الدفعات." },
+    hero_hall: { name: "قاعة الأبطال", desc: "تجنّد الأبطال وترفع سقف مستواهم." },
   },
   panel: {
     level: "المستوى {{level}}",
@@ -32,6 +33,13 @@ export const ar: LocaleShape = {
     max: "الأقصى",
   },
   reason: {
+    hero_hall_level: "تتطلب قاعة الأبطال من المستوى {{level}}",
+    not_enough_shards: "الشظايا غير كافية",
+    hall_cap: "بلغ البطل سقف المستوى الذي تسمح به قاعة الأبطال",
+    not_owned: "لا تملك هذا البطل",
+    duplicate_hero: "هذا البطل في هذه الحملة بالفعل",
+    too_many_deputies: "تأخذ الحملة نائبين على الأكثر",
+    hero_busy: "هذا البطل في حملة بالفعل",
     queue_busy: "هناك ترقية أخرى قيد التنفيذ",
     max_level: "تم بلوغ المستوى الأقصى",
     hq_gate: "يتطلب مركز القيادة من المستوى {{level}}",
@@ -253,4 +261,30 @@ export const ar: LocaleShape = {
     offline: "غير متصل — جارٍ إعادة الاتصال…",
   },
   language: { en: "English", fr: "Français", ar: "العربية" },
+  // Hero strings: placeholder roster. The fr and ar wording needs native review.
+  hero: {
+    mountain_guide: { name: "دليل الجبل", desc: "من أهل المنطقة يعرف كل ممرات الجبل. مستوحى من مقاتلي الجبال في الثورة." },
+    dock_foreman: { name: "مشرف الميناء", desc: "ينظّم عمال الميناء في حشد منضبط." },
+    iron_quartermaster: { name: "أمين المؤن الحديدي", desc: "يُبقي الأرتال الثقيلة مزوّدة ومتحركة." },
+    hill_commander: { name: "قائد التلال", desc: "محارب قديم يصمد في الخط حين ينهار غيره." },
+  },
+  skill: {
+    ridge_signal: { name: "إشارة الذروة", desc: "يهاجم الكشّافون بقوة أكبر ما دام البطل يقود." },
+    night_march: { name: "المسير ليلاً", desc: "يقلل الضرر الذي تتلقاه القوة كلها." },
+    local_knowledge: { name: "معرفة المكان", desc: "يهاجم الكشّافون بقوة أكبر." },
+    crowd_rush: { name: "اندفاع الحشد", desc: "يهاجم المشاة بقوة أكبر ما دام البطل يقود." },
+    union_discipline: { name: "انضباط النقابة", desc: "يقلل الضرر الذي تتلقاه القوة كلها." },
+    steady_hands: { name: "أيدٍ ثابتة", desc: "يهاجم المشاة بقوة أكبر." },
+    breach_charge: { name: "هجمة الاختراق", desc: "تهاجم الوحدات الثقيلة بقوة أكبر بكثير ما دام البطل يقود." },
+    shield_wall: { name: "جدار الدروع", desc: "يقلل الضرر الذي تتلقاه القوة كلها." },
+    heavy_stock: { name: "مخزون الثقيل", desc: "تهاجم الوحدات الثقيلة بقوة أكبر." },
+    last_stand: { name: "الصمود الأخير", desc: "يهاجم المشاة بقوة أكبر بكثير ما دام البطل يقود." },
+    iron_line: { name: "الخط الحديدي", desc: "يقلل الضرر الذي تتلقاه القوة كلها بدرجة كبيرة." },
+    veteran_drill: { name: "تدريب المحاربين القدامى", desc: "يهاجم المشاة بقوة أكبر بكثير." },
+  },
+  rarity: {
+    common: "شائع",
+    rare: "نادر",
+    legendary: "أسطوري",
+  },
 };

@@ -12,6 +12,7 @@ export const en = {
     armory: { name: "Armory", desc: "Produces arms." },
     treasury: { name: "Treasury", desc: "Collects funds." },
     barracks: { name: "Barracks", desc: "Trains troops. Higher levels train bigger batches." },
+    hero_hall: { name: "Hero hall", desc: "Recruits heroes and raises their level limit." },
   },
   panel: {
     level: "Level {{level}}",
@@ -30,6 +31,13 @@ export const en = {
     max: "Max",
   },
   reason: {
+    hero_hall_level: "Requires hero hall level {{level}}",
+    not_enough_shards: "Not enough shards",
+    hall_cap: "The hero hall's level limit is reached",
+    not_owned: "You do not have that hero",
+    duplicate_hero: "That hero is already in this march",
+    too_many_deputies: "A march takes at most two deputies",
+    hero_busy: "That hero is already out on a march",
     queue_busy: "Another upgrade is in progress",
     max_level: "Maximum level reached",
     hq_gate: "Requires command post level {{level}}",
@@ -251,4 +259,30 @@ export const en = {
     offline: "Offline — reconnecting…",
   },
   language: { en: "English", fr: "Français", ar: "العربية" },
+  // Hero strings: placeholder roster. The fr and ar wording needs native review.
+  hero: {
+    mountain_guide: { name: "Mountain guide", desc: "A local who knows every ridge path. Inspired by the mountain fighters of the revolution." },
+    dock_foreman: { name: "Dock foreman", desc: "Organises port workers into a disciplined crowd." },
+    iron_quartermaster: { name: "Iron quartermaster", desc: "Keeps the heavy columns supplied and moving." },
+    hill_commander: { name: "Hill commander", desc: "A veteran who holds the line when others would break." },
+  },
+  skill: {
+    ridge_signal: { name: "Ridge signal", desc: "Scouts strike harder while this hero leads." },
+    night_march: { name: "Night march", desc: "Less damage taken by the whole force." },
+    local_knowledge: { name: "Local knowledge", desc: "Scouts strike harder." },
+    crowd_rush: { name: "Crowd rush", desc: "Infantry strikes harder while this hero leads." },
+    union_discipline: { name: "Union discipline", desc: "Less damage taken by the whole force." },
+    steady_hands: { name: "Steady hands", desc: "Infantry strikes harder." },
+    breach_charge: { name: "Breach charge", desc: "Heavy troops strike much harder while this hero leads." },
+    shield_wall: { name: "Shield wall", desc: "Less damage taken by the whole force." },
+    heavy_stock: { name: "Heavy stock", desc: "Heavy troops strike harder." },
+    last_stand: { name: "Last stand", desc: "Infantry strikes far harder while this hero leads." },
+    iron_line: { name: "Iron line", desc: "Much less damage taken by the whole force." },
+    veteran_drill: { name: "Veteran drill", desc: "Infantry strikes much harder." },
+  },
+  rarity: {
+    common: "Common",
+    rare: "Rare",
+    legendary: "Legendary",
+  },
 } as const;
