@@ -113,6 +113,8 @@ export const openMap = async (page: Page, bases: number): Promise<void> => {
   await page.bringToFront();
   await page.getByTestId("map-toggle").click();
   await expect.poll(() => page.evaluate(() => window.__revolt?.map?.snapshot()?.bases.length ?? 0)).toBeGreaterThanOrEqual(bases);
+  // The store can have bases before the map scene has been created; tile taps need the scene itself.
+  await expect.poll(() => page.evaluate(() => window.__revolt!.map!.tileScreenPoint(0, 0) !== null)).toBe(true);
 };
 
 export const ownCamp = (page: Page) => page.evaluate(() => window.__revolt!.map!.snapshot()!.bases.find((x) => x.mine)!);
