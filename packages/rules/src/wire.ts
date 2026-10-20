@@ -5,6 +5,7 @@
 import type { MapPoint, MarchResult } from "./base-state.ts";
 import type { NpcKind } from "./data/npcs.ts";
 import type { AllianceRank } from "./alliance.ts";
+import type { HeroId } from "./hero-id.ts";
 import type { HelpKind } from "./help.ts";
 import type { Resources } from "./resources.ts";
 import type { Troops } from "./troops.ts";
@@ -89,6 +90,8 @@ export interface BattleReport {
   readonly loot: Resources;
   /** The battle seed, revealed once the battle is over, so anyone can replay it. */
   readonly seed: number | null;
+  /** The heroes that took part, lead first. Present only when the march had heroes. */
+  readonly heroes?: readonly HeroId[];
 }
 
 /** Server → client messages on the map WebSocket. */
