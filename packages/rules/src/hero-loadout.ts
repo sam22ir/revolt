@@ -3,7 +3,7 @@ import type { BattleModifier } from "./battle.ts";
 import { NO_BATTLE_MODIFIER } from "./battle.ts";
 import { HEROES } from "./data/heroes.ts";
 import { HERO_LEVEL_EFFECT_STEP, HERO_MIN_DAMAGE_TAKEN } from "./data/hero-progression.ts";
-import type { HeroId } from "./hero-id.ts";
+import { HERO_IDS, type HeroId } from "./hero-id.ts";
 import type { SkillDef } from "./data/heroes.ts";
 import type { HeroRoster } from "./hero-roster.ts";
 import type { TroopId } from "./troop-id.ts";
@@ -18,6 +18,20 @@ export interface HeroLoadout {
   readonly lead: HeroId;
   readonly deputies: readonly HeroId[];
 }
+
+const isHeroId = (v: unknown): v is HeroId => HERO_IDS.some((id) => id === v);
+
+/**
+ * Shape check for an untrusted loadout from a client: `{ lead, deputies? }` with known hero ids and at most
+ * MAX_DEPUTIES deputies. Ownership, duplicates and busy heroes are `checkLoadout`'s job, against the state.
+ */
+export const parseHeroLoadout = (v: unknown): HeroLoadout | null => {
+  if (typeof v !== "object" || v === null || Array.isArray(v)) return null;
+  const { lead, deputies = [] } = v as { lead?: unknown; deputies?: unknown };
+  if (!isHeroId(lead) || !Array.isArray(deputies) || deputies.length > MAX_DEPUTIES) return null;
+  if (!deputies.every(isHeroId)) return null;
+  return { lead, deputies: [...deputies] };
+};
 
 export const loadoutIds = (loadout: HeroLoadout): readonly HeroId[] => [loadout.lead, ...loadout.deputies];
 

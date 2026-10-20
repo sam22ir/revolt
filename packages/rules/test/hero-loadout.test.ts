@@ -1,5 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
+  fightNpc,
+  parseHeroLoadout,
   advance,
   checkLoadout,
   EMPTY_HERO_ROSTER,
@@ -219,5 +221,39 @@ describe("state shape", () => {
     expect(isBaseState(sent.state)).toBe(true);
     const bad = { ...sent.state, marches: sent.state.marches.map((m: MarchState) => ({ ...m, heroes: { lead: "nobody", deputies: [], levels: {} } })) };
     expect(isBaseState(bad)).toBe(false);
+  });
+});
+
+describe("parseHeroLoadout", () => {
+  test("accepts a lead alone, or a lead with up to two known deputies", () => {
+    expect(parseHeroLoadout({ lead: "hill_commander" })).toEqual({ lead: "hill_commander", deputies: [] });
+    expect(parseHeroLoadout({ lead: "hill_commander", deputies: ["dock_foreman", "mountain_guide"] })).toEqual({
+      lead: "hill_commander",
+      deputies: ["dock_foreman", "mountain_guide"],
+    });
+  });
+
+  test("refuses anything that is not a lead with known hero ids", () => {
+    for (const bad of [null, "hill_commander", [], {}, { lead: "nobody" }, { lead: 3 }, { lead: "hill_commander", deputies: "dock_foreman" }, { lead: "hill_commander", deputies: ["nobody"] }]) {
+      expect(parseHeroLoadout(bad), JSON.stringify(bad)).toBeNull();
+    }
+  });
+
+  test("refuses a third deputy at the shape check too", () => {
+    expect(parseHeroLoadout({ lead: "hill_commander", deputies: ["dock_foreman", "mountain_guide", "iron_quartermaster"] })).toBeNull();
+  });
+});
+
+describe("fightNpc with a hero modifier", () => {
+  const lead = snapshotHeroes(roster({ hill_commander: 5 }), { lead: "hill_commander", deputies: [] });
+  const mod = heroBattleModifier(lead);
+  test("no modifier is the same as the neutral one", () => {
+    expect(fightNpc(t(12, 6, 3), 2, 99)).toEqual(fightNpc(t(12, 6, 3), 2, 99, NO_BATTLE_MODIFIER));
+  });
+  test("the same seed and heroes always give the same fight", () => {
+    expect(fightNpc(t(12, 6, 3), 2, 99, mod)).toEqual(fightNpc(t(12, 6, 3), 2, 99, mod));
+  });
+  test("the modifier changes the fight it is given to", () => {
+    expect(fightNpc(t(12, 6, 3), 2, 99, mod).battle).not.toEqual(fightNpc(t(12, 6, 3), 2, 99).battle);
   });
 });

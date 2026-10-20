@@ -1,5 +1,5 @@
 import { DurableObject } from "cloudflare:workers";
-import type { MapPoint, MapSnapshot, Troops } from "@revolt/rules";
+import type { HeroLoadout, MapPoint, MapSnapshot, Troops } from "@revolt/rules";
 import type { Env } from "../env.ts";
 import { MapHost, type MapSocket } from "./map-host.ts";
 import { MapService, type HqResult, type MapViewer, type SendMarchResult } from "./map-service.ts";
@@ -55,10 +55,10 @@ export class WorldMap extends DurableObject<Env> {
     });
   }
 
-  async sendMarch(map: string, viewer: MapViewer, npcId: string, troops: Troops, now: number): Promise<SendMarchResult> {
+  async sendMarch(map: string, viewer: MapViewer, npcId: string, troops: Troops, heroes: HeroLoadout | null, now: number): Promise<SendMarchResult> {
     return this.mapHost().run(now, (s) => {
       s.rememberName(map);
-      return s.sendMarch(viewer, npcId, troops, now);
+      return s.sendMarch(viewer, npcId, troops, heroes, now);
     });
   }
 

@@ -1,4 +1,4 @@
-import { advance, BUILDING_IDS, canPerform, HERO_IDS, levelUpHero, parseTroops, recruitHero, seededRng, startTraining, startUpgrade, TROOP_IDS, type BaseState, type BuildingId, type HeroId, type TroopId, type Troops } from "@revolt/rules";
+import { advance, BUILDING_IDS, canPerform, HERO_IDS, levelUpHero, parseHeroLoadout, parseTroops, recruitHero, seededRng, startTraining, startUpgrade, TROOP_IDS, type BaseState, type BuildingId, type HeroId, type HeroLoadout, type TroopId, type Troops } from "@revolt/rules";
 import { loadBase, saveBase } from "../db/bases.ts";
 import { HttpError, json, readJson } from "../http.ts";
 import { authenticate, type Ctx } from "./context.ts";
@@ -7,7 +7,7 @@ import { viewerFor } from "./viewer.ts";
 export type Intent =
   | { readonly type: "upgrade"; readonly building: BuildingId }
   | { readonly type: "train"; readonly troop: TroopId; readonly count: number }
-  | { readonly type: "march"; readonly target: string; readonly troops: Troops }
+  | { readonly type: "march"; readonly target: string; readonly troops: Troops; readonly heroes: HeroLoadout | null }
   | { readonly type: "rally_start"; readonly target: string; readonly troops: Troops; readonly gather: number }
   | { readonly type: "rally_join"; readonly rally: string; readonly troops: Troops }
   | { readonly type: "recruit" }
@@ -26,7 +26,10 @@ export const parseIntent = (body: Record<string, unknown>): Intent => {
   }
   if (type === "march" && typeof body.target === "string" && body.target.length > 0 && body.target.length <= MAX_TARGET_ID) {
     const troops = parseTroops(body.troops);
-    if (troops !== null) return { type, target: body.target, troops };
+    // Heroes are optional: absent or null means the march takes none; anything else must parse.
+    const rawHeroes = body.heroes ?? null;
+    const heroes = rawHeroes === null ? null : parseHeroLoadout(rawHeroes);
+    if (troops !== null && (rawHeroes === null || heroes !== null)) return { type, target: body.target, troops, heroes };
   }
   if (type === "rally_start" && typeof body.target === "string" && body.target.length > 0 && body.target.length <= MAX_TARGET_ID && typeof body.gather === "number") {
     const troops = parseTroops(body.troops);
@@ -92,7 +95,7 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
       return changeBase(ctx, account.id, (s) => levelUpHero(s, intent.hero));
     case "march": {
       const { viewer } = await viewerFor(ctx, account);
-      const r = await ctx.deps.map(ctx.env, account.server).sendMarch(viewer, intent.target, intent.troops, ctx.now);
+      const r = await ctx.deps.map(ctx.env, account.server).sendMarch(viewer, intent.target, intent.troops, intent.heroes, ctx.now);
       if ("error" in r) throw new HttpError(r.error);
       return json({ ...r, now: ctx.now });
     }
