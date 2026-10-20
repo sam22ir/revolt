@@ -54,13 +54,15 @@ const anchors = (alpha, w, h) => {
 };
 
 const manifest = {};
-await rm(OUT, { recursive: true, force: true });
 for (const group of await readdir(SRC)) {
   if (!(group in WIDTHS)) continue;
+  await rm(join(OUT, group), { recursive: true, force: true });
   await mkdir(join(OUT, group), { recursive: true });
   for (const file of (await readdir(join(SRC, group))).filter((f) => f.endsWith(".png"))) {
     const name = parse(file).name;
     const key = `${group}/${name}`;
+    // The world's ground comes from art/raw/terrain (scripts/process-terrain.mjs); the first single-tile terrain art is retired.
+    if (name.startsWith("terrain_")) continue;
     const width = OVERRIDES[key] ?? WIDTHS[group];
     const { data, info } = await sharp(join(SRC, group, file))
       .resize({ width, kernel: "lanczos3" })

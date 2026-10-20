@@ -3,9 +3,10 @@ import { terrainAt, TERRAIN_IDS, type MapMarchView, type MapSnapshot, type NpcKi
 import type { GameStore } from "../state/game-store.ts";
 import { drawableTag } from "../state/tile-info.ts";
 import type { WorldStore } from "../state/world-store.ts";
-import { artUrl, diamondSpec, iconSpec, textureKey } from "../art/art.ts";
+import { artUrl, diamondSpec, groundTexture, groundUrl, iconSpec, propsTexture, propsUrl, terrainAtlases, textureKey, type Atlas } from "../art/art.ts";
 import { createGesture, type Gesture } from "./gesture.ts";
 import { SpritePool, type SpriteSpec } from "./sprite-pool.ts";
+import { hash01, propsFor, type PropKind } from "./terrain-props.ts";
 import type { Vec } from "./iso-layout.ts";
 import {
   centerTile,
@@ -48,21 +49,19 @@ const LABEL_PX = 18;
 
 // [light, dark] per terrain: a checker of two shades keeps tiles readable without outlines.
 const TERRAIN_COLORS: Readonly<Record<TerrainId, readonly [number, number]>> = {
-  plain: [0x8f9b5e, 0x879356],
-  hills: [0xa8a066, 0xa0985f],
-  forest: [0x4e7040, 0x486a3b],
-  mountain: [0x80796f, 0x77716a],
+  plain: [0xc4955a, 0xbc8d54],
+  hills: [0xa4903f, 0x9c8a3c],
+  forest: [0x4b4a28, 0x464526],
+  mountain: [0x57493c, 0x514438],
 };
 
 /** Below this zoom there are too many tiles to draw as sprites; flat colours read fine at that size. */
 const ART_ZOOM = 0.3;
-/** The painted tile for each terrain; "hills" has no tile of its own, so terraced fields stand in. */
-const TERRAIN_ART: Readonly<Record<TerrainId, string>> = {
-  plain: "map/terrain_plain",
-  hills: "map/terrain_terraces",
-  forest: "map/terrain_forest",
-  mountain: "map/terrain_mountain",
-};
+/** Props (trees, peaks, rocks) are drawn from this zoom up; farther out the ground alone reads fine and there would be too many sprites. */
+const PROP_ZOOM = 0.4;
+/** World px per source px of each prop kind's atlas frames (frames are at most 224 px). */
+const PROP_SCALE: Readonly<Record<PropKind, number>> = { trees: 0.42, rocks: 0.22, peaks: 0.55, scrub: 0.3, terraces: 0.4 };
+const PROP_KINDS: readonly PropKind[] = ["trees", "rocks", "peaks", "scrub", "terraces"];
 /** Each NPC kind keeps its own silhouette: watch tower, cart medallion, stone yard, star fort. */
 const NPC_ART: Readonly<Record<NpcKind, string>> = {
   patrol: "map/outpost_watch",
@@ -72,11 +71,11 @@ const NPC_ART: Readonly<Record<NpcKind, string>> = {
 };
 const BASE_ART = "buildings/hq";
 const MARKER_ART = ["map/marker_march", "map/marker_return", "map/marker_battle", "map/marker_rally"] as const;
-const ART_KEYS: readonly string[] = [...Object.values(TERRAIN_ART), ...Object.values(NPC_ART), BASE_ART, ...MARKER_ART];
+const ART_KEYS: readonly string[] = [...Object.values(NPC_ART), BASE_ART, ...MARKER_ART];
 /** How long the battle marker shows at the target after a column arrives. */
 const BATTLE_FLASH_MS = 5000;
-/** Tile sprites are drawn a hair wider than the tile so neighbours do not show seams. */
-const TILE_BLEED = 1.03;
+/** Tile sprites are drawn wider than the tile so the feathered edges of neighbours overlap and blend. */
+const TILE_BLEED = 1.25;
 
 /** Alliance HQs: a pennant, teal for the player's own alliance, violet for the others. */
 const HQ_OWN = 0x2f9e8f;
@@ -119,6 +118,10 @@ export class WorldScene extends Phaser.Scene {
   private marchLayer!: Phaser.GameObjects.Graphics;
   private readonly labels = new Map<string, Phaser.GameObjects.Text>();
   private terrainPool!: SpritePool;
+  private propPool!: SpritePool;
+  /** Changes when the set of occupied tiles (bases, NPCs, alliance HQs) does, so props are not drawn under them. */
+  private occupiedKey = "";
+  private occupied = new Set<number>();
   private markerPool!: SpritePool;
   private marchPool!: SpritePool;
   private readonly specs = new Map<string, SpriteSpec>();
@@ -141,6 +144,8 @@ export class WorldScene extends Phaser.Scene {
   preload(): void {
     // Loaded the first time the map is opened, so none of it is part of the base screen's download.
     for (const key of ART_KEYS) if (!this.textures.exists(textureKey(key))) this.load.image(textureKey(key), artUrl(key));
+    for (const t of Object.keys(terrainAtlases.ground)) if (!this.textures.exists(groundTexture(t))) this.load.image(groundTexture(t), groundUrl(t));
+    for (const k of PROP_KINDS) if (!this.textures.exists(propsTexture(k))) this.load.image(propsTexture(k), propsUrl(k));
   }
 
   create(): void {
@@ -148,6 +153,8 @@ export class WorldScene extends Phaser.Scene {
     // Depths: rim 0, terrain tiles just above it (0.1 to 0.9 by row), markers 1 to 2, outlines 2.5, marches 3, labels 4.
     this.ground = this.add.graphics().setDepth(0);
     this.terrainPool = new SpritePool(this);
+    this.propPool = new SpritePool(this);
+    this.addAtlasFrames();
     this.markers = this.add.graphics().setDepth(2.5);
     this.markerPool = new SpritePool(this);
     this.marchLayer = this.add.graphics().setDepth(3);
@@ -268,11 +275,22 @@ export class WorldScene extends Phaser.Scene {
 
   // --- snapshot -----------------------------------------------------------
 
+  private trackOccupied(snap: MapSnapshot): void {
+    const tiles = [...snap.bases, ...snap.npcs, ...snap.hqs];
+    let h = tiles.length;
+    for (const t of tiles) h = (Math.imul(h, 31) + t.y * snap.size + t.x) | 0;
+    const key = String(h);
+    if (key === this.occupiedKey) return;
+    this.occupiedKey = key;
+    this.occupied = new Set(tiles.map((t) => t.y * snap.size + t.x));
+  }
+
   private setSnapshot(snap: MapSnapshot | null): void {
     this.snapshot = snap;
     this.snapshotVersion++;
     this.markersKey = "";
     if (snap === null) return;
+    this.trackOccupied(snap);
     const key = `${snap.terrainSeed}|${snap.size}`;
     if (key !== this.terrainKey) {
       this.terrainKey = key;
@@ -321,16 +339,57 @@ export class WorldScene extends Phaser.Scene {
     return spec;
   }
 
+  /** Registers each atlas frame as a named frame of its texture. */
+  private addAtlasFrames(): void {
+    const add = (key: string, atlas: Atlas): void => {
+      const tex = this.textures.get(key);
+      if (tex.has("0")) return;
+      atlas.frames.forEach((f, i) => tex.add(String(i), 0, f.x, f.y, f.w, f.h));
+    };
+    for (const [t, atlas] of Object.entries(terrainAtlases.ground)) add(groundTexture(t), atlas);
+    for (const [k, atlas] of Object.entries(terrainAtlases.props)) add(propsTexture(k), atlas);
+  }
+
+  /** Spec of one atlas frame, cached. `anchor` is the point of the frame that lands on the target (default: its middle). */
+  private frameSpec(texture: string, atlas: Atlas, index: number, scale: number, useAnchor: boolean): SpriteSpec {
+    const i = Math.min(atlas.frames.length - 1, Math.max(0, index));
+    const id = `${texture}|${i}|${scale}|${useAnchor}`;
+    let spec = this.specs.get(id);
+    if (spec === undefined) {
+      const f = atlas.frames[i]!;
+      spec = { texture, frame: String(i), w: f.w, anchorX: useAnchor ? (f.ax ?? f.w / 2) : f.w / 2, anchorY: useAnchor ? (f.ay ?? f.h) : f.h / 2, scale };
+      this.specs.set(id, spec);
+    }
+    return spec;
+  }
+
+  /** Share of a tile's eight neighbours with the same terrain: 0 at a region's border, 1 deep inside. */
+  private interior(x: number, y: number, size: number): number {
+    const id = this.terrain[y * size + x];
+    let same = 0;
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        if (dx === 0 && dy === 0) continue;
+        const nx = x + dx, ny = y + dy;
+        // Off the map counts as the same, so a region does not thin out at the map's edge.
+        if (nx < 0 || ny < 0 || nx >= size || ny >= size || this.terrain[ny * size + nx] === id) same++;
+      }
+    }
+    return same / 8;
+  }
+
   private paintGround(snap: MapSnapshot, range: TileRange): void {
     const grid = this.view.zoom >= GRID_ZOOM;
     const art = this.view.zoom >= ART_ZOOM;
-    const key = `${range.x0},${range.x1},${range.y0},${range.y1}|${grid}|${art}`;
+    const props = this.view.zoom >= PROP_ZOOM;
+    const key = `${range.x0},${range.x1},${range.y0},${range.y1}|${grid}|${art}|${props}|${this.occupiedKey}`;
     if (key === this.groundKey) return;
     this.groundKey = key;
     const g = this.ground;
     g.clear();
     this.paintRim(g, snap.size);
     this.terrainPool.begin();
+    this.propPool.begin();
     const q = this.quad;
     const hw = TILE_W / 2;
     const hh = TILE_H / 2;
@@ -340,23 +399,38 @@ export class WorldScene extends Phaser.Scene {
         const id = this.terrain[y * snap.size + x] ?? 0;
         const id2 = TERRAIN_IDS[id] ?? "plain";
         const p = tileToWorld(x, y);
-        if (art) {
-          // Mirror about half the tiles so a field of one terrain does not repeat a visible pattern.
-          const flip = ((x * 73856093) ^ (y * 19349663)) % 2 === 0;
-          const depth = 0.1 + (0.8 * (x + y)) / (2 * snap.size);
-          this.terrainPool.place(this.tileSpec(TERRAIN_ART[id2], TILE_BLEED), p.x, p.y + hh, depth, 1, flip);
-          continue;
-        }
+        // A flat colour under every tile: it backs the feathered edges of the painted tiles and is the whole look when zoomed far out.
         g.fillStyle(TERRAIN_COLORS[id2][(x + y) & 1] ?? 0, 1);
         q[0].set(p.x, p.y);
         q[1].set(p.x + hw, p.y + hh);
         q[2].set(p.x, p.y + TILE_H);
         q[3].set(p.x - hw, p.y + hh);
         g.fillPoints(q, true);
-        if (grid) g.strokePoints(q, true);
+        if (!art) {
+          if (grid) g.strokePoints(q, true);
+          continue;
+        }
+        const atlas = terrainAtlases.ground[id2];
+        if (atlas === undefined) continue;
+        const frame = Math.floor(hash01(x, y, 7) * atlas.frames.length);
+        const flip = hash01(x, y, 8) < 0.5;
+        const depth = 0.1 + (0.8 * (x + y)) / (2 * snap.size);
+        // Drawn a little wider than the tile: the feathered edges of neighbours overlap, so tiles blend instead of showing seams.
+        const spec = this.frameSpec(groundTexture(id2), atlas, frame, (TILE_W * TILE_BLEED) / (atlas.frames[0]?.w ?? 256), false);
+        this.terrainPool.place(spec, p.x, p.y + hh, depth, 1, flip);
+        if (!props || this.occupied.has(y * snap.size + x)) continue;
+        for (const plan of propsFor(id2, x, y, this.interior(x, y, snap.size))) {
+          const pa = terrainAtlases.props[plan.kind];
+          if (pa === undefined) continue;
+          const c = tileCenter(x + plan.dx, y + plan.dy);
+          const pdepth = 0.91 + (0.08 * (x + y + plan.dx + plan.dy)) / (2 * snap.size);
+          const pspec = this.frameSpec(propsTexture(plan.kind), pa, Math.floor(plan.pick * pa.frames.length), PROP_SCALE[plan.kind] * plan.scale, true);
+          this.propPool.place(pspec, c.x, c.y, pdepth, 1, plan.flip);
+        }
       }
     }
     this.terrainPool.end();
+    this.propPool.end();
   }
 
   /** The slab edge below the map's two near sides, so the land has some thickness. */
