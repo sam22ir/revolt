@@ -47,6 +47,10 @@ The hero frames (common, rare, legendary) each hold a faceless, hooded figure in
 
 ## Known rough edges
 
-- Terrain tiles repeat at close zoom (half are mirrored to hide it). Below zoom 0.3 the map falls back to flat colours.
-- Each tile carries its own soil edge, so the slab seams show as zigzag lines between terrain types.
-- Level badges on the base sit on the front corner of each plot; on a 5-building layout they can crowd the neighbour's roof.
+Seen in the en and ar screenshots (nothing here has been tried on a real phone yet, including pan smoothness at zoom 0.3 with about 900 tile sprites):
+
+- Plain terrain repeats as a busy pattern (half the tiles are mirrored), and the soil edges of tiles show as zigzag seams between terrain types. Below zoom 0.3 the map falls back to flat colours.
+- The base fills only about 45% of the screen height; the level badges sit on the front corners of the plots and can crowd a neighbour's roof; the upgrade bar is small and sits on the walls.
+- NPC level numbers are small on the tile art.
+- Only 5 of the 11 buildings exist in the rules; the others are unused until they do.
+- The sprites are not power-of-two sized, so Phaser (which only mipmaps power-of-two textures) draws them with plain linear filtering; heavy minification can shimmer.

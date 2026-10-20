@@ -83,8 +83,6 @@ const start = async (): Promise<void> => {
     // By default Phaser also listens on the whole window, so a tap on a DOM panel or button would reach
     // the scene underneath it (selecting a building or tile behind the alliance panel, say). Listen on the canvas only.
     input: { windowEvents: false },
-    // Painted sprites are drawn well below their stored size on the base and zoomed-out map; mipmaps keep that smooth.
-    render: { mipmapFilter: "LINEAR_MIPMAP_LINEAR" },
     scene: [baseScene, worldScene],
   });
   followParentSize(game, gameRoot);

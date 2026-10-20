@@ -102,6 +102,7 @@ for (const [i, { locale, lang, dir }] of LOCALES.entries()) {
     await expectNoRawKeys(a);
     await screenshot(a, `${SHOTS}/${lang}-m3-4-report.png`);
     // The battle marker shows at the target for a few seconds after arrival (the clock is fixed, so it is still up).
+    await a.getByTestId("reports").locator(".panel-close").click();
     await a.evaluate(() => {
       const to = window.__revolt!.map!.snapshot()!.marches.find((x) => x.mine)!.to;
       window.__revolt!.map!.centerOn(to.x, to.y);
