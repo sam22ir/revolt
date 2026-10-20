@@ -104,12 +104,19 @@
   padding: 14px 16px 16px;
   border-radius: 16px;
   background: var(--paper);
-  box-shadow: 0 -4px 24px rgb(0 0 0 / 0.35);
+  /* Not box-shadow: on a scrolling element above the WebGL canvas it made headless Chromium paint the canvas
+     area above the panel solid white/black. drop-shadow renders the same and does not. */
+  filter: drop-shadow(0 -4px 12px rgb(0 0 0 / 0.35));
 }
 @media (min-width: 720px) { .dialog-backdrop { align-items: center; } }
 
 .troop-rows { list-style: none; margin: 8px 0 12px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .troop-row { display: grid; grid-template-columns: 1fr auto auto auto auto; align-items: center; gap: 6px; }
+.troop-role { display: flex; align-items: center; gap: 10px; }
+.troop-role .panel-desc { margin: 0; }
+.troop-role-icon { display: inline-flex; flex: none; }
+.troop-icon { inline-size: 44px; block-size: 44px; object-fit: contain; }
+.troop-rows .troop-row { grid-template-columns: auto 1fr auto auto auto auto; }
 .troop-label { display: flex; flex-direction: column; min-inline-size: 0; }
 .troop-name { font-weight: 700; font-size: 15px; }
 .troop-home { font-size: 12px; opacity: 0.7; }

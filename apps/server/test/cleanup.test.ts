@@ -1,9 +1,21 @@
+import { terrainAt, type MapSnapshot } from "@revolt/rules";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { runCleanup, STALE_GUEST_MS } from "../src/cleanup.ts";
 import { scheduled } from "../src/scheduled.ts";
 import { join, MANY_GUESTS, player, post, team, type Player } from "./alliance-helpers.ts";
-import { body, DAY, HOUR, newGuest, startServer, T0, type Server } from "./harness.ts";
+import { body, DAY, HOUR, newGuest, startServer, T0, testMapApi, type Server } from "./harness.ts";
 import { getMap } from "./map-helpers.ts";
+
+/** A tile clear of mountains, bases, targets and HQs where an HQ may go. */
+const findFreeTile = (snap: MapSnapshot, wanted: (x: number, y: number) => boolean = () => true): { x: number; y: number } => {
+  for (let x = 0; x < snap.size; x++) {
+    for (let y = 0; y < snap.size; y++) {
+      const clear = terrainAt(snap.terrainSeed, x, y) !== "mountain" && [...snap.bases, ...snap.npcs, ...snap.hqs].every((p) => Math.max(Math.abs(p.x - x), Math.abs(p.y - y)) > 2);
+      if (clear && wanted(x, y)) return { x, y };
+    }
+  }
+  throw new Error("no tile");
+};
 
 let server: Server;
 beforeEach(async () => {
@@ -261,11 +273,30 @@ describe("cleanup and alliances", () => {
     await abandon(t.leader.token);
     const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
     await scheduled(later(), server.env, {
-      map: (_e, name) => ({ removeAccounts: async () => 0, removeAlliance: async (id: string) => void ended.push(`map:${name}:${id}`) }) as never,
+      map: (_e, name) => ({ removeAccounts: async () => 0, hqAllianceIds: async () => [], removeAlliance: async (id: string) => void ended.push(`map:${name}:${id}`) }) as never,
       room: (_e, id) => ({ disband: async () => void ended.push(`room:${id}`) }) as never,
     });
     log.mockRestore();
     expect(ended).toEqual([`room:${t.allianceId}`, `map:algeria-1:${t.allianceId}`]);
+  });
+
+  test("an HQ left on the map by a failed notice is dropped by the daily sweep; a live alliance's is kept", async () => {
+    const t = await team(server, 1);
+    const snap = await getMap(server, t.leader.token);
+    const live = await post(server, t.leader, "/v1/alliance/hq", findFreeTile(snap));
+    expect(live).toMatchObject({ ok: true });
+    const other = await team(server, 1, "Other", "OT");
+    const snap2 = await getMap(server, other.leader.token);
+    const mine = findFreeTile(snap2, (x, y) => Math.abs(x - (live.alliance as { hq: { x: number } }).hq.x) > 6);
+    expect(await post(server, other.leader, "/v1/alliance/hq", mine)).toMatchObject({ ok: true });
+    // The other alliance ends in D1 only, as when the map call after a leave fails.
+    await server.env.DB.prepare("DELETE FROM alliance_members WHERE alliance_id = ?").bind(other.allianceId).run();
+    await server.env.DB.prepare("DELETE FROM alliances WHERE id = ?").bind(other.allianceId).run();
+    expect((await getMap(server, t.leader.token)).hqs).toHaveLength(2);
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    await scheduled(later(), server.env, { map: (_e, name) => testMapApi(server.map(name), name), room: () => ({ disband: async () => undefined }) as never });
+    log.mockRestore();
+    expect((await getMap(server, t.leader.token)).hqs.map((h) => h.tag)).toEqual(["FL"]);
   });
 
   test("an account that gains a session before the batch runs is neither deleted nor replaced as leader", async () => {

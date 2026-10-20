@@ -12,14 +12,18 @@ export interface Plot {
   readonly size: number;
 }
 
+/** Every plot is the same size: the painted sprites share one plot diamond. Centers sit in a quincunx so no building hides another's middle. */
+const PLOT_SIZE = 1.6;
+const plotAt = (cx: number, cy: number): Plot => ({ gx: cx - PLOT_SIZE / 2, gy: cy - PLOT_SIZE / 2, size: PLOT_SIZE });
+
 /** Fixed plots for M1 (GDD §4.1). */
 export const PLOTS: Readonly<Record<BuildingId, Plot>> = {
-  hq: { gx: 1.2, gy: 1.2, size: 2 },
-  farm: { gx: 0.2, gy: 3.5, size: 2 },
-  armory: { gx: 3.5, gy: 0.2, size: 2 },
-  treasury: { gx: 3.7, gy: 3.7, size: 1.6 },
-  barracks: { gx: 2.3, gy: 4.2, size: 1.4 },
-  hero_hall: { gx: 0.1, gy: 0.9, size: 1 },
+  hq: plotAt(3, 3),
+  farm: plotAt(1, 2.6),
+  armory: plotAt(2.6, 1),
+  treasury: plotAt(5, 3.4),
+  barracks: plotAt(3.4, 5),
+  hero_hall: plotAt(1, 1),
 };
 
 export interface Vec {

@@ -1,0 +1,530 @@
+{
+ "buildings/academy": {
+  "w": 512,
+  "h": 414,
+  "bottom": {
+   "x": 263,
+   "y": 411
+  },
+  "left": {
+   "x": 2,
+   "y": 272
+  },
+  "right": {
+   "x": 509,
+   "y": 274
+  }
+ },
+ "buildings/armory": {
+  "w": 512,
+  "h": 374,
+  "bottom": {
+   "x": 263,
+   "y": 371
+  },
+  "left": {
+   "x": 2,
+   "y": 232
+  },
+  "right": {
+   "x": 509,
+   "y": 234
+  }
+ },
+ "buildings/barracks": {
+  "w": 512,
+  "h": 368,
+  "bottom": {
+   "x": 229,
+   "y": 365
+  },
+  "left": {
+   "x": 2,
+   "y": 244
+  },
+  "right": {
+   "x": 501,
+   "y": 220
+  }
+ },
+ "buildings/farm": {
+  "w": 512,
+  "h": 410,
+  "bottom": {
+   "x": 263,
+   "y": 407
+  },
+  "left": {
+   "x": 2,
+   "y": 261
+  },
+  "right": {
+   "x": 509,
+   "y": 266
+  }
+ },
+ "buildings/ground_tile": {
+  "w": 1024,
+  "h": 571,
+  "bottom": {
+   "x": 516,
+   "y": 567
+  },
+  "left": {
+   "x": 97,
+   "y": 342
+  },
+  "right": {
+   "x": 924,
+   "y": 342
+  }
+ },
+ "buildings/hero_hall": {
+  "w": 512,
+  "h": 349,
+  "bottom": {
+   "x": 248,
+   "y": 346
+  },
+  "left": {
+   "x": 2,
+   "y": 211
+  },
+  "right": {
+   "x": 498,
+   "y": 209
+  }
+ },
+ "buildings/hq": {
+  "w": 512,
+  "h": 426,
+  "bottom": {
+   "x": 263,
+   "y": 423
+  },
+  "left": {
+   "x": 2,
+   "y": 284
+  },
+  "right": {
+   "x": 509,
+   "y": 286
+  }
+ },
+ "buildings/infirmary": {
+  "w": 512,
+  "h": 342,
+  "bottom": {
+   "x": 244,
+   "y": 339
+  },
+  "left": {
+   "x": 9,
+   "y": 205
+  },
+  "right": {
+   "x": 472,
+   "y": 205
+  }
+ },
+ "buildings/liaison_office": {
+  "w": 512,
+  "h": 411,
+  "bottom": {
+   "x": 263,
+   "y": 408
+  },
+  "left": {
+   "x": 2,
+   "y": 268
+  },
+  "right": {
+   "x": 509,
+   "y": 271
+  }
+ },
+ "buildings/storehouse": {
+  "w": 512,
+  "h": 335,
+  "bottom": {
+   "x": 255,
+   "y": 332
+  },
+  "left": {
+   "x": 2,
+   "y": 201
+  },
+  "right": {
+   "x": 501,
+   "y": 201
+  }
+ },
+ "buildings/storehouse_alt": {
+  "w": 512,
+  "h": 397,
+  "bottom": {
+   "x": 248,
+   "y": 394
+  },
+  "left": {
+   "x": 2,
+   "y": 258
+  },
+  "right": {
+   "x": 509,
+   "y": 245
+  }
+ },
+ "buildings/treasury": {
+  "w": 512,
+  "h": 416,
+  "bottom": {
+   "x": 264,
+   "y": 413
+  },
+  "left": {
+   "x": 2,
+   "y": 270
+  },
+  "right": {
+   "x": 509,
+   "y": 274
+  }
+ },
+ "buildings/watchtower": {
+  "w": 512,
+  "h": 492,
+  "bottom": {
+   "x": 260,
+   "y": 488
+  },
+  "left": {
+   "x": 2,
+   "y": 349
+  },
+  "right": {
+   "x": 509,
+   "y": 349
+  }
+ },
+ "map/marker_battle": {
+  "w": 288,
+  "h": 289,
+  "bottom": {
+   "x": 144,
+   "y": 287
+  },
+  "left": {
+   "x": 5,
+   "y": 173
+  },
+  "right": {
+   "x": 283,
+   "y": 173
+  }
+ },
+ "map/marker_convoy": {
+  "w": 288,
+  "h": 287,
+  "bottom": {
+   "x": 144,
+   "y": 285
+  },
+  "left": {
+   "x": 5,
+   "y": 172
+  },
+  "right": {
+   "x": 283,
+   "y": 172
+  }
+ },
+ "map/marker_march": {
+  "w": 288,
+  "h": 289,
+  "bottom": {
+   "x": 144,
+   "y": 287
+  },
+  "left": {
+   "x": 5,
+   "y": 173
+  },
+  "right": {
+   "x": 283,
+   "y": 173
+  }
+ },
+ "map/marker_rally": {
+  "w": 288,
+  "h": 287,
+  "bottom": {
+   "x": 144,
+   "y": 285
+  },
+  "left": {
+   "x": 5,
+   "y": 172
+  },
+  "right": {
+   "x": 283,
+   "y": 172
+  }
+ },
+ "map/marker_return": {
+  "w": 288,
+  "h": 288,
+  "bottom": {
+   "x": 144,
+   "y": 286
+  },
+  "left": {
+   "x": 5,
+   "y": 172
+  },
+  "right": {
+   "x": 283,
+   "y": 172
+  }
+ },
+ "map/outpost_barracks": {
+  "w": 320,
+  "h": 301,
+  "bottom": {
+   "x": 159,
+   "y": 298
+  },
+  "left": {
+   "x": 9,
+   "y": 180
+  },
+  "right": {
+   "x": 308,
+   "y": 180
+  }
+ },
+ "map/outpost_fort": {
+  "w": 320,
+  "h": 348,
+  "bottom": {
+   "x": 160,
+   "y": 345
+  },
+  "left": {
+   "x": 2,
+   "y": 219
+  },
+  "right": {
+   "x": 317,
+   "y": 220
+  }
+ },
+ "map/outpost_watch": {
+  "w": 320,
+  "h": 305,
+  "bottom": {
+   "x": 161,
+   "y": 302
+  },
+  "left": {
+   "x": 11,
+   "y": 183
+  },
+  "right": {
+   "x": 310,
+   "y": 183
+  }
+ },
+ "ui/hero_frame_common": {
+  "w": 256,
+  "h": 357,
+  "bottom": {
+   "x": 127,
+   "y": 354
+  },
+  "left": {
+   "x": 2,
+   "y": 307
+  },
+  "right": {
+   "x": 253,
+   "y": 294
+  }
+ },
+ "ui/hero_frame_legendary": {
+  "w": 256,
+  "h": 359,
+  "bottom": {
+   "x": 128,
+   "y": 356
+  },
+  "left": {
+   "x": 5,
+   "y": 308
+  },
+  "right": {
+   "x": 251,
+   "y": 312
+  }
+ },
+ "ui/hero_frame_rare": {
+  "w": 256,
+  "h": 368,
+  "bottom": {
+   "x": 128,
+   "y": 365
+  },
+  "left": {
+   "x": 2,
+   "y": 308
+  },
+  "right": {
+   "x": 253,
+   "y": 307
+  }
+ },
+ "ui/hud_top_bar": {
+  "w": 640,
+  "h": 121,
+  "bottom": {
+   "x": 60,
+   "y": 118
+  },
+  "left": {
+   "x": 3,
+   "y": 72
+  },
+  "right": {
+   "x": 638,
+   "y": 87
+  }
+ },
+ "ui/resource_food": {
+  "w": 96,
+  "h": 94,
+  "bottom": {
+   "x": 48,
+   "y": 92
+  },
+  "left": {
+   "x": 2,
+   "y": 56
+  },
+  "right": {
+   "x": 93,
+   "y": 56
+  }
+ },
+ "ui/resource_funds": {
+  "w": 96,
+  "h": 97,
+  "bottom": {
+   "x": 48,
+   "y": 95
+  },
+  "left": {
+   "x": 2,
+   "y": 58
+  },
+  "right": {
+   "x": 93,
+   "y": 58
+  }
+ },
+ "ui/resource_materiel": {
+  "w": 96,
+  "h": 97,
+  "bottom": {
+   "x": 48,
+   "y": 95
+  },
+  "left": {
+   "x": 2,
+   "y": 58
+  },
+  "right": {
+   "x": 93,
+   "y": 58
+  }
+ },
+ "ui/resource_support": {
+  "w": 96,
+  "h": 97,
+  "bottom": {
+   "x": 48,
+   "y": 95
+  },
+  "left": {
+   "x": 2,
+   "y": 58
+  },
+  "right": {
+   "x": 93,
+   "y": 58
+  }
+ },
+ "units/troop_heavy": {
+  "w": 128,
+  "h": 128,
+  "bottom": {
+   "x": 64,
+   "y": 127
+  },
+  "left": {
+   "x": 2,
+   "y": 76
+  },
+  "right": {
+   "x": 125,
+   "y": 76
+  }
+ },
+ "units/troop_infantry": {
+  "w": 128,
+  "h": 129,
+  "bottom": {
+   "x": 64,
+   "y": 127
+  },
+  "left": {
+   "x": 2,
+   "y": 77
+  },
+  "right": {
+   "x": 125,
+   "y": 77
+  }
+ },
+ "units/troop_porters": {
+  "w": 128,
+  "h": 129,
+  "bottom": {
+   "x": 64,
+   "y": 127
+  },
+  "left": {
+   "x": 2,
+   "y": 77
+  },
+  "right": {
+   "x": 125,
+   "y": 77
+  }
+ },
+ "units/troop_scouts": {
+  "w": 128,
+  "h": 128,
+  "bottom": {
+   "x": 64,
+   "y": 127
+  },
+  "left": {
+   "x": 2,
+   "y": 76
+  },
+  "right": {
+   "x": 125,
+   "y": 76
+  }
+ }
+}

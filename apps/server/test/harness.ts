@@ -112,7 +112,7 @@ const createTestMap = (db: Db, seed: number): TestMap => {
 };
 
 /** The Worker's view of a test map, mirroring `WorldMap`'s RPC methods. */
-const testMapApi = (tm: TestMap, server: string): MapApi => {
+export const testMapApi = (tm: TestMap, server: string): MapApi => {
   const run = <T>(now: number, op: (s: MapService) => MapOp<T> | Promise<MapOp<T>>): Promise<T> =>
     tm.host.run(now, (s) => {
       s.rememberName(server);
@@ -125,6 +125,7 @@ const testMapApi = (tm: TestMap, server: string): MapApi => {
     joinRally: (v, rallyId, troops, now) => run(now, (s) => s.joinRally(v, rallyId, troops, now)),
     setHq: (v, x, y, now) => run(now, (s) => s.setHq(v, x, y, now)),
     hqOf: async (allianceId) => tm.host.service.hqOf(allianceId),
+    hqAllianceIds: async () => tm.host.service.hqAllianceIds(),
     setAlliance: (v, now) => run(now, (s) => s.setAlliance(v)).then(() => undefined),
     removeAlliance: (allianceId, now) => run(now, (s) => s.removeAlliance(allianceId)).then(() => undefined),
     removeAccounts: (ids, now) => run(now, (s) => s.removeAccounts(ids)),

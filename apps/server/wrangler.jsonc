@@ -20,9 +20,9 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "revolt",
-      // Placeholder: replaced with the real id when the user creates the D1 database. Local dev ignores it.
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_name": "revolt-db",
+      // The deployed database (docs/deploy.md). Local dev ignores the id.
+      "database_id": "ebea5819-75c3-4a43-931d-a828830fea82",
       "migrations_dir": "migrations"
     }
   ],
@@ -30,7 +30,7 @@
     // The Google *web* client ID(s), comma-separated. Empty disables Google sign-in. See docs/google-oauth-setup.md.
     "GOOGLE_CLIENT_IDS": "",
     // Vite dev and preview, and the Capacitor Android/iOS WebView origins.
-    "ALLOWED_ORIGINS": "http://localhost:5173,http://localhost:4173,https://localhost,capacitor://localhost",
+    "ALLOWED_ORIGINS": "http://localhost:5173,http://localhost:4173,https://localhost,capacitor://localhost,https://revolt-server.nafaa-store.workers.dev",
     // Guest accounts per client IP (IPv6: /64) per hour. Mobile carriers share IPs (CGNAT), so keep it generous.
     "GUEST_LIMIT_PER_HOUR": "30"
   }

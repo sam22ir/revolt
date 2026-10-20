@@ -1,4 +1,6 @@
 import { CHAT_HISTORY, CHAT_MAX_LENGTH, CHAT_RATE_MAX, CHAT_RATE_WINDOW_MS } from "@revolt/rules";
+import { MEMBER_RECHECK_MS } from "../src/alliance/room-host.ts";
+import { isMemberOf } from "../src/db/alliances.ts";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { connectChat, MANY_GUESTS, player, post, say, team } from "./alliance-helpers.ts";
 import { startServer, T0, type Json, type Server } from "./harness.ts";
@@ -162,5 +164,45 @@ describe("history", () => {
     await post(server, t.leader, "/v1/alliance/leave");
     expect(a.received.at(-1)).toEqual({ type: "kicked" });
     expect(server.room(t.allianceId).sql.exec("SELECT * FROM messages")).toEqual([]);
+  });
+});
+
+describe("a socket that outlived its membership", () => {
+  test("a member removed while the room's notice never arrived cannot post, and is cut off", async () => {
+    const t = await team(server, 3);
+    const kicked = t.members[0]!;
+    const a = await connectChat(server, kicked, t.allianceId);
+    const b = await connectChat(server, t.members[1]!, t.allianceId);
+    // The database says they are gone, but the room was never told (the best-effort RPC failed).
+    await server.env.DB.prepare("DELETE FROM alliance_members WHERE account_id = ?").bind(kicked.id).run();
+    const frame = JSON.stringify({ type: "chat", text: "still here" });
+    const isMember = (id: string) => isMemberOf(server.env.DB, id, t.allianceId);
+    await server.room(t.allianceId).host.onFrameChecked(a, frame, server.now, isMember);
+    expect(a.open).toBe(false);
+    expect(a.received.at(-1)).toEqual({ type: "kicked" });
+    expect(b.received.filter((m) => m.type === "chat")).toEqual([]);
+    // A member still in it posts as before; a database that cannot answer drops the message.
+    await server.room(t.allianceId).host.onFrameChecked(b, frame, server.now, isMember);
+    expect(b.received.filter((m) => m.type === "chat")).toHaveLength(1);
+    await server.room(t.allianceId).host.onFrameChecked(b, frame, server.now + 60_000, async () => {
+      throw new Error("D1 down");
+    });
+    expect(b.received.filter((m) => m.type === "chat")).toHaveLength(1);
+  });
+
+  test("the database is asked at most once per member per half minute, however many frames arrive", async () => {
+    const t = await team(server, 2);
+    const a = await connectChat(server, t.members[0]!, t.allianceId);
+    let asked = 0;
+    const isMember = async (): Promise<boolean> => {
+      asked++;
+      return true;
+    };
+    const host = server.room(t.allianceId).host;
+    for (let i = 0; i < 50; i++) await host.onFrameChecked(a, "garbage", server.now, isMember);
+    for (let i = 0; i < 10; i++) await host.onFrameChecked(a, JSON.stringify({ type: "chat", text: `m${i}` }), server.now + i, isMember);
+    expect(asked).toBe(1);
+    await host.onFrameChecked(a, "garbage", server.now + MEMBER_RECHECK_MS + 1, isMember);
+    expect(asked).toBe(2);
   });
 });

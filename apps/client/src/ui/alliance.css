@@ -3,6 +3,9 @@
 .alliance-panel { max-block-size: 70vh; display: flex; flex-direction: column; }
 .alliance-body { min-block-size: 0; display: flex; flex-direction: column; }
 .alliance-panel .dialog-backdrop { position: fixed; }
+/* Its confirm dialog is position: fixed inside the panel, and a filter would make the panel its containing block
+   (see the shadow note in style.css), so this panel has no shadow; a hairline keeps its edge readable. */
+.alliance-panel { filter: none; box-shadow: none; border: 1px solid rgb(0 0 0 / 0.18); }
 
 .alliance-input {
   inline-size: 100%;

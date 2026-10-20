@@ -115,8 +115,12 @@ export interface Api {
   readonly giveHelp: (token: string, requestId: string) => Promise<HelpReply>;
 }
 
-export const defaultApiUrl = (): string =>
-  import.meta.env.VITE_API_URL ?? `${window.location.protocol}//${window.location.hostname}:8787`;
+/** `VITE_API_URL=same-origin` (the deployed build): the Worker serves the page and the API from one origin. */
+export const defaultApiUrl = (): string => {
+  const url = import.meta.env.VITE_API_URL;
+  if (url === "same-origin") return window.location.origin;
+  return url ?? `${window.location.protocol}//${window.location.hostname}:8787`;
+};
 
 /** The WebSocket address of the map feed for an API base URL (http → ws, https → wss). */
 export const mapSocketUrl = (apiUrl: string): string => `${apiUrl.replace(/^http/, "ws")}/v1/map/ws`;

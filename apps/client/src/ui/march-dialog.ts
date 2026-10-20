@@ -16,6 +16,7 @@ import { currentLanguage, t } from "../i18n/i18n.ts";
 import type { MarchOutcome } from "../state/game-store.ts";
 import { ownBase, previewMarch } from "../state/tile-info.ts";
 import { el } from "./dom.ts";
+import { troopIcon } from "./icons.ts";
 import { troopList } from "./troop-format.ts";
 
 /** What the troops are picked for: a solo march, a rally the player starts, or one that is gathering. */
@@ -198,6 +199,8 @@ export const createMarchDialog = (deps: MarchDialogDeps): MarchDialog => {
     for (const id of TROOP_IDS) {
       const li = el("li", "troop-row");
       li.dataset.troop = id;
+      const icon = el("span", "troop-role-icon");
+      icon.append(troopIcon(id));
       const label = el("div", "troop-label");
       label.append(el("span", "troop-name", t(`troop.${id}.name`)));
       const homeText = el("span", "troop-home");
@@ -223,7 +226,7 @@ export const createMarchDialog = (deps: MarchDialogDeps): MarchDialog => {
       maxBtn.type = "button";
       maxBtn.dataset.testid = `march-max-${id}`;
       maxBtn.addEventListener("click", () => setCount(id, latest === null ? 0 : home(latest.state, id)));
-      li.append(label, minus, input, plus, maxBtn);
+      li.append(icon, label, minus, input, plus, maxBtn);
       list.append(li);
       rows.set(id, { input, home: homeText, minus, plus, maxBtn });
     }
