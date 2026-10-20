@@ -1,4 +1,5 @@
 import type { BuildingId } from "./building-id.ts";
+import { HERO_IDS, type HeroId } from "./hero-id.ts";
 import { START_LEVELS, START_RESOURCES, START_TROOPS } from "./data/start.ts";
 import type { Resources } from "./resources.ts";
 import type { TroopId } from "./troop-id.ts";
@@ -21,6 +22,24 @@ export interface TrainingJob {
   readonly startedAt: number;
   /** Epoch ms. */
   readonly endsAt: number;
+}
+
+/** One hero's progress. Level 0 means not recruited; shards can be held before recruiting. */
+export interface HeroProgress {
+  readonly level: number;
+  readonly shards: number;
+}
+
+/** A hero as a march carries it: the level frozen at send time, so the battle on arrival is reproducible. */
+export interface SquadMember {
+  readonly id: HeroId;
+  readonly level: number;
+}
+
+/** Story progress for the player's background: chapters claimed, and victories won with a hero. */
+export interface StoryProgress {
+  readonly chapter: number;
+  readonly victories: number;
 }
 
 export interface MapPoint {
@@ -50,6 +69,8 @@ export interface MarchState {
   readonly departAt: number;
   readonly arriveAt: number;
   readonly returnAt: number;
+  /** Heroes leading this march: lead first, then up to two deputies. A hero away with a march is busy. */
+  readonly heroes?: readonly SquadMember[];
   /** The rally this march belongs to, if it joined one. Its timing is the rally's. */
   readonly rallyId?: string;
   /** Set by the map server when the march arrives; the march comes home lazily at `returnAt`. */
@@ -69,9 +90,19 @@ export interface BaseState {
   readonly training: TrainingJob | null;
   /** Marches out on the map. */
   readonly marches: readonly MarchState[];
+  /** Every hero's level and shards (GDD §4.4). */
+  readonly heroes: Readonly<Record<HeroId, HeroProgress>>;
+  /** Campaign progress (GDD §4.8). */
+  readonly story: StoryProgress;
   /** Epoch ms up to which production has been settled. Never moves backwards. */
   readonly lastUpdated: number;
 }
+
+export const START_HEROES: Readonly<Record<HeroId, HeroProgress>> = Object.fromEntries(
+  HERO_IDS.map((id) => [id, { level: 0, shards: 0 }]),
+) as Record<HeroId, HeroProgress>;
+
+export const START_STORY: StoryProgress = { chapter: 0, victories: 0 };
 
 export const createBaseState = (now: number): BaseState => ({
   resources: START_RESOURCES,
@@ -81,5 +112,7 @@ export const createBaseState = (now: number): BaseState => ({
   wounded: ZERO_TROOPS,
   training: null,
   marches: [],
+  heroes: START_HEROES,
+  story: START_STORY,
   lastUpdated: now,
 });

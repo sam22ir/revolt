@@ -1,4 +1,22 @@
-import { advance, BUILDING_IDS, canPerform, parseTroops, startTraining, startUpgrade, TROOP_IDS, type BaseState, type BuildingId, type TroopId, type Troops } from "@revolt/rules";
+import {
+  advance,
+  BUILDING_IDS,
+  canPerform,
+  claimChapter,
+  isHeroId,
+  levelUpHero,
+  MAX_SQUAD,
+  parseTroops,
+  recruitHero,
+  startTraining,
+  startUpgrade,
+  TROOP_IDS,
+  type BaseState,
+  type BuildingId,
+  type HeroId,
+  type TroopId,
+  type Troops,
+} from "@revolt/rules";
 import { loadBase, saveBase } from "../db/bases.ts";
 import { HttpError, json, readJson } from "../http.ts";
 import { authenticate, type Ctx } from "./context.ts";
@@ -7,11 +25,21 @@ import { viewerFor } from "./viewer.ts";
 export type Intent =
   | { readonly type: "upgrade"; readonly building: BuildingId }
   | { readonly type: "train"; readonly troop: TroopId; readonly count: number }
-  | { readonly type: "march"; readonly target: string; readonly troops: Troops }
-  | { readonly type: "rally_start"; readonly target: string; readonly troops: Troops; readonly gather: number }
-  | { readonly type: "rally_join"; readonly rally: string; readonly troops: Troops };
+  | { readonly type: "march"; readonly target: string; readonly troops: Troops; readonly heroes: readonly HeroId[] }
+  | { readonly type: "rally_start"; readonly target: string; readonly troops: Troops; readonly heroes: readonly HeroId[]; readonly gather: number }
+  | { readonly type: "rally_join"; readonly rally: string; readonly troops: Troops; readonly heroes: readonly HeroId[] }
+  | { readonly type: "hero_recruit"; readonly hero: HeroId }
+  | { readonly type: "hero_level"; readonly hero: HeroId }
+  | { readonly type: "story_claim" };
 
 const MAX_TARGET_ID = 64;
+
+/** An optional lead-first list of hero ids; null if it is not a short list of known ids. Duplicates and ownership are the rules' call. */
+const parseHeroes = (v: unknown): HeroId[] | null => {
+  if (v === undefined) return [];
+  if (!Array.isArray(v) || v.length > MAX_SQUAD) return null;
+  return v.every(isHeroId) ? [...v] : null;
+};
 
 /** Only the intent's name, target and counts are read; any other numbers a client sends are ignored. */
 export const parseIntent = (body: Record<string, unknown>): Intent => {
@@ -20,17 +48,20 @@ export const parseIntent = (body: Record<string, unknown>): Intent => {
   if (type === "train" && TROOP_IDS.some((id) => id === body.troop) && typeof body.count === "number") {
     return { type, troop: body.troop as TroopId, count: body.count };
   }
-  if (type === "march" && typeof body.target === "string" && body.target.length > 0 && body.target.length <= MAX_TARGET_ID) {
+  if ((type === "hero_recruit" || type === "hero_level") && isHeroId(body.hero)) return { type, hero: body.hero };
+  if (type === "story_claim") return { type };
+  const heroes = parseHeroes(body.heroes);
+  if (type === "march" && heroes !== null && typeof body.target === "string" && body.target.length > 0 && body.target.length <= MAX_TARGET_ID) {
     const troops = parseTroops(body.troops);
-    if (troops !== null) return { type, target: body.target, troops };
+    if (troops !== null) return { type, target: body.target, troops, heroes };
   }
-  if (type === "rally_start" && typeof body.target === "string" && body.target.length > 0 && body.target.length <= MAX_TARGET_ID && typeof body.gather === "number") {
+  if (type === "rally_start" && heroes !== null && typeof body.target === "string" && body.target.length > 0 && body.target.length <= MAX_TARGET_ID && typeof body.gather === "number") {
     const troops = parseTroops(body.troops);
-    if (troops !== null) return { type, target: body.target, troops, gather: body.gather };
+    if (troops !== null) return { type, target: body.target, troops, heroes, gather: body.gather };
   }
-  if (type === "rally_join" && typeof body.rally === "string" && body.rally.length > 0 && body.rally.length <= MAX_TARGET_ID) {
+  if (type === "rally_join" && heroes !== null && typeof body.rally === "string" && body.rally.length > 0 && body.rally.length <= MAX_TARGET_ID) {
     const troops = parseTroops(body.troops);
-    if (troops !== null) return { type, rally: body.rally, troops };
+    if (troops !== null) return { type, rally: body.rally, troops, heroes };
   }
   throw new HttpError("bad_request");
 };
@@ -73,9 +104,15 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
       return changeBase(ctx, account.id, (s) => startUpgrade(s, intent.building, ctx.now));
     case "train":
       return changeBase(ctx, account.id, (s) => startTraining(s, intent.troop, intent.count, ctx.now));
+    case "hero_recruit":
+      return changeBase(ctx, account.id, (s) => recruitHero(s, intent.hero, ctx.now));
+    case "hero_level":
+      return changeBase(ctx, account.id, (s) => levelUpHero(s, intent.hero, ctx.now));
+    case "story_claim":
+      return changeBase(ctx, account.id, (s) => claimChapter(s, ctx.now));
     case "march": {
       const { viewer } = await viewerFor(ctx, account);
-      const r = await ctx.deps.map(ctx.env, account.server).sendMarch(viewer, intent.target, intent.troops, ctx.now);
+      const r = await ctx.deps.map(ctx.env, account.server).sendMarch(viewer, intent.target, intent.troops, intent.heroes, ctx.now);
       if ("error" in r) throw new HttpError(r.error);
       return json({ ...r, now: ctx.now });
     }
@@ -83,14 +120,14 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
       const { viewer, membership } = await viewerFor(ctx, account);
       if (membership === null) return refusedIntent(ctx, account.id, "not_member");
       if (!canPerform(membership.rank, "start_rally")) return refusedIntent(ctx, account.id, "no_permission");
-      const r = await ctx.deps.map(ctx.env, account.server).startRally(viewer, intent.target, intent.troops, intent.gather, ctx.now);
+      const r = await ctx.deps.map(ctx.env, account.server).startRally(viewer, intent.target, intent.troops, intent.heroes, intent.gather, ctx.now);
       if ("error" in r) throw new HttpError(r.error);
       return json({ ...r, now: ctx.now });
     }
     case "rally_join": {
       const { viewer, membership } = await viewerFor(ctx, account);
       if (membership === null) return refusedIntent(ctx, account.id, "not_member");
-      const r = await ctx.deps.map(ctx.env, account.server).joinRally(viewer, intent.rally, intent.troops, ctx.now);
+      const r = await ctx.deps.map(ctx.env, account.server).joinRally(viewer, intent.rally, intent.troops, intent.heroes, ctx.now);
       if ("error" in r) throw new HttpError(r.error);
       return json({ ...r, now: ctx.now });
     }

@@ -6,7 +6,7 @@ const API = "http://localhost:8788";
 const SHOTS = "test-results/screens";
 
 
-type BuildingId = "hq" | "farm" | "armory" | "treasury" | "barracks";
+type BuildingId = "hq" | "farm" | "armory" | "treasury" | "barracks" | "hero_hall";
 
 /** Sets the e2e Worker's clock; null returns it to real time. The server owns time. */
 const serverClock = async (request: APIRequestContext, now: number | null): Promise<void> => {
@@ -152,7 +152,7 @@ test.describe("at Pixel 7's real pixel ratio", () => {
   test("every building opens its own panel when tapped at the device pixel ratio", async ({ page }) => {
     await page.goto("/");
     await waitForGame(page);
-    for (const id of ["hq", "farm", "armory", "treasury", "barracks"] as const) {
+    for (const id of ["hq", "farm", "armory", "treasury", "barracks", "hero_hall"] as const) {
       await tapBuilding(page, id);
       await expect(page.getByTestId("building-panel")).toHaveAttribute("data-building", id);
       // A few more points on the same building, not only its middle.

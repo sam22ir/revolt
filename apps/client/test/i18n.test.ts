@@ -4,11 +4,17 @@ import {
   ALLIANCE_RANKS,
   BUILDING_IDS,
   HELP_KINDS,
+  HERO_BLOCK_REASONS,
+  HERO_IDS,
+  HERO_RARITIES,
   MARCH_BLOCK_REASONS,
   MARCH_PHASES,
   MARCH_RESULTS,
   NPC_KINDS,
   RESOURCE_IDS,
+  SKILL_KINDS,
+  STORY,
+  STORY_BLOCK_REASONS,
   TERRAIN_IDS,
   TRAINING_BLOCK_REASONS,
   TROOP_IDS,
@@ -95,6 +101,68 @@ describe("locales", () => {
 
   test("NPC names stay an army or institution, never a people", () => {
     for (const kind of NPC_KINDS) expect(en.npc[kind].name).toMatch(/patrol|convoy|outpost|line/i);
+  });
+});
+
+describe("heroes and story", () => {
+  const at = (locale: object, k: string): unknown => k.split(".").reduce<unknown>((o, p) => (o as Record<string, unknown>)[p], locale);
+  const all = new Set(keys(en));
+  const OBJECTIVE_KEYS = ["building_level", "troops_owned", "hero_recruited", "hero_recruited_named", "hero_level", "hero_level_named", "victories"];
+
+  test("every hero, rarity, skill kind, hero and story refusal has a key", () => {
+    for (const id of HERO_IDS) for (const part of ["name", "role", "desc"]) expect(all.has(`hero.${id}.${part}`), `${id}.${part}`).toBe(true);
+    for (const r of HERO_RARITIES) expect(all.has(`rarity.${r}`), r).toBe(true);
+    for (const k of SKILL_KINDS) expect(all.has(`hero.skill.${k}`), k).toBe(true);
+    for (const r of [...HERO_BLOCK_REASONS, ...STORY_BLOCK_REASONS]) expect(all.has(`reason.${r}`), r).toBe(true);
+    expect(all.has("building.hero_hall.name")).toBe(true);
+    for (const k of OBJECTIVE_KEYS) expect(all.has(`story.objective.${k}`), k).toBe(true);
+  });
+
+  test("every chapter has a title and all its scenes", () => {
+    for (const [bg, chapters] of Object.entries(STORY)) {
+      for (const c of chapters) {
+        expect(all.has(`story.${bg}.${c.id}.title`), `${bg}.${c.id}.title`).toBe(true);
+        for (let n = 1; n <= c.scenes; n++) expect(all.has(`story.${bg}.${c.id}.scene${n}`), `${bg}.${c.id}.scene${n}`).toBe(true);
+      }
+    }
+  });
+
+  test("no story text exists that the chapter data does not use, so nothing unreviewed slips in", () => {
+    const used = new Set<string>();
+    for (const [bg, chapters] of Object.entries(STORY)) {
+      for (const c of chapters) {
+        used.add(`story.${bg}.${c.id}.title`);
+        for (let n = 1; n <= c.scenes; n++) used.add(`story.${bg}.${c.id}.scene${n}`);
+      }
+    }
+    for (const k of keys(en).filter((x) => /^story\.algeria\./.test(x))) expect(used.has(k), k).toBe(true);
+  });
+
+  test("all chapter text is marked as a draft in every language, until a chapter is reviewed", () => {
+    const TITLE = { en: "[Draft]", fr: "[Brouillon]", ar: "[مسودة]" } as const;
+    const SCENE = { en: "[Draft, needs historian review]", fr: "[Brouillon, relecture d’historien requise]", ar: "[مسودة، تحتاج مراجعة مؤرخ]" } as const;
+    for (const [lang, locale] of Object.entries(LOCALES) as [keyof typeof TITLE, object][]) {
+      for (const [bg, chapters] of Object.entries(STORY)) {
+        for (const c of chapters) {
+          if (c.reviewed) continue;
+          expect(String(at(locale, `story.${bg}.${c.id}.title`)).startsWith(TITLE[lang]), `${lang}:${c.id}.title`).toBe(true);
+          for (let n = 1; n <= c.scenes; n++) expect(String(at(locale, `story.${bg}.${c.id}.scene${n}`)).startsWith(SCENE[lang]), `${lang}:${c.id}.scene${n}`).toBe(true);
+        }
+      }
+    }
+    expect(en.story.draftNotice).toMatch(/historian review/i);
+  });
+
+  test("hero names and chapter text are translated, not copied from English", () => {
+    const names = [...HERO_IDS.map((id) => `hero.${id}.name`), ...HERO_IDS.map((id) => `hero.${id}.role`), "story.algeria.ch1.scene1", "heroes.title", "story.title", "building.hero_hall.name"];
+    for (const k of names) {
+      expect(at(ar, k), `ar:${k}`).not.toBe(at(en, k));
+      expect(at(fr, k), `fr:${k}`).not.toBe(at(en, k));
+    }
+  });
+
+  test("heroes are roles, not named people", () => {
+    for (const id of HERO_IDS) expect(en.hero[id].desc).toMatch(/inspired by/i);
   });
 });
 

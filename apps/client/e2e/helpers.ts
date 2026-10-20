@@ -24,7 +24,7 @@ export const SHOTS = "test-results/screens";
 
 
 /** Any untranslated i18n key that leaked into the page. */
-export const RAW_KEY = /\b(app|resource|building|panel|reason|queue|time|settings|language|account|sync|map|march|report|troop|npc|terrain|train|result|alliance|chat|help|rally|nav|tab)\.[a-z_]+\b/;
+export const RAW_KEY = /\b(app|resource|building|panel|reason|queue|time|settings|language|account|sync|map|march|report|troop|npc|terrain|train|result|alliance|chat|help|rally|nav|tab|hero|heroes|story|rarity)\.[a-z_]+\b/;
 
 export interface Point {
   readonly x: number;

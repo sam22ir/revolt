@@ -8,8 +8,10 @@ import type { GameStore } from "../state/game-store.ts";
 import type { WorldStore } from "../state/world-store.ts";
 import { createAccountPanel } from "./account-panel.ts";
 import { createAlliancePanel, type AllianceTab } from "./alliance-panel.ts";
+import { storyClaimable } from "../state/hero-view.ts";
 import { createBuildingPanel } from "./building-panel.ts";
 import { el } from "./dom.ts";
+import { createHeroesPanel } from "./heroes-panel.ts";
 import { createHud } from "./hud.ts";
 import { currentLanguage, t } from "../i18n/i18n.ts";
 import { createLanguageSwitcher } from "./language-switcher.ts";
@@ -17,6 +19,7 @@ import { createMarchDialog } from "./march-dialog.ts";
 import { createMarchesList } from "./marches-list.ts";
 import { createReportToast } from "./report-toast.ts";
 import { createReportsPanel } from "./reports-panel.ts";
+import { createStoryPanel } from "./story-panel.ts";
 import { createTilePanel } from "./tile-panel.ts";
 
 /** The two things the game canvas can show. */
@@ -45,15 +48,17 @@ interface Controls {
   refresh: () => void;
   showBuilding: (id: BuildingId | null) => void;
   showTile: (tile: TileRef | null) => void;
-  closeAccount: () => void;
-  closeAlliance: () => void;
-  closeReports: () => void;
+  /** Closes every overlay panel (account, reports, alliance, heroes, story) except the one named. */
+  closeOverlays: (except?: Overlay) => void;
   openReport: (id: string) => void;
   announce: (report: BattleReport) => void;
   updateReports: () => void;
   updateCenter: () => void;
   updateView: () => void;
 }
+
+/** The panels that share the bottom of the screen; opening one closes the others. */
+type Overlay = "account" | "reports" | "alliance" | "heroes" | "story";
 
 const noop = (): void => {};
 
@@ -65,14 +70,14 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
   let center: TileRef | null = null;
   // Kept here, not in the panel, so a language change (which rebuilds the overlay) does not close it.
   const allianceView: { open: boolean; tab: AllianceTab } = { open: false, tab: "members" };
+  const heroesView = { open: false };
+  const storyOpen = { open: false };
   let disposeAlliance = noop;
   const ctl: Controls = {
     refresh: noop,
     showBuilding: noop,
     showTile: noop,
-    closeAccount: noop,
-    closeAlliance: noop,
-    closeReports: noop,
+    closeOverlays: noop,
     openReport: noop,
     announce: noop,
     updateReports: noop,
@@ -83,11 +88,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
   const select = (id: BuildingId | null): void => {
     if (view !== "base") id = null;
     selected = id;
-    if (id !== null) {
-      ctl.closeAccount();
-      ctl.closeReports();
-      ctl.closeAlliance();
-    }
+    if (id !== null) ctl.closeOverlays();
     ctl.showBuilding(id);
     deps.onSelectionChange(id);
     ctl.refresh();
@@ -96,11 +97,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
   const selectTile = (tile: TileRef | null): void => {
     if (view !== "map") tile = null;
     selectedTile = tile;
-    if (tile !== null) {
-      ctl.closeAccount();
-      ctl.closeReports();
-      ctl.closeAlliance();
-    }
+    if (tile !== null) ctl.closeOverlays();
     ctl.showTile(tile);
     deps.onTileSelectionChange(tile);
     ctl.refresh();
@@ -130,8 +127,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
     accountButton.addEventListener("click", () => {
       select(null);
       selectTile(null);
-      reports.toggle(false);
-      alliance.toggle(false);
+      ctl.closeOverlays("account");
       account.toggle();
     });
 
@@ -160,6 +156,22 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
     allianceButton.append(allianceLabel, allianceBadge);
     allianceButton.addEventListener("click", () => alliance.toggle());
 
+    const heroesButton = el("button", "nav-btn");
+    heroesButton.type = "button";
+    heroesButton.dataset.testid = "heroes-open";
+    heroesButton.append(el("span", undefined, t("nav.heroes")));
+    heroesButton.addEventListener("click", () => heroes.toggle());
+
+    const storyButton = el("button", "nav-btn");
+    storyButton.type = "button";
+    storyButton.dataset.testid = "story-open";
+    const storyBadge = el("span", "badge");
+    storyBadge.dataset.testid = "story-badge";
+    storyBadge.hidden = true;
+    storyBadge.textContent = "!";
+    storyButton.append(el("span", undefined, t("nav.story")), storyBadge);
+    storyButton.addEventListener("click", () => story.toggle());
+
     const coords = el("div", "coord-pill");
     coords.dataset.testid = "coords";
     coords.hidden = true;
@@ -171,19 +183,23 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
         if (!outcome.ok) note(t(`reason.${outcome.reason}`));
       });
     };
-    const hud = createHud([accountButton, switcher], [mapToggle, allianceButton, reportsButton], [marches.root, coords], () =>
+    const hud = createHud([accountButton, switcher], [mapToggle, allianceButton, reportsButton, heroesButton, storyButton], [marches.root, coords], () =>
       askHelp("upgrade", (text) => hud.showHelpNote(text)),
     );
     const panel = createBuildingPanel({
       onUpgrade: (id) => deps.store.upgrade(id),
       onTrain: (troop, count) => deps.store.train(troop, count),
       onAskTrainingHelp: () => askHelp("training", (text) => panel.showTrainingHelpNote(text)),
+      onOpenHeroes: () => {
+        select(null);
+        heroes.toggle(true);
+      },
       onClose: () => select(null),
     });
     const dialog = createMarchDialog({
-      onSend: (id, troops) => deps.store.march(id, troops),
-      onRallyStart: (id, troops, gatherMs) => deps.store.startRally(id, troops, gatherMs),
-      onRallyJoin: (rallyId, troops) => deps.store.joinRally(rallyId, troops),
+      onSend: (id, troops, squad) => deps.store.march(id, troops, squad),
+      onRallyStart: (id, troops, gatherMs, squad) => deps.store.startRally(id, troops, gatherMs, squad),
+      onRallyJoin: (rallyId, troops, squad) => deps.store.joinRally(rallyId, troops, squad),
       onClosed: noop,
     });
     const tilePanel = createTilePanel({
@@ -205,8 +221,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       onOpen: () => {
         select(null);
         selectTile(null);
-        ctl.closeAccount();
-        ctl.closeReports();
+        ctl.closeOverlays("alliance");
       },
       initial: allianceView,
       onChange: (state) => {
@@ -219,17 +234,37 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       onOpen: () => {
         select(null);
         selectTile(null);
-        ctl.closeAccount();
-        ctl.closeAlliance();
+        ctl.closeOverlays("reports");
         deps.world.markSeen();
       },
       onClose: noop,
+    });
+    const heroes = createHeroesPanel({
+      onRecruit: (id) => deps.store.recruitHero(id),
+      onLevel: (id) => deps.store.levelHero(id),
+      onOpen: () => {
+        select(null);
+        selectTile(null);
+        ctl.closeOverlays("heroes");
+      },
+      initial: heroesView,
+      onChange: (s) => (heroesView.open = s.open),
+    });
+    const story = createStoryPanel({
+      onClaim: () => deps.store.claimChapter(),
+      onOpen: () => {
+        select(null);
+        selectTile(null);
+        ctl.closeOverlays("story");
+      },
+      initial: storyOpen,
+      onChange: (s) => (storyOpen.open = s.open),
     });
     const toast = createReportToast((id) => reports.showReport(id));
 
     panel.show(selected);
     tilePanel.show(selectedTile);
-    root.replaceChildren(hud.root, panel.root, tilePanel.root, alliance.root, account.root, reports.root, toast.root, dialog.root);
+    root.replaceChildren(hud.root, panel.root, tilePanel.root, alliance.root, heroes.root, story.root, account.root, reports.root, toast.root, dialog.root);
 
     ctl.refresh = () => {
       const state = deps.store.state();
@@ -241,6 +276,9 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       marches.update(state, now);
       tilePanel.update(snapshot, { alliance: deps.alliance.alliance(), now });
       alliance.update();
+      heroes.update(state);
+      story.update(state);
+      storyBadge.hidden = !storyClaimable(state);
       dialog.update(state, snapshot);
       account.update(deps.store.account());
       const unread = deps.world.unread();
@@ -252,9 +290,16 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
     };
     ctl.showBuilding = panel.show;
     ctl.showTile = tilePanel.show;
-    ctl.closeAccount = () => account.toggle(false);
-    ctl.closeAlliance = () => alliance.toggle(false);
-    ctl.closeReports = () => reports.toggle(false);
+    ctl.closeOverlays = (except) => {
+      const closers: Record<Overlay, () => void> = {
+        account: () => account.toggle(false),
+        reports: () => reports.toggle(false),
+        alliance: () => alliance.toggle(false),
+        heroes: () => heroes.toggle(false),
+        story: () => story.toggle(false),
+      };
+      for (const name of Object.keys(closers) as Overlay[]) if (name !== except) closers[name]();
+    };
     ctl.openReport = reports.showReport;
     ctl.announce = (report) => {
       if (!reports.isOpen()) toast.show(report);

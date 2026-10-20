@@ -1,5 +1,6 @@
 import {
   MAX_MARCHES,
+  resolveRally,
   NPC_LEVELS,
   RALLY_GATHER_OPTIONS_MS,
   RALLY_MAX_PARTICIPANTS,
@@ -14,7 +15,7 @@ import {
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { call, MANY_GUESTS, player, post, team, type Player, type Team } from "./alliance-helpers.ts";
 import { body, startServer, T0, type Json, type Server } from "./harness.ts";
-import { getMap, getState, intent, march } from "./map-helpers.ts";
+import { editBase, getMap, getState, intent, march } from "./map-helpers.ts";
 
 let server: Server;
 beforeEach(async () => {
@@ -353,5 +354,49 @@ describe("the rally arrives", () => {
     server.now = rally.arriveAt;
     await server.fireAlarm();
     expect(await reportsOf(m)).toHaveLength(1);
+  });
+});
+
+describe("rallies with heroes", () => {
+  test("each participant's heroes are frozen on their own march; the one battle uses everyone's, and shares match a replay", async () => {
+    const s = await setup(2);
+    const [lead, member] = [s.tm.leader, s.tm.members[0]!];
+    await editBase(server, lead.id, (b) => (b.heroes.organizer = { level: 6, shards: 0 }));
+    await editBase(server, member.id, (b) => (b.heroes.medic = { level: 4, shards: 0 }));
+    const troops = t(150, 40, 40);
+    const started = await body(await intent(server, lead.token, { type: "rally_start", target: s.npc.id, troops, heroes: ["organizer"], gather: GATHER }));
+    expect(started.ok).toBe(true);
+    const rally = started.state.marches[0] as Json;
+    expect(rally.heroes).toEqual([{ id: "organizer", level: 6 }]);
+    const joined = await body(await intent(server, member.token, { type: "rally_join", rally: rally.rallyId, troops, heroes: ["medic"] }));
+    expect(joined.ok).toBe(true);
+    // A hero out with the rally cannot go anywhere else.
+    const small = (await getMap(server, lead.token)).npcs.find((n) => n.level === 1)!;
+    expect(await body(await intent(server, lead.token, { type: "march", target: small.id, troops: t(1), heroes: ["organizer"] }))).toMatchObject({ ok: false, reason: "hero_busy" });
+
+    server.now = rally.arriveAt;
+    await server.fireAlarm();
+    const [leadReport] = await reportsOf(lead);
+    const [memberReport] = await reportsOf(member);
+    expect(leadReport?.heroes).toEqual([{ id: "organizer", level: 6 }]);
+    expect(memberReport?.heroes).toEqual([{ id: "medic", level: 4 }]);
+
+    const parts = [
+      { id: rally.id as string, troops, heroes: [{ id: "organizer" as const, level: 6 }] },
+      { id: joined.state.marches[0].id as string, troops, heroes: [{ id: "medic" as const, level: 4 }] },
+    ];
+    const fought = resolveRally(parts, 4, leadReport?.seed ?? -1);
+    expect(leadReport?.survivors).toEqual(fought.shares.find((x) => x.id === parts[0]!.id)?.outcome.survivors);
+    expect(memberReport?.survivors).toEqual(fought.shares.find((x) => x.id === parts[1]!.id)?.outcome.survivors);
+  });
+
+  test("a rally join with an unowned hero is refused and leaves the base alone", async () => {
+    const s = await setup(2);
+    const rally = (await startRally(s.tm.leader, s.npc.id, t(40))).state.marches[0] as Json;
+    const m = s.tm.members[0]!;
+    const before = await getState(server, m.token);
+    expect(await body(await intent(server, m.token, { type: "rally_join", rally: rally.rallyId, troops: t(10), heroes: ["courier"] }))).toMatchObject({ ok: false, reason: "hero_not_owned" });
+    expect(await getState(server, m.token)).toEqual(before);
+    expect((await intent(server, m.token, { type: "rally_join", rally: rally.rallyId, troops: t(10), heroes: ["courier", "medic", "organizer", "quartermaster"] })).status).toBe(400);
   });
 });

@@ -1,5 +1,5 @@
 import type { MarchOutcome } from "./base-state.ts";
-import { resolveBattle, type BattleResult } from "./battle.ts";
+import { NO_MODS, resolveBattle, type BattleMods, type BattleResult } from "./battle.ts";
 import { NPC_LEVELS, type NpcLevelDef } from "./data/npcs.ts";
 import { ZERO_RESOURCES } from "./resources.ts";
 import { ZERO_TROOPS, type Troops } from "./troops.ts";
@@ -7,10 +7,10 @@ import { ZERO_TROOPS, type Troops } from "./troops.ts";
 export const npcLevel = (level: number): NpcLevelDef | null => NPC_LEVELS[level - 1] ?? null;
 
 /** A march against an NPC target of `level`: the battle and what the march brings home. */
-export const fightNpc = (troops: Troops, level: number, seed: number): { outcome: MarchOutcome; battle: BattleResult | null } => {
+export const fightNpc = (troops: Troops, level: number, seed: number, mods: BattleMods = NO_MODS): { outcome: MarchOutcome; battle: BattleResult | null } => {
   const def = npcLevel(level);
   if (def === null) return { outcome: targetGone(troops), battle: null };
-  const battle = resolveBattle(troops, def.defenders, def.loot, seed);
+  const battle = resolveBattle(troops, def.defenders, def.loot, seed, mods);
   return {
     battle,
     outcome: {

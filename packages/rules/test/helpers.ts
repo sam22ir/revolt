@@ -9,9 +9,12 @@ export const DAY = 24 * HOUR;
 /** A base with HQ at level 2, so producers can be upgraded to level 2. */
 export const base = (overrides: Partial<BaseState> = {}): BaseState => ({
   ...createBaseState(T0),
-  levels: { hq: 2, farm: 1, armory: 1, treasury: 1, barracks: 1 },
+  levels: { hq: 2, farm: 1, armory: 1, treasury: 1, barracks: 1, hero_hall: 1 },
   ...overrides,
 });
 
 export const rich = (): BaseState =>
   base({ resources: { food: 2000, materiel: 2000, funds: 2000, support: 300 } });
+
+/** A rich base with the given heroes set, e.g. `withHeroes(rich(), { courier: { level: 1, shards: 0 } })`. */
+export const withHeroes = (s: BaseState, heroes: Partial<BaseState["heroes"]>): BaseState => ({ ...s, heroes: { ...s.heroes, ...heroes } });

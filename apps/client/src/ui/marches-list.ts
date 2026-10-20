@@ -48,6 +48,11 @@ export const createMarchesList = (): MarchesList => {
       const stage = el("span", "march-stage");
       const time = el("span", "march-time");
       li.append(target, stage, time);
+      if (m.heroes !== undefined && m.heroes.length > 0) {
+        const led = el("span", "march-heroes", t("march.ledBy", { names: new Intl.ListFormat(currentLanguage(), { style: "narrow", type: "unit" }).format(m.heroes.map((h) => t(`hero.${h.id}.name`))) }));
+        led.dataset.testid = "march-heroes";
+        li.append(led);
+      }
       root.append(li);
       rows.set(m.id, { stage, time });
     }
@@ -57,7 +62,7 @@ export const createMarchesList = (): MarchesList => {
     root,
     update: (state, now) => {
       root.hidden = state.marches.length === 0;
-      const k = `${currentLanguage()}|${state.marches.map((m) => m.id).join(",")}`;
+      const k = `${currentLanguage()}|${state.marches.map((m) => `${m.id}:${(m.heroes ?? []).map((h) => h.id).join("+")}`).join(",")}`;
       if (k !== key) {
         key = k;
         rebuild(state.marches);

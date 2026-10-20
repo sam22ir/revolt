@@ -1,11 +1,13 @@
 import { advance } from "./advance.ts";
 import type { BaseState, MapPoint, MarchOutcome, MarchState } from "./base-state.ts";
 import { MAX_MARCHES } from "./data/map.ts";
+import { checkSquad, squadSnapshot, type SquadBlockReason } from "./heroes.ts";
+import type { HeroId } from "./hero-id.ts";
 import { TROOPS } from "./data/troops.ts";
 import { COMBAT_TROOP_IDS, TROOP_IDS } from "./troop-id.ts";
 import { hasTroops, subtractTroops, type Troops } from "./troops.ts";
 
-export const MARCH_BLOCK_REASONS = ["no_troops", "not_enough_troops", "too_many_marches", "rally_only"] as const;
+export const MARCH_BLOCK_REASONS = ["no_troops", "not_enough_troops", "too_many_marches", "rally_only", "bad_squad", "hero_not_owned", "hero_busy"] as const;
 
 export type MarchBlockReason = (typeof MARCH_BLOCK_REASONS)[number];
 
@@ -42,22 +44,28 @@ export const planMarch = (from: MapPoint, to: MapPoint, troops: Troops, now: num
 };
 
 /** Checks a march against an already-advanced state. */
-export const checkMarch = (state: BaseState, troops: Troops): MarchBlockReason | null => {
+export const checkMarch = (state: BaseState, troops: Troops, heroIds: readonly HeroId[] = []): MarchBlockReason | null => {
   if (!COMBAT_TROOP_IDS.some((id) => troops[id] > 0)) return "no_troops";
   if (!hasTroops(state.troops, troops)) return "not_enough_troops";
   if (state.marches.length >= MAX_MARCHES) return "too_many_marches";
+  const squad: SquadBlockReason | null = checkSquad(state, heroIds);
+  if (squad !== null) return squad;
   return null;
 };
 
 /**
  * Sends `march` (its id, target and timing decided by the map server) at `now`:
- * its troops leave home until it returns.
+ * its troops leave home until it returns. Any heroes named in `march.heroes` leave with it; their levels are
+ * taken from the state at `now` (the caller's levels are ignored), so the squad is frozen consistently.
  */
 export const startMarch = (state: BaseState, march: Omit<MarchState, "outcome">, now: number): MarchStartResult => {
   const s = advance(state, now);
-  const reason = checkMarch(s, march.troops);
+  const ids = (march.heroes ?? []).map((h) => h.id);
+  const reason = checkMarch(s, march.troops, ids);
   if (reason !== null) return { ok: false, reason, state: s };
-  return { ok: true, state: { ...s, troops: subtractTroops(s.troops, march.troops), marches: [...s.marches, { ...march, outcome: null }] } };
+  const { heroes: _sent, ...rest } = march;
+  const started: MarchState = { ...rest, ...(ids.length > 0 ? { heroes: squadSnapshot(s, ids) } : {}), outcome: null };
+  return { ok: true, state: { ...s, troops: subtractTroops(s.troops, march.troops), marches: [...s.marches, started] } };
 };
 
 /**

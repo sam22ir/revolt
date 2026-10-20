@@ -27,6 +27,8 @@ interface PanelDeps {
   readonly onUpgrade: (id: BuildingId) => void;
   readonly onTrain: (troop: TroopId, count: number) => void;
   readonly onAskTrainingHelp: () => void;
+  /** The hero hall's button: open the heroes panel. */
+  readonly onOpenHeroes: () => void;
   readonly onClose: () => void;
 }
 
@@ -48,6 +50,14 @@ export const createBuildingPanel = (deps: PanelDeps): BuildingPanel => {
   let key = "";
   let countdown: HTMLElement | null = null;
   let progressFill: HTMLElement | null = null;
+  // The hero hall's shortcut to the heroes panel; kept between rebuilds like the training section.
+  const heroesLink = el("div", "hero-hall-link");
+  const heroesNote = el("p", "panel-desc", t("heroes.hallNote"));
+  const heroesButton = el("button", "secondary-btn", t("heroes.open"));
+  heroesButton.type = "button";
+  heroesButton.dataset.testid = "heroes-from-hall";
+  heroesButton.addEventListener("click", deps.onOpenHeroes);
+  heroesLink.append(heroesNote, heroesButton);
   const training = createTrainingSection({ onTrain: deps.onTrain, onAskHelp: deps.onAskTrainingHelp });
 
   const render = (id: BuildingId, state: BaseState, check: UpgradeCheck): void => {
@@ -155,6 +165,7 @@ export const createBuildingPanel = (deps: PanelDeps): BuildingPanel => {
       key = k;
       // Training lives in the barracks' panel; its DOM is kept between rebuilds so typing survives.
       if (current === "barracks") root.append(training.root);
+      if (current === "hero_hall") root.append(heroesLink);
     }
     if (current === "barracks") training.update(state, now, canAskTrainingHelp);
     const job = state.queue;

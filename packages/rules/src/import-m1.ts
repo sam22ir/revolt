@@ -1,4 +1,4 @@
-import { createBaseState, type BaseState, type UpgradeJob } from "./base-state.ts";
+import { createBaseState, START_HEROES, START_STORY, type BaseState, type UpgradeJob } from "./base-state.ts";
 import { BUILDING_IDS, type BuildingId } from "./building-id.ts";
 import { M1_IMPORT_MAX_LEVEL } from "./data/m1-import.ts";
 import { storageCap } from "./production.ts";
@@ -6,13 +6,15 @@ import { mapResources } from "./resources.ts";
 import { nextLevelQuote } from "./upgrade.ts";
 import { isBaseState } from "./validate-state.ts";
 import { migrateBaseState } from "./migrate-state.ts";
-import { START_TROOPS } from "./data/start.ts";
+import { START_LEVELS, START_TROOPS } from "./data/start.ts";
 import { ZERO_TROOPS } from "./troops.ts";
 
 const clampLevels = (levels: BaseState["levels"]): BaseState["levels"] => {
   const hq = Math.min(levels.hq, M1_IMPORT_MAX_LEVEL);
   const out = { ...levels, hq };
   for (const id of BUILDING_IDS) if (id !== "hq") out[id] = Math.min(levels[id], hq);
+  // Heroes never come from a client save, so the hall (which raises the hero level cap) restarts too.
+  out.hero_hall = START_LEVELS.hero_hall;
   return out;
 };
 
@@ -40,11 +42,13 @@ export const importM1Save = (raw: unknown, now: number): BaseState => {
     resources: mapResources((id) => Math.min(Math.max(0, candidate.resources[id]), cap[id])),
     levels,
     queue: candidate.queue === null ? null : plausibleJob(candidate.queue, levels, now),
-    // Troops and marches never come from a client save.
+    // Troops, marches, heroes and story progress never come from a client save.
     troops: START_TROOPS,
     wounded: ZERO_TROOPS,
     training: null,
     marches: [],
+    heroes: START_HEROES,
+    story: START_STORY,
     lastUpdated: Math.min(candidate.lastUpdated, now),
   };
 };

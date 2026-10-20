@@ -95,6 +95,27 @@ Rule refusals (a reason the player can fix) answer HTTP 200 with `{ ok: false, r
 - **Deviations from GDD.** All alliances are open (no invitations or applications yet); the rally marches at a fixed `RALLY_SPEED` instead of troop speed (§4.5), so its timing is known when it starts; a rally cannot be cancelled; alliance tech and gifts (§4.7) are not built.
 - **Durable Object SQLite limits.** A Durable Object's SQLite allows far fewer terms in a compound `SELECT` than Node's does; `MapService.nextDueAt` runs separate small queries for that reason (found only by running the real runtime).
 
+## Heroes and story (M5)
+
+No D1 migration: heroes and story progress live inside `BaseState` (the JSON in `bases.state`). Old rows are filled in by `migrateBaseState` (hero hall level 1, every hero level 0 with no shards, story at chapter 0). A client save imported at guest creation never carries heroes or story.
+
+New intents on `POST /v1/intent` (all computed by `packages/rules` at server time; client-sent levels, costs or rewards are never read):
+
+- `{ type: "hero_recruit", hero }` and `{ type: "hero_level", hero }`. Refusals come back as `ok: false` with a reason: `unknown_hero`, `already_recruited`, `not_recruited`, `not_enough_shards`, `hall_level`, `max_level`, `insufficient`.
+- `{ type: "story_claim" }`. Reasons: `objectives_unmet`, `story_complete`.
+- `march`, `rally_start` and `rally_join` take an optional `heroes: HeroId[]` (lead first, at most 3, known ids; anything else is a 400). Extra refusals: `bad_squad` (duplicates), `hero_not_owned`, `hero_busy`.
+
+How a squad works: a hero is busy exactly while it appears in `state.marches[*].heroes`, so it comes home with the march. The squad is frozen when the march leaves (`[{id, level}]`, levels read from the base being saved) and stored in the map's `marches.heroes` column (added with a PRAGMA-guarded `ALTER`, like `rally_id`; old rows read as no heroes). The battle on arrival uses that snapshot, so a level-up while the hero is out changes nothing. A rally adds up every participant's hero bonus and caps the total. The report lists the heroes (`BattleReport.heroes`).
+
+Shards: story chapter rewards, and a drop for the lead hero when a victorious march with heroes returns (`NPC_SHARD_DROP`, applied once in `advance`). Victories with a hero also count for the story.
+
+Deviations and notes:
+
+- GDD §4.4 recruitment draws with published odds and a pity counter are NOT built. Recruitment is deterministic (shards plus support). Draws need server RNG, published odds and a monetisation review, so they are deferred (GDD §12).
+- Chapter 1 asks for command post level 2 (60 s), not farm level 2: a producer cannot pass level 1 before the command post does.
+- All balance numbers are placeholders.
+- Story text is draft and flagged for historian review: see `docs/story-review.md`.
+
 ## Accounts and Google
 
 - A first launch calls `POST /v1/guest` and stores the token in `localStorage` (`revolt.session`). It is the only game data on the device.

@@ -1,4 +1,4 @@
-import { advance, startTraining, startUpgrade, type BaseState, type BuildingId, type TroopId, type Troops } from "@revolt/rules";
+import { advance, claimChapter, levelUpHero, recruitHero, startTraining, startUpgrade, type BaseState, type BuildingId, type HeroId, type TroopId, type Troops } from "@revolt/rules";
 import { ApiError, type AccountView, type Api, type RallyRefusal, type Snapshot } from "../net/api.ts";
 import { loadSession, storeSession } from "../net/session.ts";
 import { loadState, SAVE_KEY } from "./save.ts";
@@ -9,6 +9,9 @@ export type SyncStatus = "online" | "offline";
 
 /** What the server said to a march or rally. "unreachable" means the request never got an answer. */
 export type MarchOutcome = { readonly ok: true } | { readonly ok: false; readonly reason: RallyRefusal | "unreachable" };
+
+/** What the server (or the local rules, before asking it) said to a hero or story action. */
+export type ActionOutcome = { readonly ok: true } | { readonly ok: false; readonly reason: string };
 
 export interface GameStore {
   readonly state: () => BaseState;
@@ -26,14 +29,22 @@ export interface GameStore {
    * Sends a march at an NPC target. No prediction: the server picks the id and timing.
    * Resolves with the server's verdict; the state is updated from its answer either way.
    */
-  readonly march: (target: string, troops: Troops) => Promise<MarchOutcome>;
+  readonly march: (target: string, troops: Troops, heroes?: readonly HeroId[]) => Promise<MarchOutcome>;
   /**
    * Starts a rally at an NPC target: the troops leave home at once and the march (with its `rallyId`)
    * waits for the gathering to end. `gather` is one of `RALLY_GATHER_OPTIONS_MS`.
    */
-  readonly startRally: (target: string, troops: Troops, gather: number) => Promise<MarchOutcome>;
+  readonly startRally: (target: string, troops: Troops, gather: number, heroes?: readonly HeroId[]) => Promise<MarchOutcome>;
   /** Joins a gathering rally of the player's alliance with these troops. */
-  readonly joinRally: (rally: string, troops: Troops) => Promise<MarchOutcome>;
+  readonly joinRally: (rally: string, troops: Troops, heroes?: readonly HeroId[]) => Promise<MarchOutcome>;
+  /**
+   * Recruits a hero. Predicted with the shared rules first; a refusal there is returned without asking the server.
+   * Otherwise the prediction shows at once and the server's answer replaces it.
+   */
+  readonly recruitHero: (hero: HeroId) => Promise<ActionOutcome>;
+  readonly levelHero: (hero: HeroId) => Promise<ActionOutcome>;
+  /** Claims the current story chapter, predicted the same way. */
+  readonly claimChapter: () => Promise<ActionOutcome>;
   /** The device's bearer token; it changes when a Google sign-in switches base. */
   readonly token: () => string;
   /** Called after the session token changed. */
@@ -125,6 +136,25 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
     }
   };
 
+  /** Predicts a hero or story action with the shared rules, then lets the server's answer replace the prediction. */
+  const predicted = async (
+    predict: (s: BaseState, at: number) => { ok: true; state: BaseState } | { ok: false; reason: string },
+    send: () => Promise<Snapshot & ({ ok: true } | { ok: false; reason: string })>,
+  ): Promise<ActionOutcome> => {
+    const local = predict(state, now());
+    if (!local.ok) return { ok: false, reason: local.reason };
+    state = local.state;
+    notify();
+    try {
+      const res = await send();
+      accept(res);
+      return res.ok ? { ok: true } : { ok: false, reason: res.reason };
+    } catch {
+      void resync();
+      return { ok: false, reason: "unreachable" };
+    }
+  };
+
   return {
     state: () => state,
     now,
@@ -148,9 +178,12 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
       notify();
       api.train(token, troop, count).then(accept, () => void resync());
     },
-    march: (target, troops) => sendIntent(() => api.march(token, target, troops)),
-    startRally: (target, troops, gather) => sendIntent(() => api.rallyStart(token, target, troops, gather)),
-    joinRally: (rally, troops) => sendIntent(() => api.rallyJoin(token, rally, troops)),
+    march: (target, troops, heroes = []) => sendIntent(() => api.march(token, target, troops, heroes)),
+    startRally: (target, troops, gather, heroes = []) => sendIntent(() => api.rallyStart(token, target, troops, gather, heroes)),
+    joinRally: (rally, troops, heroes = []) => sendIntent(() => api.rallyJoin(token, rally, troops, heroes)),
+    recruitHero: (hero) => predicted((s, at) => recruitHero(s, hero, at), () => api.heroRecruit(token, hero)),
+    levelHero: (hero) => predicted((s, at) => levelUpHero(s, hero, at), () => api.heroLevel(token, hero)),
+    claimChapter: () => predicted((s, at) => claimChapter(s, at), () => api.storyClaim(token)),
     token: () => token,
     onSessionChange: (fn) => {
       sessionListeners.add(fn);

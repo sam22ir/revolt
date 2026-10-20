@@ -19,6 +19,7 @@ import { showBootStatus } from "./ui/boot-status.ts";
 import "./ui/style.css";
 import "./ui/map.css";
 import "./ui/alliance.css";
+import "./ui/heroes.css";
 
 const TICK_MS = 250;
 const RETRY_MS = [1000, 2000, 5000, 10_000];

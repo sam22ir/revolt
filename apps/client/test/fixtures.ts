@@ -44,6 +44,9 @@ export const UNUSED_ALLIANCE_API: Pick<
   Api,
   | "rallyStart"
   | "rallyJoin"
+  | "heroRecruit"
+  | "heroLevel"
+  | "storyClaim"
   | "searchAlliances"
   | "getAlliance"
   | "createAlliance"
@@ -56,6 +59,9 @@ export const UNUSED_ALLIANCE_API: Pick<
 > = {
   rallyStart: unused,
   rallyJoin: unused,
+  heroRecruit: unused,
+  heroLevel: unused,
+  storyClaim: unused,
   searchAlliances: unused,
   getAlliance: unused,
   createAlliance: unused,

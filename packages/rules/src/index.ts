@@ -22,7 +22,12 @@ export { apportion, isGatherOption, resolveRally, rallyTiming, splitOutcome, typ
 export {
   createBaseState,
   MARCH_RESULTS,
+  START_HEROES,
+  START_STORY,
   type BaseState,
+  type HeroProgress,
+  type SquadMember,
+  type StoryProgress,
   type MapPoint,
   type MarchOutcome,
   type MarchResult,
@@ -30,7 +35,7 @@ export {
   type TrainingJob,
   type UpgradeJob,
 } from "./base-state.ts";
-export { counterFactor, resolveBattle, takeLoot, type BattleResult, type BattleRound } from "./battle.ts";
+export { counterFactor, NO_MODS, resolveBattle, takeLoot, type BattleMods, type BattleResult, type BattleRound } from "./battle.ts";
 export { BUILDING_IDS, type BuildingId } from "./building-id.ts";
 export { BUILDINGS, MAX_BUILDING_LEVEL, type BuildingDef, type BuildingLevel } from "./data/buildings.ts";
 export { MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING } from "./data/map.ts";
@@ -113,3 +118,60 @@ export {
   type MapSnapshot,
   type MarchPhase,
 } from "./wire.ts";
+export { HERO_IDS, isHeroId, type HeroId } from "./hero-id.ts";
+export {
+  DEPUTY_WEIGHT,
+  HERO_LEVEL_UP,
+  HERO_LEVELS_PER_HALL_LEVEL,
+  HERO_RARITIES,
+  HEROES,
+  LEAD_WEIGHT,
+  MAX_HERO_LEVEL,
+  MAX_HERO_SHARDS,
+  MAX_MOD_UNITS,
+  MAX_SQUAD,
+  NPC_SHARD_DROP,
+  SKILL_KINDS,
+  type HeroDef,
+  type HeroLevelUpCost,
+  type HeroRarity,
+  type HeroSkill,
+  type SkillKind,
+} from "./data/heroes.ts";
+export {
+  addUnits,
+  busyHeroes,
+  checkLevelUp,
+  checkRecruit,
+  checkSquad,
+  heroLevelCap,
+  heroMods,
+  heroUnits,
+  HERO_BLOCK_REASONS,
+  levelUpCost,
+  levelUpHero,
+  NO_UNITS,
+  recruitHero,
+  skillPct,
+  squadSnapshot,
+  SQUAD_BLOCK_REASONS,
+  unitsToMods,
+  type HeroBlockReason,
+  type HeroResult,
+  type ModUnits,
+  type SquadBlockReason,
+} from "./heroes.ts";
+export { addShards } from "./hero-progress.ts";
+export { BACKGROUND_IDS, DEFAULT_BACKGROUND, STORY, type BackgroundId, type ChapterReward, type Objective, type StoryChapter } from "./data/story.ts";
+export {
+  chapterStatus,
+  chaptersFor,
+  claimChapter,
+  currentChapter,
+  objectiveProgress,
+  STORY_BLOCK_REASONS,
+  type ChapterStatus,
+  type ObjectiveProgress,
+  type StoryBlockReason,
+  type StoryResult,
+} from "./story.ts";

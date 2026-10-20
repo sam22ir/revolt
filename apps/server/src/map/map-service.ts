@@ -3,10 +3,14 @@ import {
   checkMarch,
   fightNpc,
   HQ_MOVE_COOLDOWN_MS,
+  heroMods,
   isGatherOption,
+  isHeroId,
   isOnMap,
   isTroops,
   MAP_SIZE,
+  MAX_HERO_LEVEL,
+  MAX_SQUAD,
   NPC_COUNT_BY_LEVEL,
   NPC_RESPAWN_MS,
   npcLevel,
@@ -16,6 +20,7 @@ import {
   RALLY_MAX_PARTICIPANTS,
   resolveRally,
   settleMarch,
+  squadSnapshot,
   startMarch,
   targetGone,
   terrainAt,
@@ -23,12 +28,14 @@ import {
   type AllianceBlockReason,
   type BaseState,
   type BattleReport,
+  type HeroId,
   type MapPoint,
   type MapSnapshot,
   type MarchBlockReason,
   type MarchOutcome,
   type MarchState,
   type RallyView,
+  type SquadMember,
   type Troops,
 } from "@revolt/rules";
 import { loadBase, saveBase, saveBaseStatement } from "../db/bases.ts";
@@ -98,7 +105,7 @@ const SCHEMA = [
      from_x INTEGER NOT NULL, from_y INTEGER NOT NULL, to_x INTEGER NOT NULL, to_y INTEGER NOT NULL,
      troops TEXT NOT NULL, seed INTEGER NOT NULL,
      depart_at INTEGER NOT NULL, arrive_at INTEGER NOT NULL, return_at INTEGER NOT NULL, phase TEXT NOT NULL,
-     rally_id TEXT)`,
+     rally_id TEXT, heroes TEXT)`,
   "CREATE INDEX IF NOT EXISTS marches_account ON marches(account_id)",
   "CREATE INDEX IF NOT EXISTS marches_rally ON marches(rally_id)",
 ];
@@ -119,6 +126,8 @@ interface MarchRow {
   readonly return_at: number;
   readonly phase: "pending" | "outbound" | "returning";
   readonly rally_id: string | null;
+  /** JSON array of {id, level}: the squad as frozen when the march left; null for marches without heroes. */
+  readonly heroes: string | null;
 }
 
 interface RallyRow {
@@ -152,6 +161,28 @@ const parseTroops = (raw: string): Troops => {
   return isTroops(parsed) ? parsed : ZERO_TROOPS;
 };
 
+/** The squad frozen on a march row. Anything malformed reads as no heroes: the battle then runs without bonuses. */
+const corruptSquad = (raw: string): SquadMember[] => {
+  console.error("corrupt march squad", raw);
+  return [];
+};
+
+const parseSquad = (raw: string | null): SquadMember[] => {
+  if (raw === null) return [];
+  try {
+    const v: unknown = JSON.parse(raw);
+    if (!Array.isArray(v) || v.length > MAX_SQUAD) return corruptSquad(raw);
+    const squad: SquadMember[] = [];
+    for (const m of v as { id?: unknown; level?: unknown }[]) {
+      if (!isHeroId(m.id) || typeof m.level !== "number" || !Number.isInteger(m.level) || m.level < 1 || m.level > MAX_HERO_LEVEL) return corruptSquad(raw);
+      squad.push({ id: m.id, level: m.level });
+    }
+    return squad;
+  } catch {
+    return corruptSquad(raw);
+  }
+};
+
 /**
  * The world map of one server: base positions, NPC targets, alliance HQs, marches and rallies in flight.
  * Runs inside the map's Durable Object (one writer), which serialises calls (see MapHost).
@@ -163,6 +194,10 @@ export class MapService {
     // A map created before rallies has no `rally_id` column; add it once.
     if (!this.rows<{ name: string }>("SELECT name FROM pragma_table_info('marches')").some((c) => c.name === "rally_id")) {
       deps.sql.exec("ALTER TABLE marches ADD COLUMN rally_id TEXT");
+    }
+    // A map created before heroes has no `heroes` column; add it once. Old rows read as "no heroes".
+    if (!this.rows<{ name: string }>("SELECT name FROM pragma_table_info('marches')").some((c) => c.name === "heroes")) {
+      deps.sql.exec("ALTER TABLE marches ADD COLUMN heroes TEXT");
     }
     if (this.meta("terrain_seed") === null) this.setMeta("terrain_seed", this.randomU32());
     this.fillNpcs();
@@ -257,7 +292,7 @@ export class MapService {
    * Sends a march from the player's base to an NPC. The march row is written as
    * `pending` before the base, so a crash in between is cleaned up by `settle`.
    */
-  async sendMarch(viewer: MapViewer, npcId: string, troops: Troops, now: number): Promise<MapOp<SendMarchResult>> {
+  async sendMarch(viewer: MapViewer, npcId: string, troops: Troops, heroIds: readonly HeroId[], now: number): Promise<MapOp<SendMarchResult>> {
     const events: MapEvent[] = [];
     if (this.touchPlayer(viewer)) events.push(MAP_CHANGED);
     const placed = this.ensureBase(viewer, now);
@@ -268,12 +303,19 @@ export class MapService {
     const advanced = advance(stored.state, now);
     if (npc === undefined) return { value: { ok: false, reason: "target_gone", state: advanced }, events };
     if (npcLevel(npc.level)?.rallyOnly === true) return { value: { ok: false, reason: "rally_only", state: advanced }, events };
-    const reason = checkMarch(advanced, troops);
+    const reason = checkMarch(advanced, troops, heroIds);
     if (reason !== null) return { value: { ok: false, reason, state: advanced }, events };
 
     const id = this.deps.newId();
     const timing = planMarch(placed.at, npc, troops, now);
-    const march: Omit<MarchState, "outcome"> = { id, target: { npcId: npc.id, level: npc.level, x: npc.x, y: npc.y }, from: placed.at, troops, ...timing };
+    const march: Omit<MarchState, "outcome"> = {
+      id,
+      target: { npcId: npc.id, level: npc.level, x: npc.x, y: npc.y },
+      from: placed.at,
+      troops,
+      ...this.squadOf(advanced, heroIds),
+      ...timing,
+    };
     this.insertMarchRow(march, viewer.accountId, this.randomU32(), null);
     const result = await this.commitMarch(viewer.accountId, stored, march, now);
     return { value: result, events: result.ok ? [...events, MAP_CHANGED] : events };
@@ -283,7 +325,7 @@ export class MapService {
    * Starts a rally on an NPC for the viewer's alliance. The caller (the Worker) has checked that the viewer is an
    * officer or leader. Troops leave home now, with the rally's final timing: they gather, then march together.
    */
-  async startRally(viewer: MapViewer, npcId: string, troops: Troops, gatherMs: number, now: number): Promise<MapOp<SendMarchResult>> {
+  async startRally(viewer: MapViewer, npcId: string, troops: Troops, heroIds: readonly HeroId[], gatherMs: number, now: number): Promise<MapOp<SendMarchResult>> {
     const events: MapEvent[] = [];
     if (this.touchPlayer(viewer)) events.push(MAP_CHANGED);
     const placed = this.ensureBase(viewer, now);
@@ -296,7 +338,7 @@ export class MapService {
     if (!isGatherOption(gatherMs)) return refuse("bad_gather");
     const npc = this.rows<NpcRow>("SELECT id, level, x, y FROM npcs WHERE id = ? AND respawn_at IS NULL", npcId)[0];
     if (npc === undefined) return refuse("target_gone");
-    const reason = checkMarch(advanced, troops);
+    const reason = checkMarch(advanced, troops, heroIds);
     if (reason !== null) return refuse(reason);
 
     const rallyId = this.deps.newId();
@@ -306,7 +348,7 @@ export class MapService {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open')`,
       rallyId, viewer.allianceId, viewer.handle, npc.id, npc.level, placed.at.x, placed.at.y, npc.x, npc.y, timing.departAt, timing.arriveAt, timing.returnAt, this.randomU32(),
     );
-    const march: Omit<MarchState, "outcome"> = { id: this.deps.newId(), target: { npcId: npc.id, level: npc.level, x: npc.x, y: npc.y }, from: placed.at, troops, rallyId, ...timing };
+    const march: Omit<MarchState, "outcome"> = { id: this.deps.newId(), target: { npcId: npc.id, level: npc.level, x: npc.x, y: npc.y }, from: placed.at, troops, ...this.squadOf(advanced, heroIds), rallyId, ...timing };
     this.insertMarchRow(march, viewer.accountId, 0, rallyId);
     const result = await this.commitMarch(viewer.accountId, stored, march, now);
     if (!result.ok) this.deps.sql.exec("DELETE FROM rallies WHERE id = ?", rallyId);
@@ -314,7 +356,7 @@ export class MapService {
   }
 
   /** Joins an open rally of the viewer's alliance with `troops`, which leave home now. */
-  async joinRally(viewer: MapViewer, rallyId: string, troops: Troops, now: number): Promise<MapOp<SendMarchResult>> {
+  async joinRally(viewer: MapViewer, rallyId: string, troops: Troops, heroIds: readonly HeroId[], now: number): Promise<MapOp<SendMarchResult>> {
     const events: MapEvent[] = [];
     if (this.touchPlayer(viewer)) events.push(MAP_CHANGED);
     const placed = this.ensureBase(viewer, now);
@@ -330,7 +372,7 @@ export class MapService {
     const count = this.rows<{ n: number }>("SELECT COUNT(*) AS n FROM marches WHERE rally_id = ?", rallyId)[0]?.n ?? 0;
     if (count >= RALLY_MAX_PARTICIPANTS) return refuse("rally_full");
     if (this.rows("SELECT 1 FROM marches WHERE rally_id = ? AND account_id = ?", rallyId, viewer.accountId).length > 0) return refuse("already_in_rally");
-    const reason = checkMarch(advanced, troops);
+    const reason = checkMarch(advanced, troops, heroIds);
     if (reason !== null) return refuse(reason);
 
     const march: Omit<MarchState, "outcome"> = {
@@ -338,6 +380,7 @@ export class MapService {
       target: { npcId: rally.npc_id, level: rally.npc_level, x: rally.to_x, y: rally.to_y },
       from: placed.at,
       troops,
+      ...this.squadOf(advanced, heroIds),
       rallyId,
       departAt: rally.gather_until,
       arriveAt: rally.arrive_at,
@@ -458,10 +501,16 @@ export class MapService {
 
   private insertMarchRow(m: Omit<MarchState, "outcome">, accountId: string, seed: number, rallyId: string | null): void {
     this.deps.sql.exec(
-      `INSERT INTO marches (id, account_id, npc_id, npc_level, from_x, from_y, to_x, to_y, troops, seed, depart_at, arrive_at, return_at, phase, rally_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`,
+      `INSERT INTO marches (id, account_id, npc_id, npc_level, from_x, from_y, to_x, to_y, troops, seed, depart_at, arrive_at, return_at, phase, rally_id, heroes)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
       m.id, accountId, m.target.npcId, m.target.level, m.from.x, m.from.y, m.target.x, m.target.y, JSON.stringify(m.troops), seed, m.departAt, m.arriveAt, m.returnAt, rallyId,
+      m.heroes === undefined ? null : JSON.stringify(m.heroes),
     );
+  }
+
+  /** The `heroes` field of a new march: the squad as it stands in `state` now, or nothing for no heroes. */
+  private squadOf(state: BaseState, heroIds: readonly HeroId[]): { heroes?: SquadMember[] } {
+    return heroIds.length === 0 ? {} : { heroes: squadSnapshot(state, heroIds) };
   }
 
   /** Step two and three of sending: write the march into the base (compare-and-set), then mark the row live. */
@@ -479,7 +528,13 @@ export class MapService {
         return r;
       }
       if (await saveBase(this.deps.db, accountId, r.state, base.version, now)) {
-        this.deps.sql.exec("UPDATE marches SET phase = 'outbound' WHERE id = ?", march.id);
+        // `startMarch` froze the squad from the base it saved; keep the row (which the battle reads) identical to it.
+        const saved = r.state.marches.find((m) => m.id === march.id);
+        this.deps.sql.exec(
+          "UPDATE marches SET phase = 'outbound', heroes = ? WHERE id = ?",
+          saved?.heroes === undefined ? null : JSON.stringify(saved.heroes),
+          march.id,
+        );
         return { ok: true, state: r.state };
       }
       const again = await loadBase(this.deps.db, accountId);
@@ -502,6 +557,7 @@ export class MapService {
     outcome: MarchOutcome,
     battle: ReturnType<typeof fightNpc>["battle"],
     seed: number,
+    heroes: readonly SquadMember[],
   ): BattleReport {
     const def = npcLevel(m.npc_level);
     return {
@@ -517,6 +573,7 @@ export class MapService {
       defendersKilled: battle?.defenderKilled ?? ZERO_TROOPS,
       rounds: battle?.rounds.length ?? 0,
       loot: outcome.loot,
+      ...(heroes.length > 0 ? { heroes } : {}),
       seed: battle === null ? null : seed,
     };
   }
@@ -525,8 +582,9 @@ export class MapService {
   private async arrive(row: MarchRow): Promise<MapEvent[]> {
     const troops = parseTroops(row.troops);
     const npc = this.rows<NpcRow>("SELECT id, level, x, y FROM npcs WHERE id = ? AND respawn_at IS NULL", row.npc_id)[0];
-    const { outcome, battle } = npc === undefined ? { outcome: targetGone(troops), battle: null } : fightNpc(troops, npc.level, row.seed);
-    const report = this.reportFor(row, troops, outcome, battle, row.seed);
+    const heroes = parseSquad(row.heroes);
+    const { outcome, battle } = npc === undefined ? { outcome: targetGone(troops), battle: null } : fightNpc(troops, npc.level, row.seed, heroMods(heroes));
+    const report = this.reportFor(row, troops, outcome, battle, row.seed, heroes);
     const delivered = await this.deliverOutcome(row.account_id, row.id, outcome, report, row.arrive_at);
     // The battle is deterministic, so if we crash before this point a retry writes the same result.
     if (npc !== undefined && outcome.result === "victory") {
@@ -544,13 +602,13 @@ export class MapService {
     const rows = this.rows<MarchRow>("SELECT * FROM marches WHERE rally_id = ? AND phase = 'outbound' ORDER BY id", rally.id);
     const events: MapEvent[] = [MAP_CHANGED];
     if (rows.length > 0) {
-      const parts = rows.map((r) => ({ id: r.id, troops: parseTroops(r.troops) }));
+      const parts = rows.map((r) => ({ id: r.id, troops: parseTroops(r.troops), heroes: parseSquad(r.heroes) }));
       const npc = this.rows<NpcRow>("SELECT id, level, x, y FROM npcs WHERE id = ? AND respawn_at IS NULL", rally.npc_id)[0];
       const fought = npc === undefined ? null : resolveRally(parts, npc.level, rally.seed);
       for (const row of rows) {
         const troops = parseTroops(row.troops);
         const outcome = fought?.shares.find((s) => s.id === row.id)?.outcome ?? targetGone(troops);
-        const report = this.reportFor({ ...row, arrive_at: rally.arrive_at }, troops, outcome, fought?.battle ?? null, rally.seed);
+        const report = this.reportFor({ ...row, arrive_at: rally.arrive_at }, troops, outcome, fought?.battle ?? null, rally.seed, parseSquad(row.heroes));
         if (await this.deliverOutcome(row.account_id, row.id, outcome, report, rally.arrive_at)) {
           events.push({ type: "report", accountId: row.account_id, report }, { type: "base_changed", accountId: row.account_id });
         }
@@ -590,8 +648,10 @@ export class MapService {
   /** A pending march whose base write may or may not have happened: keep it if the base has it. */
   private async resolvePending(row: MarchRow): Promise<MapEvent[]> {
     const stored = await loadBase(this.deps.db, row.account_id);
-    if (stored !== null && stored.state.marches.some((m) => m.id === row.id)) {
-      this.deps.sql.exec("UPDATE marches SET phase = 'outbound' WHERE id = ?", row.id);
+    const inBase = stored?.state.marches.find((m) => m.id === row.id);
+    if (inBase !== undefined) {
+      // The base's squad is the truth (it may have been frozen on a CAS retry); keep the row identical.
+      this.deps.sql.exec("UPDATE marches SET phase = 'outbound', heroes = ? WHERE id = ?", inBase.heroes === undefined ? null : JSON.stringify(inBase.heroes), row.id);
       return [MAP_CHANGED];
     }
     this.dropMarchRow(row.id);

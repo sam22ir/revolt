@@ -6,8 +6,8 @@ const LOCALES = [
   { locale: "ar-DZ", lang: "ar", dir: "rtl" },
 ] as const;
 
-// After the alliance spec's slots (files run in name order).
-const FIRST_SLOT = 3;
+// After the alliance, base and heroes-story specs' slots, which take 0 to 6 (files run in name order).
+const FIRST_SLOT = 7;
 
 for (const [i, { locale, lang, dir }] of LOCALES.entries()) {
   test(`two players share the map; a march fights and returns with a report (${lang})`, { tag: "@screenshots" }, async ({ browser, request }) => {

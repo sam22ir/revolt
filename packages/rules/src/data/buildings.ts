@@ -107,4 +107,20 @@ export const BUILDINGS: Readonly<Record<BuildingId, BuildingDef>> = {
       { cost: c(10000, 10000, 7500), durationSec: 57600, ratePerHour: 0 },
     ],
   },
+  // Placeholder balance for M5. Gates hero levels (HERO_LEVELS_PER_HALL_LEVEL per hall level).
+  hero_hall: {
+    produces: null,
+    levels: [
+      { cost: FREE, durationSec: 0, ratePerHour: 0 },
+      { cost: c(100, 100, 120), durationSec: 90, ratePerHour: 0 },
+      { cost: c(200, 200, 240), durationSec: 360, ratePerHour: 0 },
+      { cost: c(400, 400, 480), durationSec: 1200, ratePerHour: 0 },
+      { cost: c(800, 800, 960), durationSec: 2400, ratePerHour: 0 },
+      { cost: c(1500, 1500, 1800), durationSec: 4800, ratePerHour: 0 },
+      { cost: c(2600, 2600, 3200), durationSec: 9000, ratePerHour: 0 },
+      { cost: c(4400, 4400, 5400), durationSec: 18000, ratePerHour: 0 },
+      { cost: c(7200, 7200, 9000), durationSec: 32000, ratePerHour: 0 },
+      { cost: c(12000, 12000, 15000), durationSec: 60000, ratePerHour: 0 },
+    ],
+  },
 };
