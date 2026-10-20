@@ -107,4 +107,20 @@ export const BUILDINGS: Readonly<Record<BuildingId, BuildingDef>> = {
       { cost: c(10000, 10000, 7500), durationSec: 57600, ratePerHour: 0 },
     ],
   },
+  // Placeholder balance. The hall gates hero recruitment and caps hero levels (data/hero-progression.ts).
+  hero_hall: {
+    produces: null,
+    levels: [
+      { cost: FREE, durationSec: 0, ratePerHour: 0 },
+      { cost: c(100, 60, 150), durationSec: 90, ratePerHour: 0 },
+      { cost: c(240, 150, 340), durationSec: 420, ratePerHour: 0 },
+      { cost: c(480, 300, 680), durationSec: 1200, ratePerHour: 0 },
+      { cost: c(900, 580, 1280), durationSec: 2400, ratePerHour: 0 },
+      { cost: c(1600, 1050, 2300), durationSec: 4800, ratePerHour: 0 },
+      { cost: c(2700, 1800, 3900), durationSec: 9000, ratePerHour: 0 },
+      { cost: c(4400, 2950, 6300), durationSec: 16200, ratePerHour: 0 },
+      { cost: c(6900, 4650, 9800), durationSec: 28800, ratePerHour: 0 },
+      { cost: c(10500, 7100, 15000), durationSec: 57600, ratePerHour: 0 },
+    ],
+  },
 };

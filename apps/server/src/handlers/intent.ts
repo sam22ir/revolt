@@ -1,4 +1,4 @@
-import { advance, BUILDING_IDS, canPerform, parseTroops, startTraining, startUpgrade, TROOP_IDS, type BaseState, type BuildingId, type TroopId, type Troops } from "@revolt/rules";
+import { advance, BUILDING_IDS, canPerform, HERO_IDS, levelUpHero, parseHeroLoadout, parseTroops, recruitHero, seededRng, startTraining, startUpgrade, TROOP_IDS, type BaseState, type BuildingId, type HeroId, type HeroLoadout, type TroopId, type Troops } from "@revolt/rules";
 import { loadBase, saveBase } from "../db/bases.ts";
 import { HttpError, json, readJson } from "../http.ts";
 import { authenticate, type Ctx } from "./context.ts";
@@ -7,9 +7,11 @@ import { viewerFor } from "./viewer.ts";
 export type Intent =
   | { readonly type: "upgrade"; readonly building: BuildingId }
   | { readonly type: "train"; readonly troop: TroopId; readonly count: number }
-  | { readonly type: "march"; readonly target: string; readonly troops: Troops }
+  | { readonly type: "march"; readonly target: string; readonly troops: Troops; readonly heroes: HeroLoadout | null }
   | { readonly type: "rally_start"; readonly target: string; readonly troops: Troops; readonly gather: number }
-  | { readonly type: "rally_join"; readonly rally: string; readonly troops: Troops };
+  | { readonly type: "rally_join"; readonly rally: string; readonly troops: Troops }
+  | { readonly type: "recruit" }
+  | { readonly type: "hero_level"; readonly hero: HeroId };
 
 const MAX_TARGET_ID = 64;
 
@@ -17,12 +19,17 @@ const MAX_TARGET_ID = 64;
 export const parseIntent = (body: Record<string, unknown>): Intent => {
   const { type } = body;
   if (type === "upgrade" && BUILDING_IDS.some((id) => id === body.building)) return { type, building: body.building as BuildingId };
+  if (type === "recruit") return { type };
+  if (type === "hero_level" && HERO_IDS.some((id) => id === body.hero)) return { type, hero: body.hero as HeroId };
   if (type === "train" && TROOP_IDS.some((id) => id === body.troop) && typeof body.count === "number") {
     return { type, troop: body.troop as TroopId, count: body.count };
   }
   if (type === "march" && typeof body.target === "string" && body.target.length > 0 && body.target.length <= MAX_TARGET_ID) {
     const troops = parseTroops(body.troops);
-    if (troops !== null) return { type, target: body.target, troops };
+    // Heroes are optional: absent or null means the march takes none; anything else must parse.
+    const rawHeroes = body.heroes ?? null;
+    const heroes = rawHeroes === null ? null : parseHeroLoadout(rawHeroes);
+    if (troops !== null && (rawHeroes === null || heroes !== null)) return { type, target: body.target, troops, heroes };
   }
   if (type === "rally_start" && typeof body.target === "string" && body.target.length > 0 && body.target.length <= MAX_TARGET_ID && typeof body.gather === "number") {
     const troops = parseTroops(body.troops);
@@ -35,7 +42,10 @@ export const parseIntent = (body: Record<string, unknown>): Intent => {
   throw new HttpError("bad_request");
 };
 
-type BaseChange = { readonly ok: true; readonly state: BaseState } | { readonly ok: false; readonly reason: string; readonly state: BaseState };
+/** A base change the rules accepted may add `extra` fields to the answer (a recruit's draw). */
+type BaseChange =
+  | { readonly ok: true; readonly state: BaseState; readonly extra?: Readonly<Record<string, unknown>> }
+  | { readonly ok: false; readonly reason: string; readonly state: BaseState };
 
 const ATTEMPTS = 2;
 
@@ -47,7 +57,7 @@ const changeBase = async (ctx: Ctx, accountId: string, apply: (s: BaseState) => 
     const result = apply(stored.state);
     if (!result.ok) return json({ ok: false, reason: result.reason, state: result.state, now: ctx.now });
     if (await saveBase(ctx.env.DB, accountId, result.state, stored.version, ctx.now)) {
-      return json({ ok: true, state: result.state, now: ctx.now });
+      return json({ ok: true, state: result.state, now: ctx.now, ...(result.ok ? result.extra : undefined) });
     }
   }
   throw new HttpError("conflict");
@@ -73,9 +83,19 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
       return changeBase(ctx, account.id, (s) => startUpgrade(s, intent.building, ctx.now));
     case "train":
       return changeBase(ctx, account.id, (s) => startTraining(s, intent.troop, intent.count, ctx.now));
+    case "recruit":
+      // The server picks the seed, so the client never chooses the draw.
+      return changeBase(ctx, account.id, (s) => {
+        const r = recruitHero(s, ctx.now, seededRng(crypto.getRandomValues(new Uint32Array(1))[0]!));
+        if (!r.ok) return r;
+        const { heroId, rarity, duplicate, forced } = r.draw;
+        return { ok: true, state: r.state, extra: { draw: { heroId, rarity, duplicate, forced } } };
+      });
+    case "hero_level":
+      return changeBase(ctx, account.id, (s) => levelUpHero(s, intent.hero));
     case "march": {
       const { viewer } = await viewerFor(ctx, account);
-      const r = await ctx.deps.map(ctx.env, account.server).sendMarch(viewer, intent.target, intent.troops, ctx.now);
+      const r = await ctx.deps.map(ctx.env, account.server).sendMarch(viewer, intent.target, intent.troops, intent.heroes, ctx.now);
       if ("error" in r) throw new HttpError(r.error);
       return json({ ...r, now: ctx.now });
     }

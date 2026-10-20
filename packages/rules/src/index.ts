@@ -24,6 +24,7 @@ export {
   MARCH_RESULTS,
   type BaseState,
   type MapPoint,
+  type MarchHeroes,
   type MarchOutcome,
   type MarchResult,
   type MarchState,
@@ -32,6 +33,14 @@ export {
 } from "./base-state.ts";
 export { counterFactor, resolveBattle, takeLoot, type BattleResult, type BattleRound } from "./battle.ts";
 export { BUILDING_IDS, type BuildingId } from "./building-id.ts";
+export { heroBattleModifier, checkLoadout, heroesOnMarch, parseHeroLoadout, HERO_LOADOUT_BLOCK_REASONS, loadoutIds, MAX_DEPUTIES, snapshotHeroes, type HeroLoadout, type HeroLoadoutBlockReason } from "./hero-loadout.ts";
+export { drawHero, HERO_DRAW_BLOCK_REASONS, isPityDraw, recruitHero, type HeroDraw, type HeroDrawBlockReason, type HeroRecruitResult } from "./hero-draw.ts";
+export { heroLevelCap, HERO_LEVEL_BLOCK_REASONS, levelUpHero, shardsToNextLevel, type HeroLevelBlockReason, type HeroLevelResult } from "./hero-level.ts";
+export { EMPTY_HERO_ROSTER, type HeroEntry, type HeroRoster } from "./hero-roster.ts";
+export { HERO_IDS, HERO_RARITIES, SKILL_IDS, type HeroId, type HeroRarity, type HeroSpecialty, type SkillId } from "./hero-id.ts";
+export { HEROES, type HeroDef, type SkillDef } from "./data/heroes.ts";
+export * from "./data/hero-progression.ts";
+export { NO_BATTLE_MODIFIER, type BattleModifier } from "./battle.ts";
 export { BUILDINGS, MAX_BUILDING_LEVEL, type BuildingDef, type BuildingLevel } from "./data/buildings.ts";
 export { MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING } from "./data/map.ts";
 export { MAX_NPC_LEVEL, NPC_KINDS, NPC_LEVELS, NPC_RESPAWN_MS, type NpcKind, type NpcLevelDef } from "./data/npcs.ts";

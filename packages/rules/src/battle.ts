@@ -23,6 +23,20 @@ export interface BattleResult {
   readonly loot: Resources;
 }
 
+/**
+ * Hero effects on one side of a battle. `attack` multiplies each troop type's damage (1 = none);
+ * `damageTaken` multiplies the damage this side takes (1 = none). Built by `heroBattleModifier`.
+ */
+export interface BattleModifier {
+  readonly attack: Readonly<Record<TroopId, number>>;
+  readonly damageTaken: number;
+}
+
+export const NO_BATTLE_MODIFIER: BattleModifier = {
+  attack: { infantry: 1, scouts: 1, heavy: 1, porters: 1 },
+  damageTaken: 1,
+};
+
 /** Damage multiplier of `from` against a whole force: the counter bonus, weighted by how much of `to` it counters. */
 export const counterFactor = (from: TroopId, to: Troops): number => {
   const total = totalTroops(to);
@@ -32,11 +46,11 @@ export const counterFactor = (from: TroopId, to: Troops): number => {
 };
 
 /** One side's damage this round. Draws exactly one random number per troop type, in `TROOP_IDS` order. */
-const damage = (from: Troops, to: Troops, rng: () => number): number => {
+const damage = (from: Troops, to: Troops, rng: () => number, attack: BattleModifier["attack"]): number => {
   let sum = 0;
   for (const id of TROOP_IDS) {
     const roll = 0.9 + 0.2 * rng();
-    sum += from[id] * TROOPS[id].attack * counterFactor(id, to) * roll;
+    sum += from[id] * TROOPS[id].attack * attack[id] * counterFactor(id, to) * roll;
   }
   return sum;
 };
@@ -63,15 +77,22 @@ export const takeLoot = (available: Resources, capacity: number): Resources => {
 /**
  * Deterministic battle: same forces and seed, same result, on client and server (GDD §4.6).
  * Up to MAX_BATTLE_ROUNDS simultaneous rounds. The attacker wins only by clearing every defender.
+ * `attackerModifier` (hero effects) changes numbers only, never the random draws.
  */
-export const resolveBattle = (attacker: Troops, defender: Troops, available: Resources, seed: number): BattleResult => {
+export const resolveBattle = (
+  attacker: Troops,
+  defender: Troops,
+  available: Resources,
+  seed: number,
+  attackerModifier: BattleModifier = NO_BATTLE_MODIFIER,
+): BattleResult => {
   const rng = seededRng(seed);
   let a = attacker;
   let d = defender;
   const rounds: BattleRound[] = [];
   for (let r = 0; r < MAX_BATTLE_ROUNDS && hasCombat(a) && totalTroops(d) > 0; r++) {
-    const toDefender = damage(a, d, rng);
-    const toAttacker = damage(d, a, rng);
+    const toDefender = damage(a, d, rng, attackerModifier.attack);
+    const toAttacker = damage(d, a, rng, NO_BATTLE_MODIFIER.attack) * attackerModifier.damageTaken;
     const defenderKilled = kills(toDefender, d);
     const attackerKilled = kills(toAttacker, a);
     a = subtractTroops(a, attackerKilled);

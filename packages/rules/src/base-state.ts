@@ -1,4 +1,6 @@
 import type { BuildingId } from "./building-id.ts";
+import type { HeroId } from "./hero-id.ts";
+import { EMPTY_HERO_ROSTER, type HeroRoster } from "./hero-roster.ts";
 import { START_LEVELS, START_RESOURCES, START_TROOPS } from "./data/start.ts";
 import type { Resources } from "./resources.ts";
 import type { TroopId } from "./troop-id.ts";
@@ -40,6 +42,13 @@ export interface MarchOutcome {
   readonly loot: Resources;
 }
 
+/** The heroes a march took, frozen at departure: who, and the level each had then. */
+export interface MarchHeroes {
+  readonly lead: HeroId;
+  readonly deputies: readonly HeroId[];
+  readonly levels: Readonly<Partial<Record<HeroId, number>>>;
+}
+
 /** A march as the player's base sees it: troops away, timing, and the outcome once the battle happened. */
 export interface MarchState {
   readonly id: string;
@@ -52,6 +61,8 @@ export interface MarchState {
   readonly returnAt: number;
   /** The rally this march belongs to, if it joined one. Its timing is the rally's. */
   readonly rallyId?: string;
+  /** Heroes leading the march, if any. Their battle effects use the levels recorded here. */
+  readonly heroes?: MarchHeroes;
   /** Set by the map server when the march arrives; the march comes home lazily at `returnAt`. */
   readonly outcome: MarchOutcome | null;
 }
@@ -67,6 +78,8 @@ export interface BaseState {
   readonly wounded: Troops;
   /** One barracks queue, separate from the build queue. */
   readonly training: TrainingJob | null;
+  /** Recruited heroes, their levels and shards, and the pity counter. */
+  readonly heroes: HeroRoster;
   /** Marches out on the map. */
   readonly marches: readonly MarchState[];
   /** Epoch ms up to which production has been settled. Never moves backwards. */
@@ -80,6 +93,7 @@ export const createBaseState = (now: number): BaseState => ({
   troops: START_TROOPS,
   wounded: ZERO_TROOPS,
   training: null,
+  heroes: EMPTY_HERO_ROSTER,
   marches: [],
   lastUpdated: now,
 });

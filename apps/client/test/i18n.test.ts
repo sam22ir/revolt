@@ -4,11 +4,17 @@ import {
   ALLIANCE_RANKS,
   BUILDING_IDS,
   HELP_KINDS,
+  HERO_DRAW_BLOCK_REASONS,
+  HERO_IDS,
+  HERO_LEVEL_BLOCK_REASONS,
+  HERO_LOADOUT_BLOCK_REASONS,
+  HERO_RARITIES,
   MARCH_BLOCK_REASONS,
   MARCH_PHASES,
   MARCH_RESULTS,
   NPC_KINDS,
   RESOURCE_IDS,
+  SKILL_IDS,
   TERRAIN_IDS,
   TRAINING_BLOCK_REASONS,
   TROOP_IDS,
@@ -68,6 +74,22 @@ describe("locales", () => {
     for (const r of MARCH_RESULTS) expect(all.has(`march.result.${r}`), r).toBe(true);
     for (const r of MARCH_PHASES) expect(all.has(`march.phase.${r}`), r).toBe(true);
     for (const r of [...TRAINING_BLOCK_REASONS, ...MARCH_BLOCK_REASONS, "target_gone", "unreachable"]) {
+      expect(all.has(`reason.${r}`), r).toBe(true);
+    }
+  });
+
+  test("heroes, skills, rarities and every hero refusal have keys", () => {
+    const all = new Set(keys(en));
+    for (const id of HERO_IDS) {
+      expect(all.has(`hero.${id}.name`), id).toBe(true);
+      expect(all.has(`hero.${id}.desc`), id).toBe(true);
+    }
+    for (const id of SKILL_IDS) {
+      expect(all.has(`skill.${id}.name`), id).toBe(true);
+      expect(all.has(`skill.${id}.desc`), id).toBe(true);
+    }
+    for (const r of HERO_RARITIES) expect(all.has(`rarity.${r}`), r).toBe(true);
+    for (const r of [...HERO_DRAW_BLOCK_REASONS, ...HERO_LEVEL_BLOCK_REASONS, ...HERO_LOADOUT_BLOCK_REASONS]) {
       expect(all.has(`reason.${r}`), r).toBe(true);
     }
   });

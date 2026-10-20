@@ -23,6 +23,7 @@ export const PLOTS: Readonly<Record<BuildingId, Plot>> = {
   armory: plotAt(2.6, 1),
   treasury: plotAt(5, 3.4),
   barracks: plotAt(3.4, 5),
+  hero_hall: plotAt(1, 1),
 };
 
 export interface Vec {
