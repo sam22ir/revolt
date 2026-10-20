@@ -17,7 +17,7 @@ Style and rules: GDD §7. Generated painted-isometric art, Algerian palette, no 
 
 - **buildings/** `hq farm armory treasury barracks`: the five buildings in the rules (`BUILDING_IDS`), drawn by `BaseScene` on one shared plot diamond. `ground_tile` is the base's ground slab. `academy hero_hall infirmary liaison_office storehouse watchtower` are processed but unused until the rules have those buildings. `storehouse_alt` is a spare.
 - **map/** `terrain_{plain,terraces,forest,mountain}` are the world tiles (`hills` uses `terraces`). `terrain_river` and `terrain_village` are unused. `outpost_watch` / `outpost_barracks` / `outpost_fort` and `marker_convoy` are the NPC kinds (patrol, outpost, fortified line, convoy). `marker_march` / `marker_return` are marching columns, `marker_battle` flashes at the target on arrival, `marker_rally` is an alliance HQ. Player camps on the map are the `hq` building sprite, scaled.
-- **ui/** `resource_{food,materiel,funds,support}` are the HUD, cost and report icons (`ui/icons.ts`). `hud_top_bar` and `hero_frame_*` are processed but unused: the bar has baked-in avatar and "+" slots (this is a fair-F2P game with no purchases, and the HUD is a 2×2 grid), and there is no hero screen yet.
+- **ui/** `resource_{food,materiel,funds,support}` are the HUD, cost and report icons (`ui/icons.ts`). `hud_top_bar` and `hero_frame_*` are processed but unused: the bar has a baked-in avatar circle and four "+" slots that do nothing yet, and it assumes four resources in one row while the HUD is a 2×2 grid; there is no hero screen yet.
 - **units/** `troop_{infantry,scouts,heavy,porters}` appear in the training panel and the march dialog.
 
 The world scene's textures load when the map is first opened, not at start-up.
@@ -43,7 +43,7 @@ Placement is measured, not hand-tuned: buildings and terrain are anchored by the
 
 ## GDD §6 review: heroes
 
-The hero frames are silhouettes in a frame. Before they ship, the silhouette must be reviewed against §6: heroes are "inspired by" real people, never a likeness, and no atrocity imagery. Until then they are not in the build.
+The hero frames (common, rare, legendary) each hold a faceless, hooded figure in a dark panel. Before they ship, the silhouette must be reviewed against §6: heroes are "inspired by" real people, never a likeness, and no atrocity imagery. Until then they are not in the build.
 
 ## Known rough edges
 

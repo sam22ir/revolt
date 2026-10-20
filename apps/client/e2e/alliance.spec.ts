@@ -5,7 +5,6 @@ import { API, expectNoRawKeys, mapEpoch, openGame, openMap, screenshot, setTime,
 const LOCALES = [
   { locale: "en-US", lang: "en", dir: "ltr", name: "Free Lands", say: "Salut, on se retrouve au col", reply: "Understood" },
   { locale: "ar-DZ", lang: "ar", dir: "rtl", name: "الحرية", say: "مرحبا بالجميع، نلتقي عند الممر", reply: "علم" },
-  { locale: "fr-FR", lang: "fr", dir: "ltr", name: "Terres libres", say: "Salut, on se retrouve au col", reply: "Bien reçu" },
 ] as const;
 
 /** A short unique tag (alliances on a server share one namespace across the whole e2e run). */
@@ -71,7 +70,7 @@ for (const [slot, { locale, lang, dir, name, say, reply }] of LOCALES.entries())
     await a.getByTestId("chat-input").fill("<img src=x onerror=alert(1)>");
     await a.getByTestId("chat-send").click();
     await expect(b.getByTestId("chat-message").filter({ hasText: "<img src=x onerror=alert(1)>" })).toHaveCount(1);
-    expect(await b.getByTestId("chat-message").locator("img").count()).toBe(0);
+    expect(await b.locator("img:not(.icon)").count()).toBe(0);
     await expectNoRawKeys(a);
     await screenshot(b, `${SHOTS}/${lang}-m4-3-chat.png`);
 

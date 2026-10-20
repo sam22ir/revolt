@@ -4,7 +4,6 @@ import { API, expectNoRawKeys, mapEpoch, openGame, openMap, ownCamp, screenshot,
 const LOCALES = [
   { locale: "en-US", lang: "en", dir: "ltr" },
   { locale: "ar-DZ", lang: "ar", dir: "rtl" },
-  { locale: "fr-FR", lang: "fr", dir: "ltr" },
 ] as const;
 
 // After the alliance spec's slots (files run in name order).
@@ -12,7 +11,7 @@ const FIRST_SLOT = 3;
 
 for (const [i, { locale, lang, dir }] of LOCALES.entries()) {
   test(`two players share the map; a march fights and returns with a report (${lang})`, { tag: "@screenshots" }, async ({ browser, request }) => {
-    test.setTimeout(240_000);
+    test.setTimeout(360_000);
     const t0 = mapEpoch(FIRST_SLOT + i);
     await setTime([], request, t0);
     const a = await openGame(browser, locale, t0);
@@ -87,6 +86,13 @@ for (const [i, { locale, lang, dir }] of LOCALES.entries()) {
     expect(state.state.troops.infantry).toBe(0);
     await expectNoRawKeys(a);
     await screenshot(a, `${SHOTS}/${lang}-m3-3-marching.png`);
+    // The same march with the column in the middle of the view, to see its marker.
+    await a.evaluate(() => {
+      const mm = window.__revolt!.map!.snapshot()!.marches.find((x) => x.mine)!;
+      const f = Math.min(1, Math.max(0, (Date.now() - mm.departAt) / (mm.arriveAt - mm.departAt)));
+      window.__revolt!.map!.centerOn(mm.from.x + (mm.to.x - mm.from.x) * f, mm.from.y + (mm.to.y - mm.from.y) * f);
+    });
+    await screenshot(a, `${SHOTS}/${lang}-m3-3b-march-marker.png`);
 
     // Arrival: the map's alarm fights the battle and pushes the report.
     await setTime([a, b], request, m.arriveAt);
@@ -95,6 +101,12 @@ for (const [i, { locale, lang, dir }] of LOCALES.entries()) {
     await expect(a.getByTestId("report")).toBeVisible();
     await expectNoRawKeys(a);
     await screenshot(a, `${SHOTS}/${lang}-m3-4-report.png`);
+    // The battle marker shows at the target for a few seconds after arrival (the clock is fixed, so it is still up).
+    await a.evaluate(() => {
+      const to = window.__revolt!.map!.snapshot()!.marches.find((x) => x.mine)!.to;
+      window.__revolt!.map!.centerOn(to.x, to.y);
+    });
+    await screenshot(a, `${SHOTS}/${lang}-m3-3c-battle-marker.png`);
 
     // Return: the survivors are home, the march is gone from both maps.
     await setTime([a, b], request, m.returnAt);

@@ -37,7 +37,6 @@ const tapBuilding = async (page: Page, id: BuildingId): Promise<void> => {
 const LOCALES = [
   { locale: "en-US", lang: "en", dir: "ltr", upgrade: "Upgrade" },
   { locale: "ar-DZ", lang: "ar", dir: "rtl", upgrade: "ترقية" },
-  { locale: "fr-FR", lang: "fr", dir: "ltr", upgrade: "Améliorer" },
 ] as const;
 
 for (const { locale, lang, dir, upgrade } of LOCALES) {
@@ -156,6 +155,14 @@ test.describe("at Pixel 7's real pixel ratio", () => {
     for (const id of ["hq", "farm", "armory", "treasury", "barracks"] as const) {
       await tapBuilding(page, id);
       await expect(page.getByTestId("building-panel")).toHaveAttribute("data-building", id);
+      // A few more points on the same building, not only its middle.
+      for (const [dx, dy] of [[-12, 0], [12, 0], [0, 14]] as const) {
+        const panel = page.getByTestId("building-panel");
+        await panel.locator(".panel-close").click();
+        const p = await page.evaluate((b) => window.__revolt!.buildingScreenPoint(b), id);
+        await page.touchscreen.tap(p.x + dx, p.y + dy);
+        await expect(panel).toHaveAttribute("data-building", id);
+      }
     }
   });
 

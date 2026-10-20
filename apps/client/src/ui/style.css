@@ -89,7 +89,7 @@ html, body {
   font: inherit;
   font-size: 13px;
   color: var(--paper);
-  background: rgb(43 42 36 / 0.92);
+  background: rgb(43 42 36 / 0.82);
   border: 1px solid rgb(244 234 214 / 0.3);
   border-radius: var(--radius);
   padding-block: 8px;
@@ -213,7 +213,7 @@ html, body {
   font: inherit;
   font-size: 13px;
   color: var(--paper);
-  background: rgb(43 42 36 / 0.92);
+  background: rgb(43 42 36 / 0.82);
   border: 1px solid rgb(244 234 214 / 0.3);
   border-radius: var(--radius);
   padding-block: 8px;
@@ -247,7 +247,7 @@ html, body {
   padding-block: 10px;
   padding-inline: 16px;
   border-radius: var(--radius);
-  background: rgb(43 42 36 / 0.92);
+  background: rgb(43 42 36 / 0.82);
   color: var(--paper);
   font-size: 15px;
 }

@@ -15,7 +15,7 @@ import {
 
 interface BuildingView {
   readonly sprite: Phaser.GameObjects.Image;
-  /** Selection outline; also the tap target (a polygon that follows the sprite's silhouette box). */
+  /** Selection outline. */
   readonly overlay: Phaser.GameObjects.Graphics;
   readonly badge: Phaser.GameObjects.Graphics;
   readonly label: Phaser.GameObjects.Text;
@@ -34,9 +34,11 @@ interface Placement {
 
 const GROUND = "buildings/ground_tile";
 const spriteKey = (id: BuildingId): string => `buildings/${id}`;
-/** Depths: ground, then buildings back to front, then tap targets, then badges and bars. */
+/** Depths: ground, then buildings back to front, then outlines, then badges and bars. */
 const D_SPRITE = 10;
-const D_HIT = 100;
+const D_OUTLINE = 100;
+/** Pixels at least this opaque (0 to 255) count as part of a building when tapped. */
+const ALPHA_TAP = 40;
 const D_HUD = 200;
 const UPGRADING_TINT = 0xb8aa94;
 
@@ -152,9 +154,10 @@ export class BaseScene extends Phaser.Scene {
   private createBuilding(id: BuildingId, index: number): BuildingView {
     const place = this.placement(id);
     const sprite = this.add.image(place.x, place.y, textureKey(spriteKey(id))).setOrigin(0, 0).setScale(place.scale).setDepth(D_SPRITE + index);
-    const overlay = this.add.graphics().setDepth(D_HIT + index);
-    overlay.setInteractive(new Phaser.Geom.Polygon(this.points(this.hull(id))), Phaser.Geom.Polygon.Contains);
-    overlay.on(Phaser.Input.Events.GAMEOBJECT_POINTER_UP, () => this.onSelect(id));
+    // Taps hit the painted pixels, so where sprites overlap the one drawn on top (the nearer building) wins.
+    sprite.setInteractive({ pixelPerfect: true, alphaTolerance: ALPHA_TAP });
+    sprite.on(Phaser.Input.Events.GAMEOBJECT_POINTER_UP, () => this.onSelect(id));
+    const overlay = this.add.graphics().setDepth(D_OUTLINE + index);
     const progress = this.add.graphics().setDepth(D_HUD);
     const badge = this.add.graphics().setDepth(D_HUD);
     const label = this.add
@@ -220,13 +223,6 @@ export class BaseScene extends Phaser.Scene {
   private footprint(id: BuildingId): [Vec, Vec, Vec, Vec] {
     const { gx, gy, size } = PLOTS[id];
     return [isoToWorld(gx, gy), isoToWorld(gx + size, gy), isoToWorld(gx + size, gy + size), isoToWorld(gx, gy + size)];
-  }
-
-  /** Tap area: the plot diamond extruded up by the sprite's height (a hexagon). */
-  private hull(id: BuildingId): Vec[] {
-    const [top, right, bottom, left] = this.footprint(id);
-    const h = this.placement(id).height * 0.9;
-    return [{ x: top.x, y: top.y - h }, { x: right.x, y: right.y - h }, right, bottom, left, { x: left.x, y: left.y - h }];
   }
 
   private points(ps: readonly Vec[]): Phaser.Math.Vector2[] {
