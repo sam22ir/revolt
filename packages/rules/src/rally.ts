@@ -1,6 +1,5 @@
-import type { MapPoint, MarchOutcome, SquadMember } from "./base-state.ts";
+import type { MapPoint, MarchOutcome } from "./base-state.ts";
 import { RALLY_GATHER_OPTIONS_MS, RALLY_SPEED } from "./data/alliance.ts";
-import { addUnits, heroUnits, NO_UNITS, unitsToMods } from "./heroes.ts";
 import { fightNpc } from "./npc-battle.ts";
 import { RESOURCE_IDS } from "./resource-id.ts";
 import { mapResources } from "./resources.ts";
@@ -21,8 +20,6 @@ export interface RallyParticipant {
   /** Any stable id; participants are ordered by it so splits do not depend on join order. */
   readonly id: string;
   readonly troops: Troops;
-  /** The heroes this participant's march carries (levels as frozen at send time). */
-  readonly heroes?: readonly SquadMember[];
 }
 
 export interface RallyShare {
@@ -89,13 +86,9 @@ export const splitOutcome = (outcome: MarchOutcome, participants: readonly Rally
   }));
 };
 
-/**
- * One battle for the whole rally against an NPC of `level`, then each participant's share.
- * Every participant's hero bonuses are added up and capped together, so the order of participants does not matter.
- */
+/** One battle for the whole rally against an NPC of `level`, then each participant's share. */
 export const resolveRally = (participants: readonly RallyParticipant[], level: number, seed: number) => {
   const total = participants.reduce((t, p) => addTroops(t, p.troops), ZERO_TROOPS);
-  const units = participants.reduce((u, p) => addUnits(u, heroUnits(p.heroes ?? [])), NO_UNITS);
-  const fought = fightNpc(total, level, seed, unitsToMods(units));
+  const fought = fightNpc(total, level, seed);
   return { total, battle: fought.battle, outcome: fought.outcome, shares: splitOutcome(fought.outcome, participants) };
 };

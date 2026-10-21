@@ -28,7 +28,7 @@ export const playerPower = (state: BaseState): number => {
     const away = state.marches.reduce((n, m) => n + m.troops[t], 0);
     power += (state.troops[t] + away) * troopPower(t);
   }
-  for (const h of Object.values(state.heroes)) power += h.level * POWER_PER_HERO_LEVEL;
+  for (const h of Object.values(state.heroes.owned)) power += (h?.level ?? 0) * POWER_PER_HERO_LEVEL;
   return power;
 };
 

@@ -1,4 +1,4 @@
-import { npcLevel, type BaseState, type MarchState } from "@revolt/rules";
+import { loadoutIds, npcLevel, type BaseState, type MarchState } from "@revolt/rules";
 import { formatAmount, formatDuration } from "../format.ts";
 import { currentLanguage, t } from "../i18n/i18n.ts";
 import { el } from "./dom.ts";
@@ -48,8 +48,8 @@ export const createMarchesList = (): MarchesList => {
       const stage = el("span", "march-stage");
       const time = el("span", "march-time");
       li.append(target, stage, time);
-      if (m.heroes !== undefined && m.heroes.length > 0) {
-        const led = el("span", "march-heroes", t("march.ledBy", { names: new Intl.ListFormat(currentLanguage(), { style: "narrow", type: "unit" }).format(m.heroes.map((h) => t(`hero.${h.id}.name`))) }));
+      if (m.heroes !== undefined) {
+        const led = el("span", "march-heroes", t("march.ledBy", { names: new Intl.ListFormat(currentLanguage(), { style: "narrow", type: "unit" }).format(loadoutIds(m.heroes).map((id) => t(`hero.${id}.name`))) }));
         led.dataset.testid = "march-heroes";
         li.append(led);
       }
@@ -62,7 +62,7 @@ export const createMarchesList = (): MarchesList => {
     root,
     update: (state, now) => {
       root.hidden = state.marches.length === 0;
-      const k = `${currentLanguage()}|${state.marches.map((m) => `${m.id}:${(m.heroes ?? []).map((h) => h.id).join("+")}`).join(",")}`;
+      const k = `${currentLanguage()}|${state.marches.map((m) => `${m.id}:${(m.heroes === undefined ? [] : loadoutIds(m.heroes)).join("+")}`).join(",")}`;
       if (k !== key) {
         key = k;
         rebuild(state.marches);

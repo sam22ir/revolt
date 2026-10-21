@@ -1,7 +1,5 @@
 import type { BaseState, MarchOutcome, MarchState } from "./base-state.ts";
 import { MARCH_RESCUE_GRACE_MS } from "./data/map.ts";
-import { NPC_SHARD_DROP } from "./data/heroes.ts";
-import { addShards } from "./hero-progress.ts";
 import { accrue, storageCap } from "./production.ts";
 import { mapResources } from "./resources.ts";
 import { addTroops } from "./troops.ts";
@@ -27,16 +25,10 @@ const nextEvent = (s: BaseState, now: number): Event | null => {
   return best;
 };
 
-/**
- * A victory with a hero leading brings shards for the lead hero and counts for the story. Runs once per march,
- * because the march is removed as it returns. Defeats and vanished targets give nothing.
- */
+/** A victory with a hero leading counts for the story. Runs once per march, because the march is removed as it returns. */
 const rewardHeroes = (s: BaseState, march: MarchState | undefined, outcome: MarchOutcome): BaseState => {
-  const lead = march?.heroes?.[0];
-  if (march === undefined || lead === undefined || outcome.result !== "victory") return s;
-  const shards = NPC_SHARD_DROP[march.target.level - 1] ?? 0;
-  const withShards = addShards(s, lead.id, shards);
-  return { ...withShards, story: { ...withShards.story, victories: withShards.story.victories + 1 } };
+  if (march?.heroes === undefined || outcome.result !== "victory") return s;
+  return { ...s, story: { ...s.story, victories: s.story.victories + 1 } };
 };
 
 const apply = (s: BaseState, e: Event): BaseState => {

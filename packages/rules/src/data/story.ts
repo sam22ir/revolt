@@ -22,7 +22,8 @@ export type Objective =
 
 export interface ChapterReward {
   readonly resources: Resources;
-  readonly shards: Readonly<Partial<Record<HeroId, number>>>;
+  /** Shards for the first owned hero of the background roster; none if the player owns no hero yet. */
+  readonly shards: number;
 }
 
 export interface StoryChapter {
@@ -38,14 +39,14 @@ export interface StoryChapter {
 const r = (food: number, materiel: number, funds: number, support: number): Resources => ({ food, materiel, funds, support });
 
 // Placeholder balance for M5. Chapter 1 can be finished from the starting resources, and its reward pays for the first
-// hero (courier: 10 shards, 20 support), so a new player needs no other source.
+// recruit draw (funds), so a new player needs no other source.
 export const STORY: Readonly<Record<BackgroundId, readonly StoryChapter[]>> = {
   algeria: [
     {
       id: "ch1",
       scenes: 2,
       objectives: [{ kind: "building_level", building: "hq", level: 2 }],
-      reward: { resources: r(100, 100, 100, 30), shards: { courier: 10 } },
+      reward: { resources: r(100, 100, 300, 30), shards: 10 },
       reviewed: false,
     },
     {
@@ -55,7 +56,7 @@ export const STORY: Readonly<Record<BackgroundId, readonly StoryChapter[]>> = {
         { kind: "hero_recruited", hero: null },
         { kind: "troops_owned", count: 20 },
       ],
-      reward: { resources: r(200, 200, 200, 20), shards: { courier: 20 } },
+      reward: { resources: r(200, 200, 200, 20), shards: 20 },
       reviewed: false,
     },
     {
@@ -65,7 +66,7 @@ export const STORY: Readonly<Record<BackgroundId, readonly StoryChapter[]>> = {
         { kind: "victories", count: 1 },
         { kind: "hero_level", hero: null, level: 2 },
       ],
-      reward: { resources: r(400, 400, 400, 40), shards: { medic: 10 } },
+      reward: { resources: r(400, 400, 400, 40), shards: 10 },
       reviewed: false,
     },
   ],
@@ -76,7 +77,7 @@ export const STORY: Readonly<Record<BackgroundId, readonly StoryChapter[]>> = {
       id: "ch1",
       scenes: 2,
       objectives: [{ kind: "building_level", building: "hq", level: 2 }],
-      reward: { resources: r(100, 100, 100, 30), shards: { trail_scout: 10 } },
+      reward: { resources: r(100, 100, 300, 30), shards: 10 },
       reviewed: false,
     },
     {
@@ -86,7 +87,7 @@ export const STORY: Readonly<Record<BackgroundId, readonly StoryChapter[]>> = {
         { kind: "hero_recruited", hero: null },
         { kind: "troops_owned", count: 20 },
       ],
-      reward: { resources: r(200, 200, 200, 20), shards: { trail_scout: 20 } },
+      reward: { resources: r(200, 200, 200, 20), shards: 20 },
       reviewed: false,
     },
     {
@@ -96,7 +97,7 @@ export const STORY: Readonly<Record<BackgroundId, readonly StoryChapter[]>> = {
         { kind: "victories", count: 1 },
         { kind: "hero_level", hero: null, level: 2 },
       ],
-      reward: { resources: r(400, 400, 400, 40), shards: { field_medic: 10 } },
+      reward: { resources: r(400, 400, 400, 40), shards: 10 },
       reviewed: false,
     },
   ],

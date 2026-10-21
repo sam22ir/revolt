@@ -74,7 +74,7 @@ const renderDetail = (r: BattleReport): HTMLElement => {
     heroes.append(el("h4", "panel-sub", t("report.heroes")));
     const names = el("ul", "report-hero-list");
     for (const h of r.heroes) {
-      names.append(el("li", undefined, t("report.heroEntry", { name: t(`hero.${h.id}.name`), level: formatAmount(lang, h.level) })));
+      names.append(el("li", undefined, t(`hero.${h}.name`)));
     }
     heroes.append(names);
     box.append(heroes);

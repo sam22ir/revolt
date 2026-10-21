@@ -7,10 +7,9 @@ import {
   chaptersFor,
   claimChapter,
   currentChapter,
-  HERO_IDS,
+  HERO_DRAW_COST,
   MAX_HERO_LEVEL,
   objectiveProgress,
-  recruitHero,
   startUpgrade,
   storageCap,
   STORY,
@@ -24,7 +23,7 @@ const chapters = chaptersFor();
 describe("objectives", () => {
   const s = withHeroes(
     { ...base(), troops: { infantry: 10, scouts: 5, heavy: 0, porters: 0 }, story: { chapter: 0, victories: 2 } },
-    { medic: { level: 3, shards: 0 } },
+    { dock_foreman: { level: 3, shards: 0 } },
   );
 
   test("each kind is computed from state", () => {
@@ -34,10 +33,10 @@ describe("objectives", () => {
     expect(check({ kind: "troops_owned", count: 15 }).done).toBe(true);
     expect(check({ kind: "troops_owned", count: 16 }).done).toBe(false);
     expect(check({ kind: "hero_recruited", hero: null }).done).toBe(true);
-    expect(check({ kind: "hero_recruited", hero: "courier" }).done).toBe(false);
+    expect(check({ kind: "hero_recruited", hero: "mountain_guide" }).done).toBe(false);
     expect(check({ kind: "hero_level", hero: null, level: 3 }).done).toBe(true);
-    expect(check({ kind: "hero_level", hero: "medic", level: 4 })).toEqual({ done: false, have: 3, need: 4 });
-    expect(check({ kind: "hero_level", hero: "courier", level: 1 }).done).toBe(false);
+    expect(check({ kind: "hero_level", hero: "dock_foreman", level: 4 })).toEqual({ done: false, have: 3, need: 4 });
+    expect(check({ kind: "hero_level", hero: "mountain_guide", level: 1 }).done).toBe(false);
     expect(check({ kind: "victories", count: 2 }).done).toBe(true);
   });
 
@@ -76,15 +75,24 @@ describe("claiming chapters", () => {
     const claim = claimChapter(done, T0 + 60 * SEC);
     if (!claim.ok) throw new Error(claim.reason);
     expect(claim.state.story.chapter).toBe(1);
-    expect(claim.state.heroes.courier.shards).toBe(10);
   });
 
-  test("the chapter 1 reward pays for the first hero, so no other source is needed", () => {
+  test("the chapter 1 reward covers a recruit draw in funds, so no other source is needed", () => {
     const up = startUpgrade(createBaseState(T0), "hq", T0);
     if (!up.ok) throw new Error(up.reason);
     const claim = claimChapter(up.state, T0 + 60 * SEC);
     if (!claim.ok) throw new Error(claim.reason);
-    expect(recruitHero(claim.state, "courier", T0 + 60 * SEC).ok).toBe(true);
+    expect(claim.state.resources.funds).toBeGreaterThanOrEqual(HERO_DRAW_COST.funds);
+  });
+
+  test("chapter shards go to the first owned hero of the background, and nowhere if none is owned", () => {
+    const owned = claimChapter(withHeroes(withReady(1), { dock_foreman: { level: 1, shards: 0 }, mountain_guide: { level: 1, shards: 1 } }), T0);
+    if (!owned.ok) throw new Error(owned.reason);
+    expect(owned.state.heroes.owned.mountain_guide?.shards).toBe(1 + chapters[1]!.reward.shards);
+    expect(owned.state.heroes.owned.dock_foreman?.shards).toBe(0);
+    const none = claimChapter(withReady(0), T0);
+    if (!none.ok) throw new Error(none.reason);
+    expect(Object.keys(none.state.heroes.owned)).toHaveLength(0);
   });
 
   test("claiming the same chapter twice is refused: it advances once", () => {
@@ -92,7 +100,7 @@ describe("claiming chapters", () => {
     if (!first.ok) throw new Error(first.reason);
     expect(first.state.story.chapter).toBe(1);
     expect(claimChapter(first.state, T0).ok).toBe(false);
-    expect(first.state.heroes.courier.shards).toBe(10);
+    expect(Object.keys(first.state.heroes.owned)).toHaveLength(0);
   });
 
   test("the whole campaign claims in order, then reports story_complete", () => {
@@ -144,11 +152,11 @@ describe("story data", () => {
     for (const bg of Object.values(STORY)) for (const c of bg) expect(c.reviewed, `${c.id} reviewed`).toBe(false);
   });
 
-  test("every chapter has scenes and objectives, and rewards only known heroes", () => {
+  test("every chapter has scenes and objectives, and a non-negative shard reward", () => {
     for (const c of chapters) {
       expect(c.scenes).toBeGreaterThan(0);
       expect(c.objectives.length).toBeGreaterThan(0);
-      for (const id of Object.keys(c.reward.shards)) expect(HERO_IDS.some((h) => h === id)).toBe(true);
+      expect(c.reward.shards).toBeGreaterThanOrEqual(0);
       for (const o of c.objectives) {
         if (o.kind === "building_level") expect(BUILDING_IDS.includes(o.building)).toBe(true);
         if (o.kind === "hero_level") expect(o.level).toBeLessThanOrEqual(MAX_HERO_LEVEL);
@@ -163,8 +171,8 @@ function withReady(index: number, from: BaseState = base()): BaseState {
   for (const o of chapters[index]!.objectives) {
     if (o.kind === "building_level") s = { ...s, levels: { ...s.levels, [o.building]: o.level } };
     if (o.kind === "troops_owned") s = { ...s, troops: { ...s.troops, infantry: Math.max(s.troops.infantry, o.count) } };
-    if (o.kind === "hero_recruited") s = withHeroes(s, { courier: { level: Math.max(1, s.heroes.courier.level), shards: s.heroes.courier.shards } });
-    if (o.kind === "hero_level") s = withHeroes(s, { courier: { level: Math.max(o.level, s.heroes.courier.level), shards: s.heroes.courier.shards } });
+    if (o.kind === "hero_recruited") s = withHeroes(s, { mountain_guide: { level: Math.max(1, s.heroes.owned.mountain_guide?.level ?? 0), shards: s.heroes.owned.mountain_guide?.shards ?? 0 } });
+    if (o.kind === "hero_level") s = withHeroes(s, { mountain_guide: { level: Math.max(o.level, s.heroes.owned.mountain_guide?.level ?? 0), shards: s.heroes.owned.mountain_guide?.shards ?? 0 } });
     if (o.kind === "victories") s = { ...s, story: { ...s.story, victories: Math.max(o.count, s.story.victories) } };
   }
   return s;

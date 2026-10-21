@@ -112,13 +112,16 @@ describe("claiming rewards", () => {
 
   test("two claims at once pay once", async () => {
     const f = await fighter(server);
+    await editBase(server, f.id, (s) => {
+      s.heroes.owned.mountain_guide = { level: 1, shards: 0 };
+    });
     await seedAward(server, f.id, KEY, 700);
     server.now = eventWindow("supply_route", 40).endsAt + 1;
     const results = await Promise.all([1, 2, 3].map(() => post(server, f.token, "/v1/events/claim", { event: KEY })));
     expect(results.filter((r) => r.ok)).toHaveLength(1);
     expect(results.filter((r) => !r.ok).every((r) => r.reason === "already_claimed" || r.error === "conflict")).toBe(true);
     expect((await get(server, f.token, "/v1/store")).wallet.speedupTokens).toBe(EVENTS.supply_route.tiers[2]!.reward.speedupTokens);
-    expect((await getState(server, f.token)).heroes.courier.shards).toBe(EVENTS.supply_route.tiers[2]!.reward.shards);
+    expect((await getState(server, f.token)).heroes.owned.mountain_guide.shards).toBe(EVENTS.supply_route.tiers[2]!.reward.shards);
   });
 
   test("a claim whose base write loses its race is applied once on the retry", async () => {

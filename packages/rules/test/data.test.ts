@@ -5,15 +5,13 @@ import {
   BUILDING_IDS,
   BUILDINGS,
   COMBAT_TROOP_IDS,
+  BACKGROUND_IDS,
   HERO_IDS,
-  HERO_LEVEL_UP,
+  heroesFor,
   HERO_RARITIES,
   HEROES,
   MAX_BUILDING_LEVEL,
-  MAX_HERO_LEVEL,
-  MAX_SQUAD,
   NPC_LEVELS,
-  NPC_SHARD_DROP,
   RESOURCE_IDS,
   STORAGE_CAPS,
 } from "../src/index.ts";
@@ -51,42 +49,19 @@ describe("balance tables", () => {
 });
 
 describe("hero tables", () => {
-  test("level-up costs rise and cover every level below the top", () => {
-    expect(HERO_LEVEL_UP).toHaveLength(MAX_HERO_LEVEL - 1);
-    HERO_LEVEL_UP.forEach((row, i) => {
-      if (i === 0) return;
-      expect(row.shards).toBeGreaterThan(HERO_LEVEL_UP[i - 1]!.shards);
-      for (const id of RESOURCE_IDS) expect(row.resources[id]).toBeGreaterThanOrEqual(HERO_LEVEL_UP[i - 1]!.resources[id]);
-    });
-  });
-
-  test("every hero has a combat specialty, a command skill from level 1 and two passives that unlock in range", () => {
+  test("every hero has a combat specialty and rarity", () => {
     for (const id of HERO_IDS) {
-      const h = HEROES[id];
-      expect(HERO_RARITIES).toContain(h.rarity);
-      expect(COMBAT_TROOP_IDS as readonly string[]).toContain(h.specialty);
-      expect(h.skills.filter((s) => s.slot === "command")).toHaveLength(1);
-      expect(h.skills.filter((s) => s.slot === "passive")).toHaveLength(2);
-      for (const sk of h.skills) {
-        expect(sk.unlockLevel, `${id} unlock`).toBeGreaterThanOrEqual(1);
-        expect(sk.unlockLevel, `${id} unlock`).toBeLessThanOrEqual(MAX_HERO_LEVEL);
-        expect(sk.base).toBeGreaterThan(0);
-      }
-      expect(h.skills.find((s) => s.slot === "command")!.unlockLevel).toBe(1);
-      expect(h.recruitShards).toBeGreaterThan(0);
+      expect(HERO_RARITIES).toContain(HEROES[id].rarity);
+      expect(COMBAT_TROOP_IDS as readonly string[]).toContain(HEROES[id].specialty);
     }
   });
 
-  test("rarer heroes cost more to recruit", () => {
-    const cost = (r: string): number => Math.max(...HERO_IDS.filter((id) => HEROES[id].rarity === r).map((id) => HEROES[id].recruitShards));
-    expect(cost("rare")).toBeGreaterThan(cost("common"));
-    expect(cost("legendary")).toBeGreaterThan(cost("rare"));
-  });
-
-  test("shard drops cover every NPC level and grow with it; a squad is lead plus two", () => {
-    expect(NPC_SHARD_DROP).toHaveLength(NPC_LEVELS.length);
-    NPC_SHARD_DROP.forEach((n, i) => i > 0 && expect(n).toBeGreaterThan(NPC_SHARD_DROP[i - 1]!));
-    expect(MAX_SQUAD).toBe(3);
+  test("each background roster can draw every rarity, and the rosters partition the hero ids", () => {
+    const all = BACKGROUND_IDS.flatMap((b) => [...heroesFor(b)]);
+    expect([...all].sort()).toEqual([...HERO_IDS].sort());
+    for (const b of BACKGROUND_IDS) {
+      for (const rarity of HERO_RARITIES) expect(heroesFor(b).some((id) => HEROES[id].rarity === rarity), `${b} ${rarity}`).toBe(true);
+    }
   });
 });
 

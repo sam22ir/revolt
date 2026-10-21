@@ -1,24 +1,27 @@
 import {
-  busyHeroes,
+  canAfford,
   chapterStatus,
-  checkLevelUp,
-  checkRecruit,
   currentChapter,
   DEFAULT_BACKGROUND,
+  heroBattleModifier,
   heroesFor,
+  heroesOnMarch,
   heroLevelCap,
-  heroMods,
+  HERO_DRAW_COST,
+  HERO_DRAW_MIN_HALL,
   HEROES,
-  levelUpCost,
-  MAX_HERO_LEVEL,
+  levelUpHero,
+  shardsToNextLevel,
+  snapshotHeroes,
   TROOP_IDS,
   type BackgroundId,
   type BaseState,
-  type HeroBlockReason,
   type HeroDef,
+  type HeroDrawBlockReason,
+  type HeroEntry,
   type HeroId,
-  type HeroLevelUpCost,
-  type HeroProgress,
+  type HeroLevelBlockReason,
+  type HeroLoadout,
   type StoryChapter,
 } from "@revolt/rules";
 
@@ -26,59 +29,65 @@ import {
 export interface HeroCard {
   readonly id: HeroId;
   readonly def: HeroDef;
-  readonly progress: HeroProgress;
-  readonly recruited: boolean;
+  /** The player's entry for this hero, or null while not recruited. */
+  readonly owned: HeroEntry | null;
   /** Away with a march. */
   readonly busy: boolean;
-  /** Why Recruit is off, or null when it can be pressed. Only meaningful while not recruited. */
-  readonly recruit: HeroBlockReason | null;
-  /** Why Level up is off, or null. Only meaningful while recruited. */
-  readonly levelUp: HeroBlockReason | null;
-  /** Cost of the next level, or null at the top. */
-  readonly nextCost: HeroLevelUpCost | null;
+  /** Why Level up is off, or null. Only meaningful while owned. */
+  readonly levelUp: HeroLevelBlockReason | null;
+  /** Shards for the next level, or null at the top. */
+  readonly nextShards: number | null;
   /** Highest level the hero hall allows now. */
   readonly cap: number;
 }
 
-export const heroCard = (state: BaseState, id: HeroId, background: BackgroundId = DEFAULT_BACKGROUND): HeroCard => {
-  const progress = state.heroes[id];
-  const recruited = progress.level > 0;
+export const heroCard = (state: BaseState, id: HeroId): HeroCard => {
+  const owned = state.heroes.owned[id] ?? null;
+  const check = owned === null ? null : levelUpHero(state, id);
   return {
     id,
     def: HEROES[id],
-    progress,
-    recruited,
-    busy: busyHeroes(state).has(id),
-    recruit: recruited ? "already_recruited" : checkRecruit(state, id, background),
-    levelUp: recruited ? checkLevelUp(state, id) : "not_recruited",
-    nextCost: recruited && progress.level < MAX_HERO_LEVEL ? levelUpCost(progress.level) : null,
+    owned,
+    busy: heroesOnMarch(state).has(id),
+    levelUp: check === null || check.ok ? null : check.reason,
+    nextShards: owned === null ? null : shardsToNextLevel(owned.level),
     cap: heroLevelCap(state.levels.hero_hall),
   };
 };
 
-/** The background's own heroes, recruited first, then the rest, each group in table order. */
+/** The background's own heroes, owned first, then the rest, each group in table order. */
 export const heroCards = (state: BaseState, background: BackgroundId = DEFAULT_BACKGROUND): HeroCard[] => {
-  const cards = heroesFor(background).map((id) => heroCard(state, id, background));
-  return [...cards.filter((c) => c.recruited), ...cards.filter((c) => !c.recruited)];
+  const cards = heroesFor(background).map((id) => heroCard(state, id));
+  return [...cards.filter((c) => c.owned !== null), ...cards.filter((c) => c.owned === null)];
 };
 
-/** Heroes that can lead or join a march now: recruited and not already out. */
+/** Why a recruit draw cannot be made now, or null. The draw itself is the server's (it picks the seed). */
+export const recruitBlock = (state: BaseState): HeroDrawBlockReason | null => {
+  if (state.levels.hero_hall < HERO_DRAW_MIN_HALL) return "hero_hall_level";
+  return canAfford(state.resources, HERO_DRAW_COST) ? null : "insufficient";
+};
+
+/** Heroes that can lead or join a march now: owned and not already out. */
 export const availableHeroes = (state: BaseState, background: BackgroundId = DEFAULT_BACKGROUND): HeroId[] => {
-  const busy = busyHeroes(state);
-  return heroesFor(background).filter((id) => state.heroes[id].level > 0 && !busy.has(id));
+  const busy = heroesOnMarch(state);
+  return heroesFor(background).filter((id) => state.heroes.owned[id] !== undefined && !busy.has(id));
 };
 
 export interface BonusSummary {
+  /** Best attack bonus over the troop types it helps, in whole percent. */
   readonly attack: number;
-  readonly hp: number;
-  readonly carry: number;
+  /** Share of damage the whole force no longer takes, in whole percent. */
+  readonly defense: number;
 }
 
-/** The squad's best bonus in whole percent, over the troop types it helps. All zero for an empty squad. */
-export const bonusSummary = (state: BaseState, ids: readonly HeroId[]): BonusSummary => {
-  const mods = heroMods(ids.map((id) => ({ id, level: state.heroes[id].level })));
-  const best = (pick: (id: (typeof TROOP_IDS)[number]) => number): number => Math.round(Math.max(...TROOP_IDS.map(pick)) * 100 - 100);
-  return { attack: best((id) => mods.attack[id]), hp: best((id) => mods.hp[id]), carry: Math.round(mods.carry * 100 - 100) };
+/** What a loadout brings, in whole percent, computed by the same rules the battle uses. All zero for no heroes. */
+export const bonusSummary = (state: BaseState, loadout: HeroLoadout | null): BonusSummary => {
+  if (loadout === null) return { attack: 0, defense: 0 };
+  const mod = heroBattleModifier(snapshotHeroes(state.heroes, loadout));
+  return {
+    attack: Math.round(Math.max(...TROOP_IDS.map((id) => mod.attack[id])) * 100 - 100),
+    defense: Math.round((1 - mod.damageTaken) * 100),
+  };
 };
 
 export interface StoryView {

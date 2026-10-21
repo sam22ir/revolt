@@ -3,6 +3,8 @@ import type Phaser from "phaser";
 /** Where a sprite's ground anchor sits in its texture (px) and how wide it should be drawn (world px). */
 export interface SpriteSpec {
   readonly texture: string;
+  /** Frame name inside an atlas texture, if the sprite is one frame of an atlas. */
+  readonly frame?: string;
   /** Texture size and the point that lands on the target position. */
   readonly w: number;
   readonly anchorX: number;
@@ -35,7 +37,7 @@ export class SpritePool {
     this.used++;
     const ax = flip ? spec.w - spec.anchorX : spec.anchorX;
     img
-      .setTexture(spec.texture)
+      .setTexture(spec.texture, spec.frame)
       .setFlipX(flip)
       .setScale(spec.scale * k)
       .setPosition(x - ax * spec.scale * k, y - spec.anchorY * spec.scale * k)

@@ -94,6 +94,9 @@ for (const [i, { locale, lang, dir }] of LOCALES.entries()) {
     });
     await screenshot(a, `${SHOTS}/${lang}-m3-3b-march-marker.png`);
 
+    // Where the march ends, read while it is still on the map (it leaves the snapshot on arrival).
+    const battleTo = await a.evaluate(() => window.__revolt!.map!.snapshot()!.marches.find((x) => x.mine)!.to);
+
     // Arrival: the map's alarm fights the battle and pushes the report.
     await setTime([a, b], request, m.arriveAt);
     await expect(a.getByTestId("report-toast-open")).toBeVisible({ timeout: 15_000 });
@@ -103,10 +106,7 @@ for (const [i, { locale, lang, dir }] of LOCALES.entries()) {
     await screenshot(a, `${SHOTS}/${lang}-m3-4-report.png`);
     // The battle marker shows at the target for a few seconds after arrival (the clock is fixed, so it is still up).
     await a.getByTestId("reports").locator(".panel-close").click();
-    await a.evaluate(() => {
-      const to = window.__revolt!.map!.snapshot()!.marches.find((x) => x.mine)!.to;
-      window.__revolt!.map!.centerOn(to.x, to.y);
-    });
+    await a.evaluate((to) => window.__revolt!.map!.centerOn(to.x, to.y), battleTo);
     await screenshot(a, `${SHOTS}/${lang}-m3-3c-battle-marker.png`);
 
     // Return: the survivors are home, the march is gone from both maps.

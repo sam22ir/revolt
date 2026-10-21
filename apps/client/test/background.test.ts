@@ -3,6 +3,7 @@ import {
   createBaseState,
   heroesFor,
   recruitHero,
+  seededRng,
   startUpgrade,
   type BackgroundId,
   type BaseState,
@@ -95,16 +96,10 @@ describe("hero view by background", () => {
     const s = createBaseState(T0);
     expect(heroCards(s, "vietnam").map((c) => c.id).sort()).toEqual([...heroesFor("vietnam")].sort());
     expect(heroCards(s, "algeria").map((c) => c.id).sort()).toEqual([...heroesFor("algeria")].sort());
-    expect(heroCards(s)).toHaveLength(6);
-    const owned: BaseState = { ...s, heroes: { ...s.heroes, courier: { level: 1, shards: 0 }, trail_scout: { level: 1, shards: 0 } } };
+    expect(heroCards(s)).toHaveLength(4);
+    const owned: BaseState = { ...s, heroes: { ...s.heroes, owned: { mountain_guide: { level: 1, shards: 0 }, trail_scout: { level: 1, shards: 0 } } } };
     expect(availableHeroes(owned, "vietnam")).toEqual(["trail_scout"]);
-    expect(availableHeroes(owned, "algeria")).toEqual(["courier"]);
-  });
-
-  test("an Algeria hero card on a Vietnam account cannot be recruited", () => {
-    const s = { ...createBaseState(T0), resources: { food: 0, materiel: 0, funds: 0, support: 500 }, heroes: { ...createBaseState(T0).heroes, courier: { level: 0, shards: 50 } } };
-    expect(heroCard(s, "courier", "algeria").recruit).toBeNull();
-    expect(heroCard(s, "courier", "vietnam").recruit).toBe("unknown_hero");
+    expect(availableHeroes(owned, "algeria")).toEqual(["mountain_guide"]);
   });
 
   test("the story view follows the background's chapters", () => {
@@ -145,10 +140,10 @@ const fakeServer = (background: BackgroundId, initial: BaseState = createBaseSta
       if (!valid.has(token)) throw new ApiError(401, "unauthorized");
       return { account: account(background), state, now: T0 };
     },
-    heroRecruit: async (_t, hero): Promise<HeroReply> => {
-      const r = recruitHero(state, hero, T0, background);
+    heroRecruit: async (): Promise<HeroReply> => {
+      const r = recruitHero(state, T0, seededRng(3), background);
       state = r.state;
-      return r.ok ? { ok: true, state, now: T0 } : { ok: false, reason: r.reason, state, now: T0 };
+      return r.ok ? { ok: true, state, now: T0, draw: { heroId: r.draw.heroId, rarity: r.draw.rarity, duplicate: r.draw.duplicate, forced: r.draw.forced } } : { ok: false, reason: r.reason, state, now: T0 };
     },
     storyClaim: async (): Promise<StoryReply> => {
       calls.push("claim");
@@ -225,17 +220,16 @@ describe("the game store and the chosen background", () => {
     if (!predicted.ok) throw new Error(predicted.reason);
     expect(await store.claimChapter()).toEqual({ ok: true });
     expect(store.state().story.chapter).toBe(1);
-    expect(store.state().heroes.trail_scout.shards).toBe(10);
-    expect(store.state().heroes.courier.shards).toBe(0);
     expect(store.state()).toEqual(f.state());
     expect(store.state().heroes).toEqual(predicted.state.heroes);
   });
 
-  test("an Algeria hero is refused locally for a Vietnam account and never sent", async () => {
+  test("a recruit on a Vietnam account only ever yields a Vietnam hero", async () => {
     const s = createBaseState(T0);
-    const f = fakeServer("vietnam", { ...s, resources: { ...s.resources, support: 500 }, heroes: { ...s.heroes, courier: { level: 0, shards: 50 }, trail_scout: { level: 0, shards: 50 } } });
+    const f = fakeServer("vietnam", { ...s, levels: { ...s.levels, hero_hall: 3 }, resources: { ...s.resources, funds: 900 } });
     const store = await connectGameStore({ api: f.api, storage: memoryStorage({ [SESSION_KEY]: "tok-1" }), clock: () => T0 });
-    expect(await store.recruitHero("courier")).toEqual({ ok: false, reason: "unknown_hero" });
-    expect(await store.recruitHero("trail_scout")).toEqual({ ok: true });
+    const out = await store.recruitHero();
+    if (!out.ok || out.draw === undefined) throw new Error("no draw");
+    expect(heroesFor("vietnam")).toContain(out.draw.heroId);
   });
 });

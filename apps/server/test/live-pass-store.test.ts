@@ -58,10 +58,13 @@ describe("battle pass", () => {
     expect((await post(server, f.token, "/v1/pass/claim", { tier: 5, track: "premium" })).ok).toBe(true);
     const owned = (await get(server, f.token, "/v1/store")).cosmetics.owned;
     expect(owned).toContain(PASS_TIERS[4]!.premium.cosmetic);
+    await editBase(server, f.id, (s) => {
+      s.heroes.owned.mountain_guide = { level: 1, shards: 0 };
+    });
     // Shards are never on the premium track: only the free tier 5 gives them.
-    expect((await getState(server, f.token)).heroes.courier.shards).toBe(0);
+    expect((await getState(server, f.token)).heroes.owned.mountain_guide.shards).toBe(0);
     expect((await post(server, f.token, "/v1/pass/claim", { tier: 5, track: "free" })).ok).toBe(true);
-    expect((await getState(server, f.token)).heroes.courier.shards).toBe(PASS_TIERS[4]!.free.shards);
+    expect((await getState(server, f.token)).heroes.owned.mountain_guide.shards).toBe(PASS_TIERS[4]!.free.shards);
   });
 
   test("a new season starts again from nothing; the premium unlock was for the old one", async () => {

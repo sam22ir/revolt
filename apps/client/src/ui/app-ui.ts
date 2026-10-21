@@ -219,9 +219,9 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       onClose: () => select(null),
     });
     const dialog = createMarchDialog({
-      onSend: (id, troops, squad) => deps.store.march(id, troops, squad),
-      onRallyStart: (id, troops, gatherMs, squad) => deps.store.startRally(id, troops, gatherMs, squad),
-      onRallyJoin: (rallyId, troops, squad) => deps.store.joinRally(rallyId, troops, squad),
+      onSend: (id, troops, loadout) => deps.store.march(id, troops, loadout),
+      onRallyStart: (id, troops, gatherMs) => deps.store.startRally(id, troops, gatherMs),
+      onRallyJoin: (rallyId, troops) => deps.store.joinRally(rallyId, troops),
       onClosed: noop,
     });
     const tilePanel = createTilePanel({
@@ -262,7 +262,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       onClose: noop,
     });
     const heroes = createHeroesPanel({
-      onRecruit: (id) => deps.store.recruitHero(id),
+      onRecruit: () => deps.store.recruitHero(),
       onLevel: (id) => deps.store.levelHero(id),
       onOpen: () => {
         select(null);

@@ -1,5 +1,5 @@
 import { DurableObject } from "cloudflare:workers";
-import type { HeroId, MapPoint, MapSnapshot, Troops } from "@revolt/rules";
+import type { HeroLoadout, MapPoint, MapSnapshot, Troops } from "@revolt/rules";
 import type { Env } from "../env.ts";
 import { MapHost, type MapSocket } from "./map-host.ts";
 import { MapService, type HqResult, type MapViewer, type SendMarchResult } from "./map-service.ts";
@@ -55,24 +55,24 @@ export class WorldMap extends DurableObject<Env> {
     });
   }
 
-  async sendMarch(map: string, viewer: MapViewer, npcId: string, troops: Troops, heroes: readonly HeroId[], now: number): Promise<SendMarchResult> {
+  async sendMarch(map: string, viewer: MapViewer, npcId: string, troops: Troops, heroes: HeroLoadout | null, now: number): Promise<SendMarchResult> {
     return this.mapHost().run(now, (s) => {
       s.rememberName(map);
       return s.sendMarch(viewer, npcId, troops, heroes, now);
     });
   }
 
-  async startRally(map: string, viewer: MapViewer, npcId: string, troops: Troops, heroes: readonly HeroId[], gatherMs: number, now: number): Promise<SendMarchResult> {
+  async startRally(map: string, viewer: MapViewer, npcId: string, troops: Troops, gatherMs: number, now: number): Promise<SendMarchResult> {
     return this.mapHost().run(now, (s) => {
       s.rememberName(map);
-      return s.startRally(viewer, npcId, troops, heroes, gatherMs, now);
+      return s.startRally(viewer, npcId, troops, gatherMs, now);
     });
   }
 
-  async joinRally(map: string, viewer: MapViewer, rallyId: string, troops: Troops, heroes: readonly HeroId[], now: number): Promise<SendMarchResult> {
+  async joinRally(map: string, viewer: MapViewer, rallyId: string, troops: Troops, now: number): Promise<SendMarchResult> {
     return this.mapHost().run(now, (s) => {
       s.rememberName(map);
-      return s.joinRally(viewer, rallyId, troops, heroes, now);
+      return s.joinRally(viewer, rallyId, troops, now);
     });
   }
 

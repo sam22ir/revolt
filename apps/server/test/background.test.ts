@@ -1,4 +1,4 @@
-import { chaptersFor, heroesFor, HEROES_BY_BACKGROUND, type BackgroundId } from "@revolt/rules";
+import { chaptersFor, heroesFor, type BackgroundId } from "@revolt/rules";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { MANY_GUESTS, create, join, call, type Player } from "./alliance-helpers.ts";
 import { body, startServer, type Json, type Server } from "./harness.ts";
@@ -98,44 +98,50 @@ describe("separation of the two servers", () => {
 });
 
 describe("story and heroes per background", () => {
-  test("a Vietnam story claim pays Vietnam heroes only", async () => {
+  test("a Vietnam story claim moves the Vietnam chapter on and pays resources", async () => {
     const v = await playerOn("vietnam");
     expect((await body(await intent(server, v.token, { type: "upgrade", building: "hq" }))).ok).toBe(true);
     server.now += 60_000;
     const r = await body(await intent(server, v.token, { type: "story_claim" }));
     expect(r.ok).toBe(true);
     expect(r.state.story.chapter).toBe(1);
-    const reward = chaptersFor("vietnam")[0]!.reward.shards;
-    expect(r.state.heroes.trail_scout.shards).toBe(reward.trail_scout);
-    for (const id of HEROES_BY_BACKGROUND.algeria) expect(r.state.heroes[id].shards, id).toBe(0);
+    expect(chaptersFor("vietnam")[0]!.reward.shards).toBeGreaterThan(0);
+    // No hero owned yet, so no shards were banked anywhere.
+    expect(Object.keys(r.state.heroes.owned)).toHaveLength(0);
     expect(await getState(server, v.token)).toEqual(r.state);
-    expect((await heroIntent(server, v.token, "hero_recruit", "trail_scout")).ok).toBe(true);
   });
 
-  test("an Algeria hero is refused for a Vietnam account, and the other way round, even with the shards", async () => {
+  test("a recruit draws only from the account's own background roster", async () => {
     const v = await playerOn("vietnam");
     const a = await playerOn("algeria");
-    const rich = (s: Json): void => {
-      s.resources.support = 500;
-      for (const id of [...heroesFor("algeria"), ...heroesFor("vietnam")]) s.heroes[id].shards = 100;
+    const ready = (s: Json): void => {
+      s.levels.hero_hall = 5;
+      s.resources.funds = 100_000;
     };
-    await editBase(server, v.id, rich);
-    await editBase(server, a.id, rich);
-    expect(await heroIntent(server, v.token, "hero_recruit", "courier")).toMatchObject({ ok: false, reason: "unknown_hero" });
-    expect(await heroIntent(server, a.token, "hero_recruit", "trail_scout")).toMatchObject({ ok: false, reason: "unknown_hero" });
-    expect((await heroIntent(server, v.token, "hero_recruit", "column_commander")).ok).toBe(true);
-    expect((await heroIntent(server, a.token, "hero_recruit", "field_commander")).ok).toBe(true);
-    // Not recruited, so it can neither level up nor march.
-    expect(await heroIntent(server, v.token, "hero_level", "courier")).toMatchObject({ ok: false, reason: "not_recruited" });
+    await editBase(server, v.id, ready);
+    await editBase(server, a.id, ready);
+    for (let i = 0; i < 8; i++) {
+      const vr = await heroIntent(server, v.token, "recruit");
+      expect(vr.ok).toBe(true);
+      expect(heroesFor("vietnam")).toContain(vr.draw.heroId);
+      const ar = await heroIntent(server, a.token, "recruit");
+      expect(ar.ok).toBe(true);
+      expect(heroesFor("algeria")).toContain(ar.draw.heroId);
+    }
   });
 
-  test("an old stored base with six heroes is read, migrated and played", async () => {
+  test("a hero that is not owned cannot level up", async () => {
+    const v = await playerOn("vietnam");
+    expect(await heroIntent(server, v.token, "hero_level", "trail_scout")).toMatchObject({ ok: false, reason: "not_owned" });
+  });
+
+  test("an old stored base without a story is read, migrated and played", async () => {
     const a = await playerOn("algeria");
     await editBase(server, a.id, (s) => {
-      for (const id of HEROES_BY_BACKGROUND.vietnam) delete s.heroes[id];
+      delete s.story;
     });
     const st = await getState(server, a.token);
-    expect(st.heroes.trail_scout).toEqual({ level: 0, shards: 0 });
+    expect(st.story).toEqual({ chapter: 0, victories: 0 });
     expect((await body(await intent(server, a.token, { type: "upgrade", building: "hq" }))).ok).toBe(true);
   });
 });

@@ -6,7 +6,7 @@ import {
   TROOP_IDS,
   TROOPS,
   type BaseState,
-  type HeroId,
+  type HeroLoadout,
   type MapBaseView,
   type MapHqView,
   type MapNpcView,
@@ -63,7 +63,7 @@ export interface MarchPreview {
 }
 
 /** What the send-march dialog shows for the troops chosen so far. */
-export const previewMarch = (state: BaseState, from: MapPoint, to: MapPoint, troops: Troops, heroes: readonly HeroId[] = []): MarchPreview => {
+export const previewMarch = (state: BaseState, from: MapPoint, to: MapPoint, troops: Troops, heroes: HeroLoadout | null = null): MarchPreview => {
   const ms = travelMs(from, to, troops);
   return { travelMs: Number.isFinite(ms) ? ms : null, carry: carryCapacity(troops), reason: checkMarch(state, troops, heroes) };
 };

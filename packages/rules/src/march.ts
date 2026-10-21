@@ -1,13 +1,18 @@
 import { advance } from "./advance.ts";
 import type { BaseState, MapPoint, MarchOutcome, MarchState } from "./base-state.ts";
 import { MAX_MARCHES } from "./data/map.ts";
-import { checkSquad, squadSnapshot, type SquadBlockReason } from "./heroes.ts";
-import type { HeroId } from "./hero-id.ts";
 import { TROOPS } from "./data/troops.ts";
+import { checkLoadout, HERO_LOADOUT_BLOCK_REASONS, type HeroLoadout, snapshotHeroes } from "./hero-loadout.ts";
 import { COMBAT_TROOP_IDS, TROOP_IDS } from "./troop-id.ts";
 import { hasTroops, subtractTroops, type Troops } from "./troops.ts";
 
-export const MARCH_BLOCK_REASONS = ["no_troops", "not_enough_troops", "too_many_marches", "rally_only", "bad_squad", "hero_not_owned", "hero_busy"] as const;
+export const MARCH_BLOCK_REASONS = [
+  "no_troops",
+  "not_enough_troops",
+  "too_many_marches",
+  "rally_only",
+  ...HERO_LOADOUT_BLOCK_REASONS,
+] as const;
 
 export type MarchBlockReason = (typeof MARCH_BLOCK_REASONS)[number];
 
@@ -43,29 +48,30 @@ export const planMarch = (from: MapPoint, to: MapPoint, troops: Troops, now: num
   return { departAt: now, arriveAt: now + leg, returnAt: now + 2 * leg };
 };
 
-/** Checks a march against an already-advanced state. */
-export const checkMarch = (state: BaseState, troops: Troops, heroIds: readonly HeroId[] = []): MarchBlockReason | null => {
+/** Checks a march against an already-advanced state. `loadout` is the heroes it takes, if any. */
+export const checkMarch = (state: BaseState, troops: Troops, loadout: HeroLoadout | null = null): MarchBlockReason | null => {
   if (!COMBAT_TROOP_IDS.some((id) => troops[id] > 0)) return "no_troops";
   if (!hasTroops(state.troops, troops)) return "not_enough_troops";
   if (state.marches.length >= MAX_MARCHES) return "too_many_marches";
-  const squad: SquadBlockReason | null = checkSquad(state, heroIds);
-  if (squad !== null) return squad;
-  return null;
+  return loadout === null ? null : checkLoadout(state, loadout);
 };
 
 /**
- * Sends `march` (its id, target and timing decided by the map server) at `now`:
- * its troops leave home until it returns. Any heroes named in `march.heroes` leave with it; their levels are
- * taken from the state at `now` (the caller's levels are ignored), so the squad is frozen consistently.
+ * Sends `march` (its id, target and timing decided by the map server) at `now`, with the heroes
+ * in `loadout` if any: its troops leave home until it returns, and the heroes stay out with it.
  */
-export const startMarch = (state: BaseState, march: Omit<MarchState, "outcome">, now: number): MarchStartResult => {
+export const startMarch = (
+  state: BaseState,
+  march: Omit<MarchState, "outcome" | "heroes">,
+  now: number,
+  loadout: HeroLoadout | null = null,
+): MarchStartResult => {
   const s = advance(state, now);
-  const ids = (march.heroes ?? []).map((h) => h.id);
-  const reason = checkMarch(s, march.troops, ids);
+  const reason = checkMarch(s, march.troops, loadout);
   if (reason !== null) return { ok: false, reason, state: s };
-  const { heroes: _sent, ...rest } = march;
-  const started: MarchState = { ...rest, ...(ids.length > 0 ? { heroes: squadSnapshot(s, ids) } : {}), outcome: null };
-  return { ok: true, state: { ...s, troops: subtractTroops(s.troops, march.troops), marches: [...s.marches, started] } };
+  const heroes = loadout === null ? undefined : snapshotHeroes(s.heroes, loadout);
+  const entry: MarchState = { ...march, ...(heroes === undefined ? {} : { heroes }), outcome: null };
+  return { ok: true, state: { ...s, troops: subtractTroops(s.troops, march.troops), marches: [...s.marches, entry] } };
 };
 
 /**

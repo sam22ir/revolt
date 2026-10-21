@@ -44,11 +44,10 @@ for (const [i, { locale, lang, dir }] of LOCALES.entries()) {
     await a.getByTestId("heroes-from-hall").click();
     await expect(a.getByTestId("heroes-panel")).toBeVisible();
     await expect(a.getByTestId("building-panel")).toBeHidden();
-    await expect(a.getByTestId("hero-card")).toHaveCount(6);
-    // Nobody is recruited and there are no shards, so Recruit is off with a reason.
-    const courier = a.locator('[data-testid="hero-card"][data-hero="courier"]');
-    await expect(courier.getByTestId("hero-recruit")).toBeDisabled();
-    await expect(courier.getByTestId("hero-reason")).toBeVisible();
+    await expect(a.getByTestId("hero-card")).toHaveCount(4);
+    // The hero hall is still level 1, so the recruit draw is off with a reason.
+    await expect(a.getByTestId("hero-recruit")).toBeDisabled();
+    await expect(a.getByTestId("hero-reason")).toBeVisible();
     await expectNoRawKeys(a);
 
     // Opening the story closes the heroes panel; the draft notice is always there and nothing can be claimed yet.
@@ -87,17 +86,22 @@ for (const [i, { locale, lang, dir }] of LOCALES.entries()) {
     await screenshot(a, `${SHOTS}/${lang}-m5-1-story-ready.png`);
     await a.getByTestId("story-claim").click();
     await expect.poll(async () => (await stateOf(request, a)).story.chapter).toBe(1);
-    expect((await stateOf(request, a)).heroes.courier.shards).toBe(10);
     await expect(a.getByTestId("story-badge")).toBeHidden();
 
-    // Recruit the courier with the chapter's shards and support, then see the card.
+    // Chapter 1 paid funds: raise the hero hall to level 2 (90 s), which opens the recruit draw.
+    await tapBuilding(a, "hero_hall");
+    await a.getByTestId("upgrade").click();
+    await closePanel(a, "building-panel");
+    await setTime([a], request, t0 + 3 * MINUTE);
     await a.getByTestId("heroes-open").click();
     await expect(a.getByTestId("story-panel")).toBeHidden();
-    const courier = a.locator('[data-testid="hero-card"][data-hero="courier"]');
-    await expect(courier.getByTestId("hero-recruit")).toBeEnabled();
-    await courier.getByTestId("hero-recruit").click();
-    await expect(courier).toHaveAttribute("data-state", "recruited");
-    await expect.poll(async () => (await stateOf(request, a)).heroes.courier.level).toBe(1);
+    await expect(a.getByTestId("hero-recruit")).toBeEnabled();
+    await a.getByTestId("hero-recruit").click();
+    await expect(a.getByTestId("hero-drawn")).toBeVisible();
+    const drawn = a.locator('[data-testid="hero-card"][data-state="recruited"]').first();
+    await expect(drawn).toBeVisible();
+    const heroId = (await drawn.getAttribute("data-hero"))!;
+    await expect.poll(async () => (await stateOf(request, a)).heroes.owned[heroId]?.level).toBe(1);
     await expectNoRawKeys(a);
     await screenshot(a, `${SHOTS}/${lang}-m5-2-heroes.png`);
     await closePanel(a, "heroes-panel");
@@ -111,20 +115,21 @@ for (const [i, { locale, lang, dir }] of LOCALES.entries()) {
     await a.getByTestId("train-submit").click();
     await expect(a.getByTestId("training-batch")).toBeVisible();
     await closePanel(a, "building-panel");
-    await setTime([a], request, t0 + 3 * MINUTE);
+    await setTime([a], request, t0 + 10 * MINUTE);
     await expect(a.getByTestId("story-badge")).toBeVisible();
     await a.getByTestId("story-open").click();
     await a.getByTestId("story-claim").click();
     await expect.poll(async () => (await stateOf(request, a)).story.chapter).toBe(2);
     await closePanel(a, "story-panel");
 
-    // Level the courier with the new shards.
+    // Chapter 2's shards went to the hero just drawn: level it up.
     await a.getByTestId("heroes-open").click();
-    await courier.getByTestId("hero-level-up").click();
-    await expect.poll(async () => (await stateOf(request, a)).heroes.courier.level).toBe(2);
+    const card = a.locator(`[data-testid="hero-card"][data-hero="${heroId}"]`);
+    await card.getByTestId("hero-level-up").click();
+    await expect.poll(async () => (await stateOf(request, a)).heroes.owned[heroId]?.level).toBe(2);
     await closePanel(a, "heroes-panel");
 
-    // March against the nearest level-1 target, led by the courier.
+    // March against the nearest level-1 target, led by the drawn hero.
     await openMap(a, 1);
     const npc = await a.evaluate(() => {
       const s = window.__revolt!.map!.snapshot()!;
@@ -135,7 +140,7 @@ for (const [i, { locale, lang, dir }] of LOCALES.entries()) {
     await a.getByTestId("send-march").click();
     await expect(a.getByTestId("march-dialog")).toBeVisible();
     await a.getByTestId("march-count-infantry").fill("20");
-    await a.getByTestId("march-hero-0").selectOption("courier");
+    await a.getByTestId("march-hero-0").selectOption(heroId);
     await expect(a.getByTestId("march-hero-bonus")).toBeVisible();
     await expectNoRawKeys(a);
     await screenshot(a, `${SHOTS}/${lang}-m5-3-march-with-hero.png`);
@@ -143,7 +148,7 @@ for (const [i, { locale, lang, dir }] of LOCALES.entries()) {
     await expect(a.getByTestId("march-dialog")).toBeHidden();
     await expect(a.getByTestId("march-heroes")).toBeVisible();
     const m = (await stateOf(request, a)).marches[0];
-    expect(m.heroes).toEqual([{ id: "courier", level: 2 }]);
+    expect(m.heroes).toEqual({ lead: heroId, deputies: [], levels: { [heroId]: 2 } });
 
     // Arrival: the report names the hero.
     await setTime([a], request, m.arriveAt);
@@ -155,11 +160,10 @@ for (const [i, { locale, lang, dir }] of LOCALES.entries()) {
     await screenshot(a, `${SHOTS}/${lang}-m5-4-report-with-hero.png`);
     await closePanel(a, "reports");
 
-    // Home again: shards from the victory, and chapter 3 is ready.
+    // Home again: the victory counts for the story, and chapter 3 is ready.
     await setTime([a], request, m.returnAt);
     await expect.poll(async () => (await stateOf(request, a)).marches).toEqual([]);
     const home = await stateOf(request, a);
-    expect(home.heroes.courier.shards).toBeGreaterThan(0);
     expect(home.story.victories).toBe(1);
     await expect(a.getByTestId("story-badge")).toBeVisible();
     await a.getByTestId("story-open").click();

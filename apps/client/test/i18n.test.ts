@@ -15,15 +15,17 @@ import {
   SPEEDUP_BLOCK_REASONS,
   STORE_BLOCK_REASONS,
   HELP_KINDS,
-  HERO_BLOCK_REASONS,
+  HERO_DRAW_BLOCK_REASONS,
   HERO_IDS,
+  HERO_LEVEL_BLOCK_REASONS,
+  HERO_LOADOUT_BLOCK_REASONS,
   HERO_RARITIES,
   MARCH_BLOCK_REASONS,
   MARCH_PHASES,
   MARCH_RESULTS,
   NPC_KINDS,
   RESOURCE_IDS,
-  SKILL_KINDS,
+  SKILL_IDS,
   STORY,
   STORY_BLOCK_REASONS,
   TERRAIN_IDS,
@@ -90,6 +92,22 @@ describe("locales", () => {
     }
   });
 
+  test("heroes, skills, rarities and every hero refusal have keys", () => {
+    const all = new Set(keys(en));
+    for (const id of HERO_IDS) {
+      expect(all.has(`hero.${id}.name`), id).toBe(true);
+      expect(all.has(`hero.${id}.desc`), id).toBe(true);
+    }
+    for (const id of SKILL_IDS) {
+      expect(all.has(`skill.${id}.name`), id).toBe(true);
+      expect(all.has(`skill.${id}.desc`), id).toBe(true);
+    }
+    for (const r of HERO_RARITIES) expect(all.has(`rarity.${r}`), r).toBe(true);
+    for (const r of [...HERO_DRAW_BLOCK_REASONS, ...HERO_LEVEL_BLOCK_REASONS, ...HERO_LOADOUT_BLOCK_REASONS]) {
+      expect(all.has(`reason.${r}`), r).toBe(true);
+    }
+  });
+
   test("alliance ranks, actions, help kinds and every alliance refusal have keys", () => {
     const all = new Set(keys(en));
     for (const rank of ALLIANCE_RANKS) expect(all.has(`alliance.rank.${rank}`), rank).toBe(true);
@@ -122,10 +140,11 @@ describe("heroes and story", () => {
   const OBJECTIVE_KEYS = ["building_level", "troops_owned", "hero_recruited", "hero_recruited_named", "hero_level", "hero_level_named", "victories"];
 
   test("every hero, rarity, skill kind, hero and story refusal has a key", () => {
-    for (const id of HERO_IDS) for (const part of ["name", "role", "desc"]) expect(all.has(`hero.${id}.${part}`), `${id}.${part}`).toBe(true);
+    for (const id of HERO_IDS) for (const part of ["name", "desc"]) expect(all.has(`hero.${id}.${part}`), `${id}.${part}`).toBe(true);
     for (const r of HERO_RARITIES) expect(all.has(`rarity.${r}`), r).toBe(true);
-    for (const k of SKILL_KINDS) expect(all.has(`hero.skill.${k}`), k).toBe(true);
-    for (const r of [...HERO_BLOCK_REASONS, ...STORY_BLOCK_REASONS]) expect(all.has(`reason.${r}`), r).toBe(true);
+    for (const id of SKILL_IDS) for (const part of ["name", "desc"]) expect(all.has(`skill.${id}.${part}`), `${id}.${part}`).toBe(true);
+    for (const k of ["command", "passive", "attack_pct", "defense_pct", "unlocksAt"]) expect(all.has(`hero.skill.${k}`), k).toBe(true);
+    for (const r of [...HERO_DRAW_BLOCK_REASONS, ...HERO_LEVEL_BLOCK_REASONS, ...HERO_LOADOUT_BLOCK_REASONS, ...STORY_BLOCK_REASONS]) expect(all.has(`reason.${r}`), r).toBe(true);
     expect(all.has("building.hero_hall.name")).toBe(true);
     for (const k of OBJECTIVE_KEYS) expect(all.has(`story.objective.${k}`), k).toBe(true);
   });

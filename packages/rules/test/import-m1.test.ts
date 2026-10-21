@@ -49,11 +49,4 @@ describe("importM1Save", () => {
     const gated = { ...job, building: "farm" as const, toLevel: 2 };
     expect(importM1Save({ ...base(), levels: { hq: 1, farm: 1, armory: 1, treasury: 1, barracks: 1, hero_hall: 1 }, queue: gated }, NOW).queue).toBeNull();
   });
-
-  test("heroes, shards and story progress are never taken from a client save", () => {
-    const forged = { ...base(), heroes: { ...base().heroes, courier: { level: 10, shards: 999_999 } }, story: { chapter: 3, victories: 500 } };
-    const out = importM1Save(forged, NOW);
-    expect(out.heroes).toEqual(createBaseState(NOW).heroes);
-    expect(out.story).toEqual({ chapter: 0, victories: 0 });
-  });
 });

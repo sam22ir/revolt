@@ -16,7 +16,7 @@ Style and rules: GDD §7. Generated painted-isometric art, Algerian palette, no 
 ## Assets and where they are used
 
 - **buildings/** `hq farm armory treasury barracks`: the five buildings in the rules (`BUILDING_IDS`), drawn by `BaseScene` on one shared plot diamond. `ground_tile` is the base's ground slab. `academy hero_hall infirmary liaison_office storehouse watchtower` are processed but unused until the rules have those buildings. `storehouse_alt` is a spare.
-- **map/** `terrain_{plain,terraces,forest,mountain}` are the world tiles (`hills` uses `terraces`). `terrain_river` and `terrain_village` are unused. `outpost_watch` / `outpost_barracks` / `outpost_fort` and `marker_convoy` are the NPC kinds (patrol, outpost, fortified line, convoy). `marker_march` / `marker_return` are marching columns, `marker_battle` flashes at the target on arrival, `marker_rally` is an alliance HQ. Player camps on the map are the `hq` building sprite, scaled.
+- **map/** The world ground and props are no longer single tiles: see "World terrain" below. `outpost_watch` / `outpost_barracks` / `outpost_fort` and `marker_convoy` are the NPC kinds (patrol, outpost, fortified line, convoy). `marker_march` / `marker_return` are marching columns, `marker_battle` flashes at the target on arrival, `marker_rally` is an alliance HQ. Player camps on the map are the `hq` building sprite, scaled.
 - **ui/** `resource_{food,materiel,funds,support}` are the HUD, cost and report icons (`ui/icons.ts`). `hud_top_bar` and `hero_frame_*` are processed but unused: the bar has a baked-in avatar circle and four "+" slots that do nothing yet, and it assumes four resources in one row while the HUD is a 2×2 grid; there is no hero screen yet.
 - **units/** `troop_{infantry,scouts,heavy,porters}` appear in the training panel and the march dialog.
 
@@ -25,6 +25,14 @@ The world scene's textures load when the map is first opened, not at start-up.
 ## Per-background art (M6)
 
 `BACKGROUND_ART` in `src/art/art.ts` lists the sprites a background draws with its own file at `art/<background>/<key>.webp` (keys as in the manifest). Anything not listed uses the shared sprite. PLACEHOLDER: Vietnam lists none yet, so it shows the Algerian sprites. TODO, Vietnam sprites to produce: `buildings/farm` (rice paddies), `buildings/hq` (jungle command post), `armory` (workshop), `treasury`, `barracks` (training camp), `hero_hall` (leaders' hall), `ground_tile` (jungle ground), the troops in `units/`, and its terrain. Put the PNG masters in `art/raw/vietnam/...`, run `pnpm art:process` (the script needs a `vietnam/` group before it will emit them), add the key to `BACKGROUND_ART`. The map's camp sprite (`BASE_ART` in `world-scene.ts`) is still the shared `hq`.
+
+## World terrain
+
+The world map's ground is flat painted diamonds (4 terrains, 18 to 20 variants each) with separate cut-out props (trees, rocks, peaks, scrub, terraces). Sheets are in `art/raw/terrain/{ground,props}/` (generated with the brief in `docs/terrain-art-brief.md`; sheets not used are in `art/raw/terrain/unused/`). `pnpm art:terrain` (`scripts/process-terrain.mjs`) cuts them into one WebP atlas per terrain and per prop kind in `apps/client/public/art/terrain/` plus `src/art/terrain-manifest.json`.
+
+- **Ground:** each tile is cropped to its top surface, masked to the exact diamond with a feathered edge, and drawn 25% wider than the tile, so neighbours overlap and blend with no seams, across terrain borders too. A hash of the tile coordinates picks the variant and mirroring, so the map never changes between visits. Under every tile there is a flat colour (also the whole look below zoom 0.3).
+- **Props:** chosen per tile by `scene/terrain-props.ts` (pure, tested). Forests get denser and mountains taller toward the middle of a region and thinner at its edge (the share of the eight neighbours with the same terrain), and props overhang neighbouring tiles, so each region reads as one forest or one ridge. Props show from zoom 0.4, never on a tile that has a camp, NPC or alliance HQ.
+- **Hills** has 18 ground variants and **mountain** 18 (the sheets with paths and walls crossing the tile were dropped because they break at tile edges); the other terrains keep 20.
 
 ## Add or swap a sprite
 
@@ -53,7 +61,7 @@ The hero frames (common, rare, legendary) each hold a faceless, hooded figure in
 
 Seen in the en and ar screenshots (nothing here has been tried on a real phone yet, including pan smoothness at zoom 0.3 with about 900 tile sprites):
 
-- Plain terrain repeats as a busy pattern (half the tiles are mirrored), and the soil edges of tiles show as zigzag seams between terrain types. Below zoom 0.3 the map falls back to flat colours.
+- Ground tiles still differ in brightness from tile to tile, which reads as a faint patchwork on plain terrain; below zoom 0.3 the map falls back to flat colours.
 - The base fills only about 45% of the screen height; the level badges sit on the front corners of the plots and can crowd a neighbour's roof; the upgrade bar is small and sits on the walls.
 - NPC level numbers are small on the tile art.
 - Only 5 of the 11 buildings exist in the rules; the others are unused until they do.

@@ -8,7 +8,7 @@ describe("playerPower", () => {
     const p0 = playerPower(s);
     expect(playerPower({ ...s, levels: { ...s.levels, farm: 2 } })).toBeGreaterThan(p0);
     expect(playerPower({ ...s, troops: { ...s.troops, heavy: s.troops.heavy + 1 } })).toBeGreaterThan(p0);
-    expect(playerPower(withHeroes(s, { courier: { level: 2, shards: 0 } }))).toBeGreaterThan(p0);
+    expect(playerPower(withHeroes(s, { mountain_guide: { level: 2, shards: 0 } }))).toBeGreaterThan(p0);
   });
 
   test("troops on a march still count; wounded do not", () => {

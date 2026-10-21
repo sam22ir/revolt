@@ -2,8 +2,8 @@ import { advance } from "./advance.ts";
 import type { BaseState } from "./base-state.ts";
 import { DEFAULT_BACKGROUND, type BackgroundId } from "./background.ts";
 import { STORY, type Objective, type StoryChapter } from "./data/story.ts";
-import { addShards } from "./hero-progress.ts";
 import { HERO_IDS } from "./hero-id.ts";
+import { addShardsToOwned } from "./hero-shards.ts";
 import { storageCap } from "./production.ts";
 import { mapResources } from "./resources.ts";
 import { totalTroops } from "./troops.ts";
@@ -30,7 +30,7 @@ export interface ObjectiveProgress {
 const ownedTroops = (state: BaseState): number => totalTroops(state.troops) + state.marches.reduce((n, m) => n + totalTroops(m.troops), 0);
 
 const bestHeroLevel = (state: BaseState, hero: string | null): number =>
-  HERO_IDS.reduce((best, id) => (hero === null || hero === id ? Math.max(best, state.heroes[id].level) : best), 0);
+  HERO_IDS.reduce((best, id) => (hero === null || hero === id ? Math.max(best, (state.heroes.owned[id]?.level ?? 0)) : best), 0);
 
 /** Progress on one objective, computed only from `state`. */
 export const objectiveProgress = (state: BaseState, o: Objective): ObjectiveProgress => {
@@ -80,6 +80,6 @@ export const claimChapter = (state: BaseState, now: number, background: Backgrou
   // Like loot: fills storage up to the cap, and never lowers an amount already above it.
   const resources = mapResources((id) => Math.max(s.resources[id], Math.min(cap[id], s.resources[id] + chapter.reward.resources[id])));
   let next: BaseState = { ...s, resources, story: { ...s.story, chapter: s.story.chapter + 1 } };
-  for (const id of HERO_IDS) next = addShards(next, id, chapter.reward.shards[id] ?? 0);
+  next = addShardsToOwned(next, background, chapter.reward.shards);
   return { ok: true, state: next };
 };

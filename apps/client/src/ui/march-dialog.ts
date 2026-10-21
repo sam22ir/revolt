@@ -6,6 +6,7 @@ import {
   ZERO_TROOPS,
   type BaseState,
   type HeroId,
+  type HeroLoadout,
   type MapNpcView,
   type MapSnapshot,
   type RallyView,
@@ -37,9 +38,9 @@ export interface MarchDialog {
 }
 
 interface MarchDialogDeps {
-  readonly onSend: (npcId: string, troops: Troops, heroes: readonly HeroId[]) => Promise<MarchOutcome>;
-  readonly onRallyStart: (npcId: string, troops: Troops, gatherMs: number, heroes: readonly HeroId[]) => Promise<MarchOutcome>;
-  readonly onRallyJoin: (rallyId: string, troops: Troops, heroes: readonly HeroId[]) => Promise<MarchOutcome>;
+  readonly onSend: (npcId: string, troops: Troops, heroes: HeroLoadout | null) => Promise<MarchOutcome>;
+  readonly onRallyStart: (npcId: string, troops: Troops, gatherMs: number) => Promise<MarchOutcome>;
+  readonly onRallyJoin: (rallyId: string, troops: Troops) => Promise<MarchOutcome>;
   /** Called after the dialog closes by itself (sent, cancelled). */
   readonly onClosed: () => void;
 }
@@ -96,6 +97,12 @@ export const createMarchDialog = (deps: MarchDialogDeps): MarchDialog => {
   const home = (state: BaseState, id: TroopId): number => state.troops[id];
 
   const chosen = (): HeroId[] => picks.filter((p): p is HeroId => p !== "");
+  /** The first pick leads, the rest are deputies. Rallies take no heroes. */
+  const loadout = (): HeroLoadout | null => {
+    const ids = chosen();
+    const [lead, ...deputies] = ids;
+    return lead === undefined ? null : { lead, deputies };
+  };
 
   /** Fills the hero pickers from the heroes that are free right now; a pick that is no longer free is dropped. */
   const refreshHeroes = (state: BaseState): void => {
@@ -110,7 +117,7 @@ export const createMarchDialog = (deps: MarchDialogDeps): MarchDialog => {
       none.value = "";
       select.append(none);
       for (const id of free) {
-        const opt = el("option", undefined, `${t(`hero.${id}.name`)} · ${t("panel.level", { level: formatAmount(currentLanguage(), state.heroes[id].level) })}`);
+        const opt = el("option", undefined, `${t(`hero.${id}.name`)} · ${t("panel.level", { level: formatAmount(currentLanguage(), state.heroes.owned[id]?.level ?? 1) })}`);
         opt.value = id;
         // A hero can fill one slot only.
         opt.disabled = picks.some((p, i) => p === id && i !== slot);
@@ -155,11 +162,11 @@ export const createMarchDialog = (deps: MarchDialogDeps): MarchDialog => {
       return;
     }
     refreshHeroes(state);
-    const squad = chosen();
+    const squad = mode.kind === "march" ? loadout() : null;
     const preview = previewMarch(state, from, target, counts, squad);
     const bonus = bonusSummary(state, squad);
-    heroBonus.hidden = squad.length === 0;
-    heroBonus.textContent = t("march.heroBonus", { attack: formatAmount(lang, bonus.attack), hp: formatAmount(lang, bonus.hp), carry: formatAmount(lang, bonus.carry) });
+    heroBonus.hidden = squad === null;
+    heroBonus.textContent = t("march.heroBonus", { attack: formatAmount(lang, bonus.attack), defense: formatAmount(lang, bonus.defense) });
     // A rally marches at its own fixed speed, whatever troops are in it.
     const legMs = preview.travelMs === null || mode.kind === "march" ? preview.travelMs : rallyTiming(from, target, 0).arriveAt;
     travel.textContent = legMs === null ? "—" : formatDuration(legMs);
@@ -173,10 +180,9 @@ export const createMarchDialog = (deps: MarchDialogDeps): MarchDialog => {
   const sendLabel = (m: MarchMode): string => t(m.kind === "march" ? "march.send" : m.kind === "rally_start" ? "rally.start" : "rally.join");
 
   const dispatch = (npc: MapNpcView, m: MarchMode): Promise<MarchOutcome> => {
-    const heroes = chosen();
-    if (m.kind === "rally_join") return deps.onRallyJoin(m.rally.id, counts, heroes);
-    if (m.kind === "rally_start") return deps.onRallyStart(npc.id, counts, Number(gather?.value ?? RALLY_GATHER_OPTIONS_MS[0]), heroes);
-    return deps.onSend(npc.id, counts, heroes);
+    if (m.kind === "rally_join") return deps.onRallyJoin(m.rally.id, counts);
+    if (m.kind === "rally_start") return deps.onRallyStart(npc.id, counts, Number(gather?.value ?? RALLY_GATHER_OPTIONS_MS[0]));
+    return deps.onSend(npc.id, counts, loadout());
   };
 
   const send = async (): Promise<void> => {

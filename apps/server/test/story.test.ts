@@ -1,4 +1,4 @@
-import { chaptersFor, HEROES } from "@revolt/rules";
+import { chaptersFor } from "@revolt/rules";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { body, newGuest, startServer, type Json, type Server } from "./harness.ts";
 import { editBase, getMap, getState, heroIntent, intent, march, nearestNpc } from "./map-helpers.ts";
@@ -22,7 +22,7 @@ describe("story_claim", () => {
     const r = await say(g.token, { type: "story_claim" });
     expect(r.ok).toBe(true);
     expect(r.state.story.chapter).toBe(1);
-    expect(r.state.heroes.courier.shards).toBe(chaptersFor()[0]!.reward.shards.courier);
+    expect(r.state.resources.funds).toBeGreaterThan(0);
     expect(await getState(server, g.token)).toEqual(r.state);
     // The same chapter cannot be claimed twice: the next one is now current and unmet.
     expect(await say(g.token, { type: "story_claim" })).toMatchObject({ ok: false, reason: "objectives_unmet" });
@@ -42,17 +42,26 @@ describe("story_claim", () => {
     await say(t, { type: "upgrade", building: "hq" });
     server.now += 60_000;
     expect((await say(t, { type: "story_claim" })).ok).toBe(true);
-    // Chapter 2: recruit the first hero with the chapter 1 reward, and have 20 troops.
-    expect((await heroIntent(server, t, "hero_recruit", "courier")).ok).toBe(true);
+    // Chapter 2: recruit the first hero (the hall must be built up first) and have 20 troops.
+    await editBase(server, g.res.account.id, (s) => {
+      s.levels.hero_hall = 2;
+    });
+    const drawn = await heroIntent(server, t, "recruit");
+    expect(drawn.ok).toBe(true);
+    const hero = drawn.draw.heroId as string;
     const train = await say(t, { type: "train", troop: "infantry", count: 10 });
     expect(train.ok).toBe(true);
     server.now = train.state.training.endsAt;
     expect((await say(t, { type: "story_claim" })).ok).toBe(true);
-    // Chapter 3: level the hero, win a march with it, come home.
-    expect((await heroIntent(server, t, "hero_level", "courier")).ok).toBe(true);
+    // Chapter 3: level the hero (shards are arranged directly), win a march with it, come home.
+    await editBase(server, g.res.account.id, (s) => {
+      s.heroes.owned[hero].shards = 50;
+      s.resources.food = s.resources.materiel = s.resources.funds = 10_000;
+    });
+    expect((await heroIntent(server, t, "hero_level", hero)).ok).toBe(true);
     expect(await say(t, { type: "story_claim" })).toMatchObject({ ok: false, reason: "objectives_unmet" });
     const npc = nearestNpc(await getMap(server, t));
-    const sent = await march(server, t, npc.id, { infantry: 20 }, ["courier"]);
+    const sent = await march(server, t, npc.id, { infantry: 20 }, { lead: hero, deputies: [] });
     expect(sent.ok).toBe(true);
     const m = sent.state.marches[0];
     server.now = m.arriveAt;
@@ -64,9 +73,7 @@ describe("story_claim", () => {
     const last = await say(t, { type: "story_claim" });
     expect(last.ok).toBe(true);
     expect(last.state.story.chapter).toBe(chaptersFor().length);
-    expect(last.state.heroes.medic.shards).toBe(chaptersFor()[2]!.reward.shards.medic);
     expect(await say(t, { type: "story_claim" })).toMatchObject({ ok: false, reason: "story_complete" });
-    expect(HEROES.medic.recruitShards).toBeLessThanOrEqual(last.state.heroes.medic.shards);
   });
 
   test("a stale base without story progress still claims from chapter 1", async () => {

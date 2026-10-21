@@ -6,10 +6,11 @@ import {
   backgroundOfServer,
   BUILDING_IDS,
   chapterStatus,
-  checkRecruit,
   chaptersFor,
   claimChapter,
   createBaseState,
+  drawHero,
+  HERO_DRAW_COST,
   currentChapter,
   DEFAULT_BACKGROUND,
   HERO_IDS,
@@ -19,7 +20,6 @@ import {
   isBackgroundId,
   isBaseState,
   migrateBaseState,
-  recruitHero,
   serverFor,
   startUpgrade,
   STORY,
@@ -59,33 +59,29 @@ describe("hero rosters", () => {
     expect([...all].sort()).toEqual([...HERO_IDS].sort());
   });
 
-  test("the rosters mirror each other in rarity, specialty and cost", () => {
-    const shape = (bg: BackgroundId): string[] =>
-      heroesFor(bg).map((id) => `${HEROES[id].rarity}/${HEROES[id].specialty}/${HEROES[id].recruitShards}/${HEROES[id].recruitSupport}`).sort();
+  test("the rosters mirror each other in rarity and specialty", () => {
+    const shape = (bg: BackgroundId): string[] => heroesFor(bg).map((id) => `${HEROES[id].rarity}/${HEROES[id].specialty}`).sort();
     expect(shape("vietnam")).toEqual(shape("algeria"));
   });
 
-  test("recruiting a hero of the other background is refused as unknown, even with the shards", () => {
-    const s = withHeroes({ ...base(), resources: { food: 0, materiel: 0, funds: 0, support: 500 } }, { courier: { level: 0, shards: 100 }, trail_scout: { level: 0, shards: 100 } });
-    expect(checkRecruit(s, "courier", "vietnam")).toBe("unknown_hero");
-    expect(checkRecruit(s, "trail_scout", "algeria")).toBe("unknown_hero");
-    expect(checkRecruit(s, "trail_scout", "vietnam")).toBeNull();
-    expect(checkRecruit(s, "courier")).toBeNull();
-    const r = recruitHero(s, "courier", T0, "vietnam");
-    expect(r).toMatchObject({ ok: false, reason: "unknown_hero" });
-    expect(r.state.heroes.courier).toEqual({ level: 0, shards: 100 });
-    expect(recruitHero(s, "trail_scout", T0, "vietnam").ok).toBe(true);
+  test("a draw only ever yields a hero of the player's background", () => {
+    for (const bg of BACKGROUND_IDS) {
+      let roster = createBaseState(T0).heroes;
+      for (let i = 0; i < 60; i++) {
+        const draw = drawHero(roster, () => ((i * 7919 + 13) % 997) / 997, bg);
+        expect(heroesFor(bg)).toContain(draw.heroId);
+        roster = draw.roster;
+      }
+    }
   });
 
-  test("an old saved base (six heroes) migrates to a valid base with the Vietnam heroes at level 0", () => {
+  test("an old saved base without a story migrates to a valid base", () => {
     const old = JSON.parse(JSON.stringify(createBaseState(T0)));
-    for (const id of HEROES_BY_BACKGROUND.vietnam) delete old.heroes[id];
-    old.heroes.courier = { level: 2, shards: 3 };
+    delete old.story;
     expect(isBaseState(old)).toBe(false);
     const v = migrateBaseState(old) as BaseState;
     expect(isBaseState(v)).toBe(true);
-    expect(v.heroes.courier).toEqual({ level: 2, shards: 3 });
-    for (const id of HEROES_BY_BACKGROUND.vietnam) expect(v.heroes[id]).toEqual({ level: 0, shards: 0 });
+    expect(v.story).toEqual({ chapter: 0, victories: 0 });
   });
 });
 
@@ -99,10 +95,10 @@ describe("story per background", () => {
     }
   });
 
-  test("a chapter rewards only heroes of its own roster, and objectives name only that roster's heroes", () => {
+  test("objectives name only that roster's heroes", () => {
     for (const bg of BACKGROUND_IDS) {
       for (const c of STORY[bg]) {
-        for (const id of Object.keys(c.reward.shards)) expect(heroesFor(bg).some((h) => h === id), `${bg}.${c.id} ${id}`).toBe(true);
+        expect(c.reward.shards).toBeGreaterThanOrEqual(0);
         for (const o of c.objectives) {
           if ((o.kind === "hero_recruited" || o.kind === "hero_level") && o.hero !== null) expect(heroesFor(bg).includes(o.hero)).toBe(true);
           if (o.kind === "building_level") expect(BUILDING_IDS.includes(o.building)).toBe(true);
@@ -111,7 +107,7 @@ describe("story per background", () => {
     }
   });
 
-  test("Vietnam chapter 1 finishes from the start resources, and its reward pays for the first Vietnam hero", () => {
+  test("Vietnam chapter 1 finishes from the start resources and its reward covers a recruit draw", () => {
     const up = startUpgrade(createBaseState(T0), "hq", T0);
     if (!up.ok) throw new Error(up.reason);
     const done = advance(up.state, T0 + 60 * SEC);
@@ -119,9 +115,7 @@ describe("story per background", () => {
     const claim = claimChapter(done, T0 + 60 * SEC, "vietnam");
     if (!claim.ok) throw new Error(claim.reason);
     expect(claim.state.story.chapter).toBe(1);
-    expect(claim.state.heroes.trail_scout.shards).toBe(10);
-    expect(claim.state.heroes.courier.shards).toBe(0);
-    expect(recruitHero(claim.state, "trail_scout", T0 + 60 * SEC, "vietnam").ok).toBe(true);
+    expect(claim.state.resources.funds).toBeGreaterThanOrEqual(HERO_DRAW_COST.funds);
     expect(currentChapter(claim.state, "vietnam")?.id).toBe("ch2");
   });
 
@@ -132,13 +126,13 @@ describe("story per background", () => {
       for (const o of chaptersFor("vietnam")[i]!.objectives) {
         if (o.kind === "building_level") s = { ...s, levels: { ...s.levels, [o.building]: o.level } };
         if (o.kind === "troops_owned") s = { ...s, troops: { ...s.troops, infantry: o.count } };
-        if (o.kind === "hero_recruited" || o.kind === "hero_level") s = withHeroes(s, { trail_scout: { level: 5, shards: s.heroes.trail_scout.shards } });
+        if (o.kind === "hero_recruited" || o.kind === "hero_level") s = withHeroes(s, { trail_scout: { level: 5, shards: s.heroes.owned.trail_scout?.shards ?? 0 } });
       }
       const r = claimChapter(s, T0, "vietnam");
       if (!r.ok) throw new Error(`chapter ${i + 1}: ${r.reason}`);
       s = r.state;
     }
-    for (const id of HEROES_BY_BACKGROUND.algeria) expect(s.heroes[id].shards, id).toBe(0);
+    for (const id of HEROES_BY_BACKGROUND.algeria) expect(s.heroes.owned[id], id).toBeUndefined();
     expect(claimChapter(s, T0, "vietnam")).toMatchObject({ ok: false, reason: "story_complete" });
   });
 

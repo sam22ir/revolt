@@ -24,8 +24,10 @@ import {
   type BuildingId,
   type HelpKind,
   type HelpRequestView,
-  type HeroBlockReason,
+  type HeroDrawBlockReason,
   type HeroId,
+  type HeroLevelBlockReason,
+  type HeroLoadout,
   type MapSnapshot,
   type MarchBlockReason,
   type StoryBlockReason,
@@ -59,7 +61,14 @@ export type IntentResult = Snapshot & ({ readonly ok: true } | { readonly ok: fa
 
 export type TrainReply = Snapshot & ({ readonly ok: true } | { readonly ok: false; readonly reason: TrainingBlockReason });
 
-export type HeroReply = Snapshot & ({ readonly ok: true } | { readonly ok: false; readonly reason: HeroBlockReason });
+export interface HeroDrawView {
+  readonly heroId: HeroId;
+  readonly rarity: string;
+  readonly duplicate: boolean;
+  readonly forced: boolean;
+}
+export type HeroReply = Snapshot &
+  ({ readonly ok: true; readonly draw?: HeroDrawView } | { readonly ok: false; readonly reason: HeroDrawBlockReason | HeroLevelBlockReason });
 
 export type StoryReply = Snapshot & ({ readonly ok: true } | { readonly ok: false; readonly reason: StoryBlockReason });
 
@@ -137,12 +146,12 @@ export interface Api {
   readonly upgrade: (token: string, building: BuildingId) => Promise<IntentResult>;
   readonly train: (token: string, troop: TroopId, count: number) => Promise<TrainReply>;
   /** Sends a march at an NPC target (by id). */
-  readonly march: (token: string, target: string, troops: Troops, heroes?: readonly HeroId[]) => Promise<MarchReply>;
+  readonly march: (token: string, target: string, troops: Troops, heroes?: HeroLoadout | null) => Promise<MarchReply>;
   /** Starts a rally at an NPC target; `gather` is one of `RALLY_GATHER_OPTIONS_MS`. */
-  readonly rallyStart: (token: string, target: string, troops: Troops, gather: number, heroes?: readonly HeroId[]) => Promise<RallyReply>;
-  readonly rallyJoin: (token: string, rally: string, troops: Troops, heroes?: readonly HeroId[]) => Promise<RallyReply>;
-  /** Recruits a hero with shards and support; the server decides. */
-  readonly heroRecruit: (token: string, hero: HeroId) => Promise<HeroReply>;
+  readonly rallyStart: (token: string, target: string, troops: Troops, gather: number) => Promise<RallyReply>;
+  readonly rallyJoin: (token: string, rally: string, troops: Troops) => Promise<RallyReply>;
+  /** One recruit draw; the server picks the seed and so the hero. */
+  readonly heroRecruit: (token: string) => Promise<HeroReply>;
   readonly heroLevel: (token: string, hero: HeroId) => Promise<HeroReply>;
   /** Claims the current story chapter's reward once its objectives are met. */
   readonly storyClaim: (token: string) => Promise<StoryReply>;
@@ -194,8 +203,8 @@ export const sentTroops = (troops: Troops): Partial<Record<TroopId, number>> => 
   return out;
 };
 
-/** Hero ids only, lead first. The key is left out when nobody goes, so a march without heroes looks as it always did. */
-export const sentHeroes = (heroes: readonly HeroId[]): { readonly heroes?: readonly HeroId[] } => (heroes.length > 0 ? { heroes: [...heroes] } : {});
+/** The loadout, lead and deputies only. The key is left out when nobody goes, so a march without heroes looks as it always did. */
+export const sentHeroes = (heroes: HeroLoadout | null): { readonly heroes?: HeroLoadout } => (heroes === null ? {} : { heroes: { lead: heroes.lead, deputies: [...heroes.deputies] } });
 
 /** Thin JSON client. The server's answers are trusted; it owns every number. */
 export const createApi = (baseUrl: string, fetchFn: typeof fetch = fetch): Api => {
@@ -217,13 +226,11 @@ export const createApi = (baseUrl: string, fetchFn: typeof fetch = fetch): Api =
     getState: (token) => call("GET", "/v1/state", token),
     upgrade: (token, building) => call("POST", "/v1/intent", token, { type: "upgrade", building }),
     train: (token, troop, count) => call("POST", "/v1/intent", token, { type: "train", troop, count }),
-    march: (token, target, troops, heroes = []) =>
+    march: (token, target, troops, heroes = null) =>
       call("POST", "/v1/intent", token, { type: "march", target, troops: sentTroops(troops), ...sentHeroes(heroes) }),
-    rallyStart: (token, target, troops, gather, heroes = []) =>
-      call("POST", "/v1/intent", token, { type: "rally_start", target, troops: sentTroops(troops), gather, ...sentHeroes(heroes) }),
-    rallyJoin: (token, rally, troops, heroes = []) =>
-      call("POST", "/v1/intent", token, { type: "rally_join", rally, troops: sentTroops(troops), ...sentHeroes(heroes) }),
-    heroRecruit: (token, hero) => call("POST", "/v1/intent", token, { type: "hero_recruit", hero }),
+    rallyStart: (token, target, troops, gather) => call("POST", "/v1/intent", token, { type: "rally_start", target, troops: sentTroops(troops), gather }),
+    rallyJoin: (token, rally, troops) => call("POST", "/v1/intent", token, { type: "rally_join", rally, troops: sentTroops(troops) }),
+    heroRecruit: (token) => call("POST", "/v1/intent", token, { type: "recruit" }),
     heroLevel: (token, hero) => call("POST", "/v1/intent", token, { type: "hero_level", hero }),
     storyClaim: (token) => call("POST", "/v1/intent", token, { type: "story_claim" }),
     getMap: (token) => call("GET", "/v1/map", token),

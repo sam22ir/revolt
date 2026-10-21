@@ -18,8 +18,8 @@ export const editBase = async (server: Server, accountId: string, change: (s: Js
   await server.env.DB.prepare("UPDATE bases SET state = ?, version = version + 1 WHERE account_id = ?").bind(JSON.stringify(state), accountId).run();
 };
 
-export const heroIntent = async (server: Server, token: string, type: "hero_recruit" | "hero_level", hero: unknown, extra: object = {}): Promise<Json> =>
-  body(await intent(server, token, { type, hero, ...extra }));
+export const heroIntent = async (server: Server, token: string, type: "recruit" | "hero_level", hero?: unknown, extra: object = {}): Promise<Json> =>
+  body(await intent(server, token, hero === undefined ? { type, ...extra } : { type, hero, ...extra }));
 
 /** The nearest live NPC of `level` to the player's base. */
 export const nearestNpc = (snap: MapSnapshot, level = 1): MapNpcView => {

@@ -1,6 +1,7 @@
 import type { BackgroundId } from "@revolt/rules";
 import type { SpriteSpec } from "../scene/sprite-pool.ts";
 import manifest from "./manifest.json";
+import terrainManifest from "./terrain-manifest.json";
 
 /** Sprite size and measured ground anchors (px of the shipped WebP), written by `pnpm art:process`. */
 export interface SpriteInfo {
@@ -49,3 +50,24 @@ export const BACKGROUND_ART: Readonly<Record<BackgroundId, ReadonlySet<string>>>
 
 /** The manifest key to draw `key` with for this background: its own sprite if it has one, else the shared one. */
 export const artKeyFor = (background: BackgroundId, key: string): string => (BACKGROUND_ART[background].has(key) ? `${background}/${key}` : key);
+
+/** Atlas frames of the world terrain (ground tiles and props), written by `pnpm art:terrain`. */
+export interface AtlasFrame {
+  readonly x: number;
+  readonly y: number;
+  readonly w: number;
+  readonly h: number;
+  /** Props only: the object's ground anchor (bottom centre of its opaque pixels) in the frame. */
+  readonly ax?: number;
+  readonly ay?: number;
+}
+export interface Atlas {
+  readonly w: number;
+  readonly h: number;
+  readonly frames: readonly AtlasFrame[];
+}
+export const terrainAtlases = terrainManifest as unknown as { readonly ground: Readonly<Record<string, Atlas>>; readonly props: Readonly<Record<string, Atlas>> };
+export const groundTexture = (terrain: string): string => `terrain:ground-${terrain}`;
+export const propsTexture = (kind: string): string => `terrain:props-${kind}`;
+export const groundUrl = (terrain: string): string => `${import.meta.env.BASE_URL}art/terrain/ground-${terrain}.webp`;
+export const propsUrl = (kind: string): string => `${import.meta.env.BASE_URL}art/terrain/props-${kind}.webp`;

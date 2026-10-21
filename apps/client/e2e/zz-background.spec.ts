@@ -57,9 +57,9 @@ for (const [i, { locale, lang, dir, farm, food }] of LOCALES.entries()) {
 
     // Its own heroes, and its own chapter text, still marked as a draft.
     await a.getByTestId("heroes-open").click();
-    await expect(a.getByTestId("hero-card")).toHaveCount(6);
+    await expect(a.getByTestId("hero-card")).toHaveCount(4);
     await expect(a.locator('[data-testid="hero-card"][data-hero="trail_scout"]')).toBeVisible();
-    await expect(a.locator('[data-testid="hero-card"][data-hero="courier"]')).toHaveCount(0);
+    await expect(a.locator('[data-testid="hero-card"][data-hero="mountain_guide"]')).toHaveCount(0);
     await expectNoRawKeys(a);
     await a.getByTestId("heroes-panel").locator(".panel-close").click();
     await a.getByTestId("story-open").click();
@@ -80,8 +80,7 @@ for (const [i, { locale, lang, dir, farm, food }] of LOCALES.entries()) {
     await a.getByTestId("story-claim").click();
     await expect.poll(async () => (await stateOf(request, a)).state.story.chapter).toBe(1);
     const claimed = (await stateOf(request, a)).state;
-    expect(claimed.heroes.trail_scout.shards).toBe(10);
-    expect(claimed.heroes.courier.shards).toBe(0);
+    expect(claimed.story.chapter).toBe(1);
 
     // Reloading keeps the account and the background: no picker, same names, and the map is Vietnam's own.
     await a.reload();

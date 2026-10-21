@@ -1,11 +1,11 @@
 import { MARCH_RESULTS, type BaseState } from "./base-state.ts";
 import { BUILDING_IDS } from "./building-id.ts";
 import { MAX_BUILDING_LEVEL } from "./data/buildings.ts";
-import { MAX_HERO_LEVEL, MAX_HERO_SHARDS, MAX_SQUAD } from "./data/heroes.ts";
-import { HERO_IDS, isHeroId } from "./hero-id.ts";
 import { RESOURCE_IDS } from "./resource-id.ts";
 import { TROOP_IDS } from "./troop-id.ts";
 import { isTroops } from "./troops.ts";
+import { HERO_IDS } from "./hero-id.ts";
+import { isHeroEntry } from "./hero-roster.ts";
 
 const isFiniteNumber = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 
@@ -44,22 +44,29 @@ const isOutcome = (o: unknown): boolean =>
     isTroops(o.lost) &&
     isResources(o.loot));
 
-const isInt = (v: unknown, min: number, max: number): boolean => isFiniteNumber(v) && Number.isInteger(v) && v >= min && v <= max;
+const isHeroIdValue = (v: unknown): boolean => HERO_IDS.some((id) => id === v);
 
-const isHeroes = (v: unknown): boolean =>
+const isHeroes = (h: unknown): boolean =>
+  h === undefined ||
+  (isRecord(h) &&
+    isHeroIdValue(h.lead) &&
+    Array.isArray(h.deputies) &&
+    h.deputies.every(isHeroIdValue) &&
+    isRecord(h.levels) &&
+    Object.values(h.levels).every((l) => isFiniteNumber(l) && Number.isInteger(l) && l >= 1));
+
+const isStory = (v: unknown): boolean =>
   isRecord(v) &&
-  HERO_IDS.every((id) => {
-    const h = v[id];
-    return isRecord(h) && isInt(h.level, 0, MAX_HERO_LEVEL) && isInt(h.shards, 0, MAX_HERO_SHARDS);
-  });
+  isFiniteNumber(v.chapter) && Number.isInteger(v.chapter) && v.chapter >= 0 && v.chapter <= 1000 &&
+  isFiniteNumber(v.victories) && Number.isInteger(v.victories) && v.victories >= 0 && v.victories <= 1_000_000_000;
 
-const isStory = (v: unknown): boolean => isRecord(v) && isInt(v.chapter, 0, 1000) && isInt(v.victories, 0, 1_000_000_000);
-
-const isSquad = (v: unknown): boolean =>
-  v === undefined ||
-  (Array.isArray(v) &&
-    v.length <= MAX_SQUAD &&
-    v.every((m) => isRecord(m) && isHeroId(m.id) && isInt(m.level, 1, MAX_HERO_LEVEL)));
+const isHeroRoster = (r: unknown): boolean =>
+  isRecord(r) &&
+  isFiniteNumber(r.pity) &&
+  Number.isInteger(r.pity) &&
+  r.pity >= 0 &&
+  isRecord(r.owned) &&
+  Object.entries(r.owned).every(([id, e]) => isHeroIdValue(id) && isHeroEntry(e));
 
 const isMarch = (m: unknown): boolean =>
   isRecord(m) &&
@@ -73,8 +80,8 @@ const isMarch = (m: unknown): boolean =>
   isFiniteNumber(m.departAt) &&
   isFiniteNumber(m.arriveAt) &&
   isFiniteNumber(m.returnAt) &&
-  isSquad(m.heroes) &&
   (m.rallyId === undefined || typeof m.rallyId === "string") &&
+  isHeroes(m.heroes) &&
   isOutcome(m.outcome);
 
 /**
@@ -86,12 +93,12 @@ export const isBaseState = (v: unknown): v is BaseState => {
   const { levels } = v;
   if (!BUILDING_IDS.every((id) => isLevel(levels[id]))) return false;
   return (
+    isHeroRoster(v.heroes) &&
+    isStory(v.story) &&
     isQueue(v.queue) &&
     isTroops(v.troops) &&
     isTroops(v.wounded) &&
     isTraining(v.training) &&
-    isHeroes(v.heroes) &&
-    isStory(v.story) &&
     Array.isArray(v.marches) &&
     v.marches.every(isMarch)
   );

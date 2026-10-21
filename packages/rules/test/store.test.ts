@@ -23,7 +23,7 @@ import {
   EVENT_IDS,
   type BaseState,
 } from "../src/index.ts";
-import { DAY, HOUR, MIN, rich, T0 } from "./helpers.ts";
+import { DAY, HOUR, MIN, rich, T0, withHeroes } from "./helpers.ts";
 
 /** A rich base with a long non-HQ upgrade running. */
 const building = (): BaseState => {
@@ -132,16 +132,22 @@ describe("grantReward", () => {
     expect(grantReward(over, { resources: { food: 100 } }, T0).resources.food).toBe(advance(over, T0).resources.food);
   });
 
-  test("shards go to the first hero of the background", () => {
-    const a = grantReward(rich(), { shards: 3 }, T0, "algeria");
-    expect(a.heroes.courier.shards).toBe(3);
-    const v = grantReward(rich(), { shards: 3 }, T0, "vietnam");
-    expect(v.heroes.trail_scout.shards).toBe(3);
-    expect(v.heroes.courier.shards).toBe(0);
+  test("shards go to the first owned hero of the background", () => {
+    const a = grantReward(withHeroes(rich(), { dock_foreman: { level: 1, shards: 0 }, hill_commander: { level: 1, shards: 0 } }), { shards: 3 }, T0, "algeria");
+    expect(a.heroes.owned.dock_foreman?.shards).toBe(3);
+    expect(a.heroes.owned.hill_commander?.shards).toBe(0);
+    const v = grantReward(withHeroes(rich(), { trail_scout: { level: 1, shards: 0 } }), { shards: 3 }, T0, "vietnam");
+    expect(v.heroes.owned.trail_scout?.shards).toBe(3);
+  });
+
+  test("shards are dropped when the player owns no hero of the background", () => {
+    const g = grantReward(withHeroes(rich(), { trail_scout: { level: 1, shards: 0 } }), { shards: 3 }, T0, "algeria");
+    expect(g.heroes.owned.trail_scout?.shards).toBe(0);
   });
 
   test("ignores negative amounts", () => {
-    expect(grantReward(rich(), { resources: { food: -999 }, shards: -4 }, T0).heroes.courier.shards).toBe(0);
+    const s = withHeroes(rich(), { mountain_guide: { level: 1, shards: 0 } });
+    expect(grantReward(s, { resources: { food: -999 }, shards: -4 }, T0).heroes.owned.mountain_guide?.shards).toBe(0);
   });
 });
 
