@@ -57,8 +57,11 @@ describe("power and regions boards", () => {
     const p = (await get(server, f.token, "/v1/leaderboard?board=power")).me.score as number;
     // Same power as the player: one earlier, one at the same instant with an earlier handle, one later.
     await rival("ZZZZZZ", "algeria-1", p, 0, 1);
-    await rival("AAAAAA", "algeria-1", p, 0, server.now);
-    await rival("MMMMMM", "algeria-1", p, 0, server.now + 99);
+    // "Same instant" means the player's own snapshot time, whatever the clock did while the fighter was set up.
+    const mine = await sql<{ updated_at: number }>(server, `SELECT updated_at FROM score_snapshots WHERE account_id = '${f.id}'`);
+    const at = mine[0]!.updated_at;
+    await rival("AAAAAA", "algeria-1", p, 0, at);
+    await rival("MMMMMM", "algeria-1", p, 0, at + 99);
     const b = await get(server, f.token, "/v1/leaderboard?board=power");
     const names = b.entries.map((e: { name: string }) => e.name);
     expect(names[0]).toBe("ZZZZZZ");
