@@ -1,9 +1,7 @@
+/* --ink, --paper, --gold and --bg-base come from src/theme/theme.ts (applyThemeToCss). */
 :root {
-  --ink: #2b2a24;
-  --paper: #f4ead6;
   --paper-2: #e9dcc0;
   --accent: #b5402f;
-  --gold: #e0b040;
   --ok: #4f7a3a;
   --bad: #b5402f;
   --radius: 12px;
@@ -22,7 +20,7 @@ html, body {
   margin: 0;
   block-size: 100%;
   overflow: hidden;
-  background: #3d4a3a;
+  background: var(--bg-base, #3d4a3a);
   color: var(--ink);
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;

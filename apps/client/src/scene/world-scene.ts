@@ -1,8 +1,9 @@
 import Phaser from "phaser";
-import { terrainAt, TERRAIN_IDS, type MapMarchView, type MapSnapshot, type NpcKind, type TerrainId } from "@revolt/rules";
+import { terrainAt, TERRAIN_IDS, type MapMarchView, type MapSnapshot, type NpcKind } from "@revolt/rules";
 import type { GameStore } from "../state/game-store.ts";
 import { drawableTag } from "../state/tile-info.ts";
 import type { WorldStore } from "../state/world-store.ts";
+import { hex, theme } from "../theme/theme.ts";
 import { artUrl, diamondSpec, groundTexture, groundUrl, iconSpec, propsTexture, propsUrl, terrainAtlases, textureKey, type Atlas } from "../art/art.ts";
 import { createGesture, type Gesture } from "./gesture.ts";
 import { SpritePool, type SpriteSpec } from "./sprite-pool.ts";
@@ -38,7 +39,7 @@ export interface WorldCallbacks {
   readonly onCenter: (tile: TileRef) => void;
 }
 
-const BACKGROUND = "#26332a";
+const BACKGROUND = hex(theme.ground.world);
 const START_ZOOM = 0.7;
 /** Finger travel (CSS px) that still counts as a tap. */
 const TAP_SLOP = 8;
@@ -47,13 +48,7 @@ const GRID_ZOOM = 0.45;
 const LABEL_ZOOM = 0.35;
 const LABEL_PX = 18;
 
-// [light, dark] per terrain: a checker of two shades keeps tiles readable without outlines.
-const TERRAIN_COLORS: Readonly<Record<TerrainId, readonly [number, number]>> = {
-  plain: [0xc4955a, 0xbc8d54],
-  hills: [0xa4903f, 0x9c8a3c],
-  forest: [0x4b4a28, 0x464526],
-  mountain: [0x57493c, 0x514438],
-};
+const TERRAIN_COLORS = theme.terrain;
 
 /** Below this zoom there are too many tiles to draw as sprites; flat colours read fine at that size. */
 const ART_ZOOM = 0.3;
@@ -78,11 +73,11 @@ const BATTLE_FLASH_MS = 5000;
 const TILE_BLEED = 1.25;
 
 /** Alliance HQs: a pennant, teal for the player's own alliance, violet for the others. */
-const HQ_OWN = 0x2f9e8f;
-const HQ_OTHER = 0x6a55a8;
+const HQ_OWN = theme.alliance.own;
+const HQ_OTHER = theme.alliance.other;
 
-const GOLD = 0xe0b040;
-const PAPER = 0xf4ead6;
+const GOLD = theme.accent.gold;
+const PAPER = theme.accent.paper;
 
 /** Phaser's typings want `Vector2`s for polygon points; markers are few, so allocating them is fine. */
 const poly = (points: readonly Vec[]): Phaser.Math.Vector2[] => points.map((p) => new Phaser.Math.Vector2(p.x, p.y));
@@ -487,7 +482,7 @@ export class WorldScene extends Phaser.Scene {
       let label = this.labels.get(n.id);
       if (label === undefined) {
         label = this.add
-          .text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: `${LABEL_PX}px`, fontStyle: "bold", color: "#fff8e6", stroke: "#2b2a24", strokeThickness: 4 })
+          .text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: `${LABEL_PX}px`, fontStyle: "bold", color: "#fff8e6", stroke: hex(theme.ink.base), strokeThickness: 4 })
           .setOrigin(0.5)
           .setDepth(4);
         this.labels.set(n.id, label);
@@ -514,7 +509,7 @@ export class WorldScene extends Phaser.Scene {
       let label = this.labels.get(key);
       if (label === undefined) {
         label = this.add
-          .text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: `${LABEL_PX - 2}px`, fontStyle: "bold", color: "#fff8e6", stroke: "#2b2a24", strokeThickness: 3 })
+          .text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: `${LABEL_PX - 2}px`, fontStyle: "bold", color: "#fff8e6", stroke: hex(theme.ink.base), strokeThickness: 3 })
           .setOrigin(0.5, 1)
           .setDepth(4);
         this.labels.set(key, label);

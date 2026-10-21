@@ -19,6 +19,9 @@ import { showBootStatus } from "./ui/boot-status.ts";
 import "./ui/style.css";
 import "./ui/map.css";
 import "./ui/alliance.css";
+import { applyThemeToCss, hex, theme } from "./theme/theme.ts";
+
+applyThemeToCss(document.documentElement);
 
 const TICK_MS = 250;
 const RETRY_MS = [1000, 2000, 5000, 10_000];
@@ -77,7 +80,7 @@ const start = async (): Promise<void> => {
   game = new Phaser.Game({
     type: Phaser.AUTO,
     parent: gameRoot,
-    backgroundColor: "#3d4a3a",
+    backgroundColor: hex(theme.ground.base),
     scale: hiDpiScaleConfig(gameRoot),
     banner: false,
     // By default Phaser also listens on the whole window, so a tap on a DOM panel or button would reach

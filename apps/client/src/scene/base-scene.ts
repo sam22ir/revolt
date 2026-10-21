@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { BUILDING_IDS, type BaseState, type BuildingId } from "@revolt/rules";
 import type { GameStore } from "../state/game-store.ts";
+import { hex, theme } from "../theme/theme.ts";
 import { artUrl, spriteInfo, textureKey } from "../art/art.ts";
 import {
   isoToWorld,
@@ -64,7 +65,7 @@ export class BaseScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.cameras.main.setBackgroundColor("#3d4a3a");
+    this.cameras.main.setBackgroundColor(hex(theme.ground.base));
     this.drawGround();
     // Draw back-to-front so nearer buildings overlap farther ones.
     const order = [...BUILDING_IDS].sort((a, b) => plotCenter(PLOTS[a]).y - plotCenter(PLOTS[b]).y);
@@ -196,7 +197,7 @@ export class BaseScene extends Phaser.Scene {
     // Level badge on the plot's front corner, clear of the walls.
     const badgePos = { x: bottom.x, y: bottom.y + 2 };
     view.badge.clear();
-    view.badge.fillStyle(0x2b2a24, 0.9);
+    view.badge.fillStyle(theme.ink.base, 0.9);
     view.badge.fillCircle(badgePos.x, badgePos.y, 23);
     view.badge.lineStyle(3, 0xfff1b8, 1);
     view.badge.strokeCircle(badgePos.x, badgePos.y, 23);
@@ -213,9 +214,9 @@ export class BaseScene extends Phaser.Scene {
     const c = plotCenter(PLOTS[id]);
     const w = 70;
     const y = c.y - 6;
-    g.fillStyle(0x2b2a24, 0.85);
+    g.fillStyle(theme.ink.base, 0.85);
     g.fillRoundedRect(c.x - w / 2 - 3, y - 3, w + 6, 14, 6);
-    g.fillStyle(0xe0b040, 1);
+    g.fillStyle(theme.accent.gold, 1);
     g.fillRoundedRect(c.x - w / 2, y, Math.max(4, w * frac), 8, 4);
   }
 
