@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { BUILDING_IDS, type BaseState, type BuildingId } from "@revolt/rules";
 import type { GameStore } from "../state/game-store.ts";
+import type { HudInsets } from "../ui/hud-insets.ts";
 import { hex, theme } from "../theme/theme.ts";
 import { artUrl, spriteInfo, textureKey } from "../art/art.ts";
 import { artPack } from "../art/pack.ts";
@@ -42,23 +43,18 @@ const ALPHA_TAP = 40;
 const D_HUD = 200;
 const UPGRADING_TINT = 0xb8aa94;
 
-/**
- * Room reserved for the DOM HUD above and below the map, in CSS pixels (keep in step with style.css):
- * top = 10 gutter + 54 resource bar (4 padding + 46 chips + 4) + 6 gap + 32 status row = 102, plus 2 of air = 104;
- * bottom = the fixed nav bar, 65 (--nav-h), plus 7 of air = 72.
- */
-const HUD_TOP = 104;
-const HUD_BOTTOM = 72;
-
 export class BaseScene extends Phaser.Scene {
   private readonly views = new Map<BuildingId, BuildingView>();
   private readonly placements = new Map<BuildingId, Placement>();
   private selected: BuildingId | null = null;
   private viewCenter: Vec = { x: 0, y: 0 };
+  /** The HUD room the camera was last fitted to; a sheet opening does not refit the base. */
+  private fitted: { top: number; nav: number } | null = null;
 
   constructor(
     private readonly store: GameStore,
     private readonly onSelect: (id: BuildingId | null) => void,
+    private readonly insets: HudInsets,
   ) {
     super("base");
   }
@@ -75,6 +71,12 @@ export class BaseScene extends Phaser.Scene {
     order.forEach((id, i) => this.views.set(id, this.createBuilding(id, i)));
     this.fitCamera();
     this.scale.on(Phaser.Scale.Events.RESIZE, () => this.fitCamera());
+    // The HUD header or nav bar changed size (e.g. a third march row, or a new home-indicator inset).
+    const unsubscribeInsets = this.insets.subscribe(() => {
+      const now = this.insets.get();
+      if (this.fitted === null || Math.abs(now.top - this.fitted.top) >= 1 || Math.abs(now.nav - this.fitted.nav) >= 1) this.fitCamera();
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, unsubscribeInsets);
     // A tap on empty ground clears the selection.
     this.input.on(Phaser.Input.Events.POINTER_UP, (_p: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => {
       if (over.length === 0) this.onSelect(null);
@@ -111,10 +113,13 @@ export class BaseScene extends Phaser.Scene {
   private fitCamera(): void {
     const cam = this.cameras.main;
     const { width, height } = this.scale.gameSize;
-    // Game size is in device pixels; the HUD margins are CSS pixels.
+    // Game size is in device pixels; the HUD room is in CSS pixels. The base keeps clear of the nav bar,
+    // not of an open sheet: it must not shrink when a building panel opens.
+    const room = this.insets.get();
+    this.fitted = { top: room.top, nav: room.nav };
     const px = this.scale.displayScale.y;
-    const hudTop = HUD_TOP * px;
-    const hudBottom = HUD_BOTTOM * px;
+    const hudTop = room.top * px;
+    const hudBottom = room.nav * px;
     const usableH = Math.max(100 * px, height - hudTop - hudBottom);
     // Fit the buildings' sprite bitmaps, not the whole ground slab: the slab is a wide diamond that
     // left the base at under half a phone's width. The slab is simply cropped at the sides.

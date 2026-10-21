@@ -1,18 +1,24 @@
 import { describe, expect, test } from "vitest";
 import { createGesture, type GestureHandlers } from "../src/scene/gesture.ts";
 import {
+  canvasCentre,
   centerTile,
   clampCenter,
   clampZoom,
+  isOutsideFreeBand,
   marchPosition,
   MAX_ZOOM,
   MIN_ZOOM,
   panBy,
   screenToTile,
+  screenToWorld,
   tileCenter,
   tileToScreen,
   tileToWorld,
+  viewCentreY,
   visibleTileRange,
+  withInsets,
+  worldToScreen,
   worldToTile,
   zoomAt,
   TILE_H,
@@ -149,6 +155,111 @@ describe("pan and zoom", () => {
     expect(centerTile(view({ cx: c.x, cy: c.y }), 64)).toEqual({ x: 12, y: 30 });
     const off = tileToWorld(-5, 99);
     expect(centerTile(view({ cx: off.x, cy: off.y }), 64)).toEqual({ x: 0, y: 63 });
+  });
+});
+
+describe("free band (HUD insets)", () => {
+  // A 400 x 800 screen with 100 px of header on top and 200 px of nav or sheet below: the band is y 100..600, middle 350.
+  const banded = (over: Partial<View> = {}): View => view({ insetTop: 100, insetBottom: 200, ...over });
+
+  test("the centre tile projects to the middle of the band, not of the screen", () => {
+    const c = tileCenter(5, 5);
+    const v = banded({ cx: c.x, cy: c.y });
+    expect(tileToScreen(v, 5, 5)).toEqual({ x: 200, y: 350 });
+    expect(screenToTile(v, 200, 350)).toEqual({ x: 5, y: 5 });
+  });
+
+  test("with no insets the view is unchanged", () => {
+    const plain = view({ cx: 30, cy: -12, zoom: 1.3 });
+    const zero = { ...plain, insetTop: 0, insetBottom: 0 };
+    expect(tileToScreen(zero, 4, 9)).toEqual(tileToScreen(plain, 4, 9));
+    expect(canvasCentre(zero)).toEqual({ x: plain.cx, y: plain.cy });
+  });
+
+  test("screen → tile → screen round-trips with insets and zoom", () => {
+    for (const zoom of [0.3, 1, 1.6]) {
+      const v = banded({ cx: 500, cy: 900, zoom });
+      for (const [tx, ty] of [
+        [10, 3],
+        [0, 0],
+        [40, 41],
+      ] as const) {
+        const p = tileToScreen(v, tx, ty);
+        expect(screenToTile(v, p.x, p.y)).toEqual({ x: tx, y: ty });
+        const w = screenToWorld(v, p.x, p.y);
+        const back = worldToScreen(v, w);
+        expect(back.x).toBeCloseTo(p.x, 6);
+        expect(back.y).toBeCloseTo(p.y, 6);
+      }
+    }
+  });
+
+  test("changing the insets keeps the picture still on the screen", () => {
+    // A sheet opens under the map: the band shrinks from the bottom, and the tiles must not jump.
+    const before = banded({ cx: 640, cy: 300, zoom: 0.9 });
+    const after = withInsets(before, 100, 480);
+    expect(after.insetBottom).toBe(480);
+    expect(tileToScreen(after, 6, 2)).toEqual(tileToScreen(before, 6, 2));
+    expect(canvasCentre(after).x).toBeCloseTo(canvasCentre(before).x, 9);
+    expect(canvasCentre(after).y).toBeCloseTo(canvasCentre(before).y, 9);
+    // The band's middle moved, so the centre tile is now the one at the new middle.
+    expect(viewCentreY(after)).toBeCloseTo(100 + (800 - 580) / 2, 9);
+  });
+
+  test("the visible range still covers the whole band", () => {
+    const v = banded({ cx: 1000, cy: 1000, zoom: 1 });
+    const range = visibleTileRange(v, 200);
+    // The band runs from y 100 to y 600 on this 800 px screen.
+    for (const y of [100, 350, 600]) {
+      for (const x of [0, v.width / 2, v.width]) {
+        const t = screenToTile(v, x, y);
+        expect(t.x).toBeGreaterThanOrEqual(range.x0);
+        expect(t.x).toBeLessThanOrEqual(range.x1);
+        expect(t.y).toBeGreaterThanOrEqual(range.y0);
+        expect(t.y).toBeLessThanOrEqual(range.y1);
+      }
+    }
+  });
+
+  test("zooming keeps the world point under the pointer fixed inside the band", () => {
+    const v = banded({ cx: 700, cy: 400, zoom: 0.8 });
+    const at = { x: 120, y: 480 };
+    const before = screenToWorld(v, at.x, at.y);
+    const after = zoomAt(v, 1.7, at.x, at.y);
+    const now = screenToWorld(after, at.x, at.y);
+    expect(now.x).toBeCloseTo(before.x, 6);
+    expect(now.y).toBeCloseTo(before.y, 6);
+  });
+
+  test("the Phaser camera centre reproduces the view's projection", () => {
+    // Phaser puts the camera's centre on the canvas middle, so the view's world point must be shifted there.
+    const v = banded({ cx: 320, cy: -150, zoom: 1.1 });
+    const c = canvasCentre(v);
+    for (const [tx, ty] of [
+      [3, 7],
+      [20, 12],
+    ] as const) {
+      const w = tileCenter(tx, ty);
+      const phaser = { x: (w.x - c.x) * v.zoom + v.width / 2, y: (w.y - c.y) * v.zoom + v.height / 2 };
+      const ours = tileToScreen(v, tx, ty);
+      expect(phaser.x).toBeCloseTo(ours.x, 6);
+      expect(phaser.y).toBeCloseTo(ours.y, 6);
+    }
+  });
+
+  test("a tile is outside the free band when it is under the nav or above the header, or off the screen sideways", () => {
+    // Tile (10, 10)'s middle is placed exactly at y 110 (under the header's margin), then at y 590 (under the nav bar).
+    const c = tileCenter(10, 10);
+    const high = banded({ cx: c.x, cy: c.y + 240 });
+    expect(tileToScreen(high, 10, 10).y).toBeCloseTo(110, 6);
+    expect(isOutsideFreeBand(high, 10, 10)).toBe(true);
+    const low = banded({ cx: c.x, cy: c.y - 240 });
+    expect(tileToScreen(low, 10, 10).y).toBeCloseTo(590, 6);
+    expect(isOutsideFreeBand(low, 10, 10)).toBe(true);
+    // The tile at the band's middle is inside.
+    const mid = banded({ cx: c.x, cy: c.y });
+    expect(tileToScreen(mid, 10, 10).y).toBeCloseTo(viewCentreY(mid), 6);
+    expect(isOutsideFreeBand(mid, 10, 10)).toBe(false);
   });
 });
 

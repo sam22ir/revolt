@@ -13,8 +13,10 @@ export const MIN_ZOOM = 0.12;
 export const MAX_ZOOM = 1.6;
 
 /**
- * What the camera looks at: the world point at the middle of the screen, the zoom,
+ * What the camera looks at: the world point at the middle of the free band, the zoom,
  * and the screen size. Screen units are the pointer's units (device pixels in the game).
+ * The free band is the screen minus the HUD above it (`insetTop`) and the nav bar or open sheet
+ * below it (`insetBottom`), both in CSS pixels. With no insets it is the whole screen.
  */
 export interface View {
   readonly cx: number;
@@ -22,7 +24,37 @@ export interface View {
   readonly zoom: number;
   readonly width: number;
   readonly height: number;
+  readonly insetTop?: number;
+  readonly insetBottom?: number;
 }
+
+/** Keeps a tile's middle this far (CSS px) inside the free band when it is brought into view. */
+export const FOCUS_MARGIN = 24;
+
+/** Screen y of the view's centre: the middle of the free band. With no insets this is height / 2. */
+export const viewCentreY = (view: View): number => {
+  const top = view.insetTop ?? 0;
+  const bottom = view.insetBottom ?? 0;
+  return top + (view.height - top - bottom) / 2;
+};
+
+/**
+ * The same view with new insets, and its middle moved so the picture does not move on the screen:
+ * a sheet opening or a march row appearing changes the band, not the map under the player's finger.
+ */
+export const withInsets = (view: View, insetTop: number, insetBottom: number): View => {
+  const next = { ...view, insetTop, insetBottom };
+  return { ...next, cy: view.cy + (viewCentreY(next) - viewCentreY(view)) / view.zoom };
+};
+
+/**
+ * The world point at the middle of the Phaser canvas. Phaser centres its camera on the canvas,
+ * so when the free band is not the whole canvas the camera has to sit offset from `cx, cy`.
+ */
+export const canvasCentre = (view: View): Vec => ({
+  x: view.cx,
+  y: view.cy - (viewCentreY(view) - view.height / 2) / view.zoom,
+});
 
 /** Inclusive tile bounds; empty when `x0 > x1` or `y0 > y1`. */
 export interface TileRange {
@@ -49,12 +81,12 @@ export const worldToTile = (wx: number, wy: number): Vec => ({
 
 export const worldToScreen = (view: View, w: Vec): Vec => ({
   x: (w.x - view.cx) * view.zoom + view.width / 2,
-  y: (w.y - view.cy) * view.zoom + view.height / 2,
+  y: (w.y - view.cy) * view.zoom + viewCentreY(view),
 });
 
 export const screenToWorld = (view: View, sx: number, sy: number): Vec => ({
   x: (sx - view.width / 2) / view.zoom + view.cx,
-  y: (sy - view.height / 2) / view.zoom + view.cy,
+  y: (sy - viewCentreY(view)) / view.zoom + view.cy,
 });
 
 /** The tile under a screen point; may be off the map. */
@@ -70,7 +102,18 @@ export const tileToScreen = (view: View, tx: number, ty: number): Vec => {
   return worldToScreen(view, c);
 };
 
-export const isTileOnMap = (size: number, tx: number, ty: number): boolean => tx >= 0 && ty >= 0 && tx < size && ty < size;
+/**
+ * Whether a tile's middle is outside the free band: above the top inset or below the bottom one
+ * (each with `margin` to spare), or off the screen sideways.
+ */
+export const isOutsideFreeBand = (view: View, tx: number, ty: number, margin = FOCUS_MARGIN): boolean => {
+  const p = tileToScreen(view, tx, ty);
+  const top = view.insetTop ?? 0;
+  const bottom = view.insetBottom ?? 0;
+  return p.x < 0 || p.x > view.width || p.y < top + margin || p.y > view.height - bottom - margin;
+};
+
+export const isTileOnMap =(size: number, tx: number, ty: number): boolean => tx >= 0 && ty >= 0 && tx < size && ty < size;
 
 export const clampZoom = (zoom: number): number => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom));
 
@@ -111,7 +154,7 @@ export const panBy = (view: View, dx: number, dy: number): View => ({ ...view, c
 export const zoomAt = (view: View, factor: number, sx: number, sy: number): View => {
   const zoom = clampZoom(view.zoom * factor);
   const w = screenToWorld(view, sx, sy);
-  return { ...view, zoom, cx: w.x - (sx - view.width / 2) / zoom, cy: w.y - (sy - view.height / 2) / zoom };
+  return { ...view, zoom, cx: w.x - (sx - view.width / 2) / zoom, cy: w.y - (sy - viewCentreY(view)) / zoom };
 };
 
 /** Keeps the view's middle inside the map. */

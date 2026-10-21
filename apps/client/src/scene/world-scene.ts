@@ -5,14 +5,18 @@ import type { WorldStore } from "../state/world-store.ts";
 import { hex, theme } from "../theme/theme.ts";
 import { artUrl, groundUrl, propsUrl, terrainAtlases, groundTexture, propsTexture, textureKey } from "../art/art.ts";
 import { artPack } from "../art/pack.ts";
+import type { HudInsets, Insets } from "../ui/hud-insets.ts";
 import { createGesture, type Gesture } from "./gesture.ts";
 import type { Vec } from "./iso-layout.ts";
 import type { PropKind } from "./terrain-props.ts";
 import {
+  canvasCentre,
   centerTile,
   clampCenter,
+  isOutsideFreeBand,
   isTileOnMap,
   panBy,
+  withInsets,
   screenToTile,
   tileCenter,
   tileToScreen,
@@ -51,11 +55,16 @@ const ART_KEYS: readonly string[] = [...Object.values(artPack.npc), artPack.camp
  * Camera state lives here, not in Phaser, so it can be set before `create`.
  */
 export class WorldScene extends Phaser.Scene {
-  private view: View = { cx: 0, cy: 0, zoom: START_ZOOM, width: 400, height: 800 };
+  private view: View = { cx: 0, cy: 0, zoom: START_ZOOM, width: 400, height: 800, insetTop: 0, insetBottom: 0 };
   private ready = false;
   private snapshot: MapSnapshot | null = null;
   private snapshotVersion = 0;
   private selected: TileRef | null = null;
+  /** The selected tile still has to be checked against the free band (once its sheet is open). */
+  private focusPending = false;
+  private lastRoom: Insets = { top: 0, nav: 0, sheet: 0 };
+  /** False until the first measurement of the free band; see applyInsets. */
+  private bandKnown = false;
   private needsInitialCenter = true;
   private lastCenter: TileRef | null = null;
   private gesture!: Gesture;
@@ -68,6 +77,7 @@ export class WorldScene extends Phaser.Scene {
     private readonly store: GameStore,
     private readonly world: WorldStore,
     private readonly callbacks: WorldCallbacks,
+    private readonly insets: HudInsets,
   ) {
     super("world");
   }
@@ -89,8 +99,15 @@ export class WorldScene extends Phaser.Scene {
 
     this.gesture = createGesture(
       {
-        pan: (dx, dy) => this.setView(panBy(this.view, dx, dy)),
-        zoom: (factor, x, y) => this.setView(zoomAt(this.view, factor, x, y)),
+        // A finger on the map is the player's own choice of view: it cancels any pending focus on the selection.
+        pan: (dx, dy) => {
+          this.focusPending = false;
+          this.setView(panBy(this.view, dx, dy));
+        },
+        zoom: (factor, x, y) => {
+          this.focusPending = false;
+          this.setView(zoomAt(this.view, factor, x, y));
+        },
         tap: (x, y) => this.tap(x, y),
       },
       TAP_SLOP,
@@ -103,10 +120,14 @@ export class WorldScene extends Phaser.Scene {
     this.input.on(Phaser.Input.Events.POINTER_UP, (p: Phaser.Input.Pointer) => this.gesture.up(p.id));
     this.input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, (p: Phaser.Input.Pointer) => this.gesture.up(p.id));
     this.input.on(Phaser.Input.Events.POINTER_WHEEL, (p: Phaser.Input.Pointer, _over: unknown, _dx: number, dy: number) => {
+      this.focusPending = false;
       this.setView(zoomAt(this.view, Math.exp(-dy * 0.0012), css(p).x, css(p).y));
     });
 
     this.scale.on(Phaser.Scale.Events.RESIZE, () => this.syncSize());
+    // The HUD header, nav bar or sheet changed size: the free band moved, so the camera follows.
+    const unsubscribeInsets = this.insets.subscribe(() => this.syncSize());
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, unsubscribeInsets);
     this.events.on(Phaser.Scenes.Events.SLEEP, () => this.gesture.cancel());
     this.events.on(Phaser.Scenes.Events.WAKE, () => {
       this.ground.invalidate();
@@ -124,6 +145,7 @@ export class WorldScene extends Phaser.Scene {
   override update(): void {
     if (!this.ready) return;
     this.syncSize();
+    this.settleFocus();
     const snap = this.snapshot;
     if (snap === null) return;
     const frame: WorldFrame = {
@@ -147,9 +169,26 @@ export class WorldScene extends Phaser.Scene {
 
   /** Selection changed from the DOM (e.g. the panel was closed). */
   setSelectedTile(tile: TileRef | null): void {
+    this.select(tile);
+  }
+
+  /**
+   * Makes `tile` the selection. A tile that is newly selected is checked against the free band once
+   * its sheet is open; re-selecting the same tile does not re-arm that check.
+   */
+  private select(tile: TileRef | null): void {
+    const same = tile === null ? this.selected === null : this.selected !== null && this.selected.x === tile.x && this.selected.y === tile.y;
     this.selected = tile;
+    if (!same) this.focusPending = tile !== null;
     // Before create() there are no layers yet, and the first paint starts from an empty key anyway.
     this.objects?.invalidate();
+  }
+
+  /** Once the sheet is open, pans so the selected tile sits in the middle of the free band if it is hidden. Runs once per selection. */
+  private settleFocus(): void {
+    if (!this.focusPending || this.lastRoom.sheet === 0 || this.snapshot === null) return;
+    this.focusPending = false;
+    if (this.selected !== null && isOutsideFreeBand(this.view, this.selected.x, this.selected.y)) this.centerOn(this.selected.x, this.selected.y);
   }
 
   /** The current zoom, for tests. */
@@ -184,7 +223,23 @@ export class WorldScene extends Phaser.Scene {
     const width = cam.width / px;
     const height = cam.height / px;
     if (width !== this.view.width || height !== this.view.height) this.view = { ...this.view, width, height };
+    this.applyInsets();
     this.applyView();
+  }
+
+  /**
+   * The free band: below the header, above the nav bar or the open sheet, whichever is lower.
+   * Once the band is known, a change keeps the picture where it is on the screen. The first
+   * measurement places the view's middle at the band's middle instead, as the first centring intended.
+   */
+  private applyInsets(): void {
+    const room = this.insets.get();
+    this.lastRoom = room;
+    const insetTop = room.top;
+    const insetBottom = Math.max(room.nav, room.sheet);
+    if (insetTop === this.view.insetTop && insetBottom === this.view.insetBottom) return;
+    this.view = this.bandKnown ? withInsets(this.view, insetTop, insetBottom) : { ...this.view, insetTop, insetBottom };
+    this.bandKnown = true;
   }
 
   private setView(next: View): void {
@@ -198,14 +253,15 @@ export class WorldScene extends Phaser.Scene {
     const cam = this.cameras.main;
     const zoom = this.view.zoom * this.pixelRatio();
     if (cam.zoom !== zoom) cam.setZoom(zoom);
-    cam.centerOn(this.view.cx, this.view.cy);
+    // Phaser centres the camera on the canvas; the view's middle is the free band's middle, which can sit lower or higher.
+    const centre = canvasCentre(this.view);
+    cam.centerOn(centre.x, centre.y);
   }
 
   private tap(x: number, y: number): void {
     const size = this.snapshot?.size ?? 0;
     const t = screenToTile(this.view, x, y);
-    this.selected = isTileOnMap(size, t.x, t.y) ? t : null;
-    this.objects.invalidate();
+    this.select(isTileOnMap(size, t.x, t.y) ? t : null);
     this.callbacks.onSelect(this.selected);
   }
 

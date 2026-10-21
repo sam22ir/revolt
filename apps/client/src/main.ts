@@ -16,6 +16,7 @@ import { connectGameStore, type GameStore } from "./state/game-store.ts";
 import { createWorldStore } from "./state/world-store.ts";
 import { mountUi } from "./ui/app-ui.ts";
 import { showBootStatus } from "./ui/boot-status.ts";
+import { createHudInsets } from "./ui/hud-insets.ts";
 import "./ui/style.css";
 import "./ui/map.css";
 import "./ui/alliance.css";
@@ -79,8 +80,10 @@ const start = async (): Promise<void> => {
     },
   });
 
-  baseScene = new BaseScene(store, (id: BuildingId | null) => ui.select(id));
-  worldScene = new WorldScene(store, world, { onSelect: ui.selectTile, onCenter: ui.setCenter });
+  // The scenes read the live HUD sizes (header, nav bar, open sheet) to place the map between them.
+  const insets = createHudInsets();
+  baseScene = new BaseScene(store, (id: BuildingId | null) => ui.select(id), insets);
+  worldScene = new WorldScene(store, world, { onSelect: ui.selectTile, onCenter: ui.setCenter }, insets);
   const gameRoot = document.getElementById("game");
   if (gameRoot === null) throw new Error("#game missing");
   // The base scene starts; the world scene waits until the map is first opened.
