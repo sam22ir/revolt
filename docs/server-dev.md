@@ -22,6 +22,8 @@ pnpm --filter @revolt/server dev:mock
 
 and start the client with `VITE_GOOGLE_MOCK=1 pnpm dev`. The account panel then shows a "test Google account" email field.
 
+The mock config keeps its own local database, so apply the migrations to it once before the first run (`cd apps/server && npx wrangler d1 migrations apply DB --local --config wrangler.e2e.jsonc`). Its CORS list allows the client on ports 5173, 4173 and 4174; `.claude/launch.json` has `server-mock` and `client-mock` entries (client on 4174) for the preview browser.
+
 ## API
 
 All JSON. The device sends `Authorization: Bearer <token>`; every answer carries the server's `now` (epoch ms).
