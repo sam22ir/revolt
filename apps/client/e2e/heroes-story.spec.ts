@@ -89,6 +89,7 @@ for (const [i, { locale, lang, dir }] of LOCALES.entries()) {
     await expect(a.getByTestId("story-badge")).toBeHidden();
 
     // Chapter 1 paid funds: raise the hero hall to level 2 (90 s), which opens the recruit draw.
+    await closePanel(a, "story-panel");
     await tapBuilding(a, "hero_hall");
     await a.getByTestId("upgrade").click();
     await closePanel(a, "building-panel");
