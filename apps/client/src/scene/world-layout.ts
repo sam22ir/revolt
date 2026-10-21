@@ -5,6 +5,9 @@ import type { Vec } from "./iso-layout.ts";
 export const TILE_W = 96;
 export const TILE_H = 48;
 
+/** The painted ground sprite is drawn this many tiles wide so the feathered edges of neighbours overlap and blend. */
+export const TILE_BLEED = 1.25;
+
 /** Screen pixels per CSS pixel × world pixel. Zoomed out the whole map fits a phone; zoomed in a tile is a thumb. */
 export const MIN_ZOOM = 0.12;
 export const MAX_ZOOM = 1.6;

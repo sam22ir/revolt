@@ -3,7 +3,7 @@ import type { TerrainId } from "@revolt/rules";
 import { groundTexture, propsTexture, terrainAtlases } from "../../art/art.ts";
 import type { SpritePool } from "../sprite-pool.ts";
 import { hash01, propsFor, type PropKind } from "../terrain-props.ts";
-import { tileCenter, TILE_H, TILE_W } from "../world-layout.ts";
+import { TILE_BLEED, tileCenter, TILE_H, TILE_W } from "../world-layout.ts";
 import type { SpecCache } from "./spec-cache.ts";
 
 /** What one repaint of the ground needs, built once per repaint and shared by every tile. */
@@ -34,8 +34,6 @@ export const flatGroundRenderer: GroundRenderer = {
   },
 };
 
-/** Drawn a little wider than the tile so the feathered edges of neighbours overlap and blend. */
-const TILE_BLEED = 1.25;
 /** World px per source px of each prop kind's atlas frames (frames are at most 224 px). */
 const PROP_SCALE: Readonly<Record<PropKind, number>> = { trees: 0.42, rocks: 0.22, peaks: 0.55, scrub: 0.3, terraces: 0.4 };
 

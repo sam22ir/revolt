@@ -43,6 +43,24 @@ Placement is measured, not hand-tuned: buildings and terrain are anchored by the
 
 `scripts/process-art.mjs` (uses `sharp`, a dev dependency) resizes each master with Lanczos, zeroes the colour of fully transparent pixels (the generator's grey would otherwise bleed into edges), writes lossy WebP (q80, alpha q90) and the manifest. Sizes are chosen for a 2.6× phone: a plot is about 350 device px wide on screen, a terrain tile about 175.
 
+## Style gallery (dev only)
+
+A single page that shows the whole look in one place: palette, UI kit sprites, terrain art and the seam check. Open it with:
+
+1. `pnpm --filter @revolt/client dev`
+2. go to `/gallery.html` (add `?lang=ar` for right-to-left, or use the buttons on the page)
+
+Sections:
+
+- **Header:** language and direction toggle (sets `lang` and `dir`, writes `?lang=`), and a background toggle (dark, `theme.ground.base`, `theme.ground.world`) to judge sprites on each. Nothing is saved.
+- **Palette:** every token in `src/theme/theme.ts`, with its hex value. Terrain pairs are light and dark.
+- **Art pack:** every entry of `artPack`, grouped by field, with its id and sprite key.
+- **All sprites:** every key in `src/art/manifest.json` by folder, with pixel size. A red "unused" badge marks sprites no pack entry names, so leftover art is easy to spot.
+- **Terrain:** every frame of each ground atlas and prop atlas, with the flat light and dark swatches. Prop anchors are marked with a red dot.
+- **Seam check:** a 6×6 isometric patch per terrain on the game's tile grid, with the same frame choices and overlap as the world map, fixed so it does not change on reload.
+
+The gallery is dev-only. `gallery.html` is not a build input, so `pnpm --filter @revolt/client build` does not ship it. Its data helpers are tested in `apps/client/test/gallery.test.ts`.
+
 ## Licensing TODO (before release)
 
 - Check the generator's (Google Flow / Nano Banana) terms for commercial use of outputs, and whether they require attribution.
