@@ -1,7 +1,7 @@
 import { createBaseState } from "@revolt/rules";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { guestRateWindow } from "../src/db/guest-rate.ts";
-import { body, newGuest, startServer, T0, type Server } from "./harness.ts";
+import { body, newGuest, startServer, T0, type Json, type Server } from "./harness.ts";
 
 // The other server tests run on in-process SQLite (see sqlite-db.ts). This file keeps the real D1, in
 // workerd, under the same handlers: one Miniflare for the whole file, since each start costs about a second.
@@ -43,5 +43,15 @@ describe("on Miniflare's D1", () => {
     expect(await take()).toBeGreaterThan(0);
     expect(await take()).toBeGreaterThan(0);
     expect(await take()).toBe(0);
+  });
+
+  test("a one-time grant (changes() chain, INSERT..SELECT..ON CONFLICT) pays once on real D1", async () => {
+    const a = await newGuest(server);
+    const redeem = async (): Promise<Json> =>
+      body(await server.request("POST", "/v1/store/redeem", { token: a.token, body: { sku: "bundle_small", provider: "local", receipt: "local-test:smoke-1" } }));
+    expect(await redeem()).toMatchObject({ ok: true, duplicate: false });
+    expect(await redeem()).toMatchObject({ ok: true, duplicate: true });
+    const store = await body(await server.request("GET", "/v1/store", { token: a.token }));
+    expect(store.wallet.speedupTokens).toBe(2);
   });
 });

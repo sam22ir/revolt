@@ -125,6 +125,30 @@ Deviations and notes:
 - Story: `claimChapter(state, now, background)` uses that background's chapters (`STORY[background]`).
 - Deploying M6 applies nothing new: no migration, no binding.
 
+## Live features (M7): events, rankings, pass, store
+
+Routes (all bearer-auth, all scoped to the account's server; players are named by handle, never by id):
+
+| Route | What |
+|---|---|
+| `GET /v1/events` | Open events and recently ended ones with something earned: score, rank, tier, claim state. |
+| `POST /v1/events/claim {event}` | After a window ends (7 days grace) pays the highest tier reached, once. |
+| `GET /v1/leaderboard?board=power\|regions\|alliance\|event[&event=key]` | Top 50 and the viewer's own place. |
+| `GET /v1/pass`, `POST /v1/pass/claim {tier, track}` | The season's pass; each tier pays once per track; premium needs the purchase. |
+| `GET /v1/store`, `POST /v1/store/redeem {sku, provider, receipt}`, `POST /v1/cosmetics/equip {slot, cosmetic}` | Catalog and wallet; receipt redemption; wearing cosmetics. |
+| `POST /v1/intent {type:"speedup", job, tokens}` | Spends speed-up tokens on the running upgrade or training. |
+
+How it holds together:
+- Event windows and pass seasons are computed from the clock and the tables in `packages/rules/src/data` (`events.ts`, `battle-pass.ts`, `store.ts`, `cosmetics.ts`). The cron never has to roll anything over; it only prunes old rows (`db/live-prune.ts`).
+- Scores and pass XP are **sums of `live_awards` rows**, one per (march, key), written with `INSERT OR IGNORE` in the same batch as the battle report (`map-service.deliverOutcome`). A retry or a lost compare-and-set cannot count twice.
+- Every one-time grant (event reward, pass tier, purchase) goes through `db/grants.ts` and a `claims` row used as a lock (`granted` 0, 2, 1, `changes()` chaining inside one D1 batch). Verified on real D1 in `miniflare-smoke.test.ts`.
+- Power and regions boards read `score_snapshots`, refreshed when a player's state is read or saved. Other players' rows can lag until they next open the game. "Regions liberated" = `story.victories` (GDD names the board but not the measure: placeholder definition).
+- Speed-ups: tokens and the day's use live in `wallet` (not in the base). Rules (`store.ts`): 15 min per token, 4 h per UTC day, never on the command post's own upgrade, clock rewinds keep the day's usage.
+- Fair F2P (GDD §8) is enforced by rules tests: no product sells shards or heroes, the premium pass track has no shards, resources stop at the HQ storage cap.
+- Billing, analytics and crash reporting are `Deps` (`billing/`, `telemetry.ts`). `production-deps.ts` (the deployed Worker) has no test verifier and cannot verify receipts yet. **`LocalBilling` accepts `local-test:<txn>` for free and must never be deployed**: it exists only in `e2e-entry.ts` and the test harness (a test greps the deployed modules for it). Secret `REVENUECAT_SECRET` is set with `wrangler secret put`, never in the repo.
+- Test hook (e2e entry only): `POST /__test/award {accountId, key, points}`.
+- Design deviations from the plan: no `BaseState` change (tokens and cosmetics are account-level D1 rows); event claims are recorded in `claims`, not a separate `event_claims` table; the e2e spec is `zz-live.spec.ts` so it runs after the specs that share the map clock; the base scene does not yet draw the equipped base skin (art TODO, equipped state is already served).
+
 ## Accounts and Google
 
 - A first launch calls `POST /v1/guest` and stores the token in `localStorage` (`revolt.session`). It is the only game data on the device.

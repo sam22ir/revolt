@@ -116,7 +116,15 @@ export {
   type MapNpcView,
   type MapServerMessage,
   type MapSnapshot,
+  type EventsResponse,
+  type EventView,
+  type LeaderboardEntryView,
+  type LeaderboardResponse,
   type MarchPhase,
+  type PassView,
+  type ProductView,
+  type StoreView,
+  type WalletView,
 } from "./wire.ts";
 export { HERO_IDS, HEROES_BY_BACKGROUND, heroesFor, isHeroId, isHeroOf, type HeroId } from "./hero-id.ts";
 export {
@@ -176,3 +184,70 @@ export {
   type StoryBlockReason,
   type StoryResult,
 } from "./story.ts";
+
+export { COSMETIC_IDS, COSMETIC_SLOT, COSMETIC_SLOTS, isCosmeticId, slotOf, type CosmeticId, type CosmeticSlot } from "./data/cosmetics.ts";
+export { DAY_MS, EVENT_CLAIM_GRACE_MS, EVENT_IDS, EVENTS, isEventId, LIVE_ANCHOR, type EventDef, type EventId, type EventTier } from "./data/events.ts";
+export { PASS_ANCHOR, PASS_SEASON_MS, PASS_TIER_COUNT, PASS_TIERS, PASS_XP_PER_TIER, type PassTier } from "./data/battle-pass.ts";
+export { isProductSku, MAX_PRODUCT_RESOURCES, MAX_PRODUCT_TOKENS, PRODUCT_KINDS, PRODUCT_SKUS, PRODUCTS, type ProductDef, type ProductKind, type ProductSku } from "./data/store.ts";
+export { grantReward, rewardHasBaseParts, type Reward } from "./reward.ts";
+export {
+  activeEvents,
+  claimableWindows,
+  EVENT_BLOCK_REASONS,
+  eventKey,
+  eventReward,
+  eventRewardTier,
+  eventScoreFor,
+  eventsFor,
+  eventWindow,
+  marchAwards,
+  parseEventKey,
+  passKey,
+  passSeasonAt,
+  passXpFor,
+  type Award,
+  type EventBlockReason,
+  type EventWindow,
+} from "./events.ts";
+export {
+  compareEntries,
+  isLeaderboardId,
+  LEADERBOARD_PAGE,
+  LEADERBOARDS,
+  playerPower,
+  POWER_PER_BUILDING_LEVEL,
+  POWER_PER_HERO_LEVEL,
+  rankOf,
+  regionsLiberated,
+  type BoardEntry,
+  type LeaderboardId,
+} from "./leaderboard.ts";
+export {
+  addPassXp,
+  claimableTiers,
+  claimTier,
+  EMPTY_PASS,
+  isClaimed,
+  isPassTrack,
+  PASS_BLOCK_REASONS,
+  PASS_TRACKS,
+  reachedTier,
+  type PassBlockReason,
+  type PassClaim,
+  type PassProgress,
+  type PassTrack,
+} from "./battle-pass.ts";
+export {
+  MAX_SPEEDUP_TOKENS_HELD,
+  SPEEDUP_BLOCK_REASONS,
+  SPEEDUP_DAILY_CAP_MS,
+  SPEEDUP_MAX_PER_USE,
+  SPEEDUP_TOKEN_MS,
+  speedUp,
+  STORE_BLOCK_REASONS,
+  usedToday,
+  utcDay,
+  type SpeedUpBlockReason,
+  type SpeedUpResult,
+  type StoreBlockReason,
+} from "./store.ts";

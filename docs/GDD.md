@@ -250,6 +250,7 @@ Base screen, resources, buildings, upgrade timers, offline with local save.
 
 ### M7 — Live features and release
 - Done when: events, leaderboards, battle pass and store work end to end; analytics and crash reporting are live; the app passes Google Play review.
+- **Status (M7):** code-complete, NOT accepted. Built: events (supply route, convoy hunt, two placeholder seasonal campaigns), four leaderboards, a 30-tier battle pass, store with speed-up tokens (daily cap, never the HQ), cosmetics and bundles, all behind fair-F2P rules and tests; billing, analytics and crash reporting behind interfaces with no-op/test implementations. Still open: real billing (Play Billing + RevenueCat), Firebase analytics/crash, Play review, a real-phone check, historian review of the seasonal campaign text (Vietnam siege campaign is a placeholder id), design pass on all placeholder numbers, equipped base skin art. See `docs/release.md`.
 
 ---
 

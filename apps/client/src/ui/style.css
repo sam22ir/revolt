@@ -293,3 +293,6 @@ html, body {
   .bg-picker { align-items: center; }
   .bg-picker > * { inline-size: min(100%, 520px); }
 }
+
+.account-consent { display: flex; align-items: center; gap: 10px; margin-block: 10px 4px; font-size: 14px; }
+.account-consent input { inline-size: 22px; block-size: 22px; flex-shrink: 0; }

@@ -6,6 +6,10 @@ import type { MapPoint, MarchResult, SquadMember } from "./base-state.ts";
 import type { NpcKind } from "./data/npcs.ts";
 import type { AllianceRank } from "./alliance.ts";
 import type { HelpKind } from "./help.ts";
+import type { CosmeticId, CosmeticSlot } from "./data/cosmetics.ts";
+import type { EventId } from "./data/events.ts";
+import type { ProductKind, ProductSku } from "./data/store.ts";
+import type { LeaderboardId } from "./leaderboard.ts";
 import type { Resources } from "./resources.ts";
 import type { Troops } from "./troops.ts";
 
@@ -169,3 +173,84 @@ export type AllianceServerMessage =
 
 /** Client → server messages on the alliance WebSocket. */
 export type AllianceClientMessage = { readonly type: "chat"; readonly text: string };
+
+// --- Live features (M7) -----------------------------------------------------------------------------------
+// Players are named by handle only. Scores, XP and rank are the server's numbers.
+
+export interface EventView {
+  /** `id:index`, the name to send back when claiming. */
+  readonly key: string;
+  readonly id: EventId;
+  readonly startsAt: number;
+  readonly endsAt: number;
+  readonly active: boolean;
+  /** The viewer's score and rank in this window (rank is null before the first point). */
+  readonly score: number;
+  readonly rank: number | null;
+  /** Index of the highest reward tier reached, or -1. */
+  readonly tier: number;
+  readonly tiers: readonly { readonly score: number }[];
+  readonly claimed: boolean;
+  readonly claimable: boolean;
+  /** The event's text is a draft that needs historian review. */
+  readonly needsReview: boolean;
+}
+
+export interface EventsResponse {
+  readonly events: readonly EventView[];
+  readonly now: number;
+}
+
+export interface LeaderboardEntryView {
+  readonly rank: number;
+  /** A player's handle, or an alliance's name on the alliance board. */
+  readonly name: string;
+  readonly score: number;
+  readonly mine: boolean;
+}
+
+export interface LeaderboardResponse {
+  readonly board: LeaderboardId;
+  /** For the event board: the window it ranks. */
+  readonly event: string | null;
+  readonly entries: readonly LeaderboardEntryView[];
+  /** The viewer's own place (their alliance's, on the alliance board); rank is null when unranked. */
+  readonly me: { readonly rank: number | null; readonly score: number };
+  readonly now: number;
+}
+
+export interface PassView {
+  readonly season: number;
+  readonly startsAt: number;
+  readonly endsAt: number;
+  readonly xp: number;
+  readonly tier: number;
+  readonly premium: boolean;
+  readonly claimedFree: number;
+  readonly claimedPremium: number;
+  readonly now: number;
+}
+
+export interface WalletView {
+  readonly speedupTokens: number;
+  readonly usedTodayMs: number;
+  readonly dailyCapMs: number;
+}
+
+export interface ProductView {
+  readonly sku: ProductSku;
+  readonly kind: ProductKind;
+  readonly priceHintUsdCents: number;
+  /** Already owned (premium pass this season, a cosmetic), so it cannot be bought again. */
+  readonly owned: boolean;
+  readonly dailyLimit: number | null;
+}
+
+export interface StoreView {
+  readonly products: readonly ProductView[];
+  readonly wallet: WalletView;
+  readonly cosmetics: { readonly owned: readonly CosmeticId[]; readonly equipped: Readonly<Partial<Record<CosmeticSlot, CosmeticId>>> };
+  /** Whether this server can check receipts at all (false: the store is browse-only). */
+  readonly canRedeem: boolean;
+  readonly now: number;
+}

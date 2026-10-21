@@ -5,7 +5,7 @@ Live URL: **https://revolt-server.nafaa-store.workers.dev** (one Worker serves t
 ## What exists (account samirsaadi610@gmail.com, all new, all `revolt-` prefixed)
 
 - Worker `revolt-server` (`apps/server/src/index.ts`; never the e2e entry, so `/__test/*` returns 404).
-- D1 database `revolt-db` (id in `apps/server/wrangler.jsonc`), migrations `0001`–`0005` applied remotely.
+- D1 database `revolt-db` (id in `apps/server/wrangler.jsonc`), migrations `0001`–`0005` applied remotely. **M7 adds `0006_live.sql`** (events, passes, store, boards): apply it with `wrangler d1 migrations apply DB --remote` before deploying the M7 Worker. It only creates tables, so it is safe to apply first.
 - Durable Objects `WorldMap` and `AllianceRoom`, SQLite-backed (migrations v1, v2), Free-plan compatible.
 - Cron trigger `0 3 * * *` (daily cleanup).
 - Static assets: `apps/client/dist`, uploaded with the Worker via `--assets`.

@@ -12,6 +12,9 @@ import { createAllianceSocket } from "./net/alliance-socket.ts";
 import { googleSignIn } from "./net/google.ts";
 import { createMapSocket } from "./net/map-socket.ts";
 import { createAllianceStore } from "./state/alliance-store.ts";
+import { createLiveStore } from "./state/live-store.ts";
+import { createPlatform } from "./platform/index.ts";
+import { installCrashHooks } from "./platform/crash.ts";
 import { connectGameStore, type GameStore } from "./state/game-store.ts";
 import { createWorldStore } from "./state/world-store.ts";
 import { mountUi } from "./ui/app-ui.ts";
@@ -21,6 +24,7 @@ import "./ui/style.css";
 import "./ui/map.css";
 import "./ui/alliance.css";
 import "./ui/heroes.css";
+import "./ui/live.css";
 
 const TICK_MS = 250;
 const RETRY_MS = [1000, 2000, 5000, 10_000];
@@ -66,6 +70,21 @@ const start = async (): Promise<void> => {
   // The alliance feed opens only while the player is in an alliance (the server refuses it otherwise).
   const alliance = createAllianceStore({ api, game: store, socket: createAllianceSocket({ url: allianceSocketUrl(apiUrl), token: store.token }) });
 
+  // Billing, analytics and crash reporting come from one place (platform/index.ts): no-ops until a release wires real ones.
+  const platform = createPlatform({ billingMock: import.meta.env.VITE_BILLING_MOCK === "1", dev: import.meta.env.DEV, storage });
+  installCrashHooks(platform.crash, window);
+  const live = createLiveStore({
+    api,
+    game: store,
+    billing: platform.billing,
+    analytics: platform.analytics,
+    clock: () => Date.now(),
+    every: (fn, ms) => {
+      const id = window.setInterval(fn, ms);
+      return () => window.clearInterval(id);
+    },
+  });
+
   let baseScene: BaseScene | null = null;
   let worldScene: WorldScene | null = null;
   let game: Phaser.Game | null = null;
@@ -74,6 +93,8 @@ const start = async (): Promise<void> => {
     store,
     world,
     alliance,
+    live,
+    platform,
     onLanguage: async (lang) => {
       storeLanguagePref(storage, lang);
       await changeLanguage(lang);
@@ -105,6 +126,9 @@ const start = async (): Promise<void> => {
 
   world.start();
   alliance.start();
+  // The badge on the Live button needs one early answer, and a fresh one after each battle report.
+  void live.refresh(true);
+  world.subscribeReports(() => void live.refresh());
   if (returning) ui.openAccount();
   window.setInterval(store.tick, TICK_MS);
   // Coming back to the app, or while offline: ask the server again.

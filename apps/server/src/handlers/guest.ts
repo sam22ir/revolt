@@ -34,6 +34,7 @@ export const createGuest = async (ctx: Ctx): Promise<Response> => {
     await db.batch([insertAccount(db, { id, handle: h, now: ctx.now, server, importedM1: imported }), insertBase(db, id, state, ctx.now), session]);
     return h;
   });
+  ctx.deps.analytics.track("guest_created", { background });
   const account = accountView({ id, googleSub: null, googleEmail: null, server, handle });
   return json({ token, account, state, now: ctx.now, imported }, 201);
 };

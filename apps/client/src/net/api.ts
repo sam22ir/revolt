@@ -2,6 +2,21 @@ import {
   TROOP_IDS,
   type BackgroundId,
   type AllianceBlockReason,
+  type CosmeticId,
+  type CosmeticSlot,
+  type EventBlockReason,
+  type EventsResponse,
+  type LeaderboardId,
+  type LeaderboardResponse,
+  type PassBlockReason,
+  type PassTrack,
+  type PassView,
+  type ProductSku,
+  type Reward,
+  type SpeedUpBlockReason,
+  type StoreBlockReason,
+  type StoreView,
+  type WalletView,
   type AllianceListItem,
   type AllianceView,
   type BaseState,
@@ -89,6 +104,23 @@ export interface ReportsReply {
   readonly now: number;
 }
 
+/** A one-time claim (an event reward, a pass tier): the reward, and the new base when the reward touched it. */
+export type ClaimReply<R extends string> =
+  | { readonly ok: true; readonly reward: Reward; readonly state?: BaseState; readonly now: number }
+  | { readonly ok: false; readonly reason: R; readonly now: number };
+
+export type RedeemReply =
+  | { readonly ok: true; readonly duplicate: boolean; readonly state?: BaseState; readonly now: number }
+  | { readonly ok: false; readonly reason: StoreBlockReason; readonly now: number };
+
+export type EquipReply =
+  | { readonly ok: true; readonly cosmetics: StoreView["cosmetics"]; readonly now: number }
+  | { readonly ok: false; readonly reason: StoreBlockReason; readonly now: number };
+
+export type SpeedUpReply =
+  | { readonly ok: true; readonly state: BaseState; readonly wallet: WalletView; readonly now: number }
+  | { readonly ok: false; readonly reason: SpeedUpBlockReason; readonly state: BaseState; readonly wallet: WalletView; readonly now: number };
+
 /** The server answered with an error status, e.g. 401 for an unknown token. */
 export class ApiError extends Error {
   constructor(
@@ -128,6 +160,18 @@ export interface Api {
   readonly placeHq: (token: string, x: number, y: number) => Promise<AllianceReply>;
   readonly requestHelp: (token: string, kind: HelpKind) => Promise<HelpReply>;
   readonly giveHelp: (token: string, requestId: string) => Promise<HelpReply>;
+  // Live features (M7)
+  readonly getEvents: (token: string) => Promise<EventsResponse>;
+  readonly claimEvent: (token: string, event: string) => Promise<ClaimReply<EventBlockReason>>;
+  /** The top of a board on the player's server; `event` names the window for the event board. */
+  readonly getLeaderboard: (token: string, board: LeaderboardId, event?: string) => Promise<LeaderboardResponse>;
+  readonly getPass: (token: string) => Promise<PassView>;
+  readonly claimPass: (token: string, tier: number, track: PassTrack) => Promise<ClaimReply<PassBlockReason>>;
+  readonly getStore: (token: string) => Promise<StoreView>;
+  /** Hands the server a receipt from the device's billing; it checks it and grants. */
+  readonly redeem: (token: string, sku: ProductSku, provider: string, receipt: string) => Promise<RedeemReply>;
+  readonly equip: (token: string, slot: CosmeticSlot, cosmetic: CosmeticId | null) => Promise<EquipReply>;
+  readonly speedUp: (token: string, job: HelpKind, tokens: number) => Promise<SpeedUpReply>;
 }
 
 /** `VITE_API_URL=same-origin` (the deployed build): the Worker serves the page and the API from one origin. */
@@ -194,5 +238,15 @@ export const createApi = (baseUrl: string, fetchFn: typeof fetch = fetch): Api =
     placeHq: (token, x, y) => call("POST", "/v1/alliance/hq", token, { x, y }),
     requestHelp: (token, kind) => call("POST", "/v1/help/request", token, { kind }),
     giveHelp: (token, requestId) => call("POST", "/v1/help/give", token, { requestId }),
+    getEvents: (token) => call("GET", "/v1/events", token),
+    claimEvent: (token, event) => call("POST", "/v1/events/claim", token, { event }),
+    getLeaderboard: (token, board, event) =>
+      call("GET", `/v1/leaderboard?board=${board}${event === undefined ? "" : `&event=${encodeURIComponent(event)}`}`, token),
+    getPass: (token) => call("GET", "/v1/pass", token),
+    claimPass: (token, tier, track) => call("POST", "/v1/pass/claim", token, { tier, track }),
+    getStore: (token) => call("GET", "/v1/store", token),
+    redeem: (token, sku, provider, receipt) => call("POST", "/v1/store/redeem", token, { sku, provider, receipt }),
+    equip: (token, slot, cosmetic) => call("POST", "/v1/cosmetics/equip", token, { slot, cosmetic }),
+    speedUp: (token, job, tokens) => call("POST", "/v1/intent", token, { type: "speedup", job, tokens }),
   };
 };

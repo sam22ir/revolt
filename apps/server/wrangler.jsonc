@@ -33,5 +33,8 @@
     "ALLOWED_ORIGINS": "http://localhost:5173,http://localhost:4173,https://localhost,capacitor://localhost,https://revolt-server.nafaa-store.workers.dev",
     // Guest accounts per client IP (IPv6: /64) per hour. Mobile carriers share IPs (CGNAT), so keep it generous.
     "GUEST_LIMIT_PER_HOUR": "30"
+    // Secrets, never values in this file (docs/release.md, "Billing"). Set each with `wrangler secret put <NAME>`:
+    //   REVENUECAT_SECRET  RevenueCat server-side key for checking purchase receipts. Unset: the store is browse-only
+    //                      and POST /v1/store/redeem answers 503 billing_not_configured.
   }
 }

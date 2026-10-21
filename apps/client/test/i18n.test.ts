@@ -4,6 +4,16 @@ import {
   ALLIANCE_RANKS,
   BACKGROUND_IDS,
   BUILDING_IDS,
+  COSMETIC_IDS,
+  COSMETIC_SLOTS,
+  EVENT_BLOCK_REASONS,
+  EVENT_IDS,
+  EVENTS,
+  LEADERBOARDS,
+  PASS_BLOCK_REASONS,
+  PRODUCT_SKUS,
+  SPEEDUP_BLOCK_REASONS,
+  STORE_BLOCK_REASONS,
   HELP_KINDS,
   HERO_BLOCK_REASONS,
   HERO_IDS,
@@ -20,6 +30,7 @@ import {
   TRAINING_BLOCK_REASONS,
   TROOP_IDS,
   UPGRADE_BLOCK_REASONS,
+  PRODUCTS,
 } from "@revolt/rules";
 import { describe, expect, test } from "vitest";
 import { detectLanguage, LANGUAGES, textDirection } from "../src/i18n/languages.ts";
@@ -167,6 +178,65 @@ describe("heroes and story", () => {
 
   test("heroes are roles, not named people", () => {
     for (const id of HERO_IDS) expect(en.hero[id].desc).toMatch(/inspired by/i);
+  });
+});
+
+describe("live features", () => {
+  const at = (locale: object, k: string): unknown => k.split(".").reduce<unknown>((o, p) => (o as Record<string, unknown>)[p], locale);
+  const all = new Set(keys(en));
+
+  test("every event, product, cosmetic, slot, board and refusal has a key", () => {
+    for (const id of EVENT_IDS) for (const part of ["name", "desc"]) expect(all.has(`event.${id}.${part}`), `${id}.${part}`).toBe(true);
+    for (const sku of PRODUCT_SKUS) for (const part of ["name", "desc"]) expect(all.has(`product.${sku}.${part}`), `${sku}.${part}`).toBe(true);
+    for (const id of COSMETIC_IDS) expect(all.has(`cosmetic.${id}`), id).toBe(true);
+    for (const slot of COSMETIC_SLOTS) expect(all.has(`live.slot.${slot}`), slot).toBe(true);
+    for (const b of LEADERBOARDS) expect(all.has(`live.board.${b}`), b).toBe(true);
+    for (const r of [...EVENT_BLOCK_REASONS, ...PASS_BLOCK_REASONS, ...STORE_BLOCK_REASONS, ...SPEEDUP_BLOCK_REASONS]) expect(all.has(`reason.${r}`), r).toBe(true);
+    for (const k of ["billing_unavailable", "cancelled", "unreachable"]) expect(all.has(`live.note.${k}`), k).toBe(true);
+    expect(all.has("nav.live")).toBe(true);
+  });
+
+  test("no event or product text exists that the data does not use", () => {
+    for (const k of keys(en).filter((x) => /^event\./.test(x))) expect(EVENT_IDS.some((id) => k.startsWith(`event.${id}.`)), k).toBe(true);
+    for (const k of keys(en).filter((x) => /^product\./.test(x))) expect(PRODUCT_SKUS.some((s) => k.startsWith(`product.${s}.`)), k).toBe(true);
+    for (const k of keys(en).filter((x) => /^cosmetic\./.test(x))) expect(COSMETIC_IDS.some((c) => k === `cosmetic.${c}`), k).toBe(true);
+  });
+
+  test("product text takes token counts from the data, never from digits typed into the text", () => {
+    for (const sku of PRODUCT_SKUS) {
+      const tokens = PRODUCTS[sku].grants.speedupTokens !== undefined;
+      for (const [lang, locale] of Object.entries(LOCALES)) {
+        const desc = String(at(locale, `product.${sku}.desc`));
+        expect(desc.includes("{{count}}"), `${lang}:${sku}`).toBe(tokens);
+        expect(desc, `${lang}:${sku}`).not.toMatch(/\d/);
+      }
+    }
+  });
+
+  test("events that still need historian review are marked as drafts in every language", () => {
+    const NAME = { en: "[Draft]", fr: "[Brouillon]", ar: "[مسودة]" } as const;
+    const DESC = { en: "[Draft, needs historian review]", fr: "[Brouillon, relecture d’historien requise]", ar: "[مسودة، تحتاج مراجعة مؤرخ]" } as const;
+    for (const [lang, locale] of Object.entries(LOCALES) as [keyof typeof NAME, object][]) {
+      for (const id of EVENT_IDS) {
+        const marked = String(at(locale, `event.${id}.name`)).startsWith(NAME[lang]);
+        expect(marked, `${lang}:${id}.name`).toBe(EVENTS[id].needsReview);
+        expect(String(at(locale, `event.${id}.desc`)).startsWith(DESC[lang]), `${lang}:${id}.desc`).toBe(EVENTS[id].needsReview);
+      }
+    }
+  });
+
+  test("live text is translated, not copied from English", () => {
+    for (const k of keys(en).filter((x) => /^(live|event|product|cosmetic|reward)\./.test(x))) {
+      // Some words are the same in French ("Pass", "Premium").
+      if (/^live\.(tab\.pass|pass\.premium|board\.alliance)$/.test(k)) continue;
+      expect(at(ar, k), `ar:${k}`).not.toBe(at(en, k));
+      expect(at(fr, k), `fr:${k}`).not.toBe(at(en, k));
+    }
+  });
+
+  test("the store says what money does not buy, and cosmetics are only looks", () => {
+    expect(en.live.store.fairNote).toMatch(/never buys heroes/i);
+    for (const id of COSMETIC_IDS) expect(String(at(en, `cosmetic.${id}`))).not.toMatch(/\d/);
   });
 });
 

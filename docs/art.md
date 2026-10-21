@@ -58,3 +58,7 @@ Seen in the en and ar screenshots (nothing here has been tried on a real phone y
 - NPC level numbers are small on the tile art.
 - Only 5 of the 11 buildings exist in the rules; the others are unused until they do.
 - The sprites are not power-of-two sized, so Phaser (which only mipmaps power-of-two textures) draws them with plain linear filtering; heavy minification can shimmer.
+
+## Cosmetics (M7, placeholder)
+
+Cosmetic ids (`packages/rules/src/data/cosmetics.ts`) have names but no art yet. The server serves `equipped` per slot (`GET /v1/store`); the base scene should look up `base_skin` by id and fall back to the default art. Not wired yet.

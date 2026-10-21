@@ -4,6 +4,9 @@ import type { Language } from "../i18n/languages.ts";
 import type { GoogleSignIn } from "../net/google.ts";
 import type { TileRef } from "../scene/world-scene.ts";
 import type { AllianceStore } from "../state/alliance-store.ts";
+import type { LiveStore, LiveTab } from "../state/live-store.ts";
+import type { Platform } from "../platform/index.ts";
+import { createLivePanel } from "./live-panel.ts";
 import type { GameStore } from "../state/game-store.ts";
 import type { WorldStore } from "../state/world-store.ts";
 import { createAccountPanel } from "./account-panel.ts";
@@ -39,6 +42,8 @@ interface UiDeps {
   readonly store: GameStore;
   readonly world: WorldStore;
   readonly alliance: AllianceStore;
+  readonly live: LiveStore;
+  readonly platform: Platform;
   readonly onLanguage: (lang: Language) => Promise<void>;
   readonly onSelectionChange: (id: BuildingId | null) => void;
   readonly onTileSelectionChange: (tile: TileRef | null) => void;
@@ -62,7 +67,7 @@ interface Controls {
 }
 
 /** The panels that share the bottom of the screen; opening one closes the others. */
-type Overlay = "account" | "reports" | "alliance" | "heroes" | "story";
+type Overlay = "account" | "reports" | "alliance" | "heroes" | "story" | "live";
 
 const noop = (): void => {};
 
@@ -76,6 +81,8 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
   const allianceView: { open: boolean; tab: AllianceTab } = { open: false, tab: "members" };
   const heroesView = { open: false };
   const storyOpen = { open: false };
+  const liveView: { open: boolean; tab: LiveTab } = { open: false, tab: "events" };
+  let disposeLive = noop;
   let disposeAlliance = noop;
   const ctl: Controls = {
     refresh: noop,
@@ -122,10 +129,11 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
 
   const build = (): void => {
     disposeAlliance();
+    disposeLive();
     const switcher = createLanguageSwitcher((lang) => {
       void deps.onLanguage(lang).then(build);
     });
-    const account = createAccountPanel({ google: deps.google, onIdToken: (idToken) => deps.store.signInWithGoogle(idToken) });
+    const account = createAccountPanel({ google: deps.google, onIdToken: (idToken) => deps.store.signInWithGoogle(idToken), consent: deps.platform.consent });
     const accountButton = el("button", "account-open", t("account.button"));
     accountButton.type = "button";
     accountButton.dataset.testid = "account";
@@ -177,6 +185,15 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
     storyButton.append(el("span", undefined, t("nav.story")), storyBadge);
     storyButton.addEventListener("click", () => story.toggle());
 
+    const liveButton = el("button", "nav-btn");
+    liveButton.type = "button";
+    liveButton.dataset.testid = "live-open";
+    const liveBadge = el("span", "badge");
+    liveBadge.dataset.testid = "live-badge";
+    liveBadge.hidden = true;
+    liveButton.append(el("span", undefined, t("nav.live")), liveBadge);
+    liveButton.addEventListener("click", () => live.toggle());
+
     const coords = el("div", "coord-pill");
     coords.dataset.testid = "coords";
     coords.hidden = true;
@@ -188,7 +205,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
         if (!outcome.ok) note(t(`reason.${outcome.reason}`));
       });
     };
-    const hud = createHud([accountButton, switcher], [mapToggle, allianceButton, reportsButton, heroesButton, storyButton], [marches.root, coords], () =>
+    const hud = createHud([accountButton, switcher], [mapToggle, allianceButton, reportsButton, heroesButton, storyButton, liveButton], [marches.root, coords], () =>
       askHelp("upgrade", (text) => hud.showHelpNote(text)),
     );
     const panel = createBuildingPanel({
@@ -265,11 +282,25 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       initial: storyOpen,
       onChange: (s) => (storyOpen.open = s.open),
     });
+    const live = createLivePanel({
+      live: deps.live,
+      onOpen: () => {
+        select(null);
+        selectTile(null);
+        ctl.closeOverlays("live");
+      },
+      initial: liveView,
+      onChange: (s) => {
+        liveView.open = s.open;
+        liveView.tab = s.tab;
+      },
+    });
+    disposeLive = live.dispose;
     const toast = createReportToast((id) => reports.showReport(id));
 
     panel.show(selected);
     tilePanel.show(selectedTile);
-    root.replaceChildren(hud.root, panel.root, tilePanel.root, alliance.root, heroes.root, story.root, account.root, reports.root, toast.root, dialog.root);
+    root.replaceChildren(hud.root, panel.root, tilePanel.root, alliance.root, heroes.root, story.root, live.root, account.root, reports.root, toast.root, dialog.root);
 
     ctl.refresh = () => {
       const state = deps.store.state();
@@ -283,6 +314,10 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       alliance.update();
       heroes.update(state);
       story.update(state);
+      live.update(state, now);
+      const waiting = deps.live.badge();
+      liveBadge.hidden = waiting === 0;
+      liveBadge.textContent = formatAmount(currentLanguage(), waiting);
       storyBadge.hidden = !storyClaimable(state, activeBackground());
       dialog.update(state, snapshot);
       account.update(deps.store.account());
@@ -302,6 +337,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
         alliance: () => alliance.toggle(false),
         heroes: () => heroes.toggle(false),
         story: () => story.toggle(false),
+        live: () => live.toggle(false),
       };
       for (const name of Object.keys(closers) as Overlay[]) if (name !== except) closers[name]();
     };
@@ -339,6 +375,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
   deps.store.subscribe(() => ctl.refresh());
   deps.world.subscribeSnapshot(() => ctl.refresh());
   deps.alliance.subscribe(() => ctl.refresh());
+  deps.live.subscribe(() => ctl.refresh());
   deps.world.subscribeReports((_reports, fresh) => {
     ctl.updateReports();
     ctl.refresh();

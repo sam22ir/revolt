@@ -29,3 +29,7 @@ Three placeholder chapters, `story.vietnam.ch1` to `ch3`, all `reviewed: false` 
 4. Keep the panel's draft notice until every chapter is reviewed.
 
 Open question (GDD §12): who reviews the Algeria content.
+
+## Event text (M7)
+
+`seasonal_campaign` (Algeria) and `vietnam_seasonal_placeholder` (Vietnam) are placeholders with draft markers in `event.<id>.name/desc` in all three locales and `needsReview: true` in `data/events.ts`. The historian must supply the real names and framing before release (GDD §6): scoring is only ever for beating colonial armies and convoys, never for harming civilians. Cosmetic names (`cosmetic.*`) are neutral; check them too. The other events (supply route, convoy hunt) are generic game text. A test fails if a `needsReview` event loses its draft marker.

@@ -56,6 +56,15 @@ export const UNUSED_ALLIANCE_API: Pick<
   | "placeHq"
   | "requestHelp"
   | "giveHelp"
+  | "getEvents"
+  | "claimEvent"
+  | "getLeaderboard"
+  | "getPass"
+  | "claimPass"
+  | "getStore"
+  | "redeem"
+  | "equip"
+  | "speedUp"
 > = {
   rallyStart: unused,
   rallyJoin: unused,
@@ -71,4 +80,13 @@ export const UNUSED_ALLIANCE_API: Pick<
   placeHq: unused,
   requestHelp: unused,
   giveHelp: unused,
+  getEvents: unused,
+  claimEvent: unused,
+  getLeaderboard: unused,
+  getPass: unused,
+  claimPass: unused,
+  getStore: unused,
+  redeem: unused,
+  equip: unused,
+  speedUp: unused,
 };

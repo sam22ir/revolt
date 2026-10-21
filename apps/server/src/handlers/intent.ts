@@ -5,6 +5,8 @@ import {
   canPerform,
   claimChapter,
   isHeroId,
+  isHelpKind,
+  type HelpKind,
   levelUpHero,
   MAX_SQUAD,
   parseTroops,
@@ -18,7 +20,10 @@ import {
   type TroopId,
   type Troops,
 } from "@revolt/rules";
+import type { Account } from "../db/accounts.ts";
 import { loadBase, saveBase } from "../db/bases.ts";
+import { speedUpIntent } from "./speedup.ts";
+import { syncSnapshot } from "./live-support.ts";
 import { HttpError, json, readJson } from "../http.ts";
 import { authenticate, type Ctx } from "./context.ts";
 import { viewerFor } from "./viewer.ts";
@@ -31,7 +36,8 @@ export type Intent =
   | { readonly type: "rally_join"; readonly rally: string; readonly troops: Troops; readonly heroes: readonly HeroId[] }
   | { readonly type: "hero_recruit"; readonly hero: HeroId }
   | { readonly type: "hero_level"; readonly hero: HeroId }
-  | { readonly type: "story_claim" };
+  | { readonly type: "story_claim" }
+  | { readonly type: "speedup"; readonly job: HelpKind; readonly tokens: number };
 
 const MAX_TARGET_ID = 64;
 
@@ -51,6 +57,7 @@ export const parseIntent = (body: Record<string, unknown>): Intent => {
   }
   if ((type === "hero_recruit" || type === "hero_level") && isHeroId(body.hero)) return { type, hero: body.hero };
   if (type === "story_claim") return { type };
+  if (type === "speedup" && isHelpKind(body.job) && typeof body.tokens === "number") return { type, job: body.job, tokens: body.tokens };
   const heroes = parseHeroes(body.heroes);
   if (type === "march" && heroes !== null && typeof body.target === "string" && body.target.length > 0 && body.target.length <= MAX_TARGET_ID) {
     const troops = parseTroops(body.troops);
@@ -72,13 +79,14 @@ type BaseChange = { readonly ok: true; readonly state: BaseState } | { readonly 
 const ATTEMPTS = 2;
 
 /** Applies a base-only intent with the shared rules at server time and saves it (compare-and-set). */
-const changeBase = async (ctx: Ctx, accountId: string, apply: (s: BaseState) => BaseChange): Promise<Response> => {
+const changeBase = async (ctx: Ctx, account: Account, apply: (s: BaseState) => BaseChange): Promise<Response> => {
   for (let i = 0; i < ATTEMPTS; i++) {
-    const stored = await loadBase(ctx.env.DB, accountId);
+    const stored = await loadBase(ctx.env.DB, account.id);
     if (stored === null) throw new HttpError("not_found");
     const result = apply(stored.state);
     if (!result.ok) return json({ ok: false, reason: result.reason, state: result.state, now: ctx.now });
-    if (await saveBase(ctx.env.DB, accountId, result.state, stored.version, ctx.now)) {
+    if (await saveBase(ctx.env.DB, account.id, result.state, stored.version, ctx.now)) {
+      await syncSnapshot(ctx, account, advance(result.state, ctx.now));
       return json({ ok: true, state: result.state, now: ctx.now });
     }
   }
@@ -102,15 +110,17 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
   const intent = parseIntent(await readJson(ctx.req));
   switch (intent.type) {
     case "upgrade":
-      return changeBase(ctx, account.id, (s) => startUpgrade(s, intent.building, ctx.now));
+      return changeBase(ctx, account, (s) => startUpgrade(s, intent.building, ctx.now));
     case "train":
-      return changeBase(ctx, account.id, (s) => startTraining(s, intent.troop, intent.count, ctx.now));
+      return changeBase(ctx, account, (s) => startTraining(s, intent.troop, intent.count, ctx.now));
     case "hero_recruit":
-      return changeBase(ctx, account.id, (s) => recruitHero(s, intent.hero, ctx.now, backgroundOfServer(account.server)));
+      return changeBase(ctx, account, (s) => recruitHero(s, intent.hero, ctx.now, backgroundOfServer(account.server)));
     case "hero_level":
-      return changeBase(ctx, account.id, (s) => levelUpHero(s, intent.hero, ctx.now));
+      return changeBase(ctx, account, (s) => levelUpHero(s, intent.hero, ctx.now));
     case "story_claim":
-      return changeBase(ctx, account.id, (s) => claimChapter(s, ctx.now, backgroundOfServer(account.server)));
+      return changeBase(ctx, account, (s) => claimChapter(s, ctx.now, backgroundOfServer(account.server)));
+    case "speedup":
+      return speedUpIntent(ctx, account, intent.job, intent.tokens);
     case "march": {
       const { viewer } = await viewerFor(ctx, account);
       const r = await ctx.deps.map(ctx.env, account.server).sendMarch(viewer, intent.target, intent.troops, intent.heroes, ctx.now);

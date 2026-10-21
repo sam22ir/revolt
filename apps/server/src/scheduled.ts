@@ -1,4 +1,5 @@
 import { CLEANUP_MAX_ACCOUNTS, missingAlliances, runCleanup } from "./cleanup.ts";
+import { pruneLive } from "./db/live-prune.ts";
 import type { Deps, Env } from "./env.ts";
 
 /** Cron Trigger (wrangler.jsonc `triggers.crons`): daily cleanup at the trigger's scheduled time. */
@@ -21,5 +22,7 @@ export const scheduled = async (scheduledTime: number, env: Env, deps: Pick<Deps
       console.error(`cleanup: ghost HQ sweep failed for ${server}`, e);
     }
   }
+  const live = await pruneLive(env.DB, scheduledTime);
+  console.log(`cleanup: pruned ${live.awards} awards, ${live.claims} claims, ${live.premium} old pass unlocks`);
   console.log(`cleanup: ${r.guests} stale guests, ${r.rateWindows} rate windows, ${r.helpRequests} help requests deleted`);
 };
