@@ -55,7 +55,7 @@ Each server has one map, owned by one `WorldMap` Durable Object (`src/map/world-
 - **Seeds** stay on the server until the battle is over; the report then includes the seed, so anyone can replay it with `fightNpc`.
 - **WebSocket.** Browsers cannot set headers on a WebSocket, so the client offers `Sec-WebSocket-Protocol: revolt.v1, auth.<token>`. The Worker checks the token and the `Origin` (CORS does not cover WebSockets), and the DO answers with `revolt.v1` only. Sockets use the hibernation API, so idle connections cost no duration. Messages: `map` (full snapshot, on connect and on every change; fine at M3 size, diffs later), `report` (to its owner), `base_changed` (fetch `/v1/state` again).
 - **Free-tier budget.** DO requests count HTTP, RPC, WebSocket messages and alarms (100,000 a day on the Free plan). Each map change sends one message per connected client, so watch this as players grow.
-- **Test clock.** In the e2e build, `POST /__test/clock` also sets the map's clock and fires its alarm, so Playwright exercises alarm → battle → push.
+- **Test clock.** In the mock Worker build, `POST /__test/clock` also sets the map's clock and fires its alarm.
 
 ## Alliances (M4): API contract
 
@@ -121,11 +121,10 @@ Why not Better Auth (1.7): its anonymous plugin links by creating a new user and
 ## Tests
 
 - `pnpm --filter @revolt/server test` runs the handlers against Miniflare's local D1 with a fake clock and a local signing key standing in for Google. The map runs in-process (`MapService` + `MapHost` on `node:sqlite`); tests fire its alarm by hand.
-- `pnpm test:e2e` starts the mock Worker on port 8788 with a fresh local D1 (`.wrangler/e2e`), builds the client against it, and drives both in Playwright. The tests set the server clock through `POST /__test/clock`, which exists only in `src/e2e-entry.ts`.
 
 ## Browser quirk: panels and the canvas
 
-In headless Chromium (software GL), a `box-shadow` on an element that scrolls (`overflow-y: auto`) and sits above the WebGL canvas made the canvas area above it paint solid black or white in screenshots; `overflow: visible` hid it, which is why it looked like an overflow problem. The panels now use `filter: drop-shadow` (same look). A `filter` makes its element the containing block of `position: fixed` children, so `.alliance-panel` (which holds its confirm dialog) has no shadow instead. `e2e/zoom.spec.ts` fails if the bug returns. Not confirmed on a real phone: that check is still open for M3 and M4.
+In headless Chromium (software GL), a `box-shadow` on an element that scrolls (`overflow-y: auto`) and sits above the WebGL canvas made the canvas area above it paint solid black or white in screenshots; `overflow: visible` hid it, which is why it looked like an overflow problem. The panels now use `filter: drop-shadow` (same look). A `filter` makes its element the containing block of `position: fixed` children, so `.alliance-panel` (which holds its confirm dialog) has no shadow instead. Nothing tests for it now, so check panels over the canvas by eye. Not confirmed on a real phone: that check is still open for M3 and M4.
 
 ## On a real phone
 
