@@ -29,8 +29,12 @@ test.beforeEach(async ({ request }) => {
 const tapBuilding = async (page: Page, id: BuildingId): Promise<void> => {
   const panel = page.getByTestId("building-panel");
   if (await panel.isVisible()) await panel.locator(".panel-close").click();
-  const p = await page.evaluate((b) => window.__revolt!.buildingScreenPoint(b), id);
-  await page.touchscreen.tap(p.x, p.y);
+  // A tap in the first moments after load can miss on a slow machine; retry until the panel is up.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const p = await page.evaluate((b) => window.__revolt!.buildingScreenPoint(b), id);
+    await page.touchscreen.tap(p.x, p.y);
+    if (await panel.waitFor({ state: "visible", timeout: 3000 }).then(() => true, () => false)) return;
+  }
 };
 
 
