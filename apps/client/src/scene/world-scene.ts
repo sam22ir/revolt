@@ -456,7 +456,7 @@ export class WorldScene extends Phaser.Scene {
       const c = tileCenter(b.x, b.y);
       if (b.mine) this.outlineTile(g, b, GOLD, 3 / zoom);
       // A base is a small headquarters; other players' are cooler in tone so the two read apart.
-      const img = this.markerPool.place(this.tileSpec(artPack.camp,(b.mine ? 1.5 : 1.25) * 1.0), c.x, c.y, depthOf(b), k);
+      const img = this.markerPool.place(this.tileSpec(artPack.camp, (b.mine ? 1.5 : 1.25) * 1.0), c.x, c.y, depthOf(b), k);
       if (!b.mine) img.setTint(0xbfc6dc);
     }
 
