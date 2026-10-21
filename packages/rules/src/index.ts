@@ -33,7 +33,7 @@ export {
 export { counterFactor, resolveBattle, takeLoot, type BattleResult, type BattleRound } from "./battle.ts";
 export { BUILDING_IDS, type BuildingId } from "./building-id.ts";
 export { BUILDINGS, MAX_BUILDING_LEVEL, type BuildingDef, type BuildingLevel } from "./data/buildings.ts";
-export { MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING } from "./data/map.ts";
+export { MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING, REGION_CELL } from "./data/map.ts";
 export { MAX_NPC_LEVEL, NPC_KINDS, NPC_LEVELS, NPC_RESPAWN_MS, type NpcKind, type NpcLevelDef } from "./data/npcs.ts";
 export { STORAGE_CAPS } from "./data/storage.ts";
 export { START_LEVELS, START_RESOURCES, START_TROOPS } from "./data/start.ts";
@@ -60,6 +60,15 @@ export { RESOURCE_IDS, type ResourceId } from "./resource-id.ts";
 export { canAfford, ZERO_RESOURCES, type Resources } from "./resources.ts";
 export { hash32, isSeed, seededRng } from "./rng.ts";
 export { isOnMap, terrainAt, TERRAIN_IDS, type TerrainId } from "./terrain.ts";
+export {
+  isRegionBorder,
+  regionAt,
+  regionNeighbors,
+  regionSite,
+  regionsOf,
+  type Region,
+  type RegionId,
+} from "./regions.ts";
 export {
   checkTraining,
   maxTrainingBatch,
