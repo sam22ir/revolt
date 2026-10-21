@@ -180,9 +180,10 @@ describe("the alliance UI source", () => {
   });
 
   test("never draws alliance text in Phaser, except the checked ASCII tag", async () => {
-    const scene = Object.entries(import.meta.glob("../src/scene/world-scene.ts", { query: "?raw", import: "default", eager: true }));
-    expect(scene).toHaveLength(1);
-    const code = String(scene[0]?.[1]);
+    // The world scene is split into layers; the check covers the scene and every file beside it.
+    const scene = Object.entries(import.meta.glob(["../src/scene/world-scene.ts", "../src/scene/world/*.ts"], { query: "?raw", import: "default", eager: true }));
+    expect(scene.length).toBeGreaterThanOrEqual(2);
+    const code = scene.map(([, source]) => String(source)).join("\n");
     // The only `setText` calls take an NPC level or a tag that passed `drawableTag`.
     const all = code.match(/\.setText\(/g) ?? [];
     const allowed = code.match(/\.setText\((String\(n\.level\)|tag)\)/g) ?? [];
