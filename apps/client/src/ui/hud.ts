@@ -22,7 +22,8 @@ export interface Hud {
 const NOTE_MS = 4000;
 
 /**
- * `controls` sit beside the resources, `nav` is the row of view buttons below them, `extras` hang under the queue pill.
+ * `controls` (the language switch) sit on the status row under the resources, at the inline end.
+ * `nav` is the bottom bar of view buttons (fixed in CSS), `extras` hang on the status row after the queue pill.
  * `onAskHelp` is the button under the pill that asks the alliance to speed up the running upgrade.
  */
 export const createHud = (
@@ -52,7 +53,7 @@ export const createHud = (
     list.append(li);
     chips.set(id, { amount, rate, fill });
   }
-  bar.append(list, ...controls);
+  bar.append(list);
   const queue = el("div", "queue-pill");
   queue.setAttribute("role", "status");
   const queueLabel = el("span", "queue-label");
@@ -76,7 +77,7 @@ export const createHud = (
   offline.hidden = true;
   const navRow = el("div", "hud-nav");
   navRow.append(...nav);
-  root.append(bar, navRow, queue, helpBtn, helpNote, ...extras, offline);
+  root.append(bar, navRow, queue, ...controls, helpBtn, helpNote, ...extras, offline);
 
   const update = (state: BaseState, now: number, canAskHelp = false): void => {
     const lang = currentLanguage();

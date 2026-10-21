@@ -6,6 +6,8 @@
   --bad: #b5402f;
   --radius: 12px;
   --gutter: 10px;
+  /* Bottom nav bar: 1px border + 6px + 52px button + 6px, plus the home-indicator inset (see .hud-nav in map.css). */
+  --nav-h: 65px;
   color-scheme: light;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", sans-serif;
 }
@@ -36,72 +38,121 @@ html, body {
   inset: 0;
   pointer-events: none;
   padding-block-start: env(safe-area-inset-top);
-  padding-block-end: env(safe-area-inset-bottom);
+  /* Panels and sheets stop above the fixed bottom nav bar. */
+  padding-block-end: calc(var(--nav-h) + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 #ui > * { pointer-events: auto; }
 
-.hud { padding: var(--gutter); display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
-.hud-bar { display: flex; gap: 8px; align-items: flex-start; }
+/* Top: one row of four resource chips, then a status row (queue, help, marches, language) that wraps.
+   Capped at 520px so on a desktop it reads as a phone column over the canvas. */
+.hud {
+  padding: var(--gutter);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  max-inline-size: 520px;
+  margin-inline: auto;
+}
+.hud-bar { display: flex; flex: 0 0 100%; align-items: stretch; min-inline-size: 0; }
 
 .hud-resources {
   list-style: none;
   margin: 0;
-  padding: 6px;
+  padding: 4px;
   flex: 1;
   min-inline-size: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
   background: rgb(43 42 36 / 0.92);
   border-radius: var(--radius);
 }
 
+/* Icon at the inline start, amount with the hourly rate under it; the fill meter runs along the bottom edge. */
 .res {
+  position: relative;
   display: grid;
-  /* minmax(0, …): a long rate must not push the text out of the tile. */
-  grid-template-columns: 34px minmax(0, 1fr);
-  grid-template-rows: auto 4px;
-  column-gap: 6px;
-  row-gap: 3px;
+  grid-template-columns: 22px minmax(0, 1fr);
+  column-gap: 4px;
   align-items: center;
-  padding: 4px 8px 5px;
+  block-size: 46px;
+  padding: 4px 4px 6px;
   border-radius: 8px;
   background: rgb(255 255 255 / 0.06);
   color: var(--paper);
   min-inline-size: 0;
+  overflow: hidden;
 }
-.res .icon { inline-size: 34px; block-size: 34px; grid-row: 1 / 3; object-fit: contain; }
-/* The rate sits under the amount: side by side it overflowed narrow tiles. */
+.res .icon { inline-size: 22px; block-size: 22px; object-fit: contain; }
+/* minmax(0, …) and ellipsis: a long number must not push the chip wider than its quarter of the row. */
 .res-text { display: flex; flex-direction: column; align-items: flex-start; min-inline-size: 0; }
-.res-amount { font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; }
-.res-rate { font-size: 11px; opacity: 0.75; white-space: nowrap; unicode-bidi: plaintext; }
-.res-meter { block-size: 4px; border-radius: 2px; background: rgb(255 255 255 / 0.15); overflow: hidden; }
+.res-amount {
+  max-inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.res-rate {
+  max-inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  line-height: 12px;
+  opacity: 0.75;
+  unicode-bidi: plaintext;
+}
+.res-meter {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  block-size: 3px;
+  background: rgb(255 255 255 / 0.15);
+  overflow: hidden;
+}
 .res-fill { block-size: 100%; inline-size: 0; background: var(--gold); transition: inline-size 0.25s linear; }
 .res-fill.full { background: var(--accent); }
 
+/* Status row, in this order: queue (takes the spare width and ellipsizes), help, language at the inline end.
+   Everything else (note, marches, coords, offline) comes after and wraps below, so line one never wraps. */
+.queue-pill { order: 0; flex: 1 1 0; min-inline-size: 0; }
+.hud .help-btn { order: 1; }
+.hud .lang { order: 2; margin-inline-start: auto; min-inline-size: 0; max-inline-size: 84px; }
+.hud .help-note-line, .marches, .coord-pill, .sync-offline { order: 3; }
 .lang select {
   appearance: none;
+  inline-size: 100%;
+  min-inline-size: 0;
+  block-size: 32px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--paper);
   background: rgb(43 42 36 / 0.82);
   border: 1px solid rgb(244 234 214 / 0.3);
   border-radius: var(--radius);
-  padding-block: 8px;
-  padding-inline: 10px;
-  min-block-size: 40px;
+  padding-block: 0;
+  padding-inline: 8px;
 }
 
 .queue-pill {
   align-self: center;
   max-inline-size: 100%;
-  padding-block: 6px;
-  padding-inline: 14px;
+  min-block-size: 28px;
+  padding-block: 4px;
+  padding-inline: 12px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 12px;
   background: rgb(43 42 36 / 0.7);
   color: var(--paper);
   display: flex;
@@ -203,21 +254,13 @@ html, body {
 .countdown { margin-block: 8px 0; font-size: 22px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
 
 @media (min-width: 720px) {
-  .hud-resources { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .panel, .account-panel { align-self: center; inline-size: 420px; }
 }
 
-.account-open {
-  font: inherit;
-  font-size: 13px;
-  color: var(--paper);
-  background: rgb(43 42 36 / 0.82);
-  border: 1px solid rgb(244 234 214 / 0.3);
-  border-radius: var(--radius);
-  padding-block: 8px;
-  padding-inline: 10px;
-  min-block-size: 40px;
-}
+/* Compact ask-for-help button and note on the status row (the training section keeps the full size). */
+.hud .help-btn { min-block-size: 28px; padding-inline: 12px; font-size: 12px; box-shadow: none; }
+.hud .help-note-line { font-size: 12px; }
+
 .account-email { font-weight: 700; }
 .account-actions { display: flex; flex-direction: column; gap: 8px; margin-block-start: 8px; }
 .account-field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
@@ -235,7 +278,7 @@ html, body {
   padding-block: 4px;
   padding-inline: 12px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 12px;
   background: var(--bad);
   color: var(--paper);
 }

@@ -124,7 +124,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       void deps.onLanguage(lang).then(build);
     });
     const account = createAccountPanel({ google: deps.google, onIdToken: (idToken) => deps.store.signInWithGoogle(idToken) });
-    const accountButton = el("button", "account-open", t("account.button"));
+    const accountButton = el("button", "nav-btn account-open", t("account.button"));
     accountButton.type = "button";
     accountButton.dataset.testid = "account";
     accountButton.addEventListener("click", () => {
@@ -171,7 +171,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
         if (!outcome.ok) note(t(`reason.${outcome.reason}`));
       });
     };
-    const hud = createHud([accountButton, switcher], [mapToggle, allianceButton, reportsButton], [marches.root, coords], () =>
+    const hud = createHud([switcher], [mapToggle, allianceButton, reportsButton, accountButton], [marches.root, coords], () =>
       askHelp("upgrade", (text) => hud.showHelpNote(text)),
     );
     const panel = createBuildingPanel({

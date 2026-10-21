@@ -42,9 +42,13 @@ const ALPHA_TAP = 40;
 const D_HUD = 200;
 const UPGRADING_TINT = 0xb8aa94;
 
-/** Room reserved for the DOM HUD above the map, in CSS pixels. */
-const HUD_TOP = 120;
-const HUD_BOTTOM = 40;
+/**
+ * Room reserved for the DOM HUD above and below the map, in CSS pixels (keep in step with style.css):
+ * top = 10 gutter + 54 resource bar (4 padding + 46 chips + 4) + 6 gap + 32 status row = 102, plus 2 of air = 104;
+ * bottom = the fixed nav bar, 65 (--nav-h), plus 7 of air = 72.
+ */
+const HUD_TOP = 104;
+const HUD_BOTTOM = 72;
 
 export class BaseScene extends Phaser.Scene {
   private readonly views = new Map<BuildingId, BuildingView>();
@@ -112,7 +116,14 @@ export class BaseScene extends Phaser.Scene {
     const hudTop = HUD_TOP * px;
     const hudBottom = HUD_BOTTOM * px;
     const usableH = Math.max(100 * px, height - hudTop - hudBottom);
-    const zoom = Math.min((width - 16 * px) / MAP_WORLD_WIDTH, usableH / (MAP_WORLD_HEIGHT + 80));
+    // Fit the buildings' sprite bitmaps, not the whole ground slab: the slab is a wide diamond that
+    // left the base at under half a phone's width. The slab is simply cropped at the sides.
+    const xs = BUILDING_IDS.flatMap((id) => {
+      const place = this.placement(id);
+      return [place.x, place.x + spriteInfo(artPack.buildings[id]).w * place.scale];
+    });
+    const span = Math.max(...xs) - Math.min(...xs);
+    const zoom = Math.min((width - 16 * px) / span, usableH / (MAP_WORLD_HEIGHT + 80));
     cam.setZoom(zoom);
     const center = mapCenter();
     // Shift the view so the map sits between the HUD and the bottom edge.
