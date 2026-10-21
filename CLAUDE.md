@@ -10,7 +10,7 @@ Mobile MMO strategy game set in real anti-colonial revolutions (Algeria first, V
 - Client: Phaser + TypeScript + Vite. Versions are whatever is in `package.json`; check with `npm view <pkg> version` before adding a dependency, don't assume from memory.
 - Mobile: Capacitor (Android first).
 - Backend (from M2): Cloudflare Workers + D1 + Durable Objects + Cron Triggers. Auth: guest account per device, then link Google; self-hosted on Workers + D1 (see GDD §10).
-- Tests: Vitest for rules, Playwright for screenshots of the running game.
+- Tests: Vitest (rules, server, client logic). No browser e2e.
 - i18n: i18next with `ar`, `fr`, `en`.
 - Package manager: pnpm workspaces.
 
@@ -43,14 +43,13 @@ docs/             GDD and design notes
 
 ## Testing
 
-- **Test and screenshot only `en` and `ar`.** French stays supported in the app (keep `fr` strings complete), but don't add `fr` to e2e specs, screenshots or CI, and drop it from existing ones when touching them.
+- **Test only `en` and `ar`.** French stays supported in the app (keep `fr` strings complete), but don't add `fr` to UI tests or CI.
 - Every rules change comes with Vitest tests, including the timestamp edge cases (cap reached, time going backwards, very long offline gaps).
-- UI changes: look at the `en` and `ar` Playwright screenshots before calling it done. Get them from the PR's CI run (artifact `e2e-results`, folder `screens/`), or locally from a run of the affected spec (`apps/client/test-results/screens/`).
+- There are no browser e2e tests (removed): UI changes are covered by Vitest on the view and store logic. Check layout and Arabic RTL by hand on the dev build.
 - Run `pnpm test` (~22 s) and `pnpm typecheck` before committing.
-- Locally, run only the quick e2e: `pnpm --filter @revolt/client test:e2e:quick` (~25 s, skips the `@screenshots` flows). The full e2e (`pnpm test:e2e`, en and ar screenshots) runs in GitHub Actions on every PR and on `main`.
-- `main` requires both CI checks ("Typecheck and unit tests", "Playwright e2e (en and ar)") before a PR can merge.
+- `main` requires the CI check "Typecheck and unit tests" before a PR can merge.
 - Server tests run on in-process `node:sqlite` (`apps/server/test/sqlite-db.ts`); only `miniflare-smoke.test.ts` uses Miniflare's D1. Keep it that way: Miniflare costs ~1 s per start and ~40 ms per query.
-- This machine is slow (2 cores, runs hot): never run two test suites at once, and don't run the full e2e locally when CI can.
+- This machine is slow (2 cores, runs hot): never run two test suites at once.
 
 ## Working in this repo
 

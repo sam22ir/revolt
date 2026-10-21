@@ -175,7 +175,7 @@ Why not Better Auth (1.7): its anonymous plugin links by creating a new user and
 ## Tests
 
 - `pnpm --filter @revolt/server test` runs the handlers against Miniflare's local D1 with a fake clock and a local signing key standing in for Google. The map runs in-process (`MapService` + `MapHost` on `node:sqlite`); tests fire its alarm by hand.
-- `pnpm test:e2e` starts the mock Worker on port 8788 with a fresh local D1 (`.wrangler/e2e`), builds the client against it, and drives both in Playwright. The tests set the server clock through `POST /__test/clock`, which exists only in `src/e2e-entry.ts`.
+> Historical (the Playwright e2e was removed): - `pnpm test:e2e` starts the mock Worker on port 8788 with a fresh local D1 (`.wrangler/e2e`), builds the client against it, and drives both in Playwright. The tests set the server clock through `POST /__test/clock`, which exists only in `src/e2e-entry.ts`.
 
 ## Browser quirk: panels and the canvas
 

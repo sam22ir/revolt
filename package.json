@@ -9,7 +9,6 @@
     "dev": "pnpm --filter @revolt/client dev",
     "build": "pnpm --filter @revolt/client build",
     "preview:lan": "pnpm --filter @revolt/client build && pnpm --filter @revolt/client preview",
-    "test:e2e": "pnpm --filter @revolt/client test:e2e",
     "art:process": "node scripts/process-art.mjs",
     "art:terrain": "node scripts/process-terrain.mjs"
   },
