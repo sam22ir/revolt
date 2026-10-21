@@ -1,10 +1,11 @@
 import Phaser from "phaser";
-import { terrainAt, TERRAIN_IDS, type MapMarchView, type MapSnapshot, type NpcKind } from "@revolt/rules";
+import { terrainAt, TERRAIN_IDS, type MapMarchView, type MapSnapshot } from "@revolt/rules";
 import type { GameStore } from "../state/game-store.ts";
 import { drawableTag } from "../state/tile-info.ts";
 import type { WorldStore } from "../state/world-store.ts";
 import { hex, theme } from "../theme/theme.ts";
 import { artUrl, diamondSpec, groundTexture, groundUrl, iconSpec, propsTexture, propsUrl, terrainAtlases, textureKey, type Atlas } from "../art/art.ts";
+import { artPack } from "../art/pack.ts";
 import { createGesture, type Gesture } from "./gesture.ts";
 import { SpritePool, type SpriteSpec } from "./sprite-pool.ts";
 import { hash01, propsFor, type PropKind } from "./terrain-props.ts";
@@ -57,16 +58,7 @@ const PROP_ZOOM = 0.4;
 /** World px per source px of each prop kind's atlas frames (frames are at most 224 px). */
 const PROP_SCALE: Readonly<Record<PropKind, number>> = { trees: 0.42, rocks: 0.22, peaks: 0.55, scrub: 0.3, terraces: 0.4 };
 const PROP_KINDS: readonly PropKind[] = ["trees", "rocks", "peaks", "scrub", "terraces"];
-/** Each NPC kind keeps its own silhouette: watch tower, cart medallion, stone yard, star fort. */
-const NPC_ART: Readonly<Record<NpcKind, string>> = {
-  patrol: "map/outpost_watch",
-  convoy: "map/marker_convoy",
-  outpost: "map/outpost_barracks",
-  fortified_line: "map/outpost_fort",
-};
-const BASE_ART = "buildings/hq";
-const MARKER_ART = ["map/marker_march", "map/marker_return", "map/marker_battle", "map/marker_rally"] as const;
-const ART_KEYS: readonly string[] = [...Object.values(NPC_ART), BASE_ART, ...MARKER_ART];
+const ART_KEYS: readonly string[] = [...Object.values(artPack.npc), artPack.camp, ...Object.values(artPack.markers)];
 /** How long the battle marker shows at the target after a column arrives. */
 const BATTLE_FLASH_MS = 5000;
 /** Tile sprites are drawn wider than the tile so the feathered edges of neighbours overlap and blend. */
@@ -464,7 +456,7 @@ export class WorldScene extends Phaser.Scene {
       const c = tileCenter(b.x, b.y);
       if (b.mine) this.outlineTile(g, b, GOLD, 3 / zoom);
       // A base is a small headquarters; other players' are cooler in tone so the two read apart.
-      const img = this.markerPool.place(this.tileSpec(BASE_ART, (b.mine ? 1.5 : 1.25) * 1.0), c.x, c.y, depthOf(b), k);
+      const img = this.markerPool.place(this.tileSpec(artPack.camp,(b.mine ? 1.5 : 1.25) * 1.0), c.x, c.y, depthOf(b), k);
       if (!b.mine) img.setTint(0xbfc6dc);
     }
 
@@ -475,8 +467,8 @@ export class WorldScene extends Phaser.Scene {
     const labelScale = Math.min(1, zoom / 0.8) / zoom;
     for (const n of npcs) {
       const c = tileCenter(n.x, n.y);
-      if (n.kind === "convoy") this.markerPool.place(this.iconSpecAt(NPC_ART.convoy, TILE_H * 1.1), c.x, c.y, depthOf(n), k);
-      else this.markerPool.place(this.tileSpec(NPC_ART[n.kind], 1.15), c.x, c.y, depthOf(n), k);
+      if (n.kind === "convoy") this.markerPool.place(this.iconSpecAt(artPack.npc.convoy, TILE_H * 1.1), c.x, c.y, depthOf(n), k);
+      else this.markerPool.place(this.tileSpec(artPack.npc[n.kind], 1.15), c.x, c.y, depthOf(n), k);
       const centre = { x: c.x, y: c.y + TILE_H * 0.18 * k };
       live.add(n.id);
       let label = this.labels.get(n.id);
@@ -499,7 +491,7 @@ export class WorldScene extends Phaser.Scene {
       if (h.mine) this.outlineTile(g, h, HQ_OWN, 3 / zoom);
       const r = TILE_H * 0.62 * k;
       const centre = { x: c.x, y: c.y - size * 1.3 };
-      this.markerPool.place(this.iconSpecAt("map/marker_rally", r * 2), centre.x, centre.y, 2 + depthOf(h) * 0.01, 1);
+      this.markerPool.place(this.iconSpecAt(artPack.markers.rally, r * 2), centre.x, centre.y, 2 + depthOf(h) * 0.01, 1);
       g.lineStyle(Math.max(2, r * 0.14), h.mine ? HQ_OWN : HQ_OTHER, 1);
       g.strokeCircle(centre.x, centre.y, r * 1.02);
       const tag = drawableTag(h.tag);
@@ -568,11 +560,11 @@ export class WorldScene extends Phaser.Scene {
       g.lineStyle(2 / zoom, colour, m.mine ? 0.75 : 0.35);
       g.lineBetween(a.x, a.y, b.x, b.y);
       const p = tileCenter(pos.at.x, pos.at.y);
-      const img = this.marchPool.place(this.iconSpecAt(pos.leg === "outbound" ? "map/marker_march" : "map/marker_return", size), p.x, p.y, 3.1);
+      const img = this.marchPool.place(this.iconSpecAt(pos.leg === "outbound" ? artPack.markers.march : artPack.markers.return, size), p.x, p.y, 3.1);
       if (!m.mine) img.setAlpha(0.7);
       // The fight shows for a moment at the target when the column gets there.
       if (now >= m.arriveAt && now < m.arriveAt + BATTLE_FLASH_MS) {
-        this.marchPool.place(this.iconSpecAt("map/marker_battle", size * 1.3), b.x, b.y - size * 0.4, 3.2);
+        this.marchPool.place(this.iconSpecAt(artPack.markers.battle, size * 1.3), b.x, b.y - size * 0.4, 3.2);
       }
     }
     this.marchPool.end();

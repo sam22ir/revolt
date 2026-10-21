@@ -3,6 +3,7 @@ import { BUILDING_IDS, type BaseState, type BuildingId } from "@revolt/rules";
 import type { GameStore } from "../state/game-store.ts";
 import { hex, theme } from "../theme/theme.ts";
 import { artUrl, spriteInfo, textureKey } from "../art/art.ts";
+import { artPack } from "../art/pack.ts";
 import {
   isoToWorld,
   mapCenter,
@@ -33,8 +34,6 @@ interface Placement {
   readonly height: number;
 }
 
-const GROUND = "buildings/ground_tile";
-const spriteKey = (id: BuildingId): string => `buildings/${id}`;
 /** Depths: ground, then buildings back to front, then outlines, then badges and bars. */
 const D_SPRITE = 10;
 const D_OUTLINE = 100;
@@ -61,7 +60,7 @@ export class BaseScene extends Phaser.Scene {
   }
 
   preload(): void {
-    for (const key of [GROUND, ...BUILDING_IDS.map(spriteKey)]) this.load.image(textureKey(key), artUrl(key));
+    for (const key of [artPack.baseGround, ...BUILDING_IDS.map((id) => artPack.buildings[id])]) this.load.image(textureKey(key), artUrl(key));
   }
 
   create(): void {
@@ -127,12 +126,12 @@ export class BaseScene extends Phaser.Scene {
 
   /** The painted ground slab, stretched over the whole grid diamond (its rim shows below the near edges). */
   private drawGround(): void {
-    const info = spriteInfo(GROUND);
+    const info = spriteInfo(artPack.baseGround);
     const rim = 26 / 571; // fraction of the sprite's height that is slab thickness
     const sx = MAP_WORLD_WIDTH / info.w;
     const sy = MAP_WORLD_HEIGHT / (info.h * (1 - rim));
     this.add
-      .image(-MAP_WORLD_WIDTH / 2, 0, textureKey(GROUND))
+      .image(-MAP_WORLD_WIDTH / 2, 0, textureKey(artPack.baseGround))
       .setOrigin(0, 0)
       .setScale(sx, sy)
       .setDepth(0);
@@ -142,7 +141,7 @@ export class BaseScene extends Phaser.Scene {
   private placement(id: BuildingId): Placement {
     const cached = this.placements.get(id);
     if (cached !== undefined) return cached;
-    const info = spriteInfo(spriteKey(id));
+    const info = spriteInfo(artPack.buildings[id]);
     const scale = (PLOTS[id].size * TILE_W) / (info.right.x - info.left.x);
     const cx = (info.left.x + info.right.x) / 2;
     const cy = (info.left.y + info.right.y) / 2;
@@ -154,7 +153,7 @@ export class BaseScene extends Phaser.Scene {
 
   private createBuilding(id: BuildingId, index: number): BuildingView {
     const place = this.placement(id);
-    const sprite = this.add.image(place.x, place.y, textureKey(spriteKey(id))).setOrigin(0, 0).setScale(place.scale).setDepth(D_SPRITE + index);
+    const sprite = this.add.image(place.x, place.y, textureKey(artPack.buildings[id])).setOrigin(0, 0).setScale(place.scale).setDepth(D_SPRITE + index);
     // Taps hit the painted pixels, so where sprites overlap the one drawn on top (the nearer building) wins.
     sprite.setInteractive({ pixelPerfect: true, alphaTolerance: ALPHA_TAP });
     sprite.on(Phaser.Input.Events.GAMEOBJECT_POINTER_UP, () => this.onSelect(id));
