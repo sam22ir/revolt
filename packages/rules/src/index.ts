@@ -118,7 +118,7 @@ export {
   type MapSnapshot,
   type MarchPhase,
 } from "./wire.ts";
-export { HERO_IDS, isHeroId, type HeroId } from "./hero-id.ts";
+export { HERO_IDS, HEROES_BY_BACKGROUND, heroesFor, isHeroId, isHeroOf, type HeroId } from "./hero-id.ts";
 export {
   DEPUTY_WEIGHT,
   HERO_LEVEL_UP,
@@ -162,7 +162,8 @@ export {
   type SquadBlockReason,
 } from "./heroes.ts";
 export { addShards } from "./hero-progress.ts";
-export { BACKGROUND_IDS, DEFAULT_BACKGROUND, STORY, type BackgroundId, type ChapterReward, type Objective, type StoryChapter } from "./data/story.ts";
+export { STORY, type ChapterReward, type Objective, type StoryChapter } from "./data/story.ts";
+export { BACKGROUND_IDS, BACKGROUND_SERVER, backgroundOfServer, DEFAULT_BACKGROUND, isBackgroundId, serverFor, type BackgroundId } from "./background.ts";
 export {
   chapterStatus,
   chaptersFor,

@@ -43,8 +43,9 @@ test("the map zooms with the wheel and with a two-finger pinch", async ({ browse
   await expect.poll(() => zoom(page)).toBeLessThan(pinched);
 });
 
-test("a scrolling panel does not blank the game canvas above it", async ({ browser }) => {
+test("a scrolling panel does not blank the game canvas above it", async ({ browser, request }) => {
   test.setTimeout(120_000);
+  await request.post("http://localhost:8788/__test/clock", { data: { now: mapEpoch(21) } });
   const page = await openGame(browser, "en-US", mapEpoch(21));
   const barracks = await page.evaluate(() => window.__revolt!.buildingScreenPoint("barracks"));
   await page.touchscreen.tap(barracks.x, barracks.y);

@@ -1,6 +1,7 @@
 import {
   advance,
   BUILDING_IDS,
+  backgroundOfServer,
   canPerform,
   claimChapter,
   isHeroId,
@@ -105,11 +106,11 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
     case "train":
       return changeBase(ctx, account.id, (s) => startTraining(s, intent.troop, intent.count, ctx.now));
     case "hero_recruit":
-      return changeBase(ctx, account.id, (s) => recruitHero(s, intent.hero, ctx.now));
+      return changeBase(ctx, account.id, (s) => recruitHero(s, intent.hero, ctx.now, backgroundOfServer(account.server)));
     case "hero_level":
       return changeBase(ctx, account.id, (s) => levelUpHero(s, intent.hero, ctx.now));
     case "story_claim":
-      return changeBase(ctx, account.id, (s) => claimChapter(s, ctx.now));
+      return changeBase(ctx, account.id, (s) => claimChapter(s, ctx.now, backgroundOfServer(account.server)));
     case "march": {
       const { viewer } = await viewerFor(ctx, account);
       const r = await ctx.deps.map(ctx.env, account.server).sendMarch(viewer, intent.target, intent.troops, intent.heroes, ctx.now);

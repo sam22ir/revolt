@@ -246,6 +246,7 @@ Base screen, resources, buildings, upgrade timers, offline with local save.
 
 ### M6 — Vietnam background
 - Done when: a new player can choose Vietnam, lands on a Vietnam server with its own buildings, units, heroes and first chapters, with no mixing with Algeria servers.
+- **Status (M6):** code-complete, NOT accepted. A new player picks Algeria or Vietnam on first launch (permanent); Vietnam plays on `vietnam-1` with its own names for the shared building, troop and rice ids, its own 6 role-only heroes and 3 placeholder chapters. Still open: historian review of the Vietnam chapters (`docs/story-review.md`), Arabic review, the Vietnamese-language question (GDD §5/§12: `vi` is not in the ar/fr/en set; decide whether a `vi` locale is in scope before accepting M6), real Vietnam art (placeholder sprites are the Algerian ones, `docs/art.md`), a real-phone check.
 
 ### M7 — Live features and release
 - Done when: events, leaderboards, battle pass and store work end to end; analytics and crash reporting are live; the app passes Google Play review.

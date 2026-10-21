@@ -1,5 +1,6 @@
 import {
   TROOP_IDS,
+  type BackgroundId,
   type AllianceBlockReason,
   type AllianceListItem,
   type AllianceView,
@@ -24,6 +25,8 @@ export interface AccountView {
   /** The public name other players see in member lists, chat and help requests. */
   readonly handle: string;
   readonly google: { readonly email: string | null } | null;
+  /** The revolution this account plays in; fixed when it was created. Absent from servers older than M6 (read it with `getBackground`). */
+  readonly background?: BackgroundId;
 }
 
 export interface Snapshot {
@@ -97,7 +100,7 @@ export class ApiError extends Error {
 }
 
 export interface Api {
-  readonly createGuest: (importSave: BaseState | null) => Promise<SessionSnapshot>;
+  readonly createGuest: (importSave: BaseState | null, background?: BackgroundId) => Promise<SessionSnapshot>;
   readonly getState: (token: string) => Promise<Snapshot & { readonly account: AccountView }>;
   readonly upgrade: (token: string, building: BuildingId) => Promise<IntentResult>;
   readonly train: (token: string, troop: TroopId, count: number) => Promise<TrainReply>;
@@ -165,7 +168,8 @@ export const createApi = (baseUrl: string, fetchFn: typeof fetch = fetch): Api =
     return json as T;
   };
   return {
-    createGuest: (importSave) => call("POST", "/v1/guest", null, importSave === null ? {} : { importSave }),
+    createGuest: (importSave, background) =>
+      call("POST", "/v1/guest", null, { ...(importSave === null ? {} : { importSave }), ...(background === undefined ? {} : { background }) }),
     getState: (token) => call("GET", "/v1/state", token),
     upgrade: (token, building) => call("POST", "/v1/intent", token, { type: "upgrade", building }),
     train: (token, troop, count) => call("POST", "/v1/intent", token, { type: "train", troop, count }),

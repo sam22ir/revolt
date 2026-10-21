@@ -2,6 +2,7 @@ import { RESOURCE_IDS, skillPct, type BaseState, type HeroId, type HeroSkill } f
 import { artUrl } from "../art/art.ts";
 import { formatAmount } from "../format.ts";
 import { currentLanguage, t } from "../i18n/i18n.ts";
+import { activeBackground } from "../state/background.ts";
 import { heroCards, type HeroCard } from "../state/hero-view.ts";
 import type { ActionOutcome } from "../state/game-store.ts";
 import { el } from "./dom.ts";
@@ -184,7 +185,7 @@ export const createHeroesPanel = (deps: HeroesDeps): HeroesPanel => {
   function update(state: BaseState): void {
     latest = state;
     if (root.hidden) return;
-    const cards = heroCards(state);
+    const cards = heroCards(state, activeBackground());
     const k = structureKey(state, cards);
     if (k === key) return;
     key = k;

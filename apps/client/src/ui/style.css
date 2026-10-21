@@ -253,3 +253,43 @@ html, body {
   color: var(--paper);
   font-size: 15px;
 }
+
+/* Background picker: the first screen of a new device. */
+.bg-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-block: calc(var(--gutter) + env(safe-area-inset-top)) calc(var(--gutter) + env(safe-area-inset-bottom));
+  padding-inline: calc(var(--gutter) + 6px);
+  background: #2f3a2d;
+  color: var(--paper);
+}
+.bg-picker-bar { display: flex; justify-content: flex-end; }
+.bg-picker-title { margin: 0; font-size: 26px; line-height: 1.2; }
+.bg-picker-intro, .bg-picker-note { margin: 0; color: var(--paper-2); }
+.bg-choices { display: flex; flex-direction: column; gap: 12px; }
+.bg-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-block-size: 96px;
+  padding: 14px 16px;
+  border: 2px solid var(--gold);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.bg-choice-name { font-size: 22px; }
+.bg-choice-desc { font-size: 15px; }
+.bg-picker .bg-returning { min-block-size: 48px; background: var(--paper-2); color: var(--ink); border-color: var(--paper-2); }
+@media (min-width: 720px) {
+  .bg-picker { align-items: center; }
+  .bg-picker > * { inline-size: min(100%, 520px); }
+}

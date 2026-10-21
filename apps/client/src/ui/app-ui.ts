@@ -8,6 +8,7 @@ import type { GameStore } from "../state/game-store.ts";
 import type { WorldStore } from "../state/world-store.ts";
 import { createAccountPanel } from "./account-panel.ts";
 import { createAlliancePanel, type AllianceTab } from "./alliance-panel.ts";
+import { activeBackground } from "../state/background.ts";
 import { storyClaimable } from "../state/hero-view.ts";
 import { createBuildingPanel } from "./building-panel.ts";
 import { el } from "./dom.ts";
@@ -30,6 +31,8 @@ export interface AppUi {
   readonly selectTile: (tile: TileRef | null) => void;
   /** The tile in the middle of the map view, for the coordinate readout. */
   readonly setCenter: (tile: TileRef) => void;
+  /** Opens the account panel (a returning player who chose "I already have an account" lands here to sign in). */
+  readonly openAccount: () => void;
 }
 
 interface UiDeps {
@@ -55,6 +58,7 @@ interface Controls {
   updateReports: () => void;
   updateCenter: () => void;
   updateView: () => void;
+  openAccount: () => void;
 }
 
 /** The panels that share the bottom of the screen; opening one closes the others. */
@@ -83,6 +87,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
     updateReports: noop,
     updateCenter: noop,
     updateView: noop,
+    openAccount: noop,
   };
 
   const select = (id: BuildingId | null): void => {
@@ -278,7 +283,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       alliance.update();
       heroes.update(state);
       story.update(state);
-      storyBadge.hidden = !storyClaimable(state);
+      storyBadge.hidden = !storyClaimable(state, activeBackground());
       dialog.update(state, snapshot);
       account.update(deps.store.account());
       const unread = deps.world.unread();
@@ -299,6 +304,12 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
         story: () => story.toggle(false),
       };
       for (const name of Object.keys(closers) as Overlay[]) if (name !== except) closers[name]();
+    };
+    ctl.openAccount = () => {
+      select(null);
+      selectTile(null);
+      ctl.closeOverlays("account");
+      account.toggle(true);
     };
     ctl.openReport = reports.showReport;
     ctl.announce = (report) => {
@@ -340,5 +351,6 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       center = tile;
       ctl.updateCenter();
     },
+    openAccount: () => ctl.openAccount(),
   };
 };

@@ -1,3 +1,4 @@
+import type { BackgroundId } from "../background.ts";
 import type { BuildingId } from "../building-id.ts";
 import type { HeroId } from "../hero-id.ts";
 import type { Resources } from "../resources.ts";
@@ -8,11 +9,6 @@ import type { Resources } from "../resources.ts";
  * as `story.<background>.<chapterId>.title` and `.scene1` … `.scene<scenes>`, each starting with the draft marker.
  * Objectives use only existing mechanics, and the content is neutral scene-setting: no dates, battles or real names.
  */
-export const BACKGROUND_IDS = ["algeria"] as const;
-export type BackgroundId = (typeof BACKGROUND_IDS)[number];
-
-/** The only background until Vietnam arrives (M6). */
-export const DEFAULT_BACKGROUND: BackgroundId = "algeria";
 
 export type Objective =
   | { readonly kind: "building_level"; readonly building: BuildingId; readonly level: number }
@@ -70,6 +66,37 @@ export const STORY: Readonly<Record<BackgroundId, readonly StoryChapter[]>> = {
         { kind: "hero_level", hero: null, level: 2 },
       ],
       reward: { resources: r(400, 400, 400, 40), shards: { medic: 10 } },
+      reviewed: false,
+    },
+  ],
+  // Placeholder for M6, pending historian review (GDD §6, docs/story-review.md). Same mechanics and balance as Algeria's
+  // chapters; the first hero (a trail scout) is paid for by chapter 1, as the courier is there.
+  vietnam: [
+    {
+      id: "ch1",
+      scenes: 2,
+      objectives: [{ kind: "building_level", building: "hq", level: 2 }],
+      reward: { resources: r(100, 100, 100, 30), shards: { trail_scout: 10 } },
+      reviewed: false,
+    },
+    {
+      id: "ch2",
+      scenes: 2,
+      objectives: [
+        { kind: "hero_recruited", hero: null },
+        { kind: "troops_owned", count: 20 },
+      ],
+      reward: { resources: r(200, 200, 200, 20), shards: { trail_scout: 20 } },
+      reviewed: false,
+    },
+    {
+      id: "ch3",
+      scenes: 2,
+      objectives: [
+        { kind: "victories", count: 1 },
+        { kind: "hero_level", hero: null, level: 2 },
+      ],
+      reward: { resources: r(400, 400, 400, 40), shards: { field_medic: 10 } },
       reviewed: false,
     },
   ],

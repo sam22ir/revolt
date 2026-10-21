@@ -2,6 +2,7 @@ import {
   ALLIANCE_ACTIONS,
   ALLIANCE_BLOCK_REASONS,
   ALLIANCE_RANKS,
+  BACKGROUND_IDS,
   BUILDING_IDS,
   HELP_KINDS,
   HERO_BLOCK_REASONS,
@@ -135,7 +136,10 @@ describe("heroes and story", () => {
         for (let n = 1; n <= c.scenes; n++) used.add(`story.${bg}.${c.id}.scene${n}`);
       }
     }
-    for (const k of keys(en).filter((x) => /^story\.algeria\./.test(x))) expect(used.has(k), k).toBe(true);
+    for (const k of keys(en).filter((x) => /^story\.[a-z]+\./.test(x) && !/^story\.(title|draftNotice|chapter|sceneOf|next|back|objectives|objective|reward|rewardShards|claim|complete|completeDesc)\b/.test(x))) {
+      expect(used.has(k), k).toBe(true);
+    }
+    for (const bg of BACKGROUND_IDS) expect(keys(en).some((x) => x.startsWith(`story.${bg}.`)), bg).toBe(true);
   });
 
   test("all chapter text is marked as a draft in every language, until a chapter is reviewed", () => {
@@ -154,7 +158,7 @@ describe("heroes and story", () => {
   });
 
   test("hero names and chapter text are translated, not copied from English", () => {
-    const names = [...HERO_IDS.map((id) => `hero.${id}.name`), ...HERO_IDS.map((id) => `hero.${id}.role`), "story.algeria.ch1.scene1", "heroes.title", "story.title", "building.hero_hall.name"];
+    const names = [...HERO_IDS.map((id) => `hero.${id}.name`), ...HERO_IDS.map((id) => `hero.${id}.role`), ...BACKGROUND_IDS.map((bg) => `story.${bg}.ch1.scene1`), "heroes.title", "story.title", "building.hero_hall.name"];
     for (const k of names) {
       expect(at(ar, k), `ar:${k}`).not.toBe(at(en, k));
       expect(at(fr, k), `fr:${k}`).not.toBe(at(en, k));
@@ -181,5 +185,43 @@ describe("language detection", () => {
   test("Arabic is right-to-left", () => {
     expect(textDirection("ar")).toBe("rtl");
     expect(textDirection("fr")).toBe("ltr");
+  });
+});
+
+describe("backgrounds", () => {
+  const at = (locale: object, k: string): unknown => k.split(".").reduce<unknown>((o, p) => (o as Record<string, unknown>)[p], locale);
+  const all = new Set(keys(en));
+
+  test("the picker and every background have a name and a description in all languages", () => {
+    for (const k of ["background.pick.title", "background.pick.desc", "background.pick.confirm", "background.pick.returning", "background.pick.note"]) {
+      expect(all.has(k), k).toBe(true);
+    }
+    for (const bg of BACKGROUND_IDS) for (const part of ["name", "desc"]) expect(all.has(`background.${bg}.${part}`), `${bg}.${part}`).toBe(true);
+  });
+
+  test("Vietnam names every building and troop of its own and the rice resource, in en, fr and ar", () => {
+    for (const locale of [en, fr, ar]) {
+      for (const id of BUILDING_IDS) for (const part of ["name", "desc"]) expect(typeof at(locale, `background.vietnam.building.${id}.${part}`)).toBe("string");
+      for (const id of TROOP_IDS) for (const part of ["name", "desc"]) expect(typeof at(locale, `background.vietnam.troop.${id}.${part}`)).toBe("string");
+      expect(typeof at(locale, "background.vietnam.resource.food")).toBe("string");
+    }
+  });
+
+  test("every background override shadows a shared key that exists, so nothing is orphaned", () => {
+    for (const k of keys(en).filter((x) => /^background\.[a-z]+\.(building|troop|resource)\./.test(x))) {
+      const shared = k.replace(/^background\.[a-z]+\./, "");
+      expect(all.has(shared), k).toBe(true);
+    }
+  });
+
+  test("override and background text is translated, not copied from English", () => {
+    for (const k of keys(en).filter((x) => /^background\./.test(x))) {
+      expect(at(ar, k), `ar:${k}`).not.toBe(at(en, k));
+      expect(at(fr, k), `fr:${k}`).not.toBe(at(en, k));
+    }
+  });
+
+  test("a background's heroes are still roles: the description says inspired by", () => {
+    for (const id of HERO_IDS) expect(at(en, `hero.${id}.desc`)).toMatch(/inspired by/i);
   });
 });

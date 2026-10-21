@@ -15,6 +15,7 @@ import {
 import { formatAmount, formatDuration } from "../format.ts";
 import { currentLanguage, t } from "../i18n/i18n.ts";
 import type { MarchOutcome } from "../state/game-store.ts";
+import { activeBackground } from "../state/background.ts";
 import { availableHeroes, bonusSummary } from "../state/hero-view.ts";
 import { ownBase, previewMarch } from "../state/tile-info.ts";
 import { el } from "./dom.ts";
@@ -98,7 +99,7 @@ export const createMarchDialog = (deps: MarchDialogDeps): MarchDialog => {
 
   /** Fills the hero pickers from the heroes that are free right now; a pick that is no longer free is dropped. */
   const refreshHeroes = (state: BaseState): void => {
-    const free = availableHeroes(state);
+    const free = availableHeroes(state, activeBackground());
     picks = picks.map((p) => (p !== "" && free.includes(p) ? p : ""));
     const k = [currentLanguage(), free.join(","), picks.join(",")].join("|");
     if (k === heroKey) return;

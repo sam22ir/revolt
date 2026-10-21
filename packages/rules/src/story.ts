@@ -1,6 +1,7 @@
 import { advance } from "./advance.ts";
 import type { BaseState } from "./base-state.ts";
-import { DEFAULT_BACKGROUND, STORY, type BackgroundId, type Objective, type StoryChapter } from "./data/story.ts";
+import { DEFAULT_BACKGROUND, type BackgroundId } from "./background.ts";
+import { STORY, type Objective, type StoryChapter } from "./data/story.ts";
 import { addShards } from "./hero-progress.ts";
 import { HERO_IDS } from "./hero-id.ts";
 import { storageCap } from "./production.ts";

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import type { AllianceView, BuildingId, ChatMessage, HelpRequestView, MapSnapshot } from "@revolt/rules";
+import type { AllianceView, BackgroundId, BuildingId, ChatMessage, HelpRequestView, MapSnapshot } from "@revolt/rules";
 import { changeLanguage, initI18n } from "./i18n/i18n.ts";
 import { loadLanguagePref, storeLanguagePref } from "./i18n/language-pref.ts";
 import { detectLanguage } from "./i18n/languages.ts";
@@ -15,6 +15,7 @@ import { createAllianceStore } from "./state/alliance-store.ts";
 import { connectGameStore, type GameStore } from "./state/game-store.ts";
 import { createWorldStore } from "./state/world-store.ts";
 import { mountUi } from "./ui/app-ui.ts";
+import { pickBackground } from "./ui/background-picker.ts";
 import { showBootStatus } from "./ui/boot-status.ts";
 import "./ui/style.css";
 import "./ui/map.css";
@@ -45,7 +46,21 @@ const start = async (): Promise<void> => {
   const apiUrl = defaultApiUrl();
   const api = createApi(apiUrl);
   // The device clock only predicts between server answers; rules only ever receive `now`.
-  const store = await connect(uiRoot, () => connectGameStore({ api, storage, clock: () => Date.now() }));
+  // Asked once, only when this device has no account yet. Opening is retried until the server answers, so the answer is kept.
+  let returning = false;
+  let asked: Promise<BackgroundId> | null = null;
+  const chooseBackground = (): Promise<BackgroundId> =>
+    (asked ??= pickBackground(uiRoot, storage).then((choice) => {
+      returning = choice.returning;
+      return choice.background;
+    }));
+  const store = await connect(uiRoot, () => connectGameStore({ api, storage, clock: () => Date.now(), chooseBackground }));
+  // Scenes, art, names and story are all chosen by background. A Google sign-in that lands on an account of the
+  // other background starts the app over rather than rebuilding every screen.
+  const background = store.background();
+  store.onSessionChange(() => {
+    if (store.background() !== background) window.location.reload();
+  });
   const socket = createMapSocket({ url: mapSocketUrl(apiUrl), token: store.token });
   const world = createWorldStore({ api, game: store, socket, storage });
   // The alliance feed opens only while the player is in an alliance (the server refuses it otherwise).
@@ -90,6 +105,7 @@ const start = async (): Promise<void> => {
 
   world.start();
   alliance.start();
+  if (returning) ui.openAccount();
   window.setInterval(store.tick, TICK_MS);
   // Coming back to the app, or while offline: ask the server again.
   document.addEventListener("visibilitychange", () => {

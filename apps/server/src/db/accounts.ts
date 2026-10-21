@@ -1,4 +1,4 @@
-import { HANDLE_ALPHABET, HANDLE_LENGTH } from "@revolt/rules";
+import { HANDLE_ALPHABET, HANDLE_LENGTH, serverFor, type BackgroundId } from "@revolt/rules";
 import { isUniqueViolation, type Db, type DbStatement } from "./db.ts";
 
 export interface Account {
@@ -21,16 +21,19 @@ interface AccountRow {
 
 const toAccount = (r: AccountRow): Account => ({ id: r.id, googleSub: r.google_sub, googleEmail: r.google_email, server: r.server, handle: r.handle });
 
-/** Every account plays on the Algeria server until more backgrounds exist (GDD §2, M6). */
+/** The server of accounts that name no background (the column default from migration 0004). */
 export const DEFAULT_SERVER = "algeria-1";
+
+/** The server a new account of this background is created on (GDD §2.2). It is fixed for the account's life. */
+export const newAccountServer = (background: BackgroundId): string => serverFor(background);
 
 export const insertAccount = (
   db: Db,
-  a: { id: string; handle: string; now: number; googleSub?: string; googleEmail?: string | null; importedM1?: boolean },
+  a: { id: string; handle: string; now: number; server?: string; googleSub?: string; googleEmail?: string | null; importedM1?: boolean },
 ): DbStatement =>
   db
-    .prepare("INSERT INTO accounts (id, created_at, google_sub, google_email, imported_m1, handle) VALUES (?, ?, ?, ?, ?, ?)")
-    .bind(a.id, a.now, a.googleSub ?? null, a.googleEmail ?? null, a.importedM1 === true ? 1 : 0, a.handle);
+    .prepare("INSERT INTO accounts (id, created_at, google_sub, google_email, imported_m1, handle, server) VALUES (?, ?, ?, ?, ?, ?, ?)")
+    .bind(a.id, a.now, a.googleSub ?? null, a.googleEmail ?? null, a.importedM1 === true ? 1 : 0, a.handle, a.server ?? DEFAULT_SERVER);
 
 /** A random handle from the tag alphabet (32^6, about a billion). */
 export const newHandle = (): string => {

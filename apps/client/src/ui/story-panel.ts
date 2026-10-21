@@ -1,7 +1,8 @@
-import { DEFAULT_BACKGROUND, objectiveProgress, RESOURCE_IDS, STORY, type BaseState, type Objective, type StoryChapter } from "@revolt/rules";
+import { objectiveProgress, RESOURCE_IDS, STORY, type BaseState, type Objective, type StoryChapter } from "@revolt/rules";
 import { formatAmount } from "../format.ts";
 import { currentLanguage, t } from "../i18n/i18n.ts";
 import type { ActionOutcome } from "../state/game-store.ts";
+import { activeBackground } from "../state/background.ts";
 import { storyView } from "../state/hero-view.ts";
 import { el } from "./dom.ts";
 import { resourceIcon } from "./icons.ts";
@@ -20,7 +21,7 @@ interface StoryDeps {
   readonly onChange: (state: { open: boolean }) => void;
 }
 
-const chapters = (): readonly StoryChapter[] => STORY[DEFAULT_BACKGROUND];
+const chapters = (): readonly StoryChapter[] => STORY[activeBackground()];
 
 /** The objective as a sentence. Text only: names come from i18n keys for ids, never from data. */
 export const objectiveText = (o: Objective): string => {
@@ -64,7 +65,7 @@ export const createStoryPanel = (deps: StoryDeps): StoryPanel => {
       scene = 0;
     }
     const box = el("div", "story-scenes");
-    const text = el("p", "story-scene", t(`story.${DEFAULT_BACKGROUND}.${chapter.id}.scene${scene + 1}`));
+    const text = el("p", "story-scene", t(`story.${activeBackground()}.${chapter.id}.scene${scene + 1}`));
     text.dataset.testid = "story-scene";
     const nav = el("div", "story-scene-nav");
     const back = el("button", "secondary-btn", t("story.back"));
@@ -122,7 +123,7 @@ export const createStoryPanel = (deps: StoryDeps): StoryPanel => {
     draft.setAttribute("role", "note");
     root.append(head, draft);
 
-    const view = storyView(state);
+    const view = storyView(state, activeBackground());
     const all = chapters();
 
     if (replay !== null) {
@@ -137,7 +138,7 @@ export const createStoryPanel = (deps: StoryDeps): StoryPanel => {
           redraw();
         });
         root.append(
-          el("h3", "panel-sub", `${t("story.chapter", { n: formatAmount(lang, replay + 1) })} · ${t(`story.${DEFAULT_BACKGROUND}.${chapter.id}.title`)}`),
+          el("h3", "panel-sub", `${t("story.chapter", { n: formatAmount(lang, replay + 1) })} · ${t(`story.${activeBackground()}.${chapter.id}.title`)}`),
           scenesOf(replay, chapter),
           back,
         );
@@ -153,7 +154,7 @@ export const createStoryPanel = (deps: StoryDeps): StoryPanel => {
       root.append(done);
     } else {
       const chapter = view.chapter;
-      const title = el("h3", "panel-sub story-chapter-title", `${t("story.chapter", { n: formatAmount(lang, view.claimed + 1) })} · ${t(`story.${DEFAULT_BACKGROUND}.${chapter.id}.title`)}`);
+      const title = el("h3", "panel-sub story-chapter-title", `${t("story.chapter", { n: formatAmount(lang, view.claimed + 1) })} · ${t(`story.${activeBackground()}.${chapter.id}.title`)}`);
       title.dataset.testid = "story-chapter";
       root.append(title, scenesOf(view.claimed, chapter));
 
@@ -198,7 +199,7 @@ export const createStoryPanel = (deps: StoryDeps): StoryPanel => {
       const done = el("ul", "story-done");
       all.slice(0, view.claimed).forEach((c, i) => {
         const li = el("li");
-        const btn = el("button", "secondary-btn", `${t("story.chapter", { n: formatAmount(lang, i + 1) })} · ${t(`story.${DEFAULT_BACKGROUND}.${c.id}.title`)}`);
+        const btn = el("button", "secondary-btn", `${t("story.chapter", { n: formatAmount(lang, i + 1) })} · ${t(`story.${activeBackground()}.${c.id}.title`)}`);
         btn.type = "button";
         btn.dataset.testid = "story-replay";
         btn.dataset.chapter = c.id;
@@ -222,7 +223,7 @@ export const createStoryPanel = (deps: StoryDeps): StoryPanel => {
   function update(state: BaseState): void {
     latest = state;
     if (root.hidden) return;
-    const view = storyView(state);
+    const view = storyView(state, activeBackground());
     const progress = view.chapter === null ? "" : view.chapter.objectives.map((o) => objectiveProgress(state, o).have).join(",");
     const k = [currentLanguage(), view.claimed, view.status, progress, scene, replay ?? "-", note ?? "-"].join("|");
     if (k === key) return;

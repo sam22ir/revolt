@@ -24,7 +24,8 @@ describe("hero and story panels set text, not markup", () => {
   test("the story panel always shows the draft notice and the chapter text comes from i18n keys", () => {
     const src = read("story-panel.ts");
     expect(src).toContain('t("story.draftNotice")');
-    expect(src).toMatch(/t\(`story\.\$\{DEFAULT_BACKGROUND\}\.\$\{chapter\.id\}\.scene/);
+    expect(src).toMatch(/t\(`story\.\$\{activeBackground\(\)\}\.\$\{chapter\.id\}\.scene/);
+    expect(src).not.toContain("DEFAULT_BACKGROUND");
   });
 
   test("player-visible hero text in the panels never comes from state strings", () => {

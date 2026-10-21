@@ -22,6 +22,10 @@ Style and rules: GDD §7. Generated painted-isometric art, Algerian palette, no 
 
 The world scene's textures load when the map is first opened, not at start-up.
 
+## Per-background art (M6)
+
+`BACKGROUND_ART` in `src/art/art.ts` lists the sprites a background draws with its own file at `art/<background>/<key>.webp` (keys as in the manifest). Anything not listed uses the shared sprite. PLACEHOLDER: Vietnam lists none yet, so it shows the Algerian sprites. TODO, Vietnam sprites to produce: `buildings/farm` (rice paddies), `buildings/hq` (jungle command post), `armory` (workshop), `treasury`, `barracks` (training camp), `hero_hall` (leaders' hall), `ground_tile` (jungle ground), the troops in `units/`, and its terrain. Put the PNG masters in `art/raw/vietnam/...`, run `pnpm art:process` (the script needs a `vietnam/` group before it will emit them), add the key to `BACKGROUND_ART`. The map's camp sprite (`BASE_ART` in `world-scene.ts`) is still the shared `hq`.
+
 ## Add or swap a sprite
 
 1. Put the cut-out PNG (transparent, tightly cropped) in `art/raw/<group>/<name>.png` and the unprocessed original in `art/raw/`.

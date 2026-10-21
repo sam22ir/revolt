@@ -124,4 +124,47 @@ export const HEROES: Readonly<Record<HeroId, HeroDef>> = {
     recruitSupport: 80,
     skills: [skill("command", "attack_pct", 1, 10, 2), skill("passive", "hp_pct", 3, 6, 1), skill("passive", "carry_pct", 6, 5, 1)],
   },
+  // Vietnam's roster (M6): the same placeholder balance as Algeria's, role for role. Roles only, no real people.
+  trail_scout: {
+    rarity: "common",
+    specialty: "scouts",
+    recruitShards: 10,
+    recruitSupport: 20,
+    skills: [skill("command", "attack_pct", 1, 6, 1), skill("passive", "carry_pct", 3, 4, 1), skill("passive", "hp_pct", 6, 4, 1)],
+  },
+  field_medic: {
+    rarity: "common",
+    specialty: "infantry",
+    recruitShards: 10,
+    recruitSupport: 20,
+    skills: [skill("command", "hp_pct", 1, 6, 1), skill("passive", "attack_pct", 3, 3, 1), skill("passive", "carry_pct", 6, 3, 1)],
+  },
+  propagandist: {
+    rarity: "rare",
+    specialty: "infantry",
+    recruitShards: 20,
+    recruitSupport: 40,
+    skills: [skill("command", "attack_pct", 1, 8, 1), skill("passive", "hp_pct", 3, 5, 1), skill("passive", "carry_pct", 6, 4, 1)],
+  },
+  porter_chief: {
+    rarity: "rare",
+    specialty: "heavy",
+    recruitShards: 20,
+    recruitSupport: 40,
+    skills: [skill("command", "carry_pct", 1, 10, 2), skill("passive", "hp_pct", 3, 5, 1), skill("passive", "attack_pct", 6, 4, 1)],
+  },
+  tunnel_engineer: {
+    rarity: "rare",
+    specialty: "scouts",
+    recruitShards: 20,
+    recruitSupport: 40,
+    skills: [skill("command", "attack_pct", 1, 8, 1), skill("passive", "carry_pct", 3, 5, 1), skill("passive", "hp_pct", 6, 5, 1)],
+  },
+  column_commander: {
+    rarity: "legendary",
+    specialty: "heavy",
+    recruitShards: 40,
+    recruitSupport: 80,
+    skills: [skill("command", "attack_pct", 1, 10, 2), skill("passive", "hp_pct", 3, 6, 1), skill("passive", "carry_pct", 6, 5, 1)],
+  },
 };

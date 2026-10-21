@@ -4,13 +4,15 @@ import {
   checkLevelUp,
   checkRecruit,
   currentChapter,
-  HERO_IDS,
+  DEFAULT_BACKGROUND,
+  heroesFor,
   heroLevelCap,
   heroMods,
   HEROES,
   levelUpCost,
   MAX_HERO_LEVEL,
   TROOP_IDS,
+  type BackgroundId,
   type BaseState,
   type HeroBlockReason,
   type HeroDef,
@@ -38,7 +40,7 @@ export interface HeroCard {
   readonly cap: number;
 }
 
-export const heroCard = (state: BaseState, id: HeroId): HeroCard => {
+export const heroCard = (state: BaseState, id: HeroId, background: BackgroundId = DEFAULT_BACKGROUND): HeroCard => {
   const progress = state.heroes[id];
   const recruited = progress.level > 0;
   return {
@@ -47,23 +49,23 @@ export const heroCard = (state: BaseState, id: HeroId): HeroCard => {
     progress,
     recruited,
     busy: busyHeroes(state).has(id),
-    recruit: recruited ? "already_recruited" : checkRecruit(state, id),
+    recruit: recruited ? "already_recruited" : checkRecruit(state, id, background),
     levelUp: recruited ? checkLevelUp(state, id) : "not_recruited",
     nextCost: recruited && progress.level < MAX_HERO_LEVEL ? levelUpCost(progress.level) : null,
     cap: heroLevelCap(state.levels.hero_hall),
   };
 };
 
-/** Recruited heroes first, then the rest, each group in table order. */
-export const heroCards = (state: BaseState): HeroCard[] => {
-  const cards = HERO_IDS.map((id) => heroCard(state, id));
+/** The background's own heroes, recruited first, then the rest, each group in table order. */
+export const heroCards = (state: BaseState, background: BackgroundId = DEFAULT_BACKGROUND): HeroCard[] => {
+  const cards = heroesFor(background).map((id) => heroCard(state, id, background));
   return [...cards.filter((c) => c.recruited), ...cards.filter((c) => !c.recruited)];
 };
 
 /** Heroes that can lead or join a march now: recruited and not already out. */
-export const availableHeroes = (state: BaseState): HeroId[] => {
+export const availableHeroes = (state: BaseState, background: BackgroundId = DEFAULT_BACKGROUND): HeroId[] => {
   const busy = busyHeroes(state);
-  return HERO_IDS.filter((id) => state.heroes[id].level > 0 && !busy.has(id));
+  return heroesFor(background).filter((id) => state.heroes[id].level > 0 && !busy.has(id));
 };
 
 export interface BonusSummary {
@@ -87,11 +89,11 @@ export interface StoryView {
   readonly claimed: number;
 }
 
-export const storyView = (state: BaseState): StoryView => ({
-  chapter: currentChapter(state),
-  status: chapterStatus(state),
+export const storyView = (state: BaseState, background: BackgroundId = DEFAULT_BACKGROUND): StoryView => ({
+  chapter: currentChapter(state, background),
+  status: chapterStatus(state, background),
   claimed: state.story.chapter,
 });
 
 /** A chapter reward is waiting: the HUD badge. */
-export const storyClaimable = (state: BaseState): boolean => chapterStatus(state) === "ready";
+export const storyClaimable = (state: BaseState, background: BackgroundId = DEFAULT_BACKGROUND): boolean => chapterStatus(state, background) === "ready";

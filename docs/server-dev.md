@@ -28,7 +28,7 @@ All JSON. The device sends `Authorization: Bearer <token>`; every answer carries
 
 | Route | Body | Answer |
 | --- | --- | --- |
-| `POST /v1/guest` | `{ importSave? }` (a pre-M2 local save, imported once, bounded) | `{ token, account, state, now, imported }` |
+| `POST /v1/guest` | `{ background?, importSave? }`: `background` is `"algeria"` (default) or `"vietnam"`, anything else is 400; `importSave` (a pre-M2 local save, imported once, bounded) is honoured for Algeria only | `{ token, account, state, now, imported }` |
 | `GET /v1/state` | | `{ account, state, now }` — state computed at server time |
 | `POST /v1/intent` | `{ type: "upgrade", building }` | `{ ok, reason?, state, now }` |
 | `POST /v1/auth/google` | `{ idToken }` | `{ token, account, state, now, switched }` |
@@ -115,6 +115,15 @@ Deviations and notes:
 - Chapter 1 asks for command post level 2 (60 s), not farm level 2: a producer cannot pass level 1 before the command post does.
 - All balance numbers are placeholders.
 - Story text is draft and flagged for historian review: see `docs/story-review.md`.
+
+## Backgrounds and servers (M6)
+
+- The background is chosen once, when the account is created (`POST /v1/guest`), and never changes. It fixes the map server: `algeria-1` or `vietnam-1` (`BACKGROUND_SERVER` in `packages/rules/src/background.ts`). `account.background` in every answer is derived from `accounts.server` (`backgroundOfServer`, which also accepts a later `<background>-<n>`), so no column or migration is needed. It is shown to the account's owner only.
+- Separation needs no extra code: the map Durable Object is `idFromName(account.server)` (`vietnam-1` is created on first use, with no new binding), and alliances, handles and chat are scoped by `server`. A join by an alliance id from the other server answers `alliance_gone`.
+- `POST /v1/auth/google` takes no `background`. A guest that links Google keeps its server; a device that signs in to an existing Google account switches to that account and its server whatever it had; a device whose account is linked to another Google account gets a new account on its current server. The client reloads when a switch changes background.
+- Heroes: `HERO_IDS` lists both rosters (12 ids) so a base keeps progress for every id; `heroesFor(background)` is the roster. `recruitHero`/`checkRecruit` take the background and refuse a hero of the other roster as `unknown_hero`; everything else (level-up, squads, marches, shard drops) needs a recruited hero, so that one check keeps the rosters apart. Old stored bases (6 heroes) are filled in by `migrateBaseState`.
+- Story: `claimChapter(state, now, background)` uses that background's chapters (`STORY[background]`).
+- Deploying M6 applies nothing new: no migration, no binding.
 
 ## Accounts and Google
 

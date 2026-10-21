@@ -1,6 +1,7 @@
-import { advance, claimChapter, levelUpHero, recruitHero, startTraining, startUpgrade, type BaseState, type BuildingId, type HeroId, type TroopId, type Troops } from "@revolt/rules";
+import { advance, claimChapter, DEFAULT_BACKGROUND, levelUpHero, recruitHero, startTraining, startUpgrade, type BackgroundId, type BaseState, type BuildingId, type HeroId, type TroopId, type Troops } from "@revolt/rules";
 import { ApiError, type AccountView, type Api, type RallyRefusal, type Snapshot } from "../net/api.ts";
 import { loadSession, storeSession } from "../net/session.ts";
+import { getBackground, setActiveBackground } from "./background.ts";
 import { loadState, SAVE_KEY } from "./save.ts";
 
 export type Listener = (state: BaseState, now: number) => void;
@@ -18,6 +19,8 @@ export interface GameStore {
   /** Server time as best known: the device clock corrected by the server's offset. */
   readonly now: () => number;
   readonly account: () => AccountView;
+  /** The background of the account in use; the rules that depend on it (heroes, story) are predicted with it. */
+  readonly background: () => BackgroundId;
   readonly status: () => SyncStatus;
   /** Re-predicts the state at the current time and notifies listeners. */
   readonly tick: () => void;
@@ -60,13 +63,19 @@ interface StoreDeps {
   readonly storage: Storage;
   /** Device clock. Only used to predict between server answers. */
   readonly clock: () => number;
+  /**
+   * Asks a new player which background to play (GDD §2.2); only called when a new account has to be created, never
+   * for a returning device. Absent means Algeria. The caller should remember the answer: opening is retried
+   * until the server answers, and the player must not be asked again.
+   */
+  readonly chooseBackground?: () => Promise<BackgroundId>;
 }
 
 /**
  * Opens this device's session: reuses its token, or creates a guest account,
  * importing a pre-M2 local save once. Throws if the server cannot be reached.
  */
-const openSession = async ({ api, storage }: StoreDeps): Promise<Snapshot & { token: string; account: AccountView }> => {
+const openSession = async ({ api, storage, chooseBackground }: StoreDeps): Promise<Snapshot & { token: string; account: AccountView }> => {
   const token = loadSession(storage);
   if (token !== null) {
     try {
@@ -76,7 +85,10 @@ const openSession = async ({ api, storage }: StoreDeps): Promise<Snapshot & { to
       if (!(e instanceof ApiError && e.status === 401)) throw e;
     }
   }
-  const created = await api.createGuest(loadState(storage));
+  // A pre-M2 local save belongs to an Algeria player: it is imported, and nothing is asked.
+  const legacy = loadState(storage);
+  const background = legacy !== null || chooseBackground === undefined ? DEFAULT_BACKGROUND : await chooseBackground();
+  const created = await api.createGuest(legacy, background);
   storeSession(storage, created.token);
   try {
     storage.removeItem(SAVE_KEY);
@@ -92,6 +104,7 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
   const session = await openSession(deps);
   let token = session.token;
   let account = session.account;
+  setActiveBackground(getBackground(account));
   let state = session.state;
   let offset = session.now - clock();
   let status: SyncStatus = "online";
@@ -118,6 +131,7 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
     try {
       const snap = await api.getState(token);
       account = snap.account;
+      setActiveBackground(getBackground(account));
       accept(snap);
     } catch {
       offline();
@@ -159,6 +173,7 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
     state: () => state,
     now,
     account: () => account,
+    background: () => getBackground(account),
     status: () => status,
     tick: () => {
       state = advance(state, now());
@@ -181,9 +196,9 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
     march: (target, troops, heroes = []) => sendIntent(() => api.march(token, target, troops, heroes)),
     startRally: (target, troops, gather, heroes = []) => sendIntent(() => api.rallyStart(token, target, troops, gather, heroes)),
     joinRally: (rally, troops, heroes = []) => sendIntent(() => api.rallyJoin(token, rally, troops, heroes)),
-    recruitHero: (hero) => predicted((s, at) => recruitHero(s, hero, at), () => api.heroRecruit(token, hero)),
+    recruitHero: (hero) => predicted((s, at) => recruitHero(s, hero, at, getBackground(account)), () => api.heroRecruit(token, hero)),
     levelHero: (hero) => predicted((s, at) => levelUpHero(s, hero, at), () => api.heroLevel(token, hero)),
-    claimChapter: () => predicted((s, at) => claimChapter(s, at), () => api.storyClaim(token)),
+    claimChapter: () => predicted((s, at) => claimChapter(s, at, getBackground(account)), () => api.storyClaim(token)),
     token: () => token,
     onSessionChange: (fn) => {
       sessionListeners.add(fn);
@@ -195,6 +210,7 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
       token = res.token;
       storeSession(storage, token);
       account = res.account;
+      setActiveBackground(getBackground(account));
       accept(res);
       for (const fn of sessionListeners) fn();
     },

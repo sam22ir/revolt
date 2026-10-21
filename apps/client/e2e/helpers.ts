@@ -24,7 +24,7 @@ export const SHOTS = "test-results/screens";
 
 
 /** Any untranslated i18n key that leaked into the page. */
-export const RAW_KEY = /\b(app|resource|building|panel|reason|queue|time|settings|language|account|sync|map|march|report|troop|npc|terrain|train|result|alliance|chat|help|rally|nav|tab|hero|heroes|story|rarity)\.[a-z_]+\b/;
+export const RAW_KEY = /\b(app|resource|building|panel|reason|queue|time|settings|language|account|sync|map|march|report|troop|npc|terrain|train|result|alliance|chat|help|rally|nav|tab|hero|heroes|story|rarity|background)\.[a-z_]+\b/;
 
 export interface Point {
   readonly x: number;
@@ -55,12 +55,32 @@ export const waitForGame = async (page: Page): Promise<void> => {
   await waitForFrames(page);
 };
 
-export const openGame = async (browser: Browser, locale: string, now: number): Promise<Page> => {
+export type Background = "algeria" | "vietnam";
+
+/**
+ * Opens the app. A new device first sees the background picker: this picks `background` and confirms it, like a
+ * player. A device that already has an account (a reload) goes straight into the game. Waits for Phaser either way.
+ */
+export const gotoGame = async (page: Page, background: Background = "algeria"): Promise<void> => {
+  await page.goto("/");
+  const choice = page.getByTestId(`background-pick-${background}`);
+  const inGame = page.waitForFunction(() => window.__revolt !== undefined).then(() => "game" as const);
+  const picker = choice.waitFor().then(() => "picker" as const);
+  // The loser keeps waiting until the page closes; its rejection then is not an error.
+  inGame.catch(() => undefined);
+  picker.catch(() => undefined);
+  if ((await Promise.race([inGame, picker])) === "picker") {
+    await choice.click();
+    await page.getByTestId("confirm-yes").click();
+  }
+  await waitForGame(page);
+};
+
+export const openGame = async (browser: Browser, locale: string, now: number, background: Background = "algeria"): Promise<Page> => {
   const context = await browser.newContext({ ...PHONE, locale, baseURL: "http://localhost:4173" });
   const page = await context.newPage();
   await page.clock.setFixedTime(now);
-  await page.goto("/");
-  await waitForGame(page);
+  await gotoGame(page, background);
   return page;
 };
 

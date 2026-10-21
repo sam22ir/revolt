@@ -14,7 +14,8 @@ import {
   type HeroSkill,
 } from "./data/heroes.ts";
 import { replaceHero } from "./hero-progress.ts";
-import { isHeroId, type HeroId } from "./hero-id.ts";
+import { DEFAULT_BACKGROUND, type BackgroundId } from "./background.ts";
+import { isHeroId, isHeroOf, type HeroId } from "./hero-id.ts";
 import { canAfford, subtractResources } from "./resources.ts";
 import { TROOP_IDS, type TroopId } from "./troop-id.ts";
 
@@ -44,9 +45,12 @@ export const levelUpCost = (level: number): HeroLevelUpCost | null => (level < 1
 export const skillPct = (skill: HeroSkill, level: number): number =>
   level < skill.unlockLevel ? 0 : skill.base + skill.perLevel * (level - skill.unlockLevel);
 
-/** Checks recruiting against an already-advanced state. */
-export const checkRecruit = (state: BaseState, id: HeroId): HeroBlockReason | null => {
-  if (!isHeroId(id)) return "unknown_hero";
+/**
+ * Checks recruiting against an already-advanced state. A hero outside the player's background roster is unknown
+ * to them; since every other hero action needs a recruited hero, this one check keeps the rosters apart.
+ */
+export const checkRecruit = (state: BaseState, id: HeroId, background: BackgroundId = DEFAULT_BACKGROUND): HeroBlockReason | null => {
+  if (!isHeroId(id) || !isHeroOf(background, id)) return "unknown_hero";
   const have = state.heroes[id];
   const def = HEROES[id];
   if (have.level > 0) return "already_recruited";
@@ -56,9 +60,9 @@ export const checkRecruit = (state: BaseState, id: HeroId): HeroBlockReason | nu
 };
 
 /** Spends shards and support to recruit a hero at level 1 (deterministic: no draws yet, see docs/server-dev.md). */
-export const recruitHero = (state: BaseState, id: HeroId, now: number): HeroResult => {
+export const recruitHero = (state: BaseState, id: HeroId, now: number, background: BackgroundId = DEFAULT_BACKGROUND): HeroResult => {
   const s = advance(state, now);
-  const reason = checkRecruit(s, id);
+  const reason = checkRecruit(s, id, background);
   if (reason !== null) return { ok: false, reason, state: s };
   const def = HEROES[id];
   const next = replaceHero(s, id, 1, s.heroes[id].shards - def.recruitShards);

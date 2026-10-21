@@ -10,7 +10,7 @@ import { durableRoom } from "./alliance/room-client.ts";
 import { durableMap } from "./map/map-client.ts";
 import { WorldMap } from "./map/world-map.ts";
 import { GOOGLE_ISSUERS } from "./auth/google.ts";
-import { DEFAULT_SERVER } from "./db/accounts.ts";
+import { BACKGROUND_SERVER } from "@revolt/rules";
 import { csv, type Deps, type Env } from "./env.ts";
 import { json, withCors } from "./http.ts";
 
@@ -56,9 +56,11 @@ const setClock = async (req: Request, env: Env): Promise<Response> => {
   const v = typeof body === "object" && body !== null && "now" in body ? body.now : undefined;
   if (v !== null && typeof v !== "number") return json({ error: "bad_request" }, 400);
   fixedNow = v;
-  // Only the Algeria map exists so far.
-  const map = env.WORLD_MAP.get(env.WORLD_MAP.idFromName(DEFAULT_SERVER) as never) as unknown as Pick<WorldMapE2E, "setTestClock">;
-  await map.setTestClock(v);
+  // One map per background server.
+  for (const server of Object.values(BACKGROUND_SERVER)) {
+    const map = env.WORLD_MAP.get(env.WORLD_MAP.idFromName(server) as never) as unknown as Pick<WorldMapE2E, "setTestClock">;
+    await map.setTestClock(v);
+  }
   return json({ now: now() });
 };
 
