@@ -1,0 +1,73 @@
+/* Live: events, rankings, the battle pass and the store (M7). Logical properties only, so Arabic mirrors. */
+
+.live-panel { max-block-size: 72vh; }
+
+.live-tabs, .live-subtabs { display: flex; gap: 6px; margin-block: 8px 10px; }
+.live-tab-btn, .live-subtab {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  min-block-size: 40px;
+  padding-inline: 6px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--paper-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.live-tab-btn[aria-selected="true"], .live-subtab[aria-selected="true"] { background: var(--ink); color: var(--paper); }
+.live-subtab { font-size: 13px; min-block-size: 36px; }
+
+.live-card, .store-item {
+  padding: 10px 12px;
+  margin-block-end: 10px;
+  border-radius: var(--radius);
+  background: var(--paper-2);
+}
+.live-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.live-card-title { margin: 0; font-size: 17px; }
+.live-countdown { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; opacity: 0.8; }
+.live-score { margin-block: 6px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-weight: 700; font-size: 15px; }
+.live-rank { font-variant-numeric: tabular-nums; opacity: 0.85; }
+.live-next, .live-hint { margin-block: 4px; font-size: 13px; opacity: 0.8; }
+.live-meter { block-size: 8px; border-radius: 999px; background: var(--paper); overflow: hidden; }
+.live-meter-fill { block-size: 100%; background: var(--ok); }
+.live-owned { margin-block: 6px; font-weight: 700; color: var(--ok); }
+.live-fair { margin-block: 4px 8px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--ok); font-size: 13px; }
+.live-price { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.live-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.live-actions .secondary-btn { flex: 1 1 0; margin-block-start: 0; }
+
+.live-board { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.live-row {
+  display: grid;
+  grid-template-columns: 2.4em minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: baseline;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--paper-2);
+  font-size: 14px;
+}
+.live-row.mine { outline: 2px solid var(--ok); font-weight: 700; }
+.live-pos, .live-points { font-variant-numeric: tabular-nums; }
+.live-name { overflow-wrap: anywhere; }
+.live-me { margin-block: 8px 4px; font-weight: 700; }
+
+.pass-ladder { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.pass-tier { display: grid; grid-template-columns: 2em 1fr 1fr; gap: 6px; align-items: stretch; }
+.pass-tier-n { align-self: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pass-cell { display: flex; flex-direction: column; gap: 4px; padding: 6px; border-radius: 8px; background: var(--paper-2); min-inline-size: 0; }
+.pass-cell.premium { border: 1px solid var(--gold); }
+.pass-cell[data-state="claimed"] { opacity: 0.6; }
+.pass-track { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.7; }
+.pass-cell .reward-list { font-size: 12px; }
+.pass-claim { margin-block-start: auto; min-block-size: 36px; font-size: 13px; }
+
+.store-list { list-style: none; margin: 0; padding: 0; }
+.wardrobe-slot { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-block-end: 6px; }
+.wardrobe-slot .panel-sub { flex-basis: 100%; margin-block: 4px 0; }
+.wardrobe-slot .secondary-btn { margin-block-start: 0; }
+.wardrobe-slot .worn { background: var(--ink); color: var(--paper); }

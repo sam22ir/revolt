@@ -1,5 +1,6 @@
 import {
   MAX_MARCHES,
+  resolveRally,
   NPC_LEVELS,
   RALLY_GATHER_OPTIONS_MS,
   RALLY_MAX_PARTICIPANTS,
@@ -14,7 +15,7 @@ import {
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { call, MANY_GUESTS, player, post, team, type Player, type Team } from "./alliance-helpers.ts";
 import { body, startServer, T0, type Json, type Server } from "./harness.ts";
-import { getMap, getState, intent, march } from "./map-helpers.ts";
+import { editBase, getMap, getState, intent, march } from "./map-helpers.ts";
 
 let server: Server;
 beforeEach(async () => {

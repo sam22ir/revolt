@@ -43,10 +43,19 @@ test("the map zooms with the wheel and with a two-finger pinch", async ({ browse
   await expect.poll(() => zoom(page)).toBeLessThan(pinched);
 });
 
-test("a scrolling panel does not blank the game canvas above it", async ({ browser }) => {
+test("a scrolling panel does not blank the game canvas above it", async ({ browser, request }) => {
   test.setTimeout(120_000);
+  await request.post("http://localhost:8788/__test/clock", { data: { now: mapEpoch(21) } });
   const page = await openGame(browser, "en-US", mapEpoch(21));
-  const barracks = await page.evaluate(() => window.__revolt!.buildingScreenPoint("barracks"));
+  // The camera settles over the first frames after load; tap only once the barracks' screen point stops moving.
+  const barracksPoint = () => page.evaluate(() => window.__revolt!.buildingScreenPoint("barracks"));
+  let barracks = await barracksPoint();
+  for (let settled = 0, tries = 0; settled < 2 && tries < 20; tries++) {
+    await waitForFrames(page, 2);
+    const next = await barracksPoint();
+    settled = next.x === barracks.x && next.y === barracks.y ? settled + 1 : 0;
+    barracks = next;
+  }
   await page.touchscreen.tap(barracks.x, barracks.y);
   await expect(page.getByTestId("training")).toBeVisible();
   await waitForFrames(page, 4);

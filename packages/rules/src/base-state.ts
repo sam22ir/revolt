@@ -42,6 +42,14 @@ export interface MarchOutcome {
   readonly loot: Resources;
 }
 
+/** Story progress for the player's background: chapters claimed, and victories won with a hero. */
+export interface StoryProgress {
+  readonly chapter: number;
+  readonly victories: number;
+}
+
+export const START_STORY: StoryProgress = { chapter: 0, victories: 0 };
+
 /** The heroes a march took, frozen at departure: who, and the level each had then. */
 export interface MarchHeroes {
   readonly lead: HeroId;
@@ -80,6 +88,8 @@ export interface BaseState {
   readonly training: TrainingJob | null;
   /** Recruited heroes, their levels and shards, and the pity counter. */
   readonly heroes: HeroRoster;
+  /** Campaign progress (GDD §4.8). */
+  readonly story: StoryProgress;
   /** Marches out on the map. */
   readonly marches: readonly MarchState[];
   /** Epoch ms up to which production has been settled. Never moves backwards. */
@@ -94,6 +104,7 @@ export const createBaseState = (now: number): BaseState => ({
   wounded: ZERO_TROOPS,
   training: null,
   heroes: EMPTY_HERO_ROSTER,
+  story: START_STORY,
   marches: [],
   lastUpdated: now,
 });

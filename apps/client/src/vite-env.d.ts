@@ -7,4 +7,6 @@ interface ImportMetaEnv {
   readonly VITE_GOOGLE_CLIENT_ID?: string;
   /** "1" uses the local mock Google issuer of the e2e Worker instead of Google. Never in a release build. */
   readonly VITE_GOOGLE_MOCK?: string;
+  /** "1" uses test billing (receipts the e2e Worker accepts). Never in a release build. */
+  readonly VITE_BILLING_MOCK?: string;
 }

@@ -7,8 +7,19 @@ export const getState = async (server: Server, token: string): Promise<Json> => 
 
 export const intent = (server: Server, token: string, b: unknown): Promise<Response> => server.request("POST", "/v1/intent", { token, body: b });
 
-export const march = async (server: Server, token: string, target: string, troops: unknown): Promise<Json> =>
-  body(await intent(server, token, { type: "march", target, troops }));
+export const march = async (server: Server, token: string, target: string, troops: unknown, heroes?: unknown): Promise<Json> =>
+  body(await intent(server, token, { type: "march", target, troops, ...(heroes === undefined ? {} : { heroes }) }));
+
+/** Rewrites an account's stored base directly (the way the server's own writes would), for arranging test states. */
+export const editBase = async (server: Server, accountId: string, change: (s: Json) => void): Promise<void> => {
+  const row = await server.env.DB.prepare("SELECT state FROM bases WHERE account_id = ?").bind(accountId).first<{ state: string }>();
+  const state = JSON.parse(row?.state ?? "{}") as Json;
+  change(state);
+  await server.env.DB.prepare("UPDATE bases SET state = ?, version = version + 1 WHERE account_id = ?").bind(JSON.stringify(state), accountId).run();
+};
+
+export const heroIntent = async (server: Server, token: string, type: "recruit" | "hero_level", hero?: unknown, extra: object = {}): Promise<Json> =>
+  body(await intent(server, token, hero === undefined ? { type, ...extra } : { type, hero, ...extra }));
 
 /** The nearest live NPC of `level` to the player's base. */
 export const nearestNpc = (snap: MapSnapshot, level = 1): MapNpcView => {

@@ -1,7 +1,8 @@
 import Phaser from "phaser";
 import { BUILDING_IDS, type BaseState, type BuildingId } from "@revolt/rules";
 import type { GameStore } from "../state/game-store.ts";
-import { artUrl, spriteInfo, textureKey } from "../art/art.ts";
+import { artKeyFor, artUrl, spriteInfo, textureKey } from "../art/art.ts";
+import { activeBackground } from "../state/background.ts";
 import {
   isoToWorld,
   mapCenter,
@@ -32,8 +33,8 @@ interface Placement {
   readonly height: number;
 }
 
-const GROUND = "buildings/ground_tile";
-const spriteKey = (id: BuildingId): string => `buildings/${id}`;
+const ground = (): string => artKeyFor(activeBackground(), "buildings/ground_tile");
+const spriteKey = (id: BuildingId): string => artKeyFor(activeBackground(), `buildings/${id}`);
 /** Depths: ground, then buildings back to front, then outlines, then badges and bars. */
 const D_SPRITE = 10;
 const D_OUTLINE = 100;
@@ -60,7 +61,7 @@ export class BaseScene extends Phaser.Scene {
   }
 
   preload(): void {
-    for (const key of [GROUND, ...BUILDING_IDS.map(spriteKey)]) this.load.image(textureKey(key), artUrl(key));
+    for (const key of [ground(), ...BUILDING_IDS.map(spriteKey)]) this.load.image(textureKey(key), artUrl(key));
   }
 
   create(): void {
@@ -126,12 +127,12 @@ export class BaseScene extends Phaser.Scene {
 
   /** The painted ground slab, stretched over the whole grid diamond (its rim shows below the near edges). */
   private drawGround(): void {
-    const info = spriteInfo(GROUND);
+    const info = spriteInfo(ground());
     const rim = 26 / 571; // fraction of the sprite's height that is slab thickness
     const sx = MAP_WORLD_WIDTH / info.w;
     const sy = MAP_WORLD_HEIGHT / (info.h * (1 - rim));
     this.add
-      .image(-MAP_WORLD_WIDTH / 2, 0, textureKey(GROUND))
+      .image(-MAP_WORLD_WIDTH / 2, 0, textureKey(ground()))
       .setOrigin(0, 0)
       .setScale(sx, sy)
       .setDepth(0);

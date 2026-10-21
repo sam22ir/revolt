@@ -68,6 +68,17 @@ const renderDetail = (r: BattleReport): HTMLElement => {
   );
   const theirs = el("section", "report-section");
   theirs.append(el("h4", "panel-sub", t("report.defenders")), troopTable([r.defenders], [t("report.defenders"), t("report.defendersKilled")], [r.defenders, r.defendersKilled]));
+  if (r.heroes !== undefined && r.heroes.length > 0) {
+    const heroes = el("section", "report-section report-heroes");
+    heroes.dataset.testid = "report-heroes";
+    heroes.append(el("h4", "panel-sub", t("report.heroes")));
+    const names = el("ul", "report-hero-list");
+    for (const h of r.heroes) {
+      names.append(el("li", undefined, t(`hero.${h}.name`)));
+    }
+    heroes.append(names);
+    box.append(heroes);
+  }
   box.append(mine, theirs, el("p", "report-rounds", t("report.rounds", { count: formatAmount(lang, r.rounds) })));
 
   const loot = el("div", "report-loot");

@@ -55,6 +55,11 @@ const isHeroes = (h: unknown): boolean =>
     isRecord(h.levels) &&
     Object.values(h.levels).every((l) => isFiniteNumber(l) && Number.isInteger(l) && l >= 1));
 
+const isStory = (v: unknown): boolean =>
+  isRecord(v) &&
+  isFiniteNumber(v.chapter) && Number.isInteger(v.chapter) && v.chapter >= 0 && v.chapter <= 1000 &&
+  isFiniteNumber(v.victories) && Number.isInteger(v.victories) && v.victories >= 0 && v.victories <= 1_000_000_000;
+
 const isHeroRoster = (r: unknown): boolean =>
   isRecord(r) &&
   isFiniteNumber(r.pity) &&
@@ -89,6 +94,7 @@ export const isBaseState = (v: unknown): v is BaseState => {
   if (!BUILDING_IDS.every((id) => isLevel(levels[id]))) return false;
   return (
     isHeroRoster(v.heroes) &&
+    isStory(v.story) &&
     isQueue(v.queue) &&
     isTroops(v.troops) &&
     isTroops(v.wounded) &&

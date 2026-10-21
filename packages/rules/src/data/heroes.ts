@@ -55,4 +55,41 @@ export const HEROES: Readonly<Record<HeroId, HeroDef>> = {
       { id: "veteran_drill", stat: "attack", value: 0.1 },
     ],
   },
+  // Vietnam's roster (M6): the same shape and balance as the Algeria roster, role for role. Roles only, no real people.
+  trail_scout: {
+    rarity: "common",
+    specialty: "scouts",
+    command: { id: "jungle_signal", stat: "attack", value: 0.15 },
+    passives: [
+      { id: "paddy_cover", stat: "defense", value: 0.05 },
+      { id: "tunnel_sense", stat: "attack", value: 0.05 },
+    ],
+  },
+  field_medic: {
+    rarity: "common",
+    specialty: "infantry",
+    command: { id: "stretcher_run", stat: "defense", value: 0.1 },
+    passives: [
+      { id: "field_dressing", stat: "defense", value: 0.05 },
+      { id: "calm_under_fire", stat: "attack", value: 0.05 },
+    ],
+  },
+  porter_chief: {
+    rarity: "rare",
+    specialty: "heavy",
+    command: { id: "bearer_march", stat: "attack", value: 0.25 },
+    passives: [
+      { id: "load_sharing", stat: "defense", value: 0.08 },
+      { id: "river_crossing", stat: "attack", value: 0.05 },
+    ],
+  },
+  column_commander: {
+    rarity: "legendary",
+    specialty: "infantry",
+    command: { id: "forward_command", stat: "attack", value: 0.35 },
+    passives: [
+      { id: "dug_in", stat: "defense", value: 0.1 },
+      { id: "campaign_drill", stat: "attack", value: 0.1 },
+    ],
+  },
 };

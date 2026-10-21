@@ -28,7 +28,7 @@ All JSON. The device sends `Authorization: Bearer <token>`; every answer carries
 
 | Route | Body | Answer |
 | --- | --- | --- |
-| `POST /v1/guest` | `{ importSave? }` (a pre-M2 local save, imported once, bounded) | `{ token, account, state, now, imported }` |
+| `POST /v1/guest` | `{ background?, importSave? }`: `background` is `"algeria"` (default) or `"vietnam"`, anything else is 400; `importSave` (a pre-M2 local save, imported once, bounded) is honoured for Algeria only | `{ token, account, state, now, imported }` |
 | `GET /v1/state` | | `{ account, state, now }` — state computed at server time |
 | `POST /v1/intent` | `{ type: "upgrade", building }` | `{ ok, reason?, state, now }` |
 | `POST /v1/auth/google` | `{ idToken }` | `{ token, account, state, now, switched }` |
@@ -94,6 +94,60 @@ Rule refusals (a reason the player can fix) answer HTTP 200 with `{ ok: false, r
 - **Free-tier budget.** Each chat message is one incoming WebSocket message (billed 20:1) and an outgoing send per connected member (not billed). Joining, helping and ranks are Worker → D1 only; the room hears of them with one RPC.
 - **Deviations from GDD.** All alliances are open (no invitations or applications yet); the rally marches at a fixed `RALLY_SPEED` instead of troop speed (§4.5), so its timing is known when it starts; a rally cannot be cancelled; alliance tech and gifts (§4.7) are not built.
 - **Durable Object SQLite limits.** A Durable Object's SQLite allows far fewer terms in a compound `SELECT` than Node's does; `MapService.nextDueAt` runs separate small queries for that reason (found only by running the real runtime).
+
+## Heroes and story (M5)
+
+No D1 migration: heroes and story progress live inside `BaseState` (the JSON in `bases.state`). Old rows are filled in by `migrateBaseState` (hero hall level 1, every hero level 0 with no shards, story at chapter 0). A client save imported at guest creation never carries heroes or story.
+
+New intents on `POST /v1/intent` (all computed by `packages/rules` at server time; client-sent levels, costs or rewards are never read):
+
+- `{ type: "hero_recruit", hero }` and `{ type: "hero_level", hero }`. Refusals come back as `ok: false` with a reason: `unknown_hero`, `already_recruited`, `not_recruited`, `not_enough_shards`, `hall_level`, `max_level`, `insufficient`.
+- `{ type: "story_claim" }`. Reasons: `objectives_unmet`, `story_complete`.
+- `march`, `rally_start` and `rally_join` take an optional `heroes: HeroId[]` (lead first, at most 3, known ids; anything else is a 400). Extra refusals: `bad_squad` (duplicates), `hero_not_owned`, `hero_busy`.
+
+How a squad works: a hero is busy exactly while it appears in `state.marches[*].heroes`, so it comes home with the march. The squad is frozen when the march leaves (`[{id, level}]`, levels read from the base being saved) and stored in the map's `marches.heroes` column (added with a PRAGMA-guarded `ALTER`, like `rally_id`; old rows read as no heroes). The battle on arrival uses that snapshot, so a level-up while the hero is out changes nothing. A rally adds up every participant's hero bonus and caps the total. The report lists the heroes (`BattleReport.heroes`).
+
+Shards: story chapter rewards, and a drop for the lead hero when a victorious march with heroes returns (`NPC_SHARD_DROP`, applied once in `advance`). Victories with a hero also count for the story.
+
+Deviations and notes:
+
+- GDD §4.4 recruitment draws with published odds and a pity counter are NOT built. Recruitment is deterministic (shards plus support). Draws need server RNG, published odds and a monetisation review, so they are deferred (GDD §12).
+- Chapter 1 asks for command post level 2 (60 s), not farm level 2: a producer cannot pass level 1 before the command post does.
+- All balance numbers are placeholders.
+- Story text is draft and flagged for historian review: see `docs/story-review.md`.
+
+## Backgrounds and servers (M6)
+
+- The background is chosen once, when the account is created (`POST /v1/guest`), and never changes. It fixes the map server: `algeria-1` or `vietnam-1` (`BACKGROUND_SERVER` in `packages/rules/src/background.ts`). `account.background` in every answer is derived from `accounts.server` (`backgroundOfServer`, which also accepts a later `<background>-<n>`), so no column or migration is needed. It is shown to the account's owner only.
+- Separation needs no extra code: the map Durable Object is `idFromName(account.server)` (`vietnam-1` is created on first use, with no new binding), and alliances, handles and chat are scoped by `server`. A join by an alliance id from the other server answers `alliance_gone`.
+- `POST /v1/auth/google` takes no `background`. A guest that links Google keeps its server; a device that signs in to an existing Google account switches to that account and its server whatever it had; a device whose account is linked to another Google account gets a new account on its current server. The client reloads when a switch changes background.
+- Heroes: `HERO_IDS` lists both rosters (12 ids) so a base keeps progress for every id; `heroesFor(background)` is the roster. `recruitHero`/`checkRecruit` take the background and refuse a hero of the other roster as `unknown_hero`; everything else (level-up, squads, marches, shard drops) needs a recruited hero, so that one check keeps the rosters apart. Old stored bases (6 heroes) are filled in by `migrateBaseState`.
+- Story: `claimChapter(state, now, background)` uses that background's chapters (`STORY[background]`).
+- Deploying M6 applies nothing new: no migration, no binding.
+
+## Live features (M7): events, rankings, pass, store
+
+Routes (all bearer-auth, all scoped to the account's server; players are named by handle, never by id):
+
+| Route | What |
+|---|---|
+| `GET /v1/events` | Open events and recently ended ones with something earned: score, rank, tier, claim state. |
+| `POST /v1/events/claim {event}` | After a window ends (7 days grace) pays the highest tier reached, once. |
+| `GET /v1/leaderboard?board=power\|regions\|alliance\|event[&event=key]` | Top 50 and the viewer's own place. |
+| `GET /v1/pass`, `POST /v1/pass/claim {tier, track}` | The season's pass; each tier pays once per track; premium needs the purchase. |
+| `GET /v1/store`, `POST /v1/store/redeem {sku, provider, receipt}`, `POST /v1/cosmetics/equip {slot, cosmetic}` | Catalog and wallet; receipt redemption; wearing cosmetics. |
+| `POST /v1/intent {type:"speedup", job, tokens}` | Spends speed-up tokens on the running upgrade or training. |
+
+How it holds together:
+- Event windows and pass seasons are computed from the clock and the tables in `packages/rules/src/data` (`events.ts`, `battle-pass.ts`, `store.ts`, `cosmetics.ts`). The cron never has to roll anything over; it only prunes old rows (`db/live-prune.ts`).
+- Scores and pass XP are **sums of `live_awards` rows**, one per (march, key), written with `INSERT OR IGNORE` in the same batch as the battle report (`map-service.deliverOutcome`). A retry or a lost compare-and-set cannot count twice.
+- Every one-time grant (event reward, pass tier, purchase) goes through `db/grants.ts` and a `claims` row used as a lock (`granted` 0, 2, 1, `changes()` chaining inside one D1 batch). Verified on real D1 in `miniflare-smoke.test.ts`.
+- Power and regions boards read `score_snapshots`, refreshed when a player's state is read or saved. Other players' rows can lag until they next open the game. "Regions liberated" = `story.victories` (GDD names the board but not the measure: placeholder definition).
+- Speed-ups: tokens and the day's use live in `wallet` (not in the base). Rules (`store.ts`): 15 min per token, 4 h per UTC day, never on the command post's own upgrade, clock rewinds keep the day's usage.
+- Fair F2P (GDD §8) is enforced by rules tests: no product sells shards or heroes, the premium pass track has no shards, resources stop at the HQ storage cap.
+- Billing, analytics and crash reporting are `Deps` (`billing/`, `telemetry.ts`). `production-deps.ts` (the deployed Worker) has no test verifier and cannot verify receipts yet. **`LocalBilling` accepts `local-test:<txn>` for free and must never be deployed**: it exists only in `e2e-entry.ts` and the test harness (a test greps the deployed modules for it). Secret `REVENUECAT_SECRET` is set with `wrangler secret put`, never in the repo.
+- Test hook (e2e entry only): `POST /__test/award {accountId, key, points}`.
+- Design deviations from the plan: no `BaseState` change (tokens and cosmetics are account-level D1 rows); event claims are recorded in `claims`, not a separate `event_claims` table; the e2e spec is `zz-live.spec.ts` so it runs after the specs that share the map clock; the base scene does not yet draw the equipped base skin (art TODO, equipped state is already served).
 
 ## Accounts and Google
 

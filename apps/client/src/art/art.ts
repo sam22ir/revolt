@@ -1,3 +1,4 @@
+import type { BackgroundId } from "@revolt/rules";
 import type { SpriteSpec } from "../scene/sprite-pool.ts";
 import manifest from "./manifest.json";
 import terrainManifest from "./terrain-manifest.json";
@@ -35,6 +36,20 @@ export const iconSpec = (key: string, width: number): SpriteSpec => {
   const i = spriteInfo(key);
   return { texture: textureKey(key), w: i.w, anchorX: i.w / 2, anchorY: i.h / 2, scale: width / i.w };
 };
+
+/**
+ * Sprites a background draws with its own file, `art/<background>/<key>.webp`, keyed like the manifest (`buildings/farm`).
+ * Anything not listed uses the shared sprite, so a background never blocks on art.
+ * PLACEHOLDER: Vietnam has no sprites of its own yet and reuses the Algerian ones (rice-paddy farm, tunnel HQ and the
+ * rest are listed in docs/art.md). Add a key here when its file is produced and `pnpm art:process` has run.
+ */
+export const BACKGROUND_ART: Readonly<Record<BackgroundId, ReadonlySet<string>>> = {
+  algeria: new Set(),
+  vietnam: new Set(),
+};
+
+/** The manifest key to draw `key` with for this background: its own sprite if it has one, else the shared one. */
+export const artKeyFor = (background: BackgroundId, key: string): string => (BACKGROUND_ART[background].has(key) ? `${background}/${key}` : key);
 
 /** Atlas frames of the world terrain (ground tiles and props), written by `pnpm art:terrain`. */
 export interface AtlasFrame {

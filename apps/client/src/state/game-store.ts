@@ -1,6 +1,7 @@
-import { advance, startTraining, startUpgrade, type BaseState, type BuildingId, type TroopId, type Troops } from "@revolt/rules";
-import { ApiError, type AccountView, type Api, type RallyRefusal, type Snapshot } from "../net/api.ts";
+import { advance, claimChapter, DEFAULT_BACKGROUND, levelUpHero, startTraining, startUpgrade, type BackgroundId, type BaseState, type BuildingId, type HeroId, type HeroLoadout, type TroopId, type Troops } from "@revolt/rules";
+import { ApiError, type AccountView, type Api, type HeroDrawView, type RallyRefusal, type Snapshot } from "../net/api.ts";
 import { loadSession, storeSession } from "../net/session.ts";
+import { getBackground, setActiveBackground } from "./background.ts";
 import { loadState, SAVE_KEY } from "./save.ts";
 
 export type Listener = (state: BaseState, now: number) => void;
@@ -10,11 +11,16 @@ export type SyncStatus = "online" | "offline";
 /** What the server said to a march or rally. "unreachable" means the request never got an answer. */
 export type MarchOutcome = { readonly ok: true } | { readonly ok: false; readonly reason: RallyRefusal | "unreachable" };
 
+/** What the server (or the local rules, before asking it) said to a hero or story action. */
+export type ActionOutcome = { readonly ok: true; readonly draw?: HeroDrawView } | { readonly ok: false; readonly reason: string };
+
 export interface GameStore {
   readonly state: () => BaseState;
   /** Server time as best known: the device clock corrected by the server's offset. */
   readonly now: () => number;
   readonly account: () => AccountView;
+  /** The background of the account in use; the rules that depend on it (heroes, story) are predicted with it. */
+  readonly background: () => BackgroundId;
   readonly status: () => SyncStatus;
   /** Re-predicts the state at the current time and notifies listeners. */
   readonly tick: () => void;
@@ -26,7 +32,7 @@ export interface GameStore {
    * Sends a march at an NPC target. No prediction: the server picks the id and timing.
    * Resolves with the server's verdict; the state is updated from its answer either way.
    */
-  readonly march: (target: string, troops: Troops) => Promise<MarchOutcome>;
+  readonly march: (target: string, troops: Troops, heroes?: HeroLoadout | null) => Promise<MarchOutcome>;
   /**
    * Starts a rally at an NPC target: the troops leave home at once and the march (with its `rallyId`)
    * waits for the gathering to end. `gather` is one of `RALLY_GATHER_OPTIONS_MS`.
@@ -34,6 +40,11 @@ export interface GameStore {
   readonly startRally: (target: string, troops: Troops, gather: number) => Promise<MarchOutcome>;
   /** Joins a gathering rally of the player's alliance with these troops. */
   readonly joinRally: (rally: string, troops: Troops) => Promise<MarchOutcome>;
+  /** One recruit draw. Not predicted: the server picks the seed, so its answer (with the draw) is the new state. */
+  readonly recruitHero: () => Promise<ActionOutcome>;
+  readonly levelHero: (hero: HeroId) => Promise<ActionOutcome>;
+  /** Claims the current story chapter, predicted the same way. */
+  readonly claimChapter: () => Promise<ActionOutcome>;
   /** The device's bearer token; it changes when a Google sign-in switches base. */
   readonly token: () => string;
   /** Called after the session token changed. */
@@ -49,13 +60,19 @@ interface StoreDeps {
   readonly storage: Storage;
   /** Device clock. Only used to predict between server answers. */
   readonly clock: () => number;
+  /**
+   * Asks a new player which background to play (GDD §2.2); only called when a new account has to be created, never
+   * for a returning device. Absent means Algeria. The caller should remember the answer: opening is retried
+   * until the server answers, and the player must not be asked again.
+   */
+  readonly chooseBackground?: () => Promise<BackgroundId>;
 }
 
 /**
  * Opens this device's session: reuses its token, or creates a guest account,
  * importing a pre-M2 local save once. Throws if the server cannot be reached.
  */
-const openSession = async ({ api, storage }: StoreDeps): Promise<Snapshot & { token: string; account: AccountView }> => {
+const openSession = async ({ api, storage, chooseBackground }: StoreDeps): Promise<Snapshot & { token: string; account: AccountView }> => {
   const token = loadSession(storage);
   if (token !== null) {
     try {
@@ -65,7 +82,10 @@ const openSession = async ({ api, storage }: StoreDeps): Promise<Snapshot & { to
       if (!(e instanceof ApiError && e.status === 401)) throw e;
     }
   }
-  const created = await api.createGuest(loadState(storage));
+  // A pre-M2 local save belongs to an Algeria player: it is imported, and nothing is asked.
+  const legacy = loadState(storage);
+  const background = legacy !== null || chooseBackground === undefined ? DEFAULT_BACKGROUND : await chooseBackground();
+  const created = await api.createGuest(legacy, background);
   storeSession(storage, created.token);
   try {
     storage.removeItem(SAVE_KEY);
@@ -81,6 +101,7 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
   const session = await openSession(deps);
   let token = session.token;
   let account = session.account;
+  setActiveBackground(getBackground(account));
   let state = session.state;
   let offset = session.now - clock();
   let status: SyncStatus = "online";
@@ -107,6 +128,7 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
     try {
       const snap = await api.getState(token);
       account = snap.account;
+      setActiveBackground(getBackground(account));
       accept(snap);
     } catch {
       offline();
@@ -125,10 +147,30 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
     }
   };
 
+  /** Predicts a hero or story action with the shared rules, then lets the server's answer replace the prediction. */
+  const predicted = async (
+    predict: (s: BaseState, at: number) => { ok: true; state: BaseState } | { ok: false; reason: string },
+    send: () => Promise<Snapshot & ({ ok: true } | { ok: false; reason: string })>,
+  ): Promise<ActionOutcome> => {
+    const local = predict(state, now());
+    if (!local.ok) return { ok: false, reason: local.reason };
+    state = local.state;
+    notify();
+    try {
+      const res = await send();
+      accept(res);
+      return res.ok ? { ok: true } : { ok: false, reason: res.reason };
+    } catch {
+      void resync();
+      return { ok: false, reason: "unreachable" };
+    }
+  };
+
   return {
     state: () => state,
     now,
     account: () => account,
+    background: () => getBackground(account),
     status: () => status,
     tick: () => {
       state = advance(state, now());
@@ -148,9 +190,22 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
       notify();
       api.train(token, troop, count).then(accept, () => void resync());
     },
-    march: (target, troops) => sendIntent(() => api.march(token, target, troops)),
+    march: (target, troops, heroes = null) => sendIntent(() => api.march(token, target, troops, heroes)),
     startRally: (target, troops, gather) => sendIntent(() => api.rallyStart(token, target, troops, gather)),
     joinRally: (rally, troops) => sendIntent(() => api.rallyJoin(token, rally, troops)),
+    recruitHero: async () => {
+      // Not predicted: the server picks the draw's seed, so its answer is the new state.
+      try {
+        const res = await api.heroRecruit(token);
+        accept(res);
+        return res.ok ? { ok: true, ...(res.draw === undefined ? {} : { draw: res.draw }) } : { ok: false, reason: res.reason };
+      } catch {
+        void resync();
+        return { ok: false, reason: "unreachable" };
+      }
+    },
+    levelHero: (hero) => predicted((s) => levelUpHero(s, hero), () => api.heroLevel(token, hero)),
+    claimChapter: () => predicted((s, at) => claimChapter(s, at, getBackground(account)), () => api.storyClaim(token)),
     token: () => token,
     onSessionChange: (fn) => {
       sessionListeners.add(fn);
@@ -162,6 +217,7 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
       token = res.token;
       storeSession(storage, token);
       account = res.account;
+      setActiveBackground(getBackground(account));
       accept(res);
       for (const fn of sessionListeners) fn();
     },

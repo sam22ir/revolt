@@ -13,6 +13,9 @@ import { RoomHost, type RoomSocket } from "../src/alliance/room-host.ts";
 import type { RoomApi } from "../src/alliance/room-client.ts";
 import type { MapApi } from "../src/map/map-client.ts";
 import { MapHost } from "../src/map/map-host.ts";
+import { localBilling } from "../src/billing/local-billing.ts";
+import { type BillingVerifier } from "../src/billing/billing.ts";
+import { noAnalytics, noCrashReporter, type Analytics, type CrashReporter } from "../src/telemetry.ts";
 import { MapService, type MapOp } from "../src/map/map-service.ts";
 import type { MapSql } from "../src/map/map-sql.ts";
 
@@ -220,6 +223,10 @@ export interface Server {
   readonly fireAlarm: (name?: string) => Promise<void>;
   /** Seed for the maps' random source (placement, tags, battle seeds). */
   mapSeed: number;
+  /** The receipt verifier: the local test one by default; tests may swap it. */
+  billing: BillingVerifier;
+  analytics: Analytics;
+  crash: CrashReporter;
 }
 
 /** Real D1 in workerd (slow: ~40 ms a query), or the same SQLite in-process. */
@@ -262,6 +269,9 @@ export const startServer = async (envOverrides: Partial<Env> = {}, opts: { minif
         googleKeys: createLocalJWKSet({ keys: [google.jwk] }),
         map: (_env, name) => testMapApi(server.map(name), name),
         room: (_env, allianceId) => testRoomApi(server.room(allianceId)),
+        billing: () => server.billing,
+        analytics: server.analytics,
+        crash: server.crash,
       });
     },
     idToken: (sub, email, overrides = {}) => {
@@ -270,6 +280,9 @@ export const startServer = async (envOverrides: Partial<Env> = {}, opts: { minif
     },
     dispose,
     mapSeed: 1,
+    billing: localBilling,
+    analytics: noAnalytics,
+    crash: noCrashReporter,
     map: (name = DEFAULT_SERVER) => {
       let tm = maps.get(name);
       if (tm === undefined) {

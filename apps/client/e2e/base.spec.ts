@@ -1,12 +1,12 @@
 import { devices, expect, test, type APIRequestContext, type Page } from "@playwright/test";
-import { expectNoRawKeys, mapEpoch, openMap, ownCamp, PHONE, screenshot, setTime as setMapTime, tapTile, waitForGame } from "./helpers.ts";
+import { expectNoRawKeys, gotoGame, mapEpoch, openMap, ownCamp, PHONE, screenshot, setTime as setMapTime, tapTile, waitForGame } from "./helpers.ts";
 
 const T0 = new Date("2026-06-01T12:00:00Z").getTime();
 const API = "http://localhost:8788";
 const SHOTS = "test-results/screens";
 
 
-type BuildingId = "hq" | "farm" | "armory" | "treasury" | "barracks";
+type BuildingId = "hq" | "farm" | "armory" | "treasury" | "barracks" | "hero_hall";
 
 /** Sets the e2e Worker's clock; null returns it to real time. The server owns time. */
 const serverClock = async (request: APIRequestContext, now: number | null): Promise<void> => {
@@ -29,8 +29,12 @@ test.beforeEach(async ({ request }) => {
 const tapBuilding = async (page: Page, id: BuildingId): Promise<void> => {
   const panel = page.getByTestId("building-panel");
   if (await panel.isVisible()) await panel.locator(".panel-close").click();
-  const p = await page.evaluate((b) => window.__revolt!.buildingScreenPoint(b), id);
-  await page.touchscreen.tap(p.x, p.y);
+  // A tap in the first moments after load can miss on a slow machine; retry until the panel is up.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const p = await page.evaluate((b) => window.__revolt!.buildingScreenPoint(b), id);
+    await page.touchscreen.tap(p.x, p.y);
+    if (await panel.waitFor({ state: "visible", timeout: 3000 }).then(() => true, () => false)) return;
+  }
 };
 
 
@@ -45,8 +49,7 @@ for (const { locale, lang, dir, upgrade } of LOCALES) {
 
     test(`base, gating, upgrade countdown and completion after restart (${lang})`, { tag: "@screenshots" }, async ({ page, request }) => {
       await setTime(page, request, T0);
-      await page.goto("/");
-      await waitForGame(page);
+      await gotoGame(page);
 
       // Language follows the device; direction mirrors.
       await expect(page.locator("html")).toHaveAttribute("lang", lang);
@@ -103,8 +106,7 @@ for (const { locale, lang, dir, upgrade } of LOCALES) {
 
 test("language switcher changes language and direction, and is remembered", async ({ page, request }) => {
   await setTime(page, request, T0);
-  await page.goto("/");
-  await waitForGame(page);
+  await gotoGame(page);
   await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
   await page.getByTestId("language").selectOption("ar");
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
@@ -119,8 +121,7 @@ test.describe("at Pixel 7's real pixel ratio", () => {
   test.use({ deviceScaleFactor: devices["Pixel 7"].deviceScaleFactor });
 
   test("the canvas renders at the device pixel ratio", async ({ page }) => {
-    await page.goto("/");
-    await waitForGame(page);
+    await gotoGame(page);
     const expectSharpCanvas = async (): Promise<void> => {
       const size = await page.evaluate(() => {
         const canvas = document.querySelector("canvas")!;
@@ -150,9 +151,8 @@ test.describe("at Pixel 7's real pixel ratio", () => {
 
   // The painted sprites overlap in the quincunx layout; each tap must still open the building it landed on.
   test("every building opens its own panel when tapped at the device pixel ratio", async ({ page }) => {
-    await page.goto("/");
-    await waitForGame(page);
-    for (const id of ["hq", "farm", "armory", "treasury", "barracks"] as const) {
+    await gotoGame(page);
+    for (const id of ["hq", "farm", "armory", "treasury", "barracks", "hero_hall"] as const) {
       await tapBuilding(page, id);
       await expect(page.getByTestId("building-panel")).toHaveAttribute("data-building", id);
       // A few more points on the same building, not only its middle.
@@ -170,8 +170,7 @@ test.describe("at Pixel 7's real pixel ratio", () => {
   test("map taps land on the right tile at the device pixel ratio", async ({ page, request }) => {
     // Not real time (the beforeEach default): the map never settles backwards, and the later map tests run in July.
     await setMapTime([page], request, mapEpoch(0));
-    await page.goto("/");
-    await waitForGame(page);
+    await gotoGame(page);
     expect(await page.evaluate(() => window.devicePixelRatio)).toBeGreaterThan(2);
     await openMap(page, 1);
     const camp = await ownCamp(page);
@@ -184,8 +183,7 @@ test.describe("at Pixel 7's real pixel ratio", () => {
 test("a corrupt M1 save falls back to a fresh guest base", async ({ page, request }) => {
   await setTime(page, request, T0);
   await page.addInitScript(() => localStorage.setItem("revolt.save", "{not json"));
-  await page.goto("/");
-  await waitForGame(page);
+  await gotoGame(page);
   await expect(page.locator('.res[data-resource="food"] .res-amount')).toHaveText("500");
 });
 
@@ -205,8 +203,7 @@ test("an M1 local save is moved into the new guest account once", async ({ page,
   await page.addInitScript((save) => {
     if (localStorage.getItem("revolt.session") === null) localStorage.setItem("revolt.save", save);
   }, m1Save(M1_STATE));
-  await page.goto("/");
-  await waitForGame(page);
+  await gotoGame(page);
   await expect(food(page)).toHaveText("1,234");
   await tapBuilding(page, "hq");
   await expect(page.getByTestId("building-panel").locator(".panel-level")).toContainText("2");
@@ -215,8 +212,7 @@ test("an M1 local save is moved into the new guest account once", async ({ page,
 
 test("tampering with local storage has no effect", async ({ page, request }) => {
   await setTime(page, request, T0);
-  await page.goto("/");
-  await waitForGame(page);
+  await gotoGame(page);
   await expect(food(page)).toHaveText("500");
 
   // A forged save next to a live session is ignored, and so is a forged queue.
@@ -250,8 +246,7 @@ for (const { locale, lang } of [
     test(`a linked Google account loads the same base on a second device (${lang})`, { tag: "@screenshots" }, async ({ page, browser, request }) => {
       const email = `player-${lang}-${Date.now()}@example.com`;
       await setTime(page, request, T0);
-      await page.goto("/");
-      await waitForGame(page);
+      await gotoGame(page);
 
       // Device A: upgrade the HQ as a guest, then link Google.
       await tapBuilding(page, "hq");
@@ -273,8 +268,7 @@ for (const { locale, lang } of [
       const other = await browser.newContext({ ...PHONE, locale });
       const pageB = await other.newPage();
       await pageB.clock.setFixedTime(T0);
-      await pageB.goto("/");
-      await waitForGame(pageB);
+      await gotoGame(pageB);
       await expect(pageB.locator(".queue-pill")).not.toHaveClass(/busy/);
       await pageB.getByTestId("account").click();
       await pageB.getByTestId("mock-google-email").fill(email);

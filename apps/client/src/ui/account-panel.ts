@@ -12,6 +12,8 @@ export interface AccountPanel {
 interface AccountDeps {
   readonly google: GoogleSignIn | null;
   readonly onIdToken: (idToken: string) => Promise<void>;
+  /** Whether anonymous usage and crash reports may be sent. Off until the player turns it on. */
+  readonly consent: { readonly get: () => boolean; readonly set: (on: boolean) => void };
 }
 
 /** Shows whether the base is a guest's or linked to Google, and offers Google sign-in. */
@@ -61,6 +63,15 @@ export const createAccountPanel = (deps: AccountDeps): AccountPanel => {
       );
       root.append(actions);
     }
+    // Analytics and crash reports: off by default, one switch, and what is sent is spelled out.
+    const consent = el("label", "account-consent");
+    const box = el("input");
+    box.type = "checkbox";
+    box.checked = deps.consent.get();
+    box.dataset.testid = "analytics-consent";
+    box.addEventListener("change", () => deps.consent.set(box.checked));
+    consent.append(box, el("span", undefined, t("settings.analytics")));
+    root.append(consent, el("p", "panel-desc", t("settings.analyticsNote")));
     if (error) {
       const msg = el("p", "panel-reason", t("account.error"));
       msg.dataset.testid = "account-error";

@@ -7,6 +7,7 @@ import { nextLevelQuote } from "./upgrade.ts";
 import { isBaseState } from "./validate-state.ts";
 import { migrateBaseState } from "./migrate-state.ts";
 import { START_TROOPS } from "./data/start.ts";
+import { START_STORY } from "./base-state.ts";
 import { EMPTY_HERO_ROSTER } from "./hero-roster.ts";
 import { ZERO_TROOPS } from "./troops.ts";
 
@@ -46,6 +47,7 @@ export const importM1Save = (raw: unknown, now: number): BaseState => {
     wounded: ZERO_TROOPS,
     training: null,
     heroes: EMPTY_HERO_ROSTER,
+    story: START_STORY,
     marches: [],
     lastUpdated: Math.min(candidate.lastUpdated, now),
   };

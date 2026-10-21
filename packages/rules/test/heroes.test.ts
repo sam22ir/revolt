@@ -1,5 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
+  BACKGROUND_IDS,
+  heroesFor,
   advance,
   BUILDINGS,
   drawHero,
@@ -35,12 +37,15 @@ const owned = (entries: Partial<Record<HeroId, { level: number; shards: number }
 const constant = (v: number) => () => v;
 
 describe("hero data", () => {
-  test("placeholder roster has two common, one rare and one legendary hero", () => {
-    const count = (r: HeroRarity) => HERO_IDS.filter((id) => HEROES[id].rarity === r).length;
-    expect(HERO_IDS).toHaveLength(4);
-    expect(count("common")).toBe(2);
-    expect(count("rare")).toBe(1);
-    expect(count("legendary")).toBe(1);
+  test("each background's placeholder roster has two common, one rare and one legendary hero", () => {
+    for (const bg of BACKGROUND_IDS) {
+      const count = (r: HeroRarity) => heroesFor(bg).filter((id) => HEROES[id].rarity === r).length;
+      expect(heroesFor(bg)).toHaveLength(4);
+      expect(count("common")).toBe(2);
+      expect(count("rare")).toBe(1);
+      expect(count("legendary")).toBe(1);
+    }
+    expect(HERO_IDS).toHaveLength(8);
   });
 
   test("every hero has a combat specialty, one command skill and exactly two passives", () => {

@@ -1,4 +1,4 @@
-import type { BaseState, MarchOutcome } from "./base-state.ts";
+import type { BaseState, MarchOutcome, MarchState } from "./base-state.ts";
 import { MARCH_RESCUE_GRACE_MS } from "./data/map.ts";
 import { accrue, storageCap } from "./production.ts";
 import { mapResources } from "./resources.ts";
@@ -25,6 +25,12 @@ const nextEvent = (s: BaseState, now: number): Event | null => {
   return best;
 };
 
+/** A victory with a hero leading counts for the story. Runs once per march, because the march is removed as it returns. */
+const rewardHeroes = (s: BaseState, march: MarchState | undefined, outcome: MarchOutcome): BaseState => {
+  if (march?.heroes === undefined || outcome.result !== "victory") return s;
+  return { ...s, story: { ...s.story, victories: s.story.victories + 1 } };
+};
+
 const apply = (s: BaseState, e: Event): BaseState => {
   if (e.kind === "upgrade" && s.queue !== null) {
     return { ...s, levels: { ...s.levels, [s.queue.building]: s.queue.toLevel }, queue: null };
@@ -37,13 +43,14 @@ const apply = (s: BaseState, e: Event): BaseState => {
     const cap = storageCap(s.levels.hq);
     // Loot fills storage up to the cap, and never lowers an amount already above it.
     const resources = mapResources((id) => Math.max(s.resources[id], Math.min(cap[id], s.resources[id] + e.outcome.loot[id])));
-    return {
+    const home: BaseState = {
       ...s,
       resources,
       troops: addTroops(s.troops, e.outcome.survivors),
       wounded: addTroops(s.wounded, e.outcome.wounded),
       marches: s.marches.filter((m) => m.id !== e.id),
     };
+    return rewardHeroes(home, s.marches.find((m) => m.id === e.id), e.outcome);
   }
   return s;
 };

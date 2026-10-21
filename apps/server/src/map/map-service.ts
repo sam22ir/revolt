@@ -38,6 +38,7 @@ import {
 } from "@revolt/rules";
 import { loadBase, saveBase, saveBaseStatement } from "../db/bases.ts";
 import type { Db } from "../db/db.ts";
+import { awardStatements } from "../db/live.ts";
 import { insertReport } from "../db/reports.ts";
 import type { MapSql } from "./map-sql.ts";
 
@@ -592,11 +593,14 @@ export class MapService {
       const stored = await loadBase(db, accountId);
       if (stored === null || !stored.state.marches.some((m) => m.id === marchId)) return false;
       const settled = settleMarch(stored.state, marchId, outcome);
+      // Event scores and pass XP are award rows keyed by (march, key), INSERT OR IGNORE: a retry or a lost compare-and-set
+      // below can run these statements again and they still count once.
+      const awards = awardStatements(db, accountId, String(this.meta("name") ?? ""), report);
       if (!settled.changed) {
-        await insertReport(db, accountId, report).run();
+        await db.batch([insertReport(db, accountId, report), ...awards]);
         return true;
       }
-      const [save] = (await db.batch([saveBaseStatement(db, accountId, settled.state, stored.version, now), insertReport(db, accountId, report)])) as {
+      const [save] = (await db.batch([saveBaseStatement(db, accountId, settled.state, stored.version, now), insertReport(db, accountId, report), ...awards])) as {
         meta: { changes: number };
       }[];
       if (save?.meta.changes === 1) return true;

@@ -1,3 +1,4 @@
+import { START_STORY } from "./base-state.ts";
 import { EMPTY_HERO_ROSTER } from "./hero-roster.ts";
 import { START_LEVELS } from "./data/start.ts";
 import { ZERO_TROOPS } from "./troops.ts";
@@ -19,6 +20,7 @@ export const migrateBaseState = (v: unknown): unknown => {
       hero_hall: v.levels.hero_hall ?? START_LEVELS.hero_hall,
     },
     heroes: v.heroes ?? EMPTY_HERO_ROSTER,
+    story: v.story ?? START_STORY,
     troops: v.troops ?? ZERO_TROOPS,
     wounded: v.wounded ?? ZERO_TROOPS,
     training: v.training === undefined ? null : v.training,

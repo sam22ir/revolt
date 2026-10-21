@@ -2,6 +2,8 @@ import type { JWTVerifyGetKey } from "jose";
 import type { Db } from "./db/db.ts";
 import type { RoomApi, RoomNamespace } from "./alliance/room-client.ts";
 import type { MapApi, MapNamespace } from "./map/map-client.ts";
+import type { BillingVerifier } from "./billing/billing.ts";
+import type { Analytics, CrashReporter } from "./telemetry.ts";
 
 /** Bindings and vars from wrangler config. */
 export interface Env {
@@ -16,6 +18,8 @@ export interface Env {
   readonly ALLOWED_ORIGINS: string;
   /** Guest accounts one client IP (IPv6: /64) may create per hour. Unset or invalid: `DEFAULT_GUEST_LIMIT_PER_HOUR`. */
   readonly GUEST_LIMIT_PER_HOUR?: string;
+  /** Secret for receipt checking (RevenueCat). Set with `wrangler secret put`; never in the repo. Unset: the store is browse-only. */
+  readonly REVENUECAT_SECRET?: string;
 }
 
 export const DEFAULT_GUEST_LIMIT_PER_HOUR = 30;
@@ -31,6 +35,10 @@ export interface Deps {
   readonly googleKeys: JWTVerifyGetKey;
   readonly map: (env: Env, server: string) => MapApi;
   readonly room: (env: Env, allianceId: string) => RoomApi;
+  /** How purchase receipts are checked. The deployed Worker never has the test verifier. */
+  readonly billing: (env: Env) => BillingVerifier;
+  readonly analytics: Analytics;
+  readonly crash: CrashReporter;
 }
 
 export const csv = (v: string): string[] =>

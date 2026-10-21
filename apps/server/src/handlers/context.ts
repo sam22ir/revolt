@@ -1,4 +1,4 @@
-import { advance, type BaseState } from "@revolt/rules";
+import { advance, backgroundOfServer, type BackgroundId, type BaseState } from "@revolt/rules";
 import { bearerToken } from "../auth/tokens.ts";
 import type { Account } from "../db/accounts.ts";
 import { findAccountById } from "../db/accounts.ts";
@@ -20,11 +20,14 @@ export interface AccountView {
   /** The player's public name; other players see this, never the id. */
   readonly handle: string;
   readonly google: { readonly email: string | null } | null;
+  /** The revolution this account plays in, fixed at creation. Derived from the account's server; shown to its owner only. */
+  readonly background: BackgroundId;
 }
 
 export const accountView = (a: Account): AccountView => ({
   id: a.id,
   handle: a.handle,
+  background: backgroundOfServer(a.server),
   google: a.googleSub === null ? null : { email: a.googleEmail },
 });
 

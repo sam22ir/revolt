@@ -15,3 +15,9 @@ export const base = (overrides: Partial<BaseState> = {}): BaseState => ({
 
 export const rich = (): BaseState =>
   base({ resources: { food: 2000, materiel: 2000, funds: 2000, support: 300 } });
+
+/** A base with the given heroes owned, e.g. `withHeroes(rich(), { mountain_guide: { level: 1, shards: 0 } })`. */
+export const withHeroes = (s: BaseState, owned: Partial<BaseState["heroes"]["owned"]>): BaseState => ({
+  ...s,
+  heroes: { ...s.heroes, owned: { ...s.heroes.owned, ...owned } },
+});

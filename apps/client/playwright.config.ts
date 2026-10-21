@@ -28,7 +28,7 @@ export default defineConfig({
       timeout: 120_000,
     },
     {
-      command: `VITE_API_URL=${API_URL} VITE_GOOGLE_MOCK=1 pnpm exec vite build && pnpm exec vite preview --port 4173 --strictPort`,
+      command: `VITE_API_URL=${API_URL} VITE_GOOGLE_MOCK=1 VITE_BILLING_MOCK=1 pnpm exec vite build && pnpm exec vite preview --port 4173 --strictPort`,
       url: "http://localhost:4173",
       reuseExistingServer: false,
       timeout: 180_000,

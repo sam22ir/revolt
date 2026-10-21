@@ -21,6 +21,10 @@ import {
 import { postHelpGive, postHelpRequest } from "./handlers/help.ts";
 import { connectMap, getMap, getReports } from "./handlers/map.ts";
 import { getState } from "./handlers/state.ts";
+import { getEvents, postEventClaim } from "./handlers/events.ts";
+import { getLeaderboard } from "./handlers/leaderboard.ts";
+import { getPass, postPassClaim } from "./handlers/pass.ts";
+import { getStore, postEquip, postRedeem } from "./handlers/store.ts";
 
 type Handler = (ctx: Ctx) => Promise<Response>;
 
@@ -44,6 +48,14 @@ const ROUTES: Record<string, Handler> = {
   "POST /v1/alliance/hq": postHq,
   "POST /v1/help/request": postHelpRequest,
   "POST /v1/help/give": postHelpGive,
+  "GET /v1/events": getEvents,
+  "POST /v1/events/claim": postEventClaim,
+  "GET /v1/leaderboard": getLeaderboard,
+  "GET /v1/pass": getPass,
+  "POST /v1/pass/claim": postPassClaim,
+  "GET /v1/store": getStore,
+  "POST /v1/store/redeem": postRedeem,
+  "POST /v1/cosmetics/equip": postEquip,
 };
 
 const route = async (req: Request, env: Env, deps: Deps): Promise<Response> => {
@@ -54,6 +66,7 @@ const route = async (req: Request, env: Env, deps: Deps): Promise<Response> => {
     return await handler({ req, env, deps, now: deps.now() });
   } catch (e) {
     if (e instanceof HttpError) return errorResponse(e.code);
+    deps.crash.capture(e, { path: new URL(req.url).pathname });
     throw e;
   }
 };

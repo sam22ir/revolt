@@ -44,6 +44,9 @@ export const UNUSED_ALLIANCE_API: Pick<
   Api,
   | "rallyStart"
   | "rallyJoin"
+  | "heroRecruit"
+  | "heroLevel"
+  | "storyClaim"
   | "searchAlliances"
   | "getAlliance"
   | "createAlliance"
@@ -53,9 +56,21 @@ export const UNUSED_ALLIANCE_API: Pick<
   | "placeHq"
   | "requestHelp"
   | "giveHelp"
+  | "getEvents"
+  | "claimEvent"
+  | "getLeaderboard"
+  | "getPass"
+  | "claimPass"
+  | "getStore"
+  | "redeem"
+  | "equip"
+  | "speedUp"
 > = {
   rallyStart: unused,
   rallyJoin: unused,
+  heroRecruit: unused,
+  heroLevel: unused,
+  storyClaim: unused,
   searchAlliances: unused,
   getAlliance: unused,
   createAlliance: unused,
@@ -65,4 +80,13 @@ export const UNUSED_ALLIANCE_API: Pick<
   placeHq: unused,
   requestHelp: unused,
   giveHelp: unused,
+  getEvents: unused,
+  claimEvent: unused,
+  getLeaderboard: unused,
+  getPass: unused,
+  claimPass: unused,
+  getStore: unused,
+  redeem: unused,
+  equip: unused,
+  speedUp: unused,
 };

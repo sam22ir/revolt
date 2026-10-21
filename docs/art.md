@@ -22,6 +22,10 @@ Style and rules: GDD §7. Generated painted-isometric art, Algerian palette, no 
 
 The world scene's textures load when the map is first opened, not at start-up.
 
+## Per-background art (M6)
+
+`BACKGROUND_ART` in `src/art/art.ts` lists the sprites a background draws with its own file at `art/<background>/<key>.webp` (keys as in the manifest). Anything not listed uses the shared sprite. PLACEHOLDER: Vietnam lists none yet, so it shows the Algerian sprites. TODO, Vietnam sprites to produce: `buildings/farm` (rice paddies), `buildings/hq` (jungle command post), `armory` (workshop), `treasury`, `barracks` (training camp), `hero_hall` (leaders' hall), `ground_tile` (jungle ground), the troops in `units/`, and its terrain. Put the PNG masters in `art/raw/vietnam/...`, run `pnpm art:process` (the script needs a `vietnam/` group before it will emit them), add the key to `BACKGROUND_ART`. The map's camp sprite (`BASE_ART` in `world-scene.ts`) is still the shared `hq`.
+
 ## World terrain
 
 The world map's ground is flat painted diamonds (4 terrains, 18 to 20 variants each) with separate cut-out props (trees, rocks, peaks, scrub, terraces). Sheets are in `art/raw/terrain/{ground,props}/` (generated with the brief in `docs/terrain-art-brief.md`; sheets not used are in `art/raw/terrain/unused/`). `pnpm art:terrain` (`scripts/process-terrain.mjs`) cuts them into one WebP atlas per terrain and per prop kind in `apps/client/public/art/terrain/` plus `src/art/terrain-manifest.json`.
@@ -62,3 +66,7 @@ Seen in the en and ar screenshots (nothing here has been tried on a real phone y
 - NPC level numbers are small on the tile art.
 - Only 5 of the 11 buildings exist in the rules; the others are unused until they do.
 - The sprites are not power-of-two sized, so Phaser (which only mipmaps power-of-two textures) draws them with plain linear filtering; heavy minification can shimmer.
+
+## Cosmetics (M7, placeholder)
+
+Cosmetic ids (`packages/rules/src/data/cosmetics.ts`) have names but no art yet. The server serves `equipped` per slot (`GET /v1/store`); the base scene should look up `base_skin` by id and fall back to the default art. Not wired yet.

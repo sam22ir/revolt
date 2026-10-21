@@ -1,4 +1,7 @@
+import type { BackgroundId } from "@revolt/rules";
 import i18next from "i18next";
+import { activeBackground } from "../state/background.ts";
+import { bgKeys } from "./bg-keys.ts";
 import { isLanguage, textDirection, type Language } from "./languages.ts";
 import { ar } from "./locales/ar.ts";
 import { en } from "./locales/en.ts";
@@ -33,7 +36,9 @@ const applyDocumentLanguage = (lang: Language): void => {
   document.title = i18next.t("app.title");
 };
 
-export const t = (key: string, options?: Record<string, unknown>): string => i18next.t(key, options);
+/** Translates `key`, preferring the player's background-specific text when there is some (see `bgKey`). */
+export const t = (key: string, options?: Record<string, unknown>): string => i18next.t(bgKeys(activeBackground(), key), options);
+
 
 export const currentLanguage = (): Language => {
   const lang = i18next.language;

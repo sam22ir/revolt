@@ -2,7 +2,8 @@ import { advance } from "./advance.ts";
 import type { BaseState } from "./base-state.ts";
 import { HEROES } from "./data/heroes.ts";
 import { HERO_DRAW_COST, HERO_DRAW_MIN_HALL, HERO_DRAW_ODDS, PITY_DRAWS, SHARDS_PER_DUPLICATE } from "./data/hero-progression.ts";
-import { HERO_IDS, HERO_RARITIES, type HeroId, type HeroRarity } from "./hero-id.ts";
+import { DEFAULT_BACKGROUND, type BackgroundId } from "./background.ts";
+import { heroesFor, HERO_RARITIES, type HeroId, type HeroRarity } from "./hero-id.ts";
 import type { HeroRoster } from "./hero-roster.ts";
 import { canAfford, subtractResources } from "./resources.ts";
 
@@ -43,10 +44,11 @@ const pickRarity = (rarities: readonly HeroRarity[], r: number): HeroRarity => {
  * One draw from the roster. Always consumes exactly two numbers from `rng`, so a seed fixes the
  * whole sequence of draws. Does not check or charge anything; see `recruitHero`.
  */
-export const drawHero = (roster: HeroRoster, rng: () => number): HeroDraw => {
+export const drawHero = (roster: HeroRoster, rng: () => number, background: BackgroundId = DEFAULT_BACKGROUND): HeroDraw => {
   const forced = isPityDraw(roster);
   const rarity = pickRarity(forced ? RARE_OR_BETTER : HERO_RARITIES, rng());
-  const pool = HERO_IDS.filter((id) => HEROES[id].rarity === rarity);
+  const roster_ids = heroesFor(background);
+  const pool = roster_ids.filter((id) => HEROES[id].rarity === rarity);
   const heroId = pool[Math.min(pool.length - 1, Math.floor(rng() * pool.length))]!;
   const prior = roster.owned[heroId];
   const owned =
@@ -64,11 +66,11 @@ export const drawHero = (roster: HeroRoster, rng: () => number): HeroDraw => {
 };
 
 /** Recruits a hero at `now`: checks the hall, charges the draw cost, then draws. */
-export const recruitHero = (state: BaseState, now: number, rng: () => number): HeroRecruitResult => {
+export const recruitHero = (state: BaseState, now: number, rng: () => number, background: BackgroundId = DEFAULT_BACKGROUND): HeroRecruitResult => {
   const s = advance(state, now);
   if (s.levels.hero_hall < HERO_DRAW_MIN_HALL) return { ok: false, reason: "hero_hall_level", state: s };
   if (!canAfford(s.resources, HERO_DRAW_COST)) return { ok: false, reason: "insufficient", state: s };
-  const draw = drawHero(s.heroes, rng);
+  const draw = drawHero(s.heroes, rng, background);
   return {
     ok: true,
     draw,

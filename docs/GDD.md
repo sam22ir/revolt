@@ -242,12 +242,15 @@ Base screen, resources, buildings, upgrade timers, offline with local save.
 
 ### M5 — Algeria story and heroes
 - Done when: the first story chapters are playable, heroes can be recruited, leveled and assigned to marches, and the chapters have passed historian review.
+- **Status (M5):** code-complete, NOT accepted. Playable: 3 placeholder chapters, 6 role-only heroes, the `hero_hall` building, heroes on marches and rallies, shard drops. Still open: historian review (`docs/story-review.md`), Arabic review, a real-phone check. Recruitment draws with published odds and a pity counter are deferred; recruitment is deterministic for now (see `docs/server-dev.md`).
 
 ### M6 — Vietnam background
 - Done when: a new player can choose Vietnam, lands on a Vietnam server with its own buildings, units, heroes and first chapters, with no mixing with Algeria servers.
+- **Status (M6):** code-complete, NOT accepted. A new player picks Algeria or Vietnam on first launch (permanent); Vietnam plays on `vietnam-1` with its own names for the shared building, troop and rice ids, its own 6 role-only heroes and 3 placeholder chapters. Still open: historian review of the Vietnam chapters (`docs/story-review.md`), Arabic review, the Vietnamese-language question (GDD §5/§12: `vi` is not in the ar/fr/en set; decide whether a `vi` locale is in scope before accepting M6), real Vietnam art (placeholder sprites are the Algerian ones, `docs/art.md`), a real-phone check.
 
 ### M7 — Live features and release
 - Done when: events, leaderboards, battle pass and store work end to end; analytics and crash reporting are live; the app passes Google Play review.
+- **Status (M7):** code-complete, NOT accepted. Built: events (supply route, convoy hunt, two placeholder seasonal campaigns), four leaderboards, a 30-tier battle pass, store with speed-up tokens (daily cap, never the HQ), cosmetics and bundles, all behind fair-F2P rules and tests; billing, analytics and crash reporting behind interfaces with no-op/test implementations. Still open: real billing (Play Billing + RevenueCat), Firebase analytics/crash, Play review, a real-phone check, historian review of the seasonal campaign text (Vietnam siege campaign is a placeholder id), design pass on all placeholder numbers, equipped base skin art. See `docs/release.md`.
 
 ---
 

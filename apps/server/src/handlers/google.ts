@@ -1,7 +1,7 @@
 import { createBaseState } from "@revolt/rules";
 import { verifyGoogleIdToken, type GoogleIdentity } from "../auth/google.ts";
 import { newToken } from "../auth/tokens.ts";
-import { DEFAULT_SERVER, findAccountByGoogleSub, insertAccount, linkGoogle, withNewHandle, type Account } from "../db/accounts.ts";
+import { findAccountByGoogleSub, insertAccount, linkGoogle, withNewHandle, type Account } from "../db/accounts.ts";
 import { isUniqueViolation } from "../db/db.ts";
 import { insertBase } from "../db/bases.ts";
 import { endSession, insertSession } from "../db/sessions.ts";
@@ -9,19 +9,23 @@ import { csv } from "../env.ts";
 import { HttpError, json, readJson } from "../http.ts";
 import { accountView, authenticate, currentBase, type Ctx } from "./context.ts";
 
-/** Creates a new account already linked to `who`, or returns the one that won a race for it. */
-const createLinkedAccount = async (ctx: Ctx, who: GoogleIdentity): Promise<Account> => {
+/**
+ * Creates a new account already linked to `who`, or returns the one that won a race for it.
+ * It is created on the device's current server: the background is never chosen here, and an existing Google account
+ * keeps its own server whatever this device had.
+ */
+const createLinkedAccount = async (ctx: Ctx, who: GoogleIdentity, server: string): Promise<Account> => {
   const db = ctx.env.DB;
   const id = crypto.randomUUID();
   try {
     const handle = await withNewHandle(async (h) => {
       await db.batch([
-        insertAccount(db, { id, handle: h, now: ctx.now, googleSub: who.sub, googleEmail: who.email }),
+        insertAccount(db, { id, handle: h, now: ctx.now, server, googleSub: who.sub, googleEmail: who.email }),
         insertBase(db, id, createBaseState(ctx.now), ctx.now),
       ]);
       return h;
     });
-    return { id, googleSub: who.sub, googleEmail: who.email, server: DEFAULT_SERVER, handle };
+    return { id, googleSub: who.sub, googleEmail: who.email, server, handle };
   } catch (e) {
     const owner = isUniqueViolation(e) ? await findAccountByGoogleSub(db, who.sub) : null;
     if (owner === null) throw e;
@@ -46,7 +50,7 @@ const resolveAccount = async (ctx: Ctx, current: Account, who: GoogleIdentity): 
     }
   }
   // This device's account is already linked to a different Google account.
-  return createLinkedAccount(ctx, who);
+  return createLinkedAccount(ctx, who, current.server);
 };
 
 /**

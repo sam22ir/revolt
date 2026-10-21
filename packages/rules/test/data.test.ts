@@ -1,7 +1,20 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { BUILDING_IDS, BUILDINGS, MAX_BUILDING_LEVEL, RESOURCE_IDS, STORAGE_CAPS } from "../src/index.ts";
+import {
+  BUILDING_IDS,
+  BUILDINGS,
+  COMBAT_TROOP_IDS,
+  BACKGROUND_IDS,
+  HERO_IDS,
+  heroesFor,
+  HERO_RARITIES,
+  HEROES,
+  MAX_BUILDING_LEVEL,
+  NPC_LEVELS,
+  RESOURCE_IDS,
+  STORAGE_CAPS,
+} from "../src/index.ts";
 
 describe("balance tables", () => {
   test("every building has one row per level, increasing in rate (producers) and time", () => {
@@ -32,6 +45,23 @@ describe("balance tables", () => {
 
   test("support needed for HQ upgrades is produced (some source has a rate)", () => {
     expect(BUILDINGS.hq.produces).toBe("support");
+  });
+});
+
+describe("hero tables", () => {
+  test("every hero has a combat specialty and rarity", () => {
+    for (const id of HERO_IDS) {
+      expect(HERO_RARITIES).toContain(HEROES[id].rarity);
+      expect(COMBAT_TROOP_IDS as readonly string[]).toContain(HEROES[id].specialty);
+    }
+  });
+
+  test("each background roster can draw every rarity, and the rosters partition the hero ids", () => {
+    const all = BACKGROUND_IDS.flatMap((b) => [...heroesFor(b)]);
+    expect([...all].sort()).toEqual([...HERO_IDS].sort());
+    for (const b of BACKGROUND_IDS) {
+      for (const rarity of HERO_RARITIES) expect(heroesFor(b).some((id) => HEROES[id].rarity === rarity), `${b} ${rarity}`).toBe(true);
+    }
   });
 });
 
