@@ -20,8 +20,15 @@ import "./ui/style.css";
 import "./ui/map.css";
 import "./ui/alliance.css";
 import { applyThemeToCss, hex, theme } from "./theme/theme.ts";
+import { pickRenderer, readGpuRenderer } from "./render-mode.ts";
 
 applyThemeToCss(document.documentElement);
+
+/** WebGL where it works; Canvas on GPUs known to draw sprite transparency as black (see render-mode.ts). `?renderer=canvas|webgl|auto` overrides. */
+const rendererType = (): number => {
+  const choice = pickRenderer({ override: new URLSearchParams(window.location.search).get("renderer"), gpu: readGpuRenderer() });
+  return choice === "canvas" ? Phaser.CANVAS : choice === "webgl" ? Phaser.WEBGL : Phaser.AUTO;
+};
 
 const TICK_MS = 250;
 const RETRY_MS = [1000, 2000, 5000, 10_000];
@@ -78,7 +85,7 @@ const start = async (): Promise<void> => {
   if (gameRoot === null) throw new Error("#game missing");
   // The base scene starts; the world scene waits until the map is first opened.
   game = new Phaser.Game({
-    type: Phaser.AUTO,
+    type: rendererType(),
     parent: gameRoot,
     backgroundColor: hex(theme.ground.base),
     scale: hiDpiScaleConfig(gameRoot),

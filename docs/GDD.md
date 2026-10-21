@@ -214,7 +214,7 @@ Details and conventions live in `CLAUDE.md`. Summary:
 | Shared rules | One TypeScript package used by client and server; pure functions of `(state, now)` |
 | Backend (M2+) | Cloudflare: Workers (game actions), D1 (accounts and persistent state), Durable Objects (map regions, alliances, chat via WebSockets; alarms for timers and events), Cron Triggers (daily resets, events) |
 | Auth | Guest account per device first; link a Google account to move devices. Self-hosted on Workers + D1: opaque guest tokens plus verified Google ID tokens (`jose`), chosen over Better Auth at M2 (see `docs/server-dev.md`); no paid auth service |
-| Tests | Vitest (rules), Playwright (screenshots of the running game) |
+| Tests | Vitest (rules, client logic, server); UI checked by eye in the dev server at phone size |
 | i18n | i18next |
 | Analytics/crashes | Firebase (free tier), milestone 7 |
 | Payments | RevenueCat (free tier), milestone 7 |

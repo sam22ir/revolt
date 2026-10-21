@@ -6,6 +6,18 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@revolt/client", "dev", "--port", "5173", "--strictPort"],
       "port": 5173
+    },
+    {
+      "name": "client-mock",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@revolt/client", "dev", "--port", "4174", "--strictPort"],
+      "port": 4174
+    },
+    {
+      "name": "server-mock",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@revolt/server", "dev:mock"],
+      "port": 8787
     }
   ]
 }

@@ -80,3 +80,9 @@ Seen in the en and ar screenshots (nothing here has been tried on a real phone y
 - NPC level numbers are small on the tile art.
 - Only 5 of the 11 buildings exist in the rules; the others are unused until they do.
 - The sprites are not power-of-two sized, so Phaser (which only mipmaps power-of-two textures) draws them with plain linear filtering; heavy minification can shimmer.
+
+## Renderer fallback (old Intel GPUs)
+
+On an Intel HD Graphics 3000 (Sandy Bridge, Mesa) Phaser's WebGL renderer drew the transparent pixels of every sprite as opaque black (black boxes around buildings, black gaps between ground tiles). The textures decode correctly, the blend state is right and a plain WebGL draw with the same settings is fine; Phaser's Canvas renderer draws the scene correctly, and no Phaser option (premultiplied alpha, `maxTextures`, antialiasing) changed it. `src/render-mode.ts` therefore picks the Canvas renderer on GPUs matching that family, and `?renderer=canvas|webgl|auto` overrides the choice for testing.
+
+Known limits of Canvas mode: `setTint` is ignored, so other players' camps on the map lose their cool tone; it is slower with many sprites. Phones have not been checked, and the cause on the old GPU is not understood.

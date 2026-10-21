@@ -23,7 +23,7 @@ The buildings, bronze UI and icons are good. The problems are around them:
 
 ## Proposals
 
-### Quick win (do first)
+### Quick win (not first: the foundation came first, see "Foundation status")
 - Replace the green background with a warm dark earth or rock tone.
 - Give both scenes real edges: cliff or rock vignette on the base, fog or cliffs on the world map.
 - Restyle HUD and buttons with the existing dark metal and bronze UI kit (`art/raw/ui`, plus the UI kit sheet in the Flow export).
@@ -69,7 +69,7 @@ Do not generate more tile sheets, and do not change the building art.
 - [ ] **World map style:** inked strategic layer (recommended) or realistic everywhere?
 - [ ] **Ground:** seamless repeating texture plus props (recommended) or one large painted map?
 - [ ] **Base:** the painted camp scene with empty plots?
-- [ ] **Order of work:** quick win first, then base, then world map?
+- [x] **Order of work:** decided 21 Oct: no quick win first; build the foundation first (below), then the visual changes.
 - [ ] If the inked layer is adopted, update GDD §7 (it currently approves only the painted style).
 
 ## Not decided / risks
@@ -77,3 +77,17 @@ Do not generate more tile sheets, and do not change the building art.
 - Mixing two art styles needs one clear rule per screen.
 - New art is needed for the camp scene and the map parts; check Flow's commercial-use terms first (see `docs/art.md`, licensing TODO).
 - Nothing here has been tried on a real phone.
+
+## Foundation status (branch `art-foundation`)
+
+Built first so later art changes are small and safe. Done:
+
+- [x] One theme module (`src/theme/theme.ts`) read by both CSS and Phaser.
+- [x] Art pack (`src/art/pack.ts`): art looked up by mechanical id, with a test that every id has art.
+- [x] World scene split into ground, object and march layers; the ground picks a flat or painted renderer by zoom.
+- [x] Region geometry in `packages/rules` (`regions.ts`): a pure seeded partition of the map, borders and adjacency. Liberation state is deliberately not built yet (server-owned gameplay).
+- [x] Dev-only style gallery (`/gallery.html`) with a seam check per terrain.
+- [x] Renderer fallback: Canvas on GPUs where Phaser's WebGL draws sprite transparency as black (`src/render-mode.ts`).
+- [x] The Playwright e2e suite was removed (21 Oct); UI is checked by eye in the dev server.
+
+Next: choose the ground approach (see Decisions) using the gallery's seam check.
