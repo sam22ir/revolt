@@ -126,7 +126,7 @@ html, body {
 .queue-pill { order: 0; flex: 1 1 0; min-inline-size: 0; }
 .hud .help-btn { order: 1; }
 .hud .lang { order: 2; margin-inline-start: auto; min-inline-size: 0; max-inline-size: 84px; }
-.hud .help-note-line, .marches, .coord-pill, .sync-offline { order: 3; }
+.hud .help-note-line, .marches, .coord-pill, .target-search, .sync-offline { order: 3; }
 .lang select {
   appearance: none;
   inline-size: 100%;

@@ -86,6 +86,14 @@ export const en = {
     fortified_line: { name: "Fortified line", desc: "A chain of fortified posts held by the colonial army. Too strong for one column: it takes an alliance rally." },
   },
   terrain: { plain: "Plain", hills: "Hills", forest: "Forest", mountain: "Mountain" },
+  search: {
+    title: "Find a target",
+    go: "Search",
+    next: "Next",
+    level: "Level {{level}}",
+    none: "No level {{level}} target right now.",
+  },
+
   map: {
     minimap: "Map overview. Tap to jump there.",
     coords: "X {{x}} · Y {{y}}",

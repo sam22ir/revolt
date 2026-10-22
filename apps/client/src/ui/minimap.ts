@@ -119,7 +119,13 @@ export const createMinimap = (deps: MinimapDeps): Minimap => {
   };
 
   root.addEventListener("click", (ev) => {
-    if (snap === null || (ev.clientX === 0 && ev.clientY === 0)) return;
+    if (snap === null) return;
+    // Enter or Space on the focused button arrives as a click with no position: go to the player's own base.
+    if (ev.clientX === 0 && ev.clientY === 0) {
+      const mine = snap.bases.find((b) => b.mine);
+      if (mine !== undefined) deps.onJump({ x: mine.x, y: mine.y });
+      return;
+    }
     const r = canvas.getBoundingClientRect();
     const tile = minimapToTile(snap.size, ((ev.clientX - r.left) / r.width) * MINIMAP_W, ((ev.clientY - r.top) / r.height) * MINIMAP_H);
     if (tile !== null) deps.onJump(tile);

@@ -279,3 +279,31 @@
 }
 .minimap[hidden] { display: none; }
 .minimap canvas { display: block; inline-size: 100%; block-size: 100%; }
+
+/* "Find a target": level buttons and Search, on a row of the HUD header (so the free band already makes room for it). */
+.target-search {
+  flex: 0 0 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.target-search[hidden] { display: none; }
+.target-levels { display: flex; gap: 4px; }
+.target-level, .target-go {
+  min-block-size: 36px;
+  padding-inline: 12px;
+  border: 1px solid rgb(244 234 214 / 0.3);
+  border-radius: 10px;
+  background: rgb(43 42 36 / 0.78);
+  color: var(--paper);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.target-level { min-inline-size: 36px; padding-inline: 0; }
+.target-level[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: var(--ink); }
+.target-go { margin-inline-start: auto; }
+.target-go:disabled { opacity: 0.5; cursor: default; }
+.target-note { flex: 0 1 auto; margin: 0; padding: 4px 12px; border-radius: 999px; background: rgb(43 42 36 / 0.78); font-size: 13px; color: var(--paper); }
+.target-note[hidden] { display: none; }

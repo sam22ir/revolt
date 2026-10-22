@@ -18,6 +18,7 @@ import { createMarchesList } from "./marches-list.ts";
 import { createReportToast } from "./report-toast.ts";
 import { createReportsPanel } from "./reports-panel.ts";
 import { createMinimap } from "./minimap.ts";
+import { createTargetSearch } from "./target-search.ts";
 import { createTilePanel } from "./tile-panel.ts";
 
 /** The two things the game canvas can show. */
@@ -70,6 +71,14 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
   let center: TileRef | null = null;
   // Built once: a language change rebuilds the overlay around it but must not redraw it.
   const minimap = createMinimap({ onJump: deps.onJump });
+  const search = createTargetSearch({
+    snapshot: () => deps.world.snapshot(),
+    // Centre first, then select: opening the tile sheet changes the free band, and the selection pans the tile above it.
+    onFound: (npc) => {
+      deps.onJump({ x: npc.x, y: npc.y });
+      selectTile({ x: npc.x, y: npc.y });
+    },
+  });
   // Kept here, not in the panel, so a language change (which rebuilds the overlay) does not close it.
   const allianceView: { open: boolean; tab: AllianceTab } = { open: false, tab: "members" };
   let disposeAlliance = noop;
@@ -178,7 +187,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
         if (!outcome.ok) note(t(`reason.${outcome.reason}`));
       });
     };
-    const hud = createHud([switcher], [mapToggle, allianceButton, reportsButton, accountButton], [marches.root, coords], () =>
+    const hud = createHud([switcher], [mapToggle, allianceButton, reportsButton, accountButton], [marches.root, search.root, coords], () =>
       askHelp("upgrade", (text) => hud.showHelpNote(text)),
     );
     const panel = createBuildingPanel({
@@ -237,6 +246,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
     panel.show(selected);
     tilePanel.show(selectedTile);
     minimap.setLabel(t("map.minimap"));
+    search.relabel();
     root.replaceChildren(hud.root, minimap.root, panel.root, tilePanel.root, alliance.root, account.root, reports.root, toast.root, dialog.root);
 
     ctl.refresh = () => {
@@ -245,7 +255,10 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       const snapshot = deps.world.snapshot();
       hud.update(state, now, canAskHelp("upgrade"), productionMultiplier(deps.store.world(), now));
       minimap.update(snapshot, now);
-      minimap.setVisible(view === "map" && selectedTile === null);
+      search.update(snapshot);
+      search.setVisible(view === "map");
+      // The overview is for the bare map: any sheet or panel over it takes its place.
+      minimap.setVisible(view === "map" && selectedTile === null && !alliance.isOpen() && !reports.isOpen() && account.root.hidden === true);
       hud.setOffline(deps.store.status() === "offline");
       panel.update(state, now, canAskHelp("training"));
       marches.update(state, now);
