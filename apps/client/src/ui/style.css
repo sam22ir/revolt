@@ -22,7 +22,7 @@ html, body {
   margin: 0;
   block-size: 100%;
   overflow: hidden;
-  background: var(--bg-base, #3d4a3a);
+  background: var(--bg-base, #4a3a2c);
   color: var(--ink);
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;

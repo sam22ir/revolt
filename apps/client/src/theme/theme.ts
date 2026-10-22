@@ -30,12 +30,12 @@ export interface Theme {
 }
 
 export const theme: Theme = {
-  ground: { base: 0x3d4a3a, world: 0x26332a },
+  ground: { base: 0x4a3a2c, world: 0x30251c },
   terrain: {
-    plain: [0xc4955a, 0xbc8d54],
-    hills: [0xa4903f, 0x9c8a3c],
-    forest: [0x4b4a28, 0x464526],
-    mountain: [0x57493c, 0x514438],
+    plain: [0xc99c60, 0xc4985c],
+    hills: [0xae9448, 0xa99044],
+    forest: [0x6b5e34, 0x675a32],
+    mountain: [0x6a5846, 0x665543],
   },
   alliance: { own: 0x2f9e8f, other: 0x6a55a8 },
   accent: { gold: 0xe0b040, paper: 0xf4ead6 },

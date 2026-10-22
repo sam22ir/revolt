@@ -37,8 +37,8 @@ describe("theme palette", () => {
     const root = { style: { setProperty: (name: string, value: string) => set.set(name, value) } } as unknown as HTMLElement;
     applyThemeToCss(root);
     expect(Object.fromEntries(set)).toEqual({
-      "--bg-base": "#3d4a3a",
-      "--bg-world": "#26332a",
+      "--bg-base": "#4a3a2c",
+      "--bg-world": "#30251c",
       "--ink": "#2b2a24",
       "--paper": "#f4ead6",
       "--gold": "#e0b040",
