@@ -89,6 +89,24 @@ export const screenToWorld = (view: View, sx: number, sy: number): Vec => ({
   y: (sy - viewCentreY(view)) / view.zoom + view.cy,
 });
 
+/**
+ * The four corners of the free band (below the header, above the nav bar or sheet) as fractional tile
+ * coordinates, clockwise from the top left: what the player is looking at, for the minimap's outline.
+ */
+export const viewCorners = (view: View): Vec[] => {
+  const top = view.insetTop ?? 0;
+  const bottom = view.height - (view.insetBottom ?? 0);
+  return [
+    [0, top],
+    [view.width, top],
+    [view.width, bottom],
+    [0, bottom],
+  ].map(([sx, sy]) => {
+    const w = screenToWorld(view, sx ?? 0, sy ?? 0);
+    return worldToTile(w.x, w.y);
+  });
+};
+
 /** The tile under a screen point; may be off the map. */
 export const screenToTile = (view: View, sx: number, sy: number): Vec => {
   const w = screenToWorld(view, sx, sy);

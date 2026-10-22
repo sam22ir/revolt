@@ -17,6 +17,7 @@ import { createMarchDialog } from "./march-dialog.ts";
 import { createMarchesList } from "./marches-list.ts";
 import { createReportToast } from "./report-toast.ts";
 import { createReportsPanel } from "./reports-panel.ts";
+import { createMinimap } from "./minimap.ts";
 import { createTilePanel } from "./tile-panel.ts";
 
 /** The two things the game canvas can show. */
@@ -27,6 +28,8 @@ export interface AppUi {
   readonly selectTile: (tile: TileRef | null) => void;
   /** The tile in the middle of the map view, for the coordinate readout. */
   readonly setCenter: (tile: TileRef) => void;
+  /** Where the map camera looks, for the minimap's outline (the free band's corners in fractional tiles). */
+  readonly setViewport: (corners: readonly { readonly x: number; readonly y: number }[]) => void;
 }
 
 interface UiDeps {
@@ -37,6 +40,8 @@ interface UiDeps {
   readonly onSelectionChange: (id: BuildingId | null) => void;
   readonly onTileSelectionChange: (tile: TileRef | null) => void;
   readonly onViewChange: (view: View) => void;
+  /** The player tapped the minimap: bring this tile to the middle of the map. */
+  readonly onJump: (tile: TileRef) => void;
   readonly google: GoogleSignIn | null;
 }
 
@@ -63,6 +68,8 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
   let selected: BuildingId | null = null;
   let selectedTile: TileRef | null = null;
   let center: TileRef | null = null;
+  // Built once: a language change rebuilds the overlay around it but must not redraw it.
+  const minimap = createMinimap({ onJump: deps.onJump });
   // Kept here, not in the panel, so a language change (which rebuilds the overlay) does not close it.
   const allianceView: { open: boolean; tab: AllianceTab } = { open: false, tab: "members" };
   let disposeAlliance = noop;
@@ -229,13 +236,16 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
 
     panel.show(selected);
     tilePanel.show(selectedTile);
-    root.replaceChildren(hud.root, panel.root, tilePanel.root, alliance.root, account.root, reports.root, toast.root, dialog.root);
+    minimap.setLabel(t("map.minimap"));
+    root.replaceChildren(hud.root, minimap.root, panel.root, tilePanel.root, alliance.root, account.root, reports.root, toast.root, dialog.root);
 
     ctl.refresh = () => {
       const state = deps.store.state();
       const now = deps.store.now();
       const snapshot = deps.world.snapshot();
       hud.update(state, now, canAskHelp("upgrade"), productionMultiplier(deps.store.world(), now));
+      minimap.update(snapshot, now);
+      minimap.setVisible(view === "map" && selectedTile === null);
       hud.setOffline(deps.store.status() === "offline");
       panel.update(state, now, canAskHelp("training"));
       marches.update(state, now);
@@ -295,5 +305,6 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       center = tile;
       ctl.updateCenter();
     },
+    setViewport: (corners) => minimap.setViewport(corners),
   };
 };

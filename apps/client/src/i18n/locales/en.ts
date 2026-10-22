@@ -87,6 +87,7 @@ export const en = {
   },
   terrain: { plain: "Plain", hills: "Hills", forest: "Forest", mountain: "Mountain" },
   map: {
+    minimap: "Map overview. Tap to jump there.",
     coords: "X {{x}} · Y {{y}}",
     loading: "Loading the map…",
     ownCamp: "Your camp",

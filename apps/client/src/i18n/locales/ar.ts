@@ -89,6 +89,7 @@ export const ar: LocaleShape = {
   },
   terrain: { plain: "سهل", hills: "تلال", forest: "غابة", mountain: "جبل" },
   map: {
+    minimap: "نظرة عامة على الخريطة. المس للانتقال.",
     coords: "س {{x}} · ص {{y}}",
     loading: "جارٍ تحميل الخريطة…",
     ownCamp: "معسكرك",

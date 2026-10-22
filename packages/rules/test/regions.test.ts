@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { isRegionBorder, MAP_SIZE, regionAt, regionNeighbors, regionSite, regionsOf, type RegionId } from "../src/index.ts";
+import { isRegionBorder, MAP_SIZE, regionAt, regionGrid, regionNeighbors, regionSite, regionsOf, type RegionId } from "../src/index.ts";
 
 const tilesOf = (size: number): [number, number][] => {
   const out: [number, number][] = [];
@@ -150,5 +150,14 @@ describe("stability guard", () => {
     expect(regionAt(7, 63, 63)).toBe(15);
     expect(regionAt(7, 32, 32)).toBe(5);
     expect(regionsOf(7)).toHaveLength(16);
+  });
+});
+
+describe("regionGrid", () => {
+  test("is regionAt for every tile, row-major", () => {
+    const size = 32;
+    const grid = regionGrid(7, size);
+    expect(grid).toHaveLength(size * size);
+    for (const [x, y] of tilesOf(size)) expect(grid[y * size + x]).toBe(regionAt(7, x, y, size));
   });
 });

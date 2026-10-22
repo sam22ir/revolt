@@ -20,6 +20,7 @@ import {
   screenToTile,
   tileCenter,
   tileToScreen,
+  viewCorners,
   visibleTileRange,
   zoomAt,
   type View,
@@ -27,6 +28,7 @@ import {
 import { GroundLayer } from "./world/ground-layer.ts";
 import { MarchLayer } from "./world/march-layer.ts";
 import { ObjectLayer } from "./world/object-layer.ts";
+import { RegionLayer } from "./world/region-layer.ts";
 import { SpecCache } from "./world/spec-cache.ts";
 import type { TileRef, WorldFrame } from "./world/world-frame.ts";
 
@@ -37,6 +39,8 @@ export interface WorldCallbacks {
   readonly onSelect: (tile: TileRef | null) => void;
   /** The tile in the middle of the screen changed (for the coordinate readout). */
   readonly onCenter: (tile: TileRef) => void;
+  /** What the player is looking at, as the four corners of the free band in fractional tile coordinates. Fired only when it moves by half a tile or more. */
+  readonly onView: (corners: readonly { readonly x: number; readonly y: number }[]) => void;
 }
 
 const BACKGROUND = hex(theme.ground.world);
@@ -70,6 +74,8 @@ export class WorldScene extends Phaser.Scene {
   private gesture!: Gesture;
   private readonly specs = new SpecCache();
   private ground!: GroundLayer;
+  private regions!: RegionLayer;
+  private lastViewKey = "";
   private objects!: ObjectLayer;
   private marches!: MarchLayer;
 
@@ -94,6 +100,7 @@ export class WorldScene extends Phaser.Scene {
     // Depths: rim 0, terrain tiles just above it (0.1 to 0.9 by row), markers 1 to 2, outlines 2.5, marches 3, labels 4.
     // Layers are built in paint order, so their Phaser objects are created in the same order as before the split.
     this.ground = new GroundLayer(this, this.specs);
+    this.regions = new RegionLayer(this);
     this.objects = new ObjectLayer(this, this.specs);
     this.marches = new MarchLayer(this, this.specs);
 
@@ -131,7 +138,9 @@ export class WorldScene extends Phaser.Scene {
     this.events.on(Phaser.Scenes.Events.SLEEP, () => this.gesture.cancel());
     this.events.on(Phaser.Scenes.Events.WAKE, () => {
       this.ground.invalidate();
+      this.regions.invalidate();
       this.objects.invalidate();
+      this.lastViewKey = "";
       this.syncSize();
     });
     const unsubscribe = this.world.subscribeSnapshot((s) => this.setSnapshot(s));
@@ -158,13 +167,24 @@ export class WorldScene extends Phaser.Scene {
       snapshotVersion: this.snapshotVersion,
     };
     this.ground.paint(frame);
+    this.regions.paint(frame);
     this.objects.paint(frame);
     this.marches.paint(frame);
+    this.reportView();
     const centre = centerTile(this.view, snap.size);
     if (this.lastCenter === null || this.lastCenter.x !== centre.x || this.lastCenter.y !== centre.y) {
       this.lastCenter = centre;
       this.callbacks.onCenter(centre);
     }
+  }
+
+  /** Tells the minimap where the camera looks, but only when that moved by half a tile or more. */
+  private reportView(): void {
+    const corners = viewCorners(this.view);
+    const key = corners.map((c) => `${Math.round(c.x * 2)},${Math.round(c.y * 2)}`).join("|");
+    if (key === this.lastViewKey) return;
+    this.lastViewKey = key;
+    this.callbacks.onView(corners);
   }
 
   /** Selection changed from the DOM (e.g. the panel was closed). */
@@ -270,6 +290,7 @@ export class WorldScene extends Phaser.Scene {
   private setSnapshot(snap: MapSnapshot | null): void {
     this.snapshot = snap;
     this.snapshotVersion++;
+    this.regions.invalidate();
     this.objects.invalidate();
     if (snap === null) return;
     this.ground.onSnapshot(snap);

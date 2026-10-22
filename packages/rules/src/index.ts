@@ -63,6 +63,7 @@ export { isOnMap, terrainAt, TERRAIN_IDS, type TerrainId } from "./terrain.ts";
 export {
   isRegionBorder,
   regionAt,
+  regionGrid,
   regionNeighbors,
   regionSite,
   regionsOf,
@@ -124,4 +125,4 @@ export {
   type MarchPhase,
 } from "./wire.ts";
 export { LIBERATION_BONUS_CAP, LIBERATION_BONUS_PER_REGION } from "./data/liberation.ts";
-export { liberatedCount, multiplierBreakpoints, NO_WORLD, productionMultiplier, strongholdTile, type Liberation, type TakenTile, type World } from "./liberation.ts";
+export { liberatedCount, liberatedRegions, multiplierBreakpoints, NO_WORLD, productionMultiplier, strongholdTile, type Liberation, type TakenTile, type World } from "./liberation.ts";

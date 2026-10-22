@@ -19,6 +19,14 @@ export interface Theme {
     readonly own: number;
     readonly other: number;
   };
+  /** Regions (GDD §4.5): held by the colonial army until the movement liberates them. */
+  readonly region: {
+    /** The line between two regions, and the minimap's fill for a region still held. */
+    readonly border: number;
+    readonly held: number;
+    /** Wash over a liberated region, its border, and its minimap fill. */
+    readonly liberated: number;
+  };
   readonly accent: {
     readonly gold: number;
     readonly paper: number;
@@ -38,6 +46,7 @@ export const theme: Theme = {
     mountain: [0x6a5846, 0x665543],
   },
   alliance: { own: 0x2f9e8f, other: 0x6a55a8 },
+  region: { border: 0x3a2a1e, held: 0x74604a, liberated: 0xe0b040 },
   accent: { gold: 0xe0b040, paper: 0xf4ead6 },
   ink: { base: 0x2b2a24 },
 };

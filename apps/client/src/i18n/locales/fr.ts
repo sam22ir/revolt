@@ -92,6 +92,7 @@ export const fr: LocaleShape = {
   },
   terrain: { plain: "Plaine", hills: "Collines", forest: "Forêt", mountain: "Montagne" },
   map: {
+    minimap: "Aperçu de la carte. Touchez pour vous y rendre.",
     coords: "X {{x}} · Y {{y}}",
     loading: "Chargement de la carte…",
     ownCamp: "Votre camp",

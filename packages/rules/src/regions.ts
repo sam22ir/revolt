@@ -63,8 +63,8 @@ export const regionSite = (seed: number, id: RegionId, size: number = MAP_SIZE):
   return cellSite(seed, id % n, Math.floor(id / n));
 };
 
-/** Region id of every tile, row-major (index = y * size + x). */
-const regionGrid = (seed: number, size: number): RegionId[] => {
+/** Region id of every tile, row-major (index = y * size + x). Costs size² lookups: compute once per seed and size. */
+export const regionGrid = (seed: number, size: number): RegionId[] => {
   const grid: RegionId[] = [];
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) grid.push(regionAt(seed, x, y, size));
   return grid;

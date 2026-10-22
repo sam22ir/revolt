@@ -4,6 +4,7 @@ import {
   LIBERATION_BONUS_CAP,
   LIBERATION_BONUS_PER_REGION,
   liberatedCount,
+  liberatedRegions,
   multiplierBreakpoints,
   NO_WORLD,
   productionMultiplier,
@@ -49,6 +50,13 @@ describe("liberation bonus", () => {
     expect(liberatedCount(w, T0 + HOUR)).toBe(1);
     expect(liberatedCount(w, T0 + 2 * HOUR - 1)).toBe(1);
     expect(liberatedCount(w, T0 + 2 * HOUR)).toBe(0);
+  });
+
+  test("liberatedRegions lists the distinct regions held at that moment", () => {
+    const w = world([1, T0, null], [1, T0, null], [4, T0 + HOUR, T0 + 2 * HOUR]);
+    expect([...liberatedRegions(w, T0)]).toEqual([1]);
+    expect([...liberatedRegions(w, T0 + HOUR)].sort()).toEqual([1, 4]);
+    expect([...liberatedRegions(w, T0 + 2 * HOUR)]).toEqual([1]);
   });
 
   test("breakpoints are the changes strictly inside the interval, sorted, without duplicates", () => {

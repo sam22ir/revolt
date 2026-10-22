@@ -23,9 +23,12 @@ export const NO_WORLD: World = { liberations: [] };
 
 const isActive = (l: Liberation, t: number): boolean => l.from <= t && (l.until === null || t < l.until);
 
+/** The regions liberated at time `t`. The one place the from/until window is read. */
+export const liberatedRegions = (world: World, t: number): ReadonlySet<RegionId> =>
+  new Set(world.liberations.filter((l) => isActive(l, t)).map((l) => l.region));
+
 /** Number of distinct regions liberated at time `t`. */
-export const liberatedCount = (world: World, t: number): number =>
-  new Set(world.liberations.filter((l) => isActive(l, t)).map((l) => l.region)).size;
+export const liberatedCount = (world: World, t: number): number => liberatedRegions(world, t).size;
 
 /** Production multiplier at time `t`: `1 + bonus`, with the bonus capped. */
 export const productionMultiplier = (world: World, t: number): number =>

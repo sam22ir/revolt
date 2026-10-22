@@ -262,3 +262,20 @@
 .toast-result { font-weight: 600; opacity: 0.8; }
 .toast-btn.result-victory { background: #9ec27a; }
 .toast-btn.result-defeat { background: #e0907f; }
+
+/* The overview of the whole map. Placed with logical properties; its picture is physical and never mirrored in Arabic. */
+.minimap {
+  position: fixed;
+  inset-inline-start: 10px;
+  inset-block-end: calc(var(--nav-h) + env(safe-area-inset-bottom) + 10px);
+  inline-size: 112px;
+  block-size: 56px;
+  padding: 0;
+  border: 1px solid rgb(244 234 214 / 0.35);
+  border-radius: 8px;
+  background: rgb(43 42 36 / 0.72);
+  overflow: hidden;
+  cursor: pointer;
+}
+.minimap[hidden] { display: none; }
+.minimap canvas { display: block; inline-size: 100%; block-size: 100%; }
