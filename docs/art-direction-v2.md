@@ -67,7 +67,7 @@ Do not generate more tile sheets, and do not change the building art.
 ## Decisions needed
 
 - [ ] **World map style:** inked strategic layer (recommended) or realistic everywhere?
-- [ ] **Ground:** seamless repeating texture plus props (recommended) or one large painted map?
+- [x] **Ground:** decided 22 Oct: soft blended ground plus sparse props, as built in `5c4c465`. One large painted map is out: it cannot scroll or show region changes. Checked in Arabic at phone size: the close zoom reads well. Known gap: zoomed out, the flat renderer shows a checkered grid with hard-edged terrain patches and no region borders, so far zoom is the weak spot; the inked-layer decision below is what fixes it.
 - [ ] **Base:** the painted camp scene with empty plots?
 - [x] **Order of work:** decided 21 Oct: no quick win first; build the foundation first (below), then the visual changes.
 - [ ] If the inked layer is adopted, update GDD §7 (it currently approves only the painted style).
@@ -90,4 +90,4 @@ Built first so later art changes are small and safe. Done:
 - [x] Renderer fallback: Canvas on GPUs where Phaser's WebGL draws sprite transparency as black (`src/render-mode.ts`).
 - [x] The Playwright e2e suite was removed (21 Oct); UI is checked by eye in the dev server.
 
-Next: choose the ground approach (see Decisions) using the gallery's seam check.
+Next: decide the strategic (far-zoom) look, then draw region borders and liberation washes on it.
