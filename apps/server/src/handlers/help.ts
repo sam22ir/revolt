@@ -1,3 +1,4 @@
+import { loadWorld } from "../db/liberations.ts";
 import { advance, HELP_REDUCTION_MS, helpableJob, isHelpKind, MAX_HELPS_PER_REQUEST, reduceJob, type AllianceBlockReason, type HelpRequestView } from "@revolt/rules";
 import { findAccountById } from "../db/accounts.ts";
 import { findMembership } from "../db/alliances.ts";
@@ -27,7 +28,7 @@ export const postHelpRequest = async (ctx: Ctx): Promise<Response> => {
   if (m === null) return refuse(ctx, "not_member");
   const stored = await loadBase(ctx.env.DB, account.id);
   if (stored === null) throw new HttpError("not_found");
-  const job = helpableJob(advance(stored.state, ctx.now), kind, ctx.now);
+  const job = helpableJob(advance(stored.state, ctx.now, await loadWorld(ctx.env.DB, account.server)), kind, ctx.now);
   if (job === null) return refuse(ctx, "no_job");
   const id = crypto.randomUUID();
   try {
@@ -66,7 +67,7 @@ export const postHelpGive = async (ctx: Ctx): Promise<Response> => {
     if (req.helps >= MAX_HELPS_PER_REQUEST) return refuse(ctx, "help_full");
     const base = await loadBase(db, req.accountId);
     if (base === null) return refuse(ctx, "request_gone");
-    const advanced = advance(base.state, ctx.now);
+    const advanced = advance(base.state, ctx.now, await loadWorld(db, account.server));
     const job = helpableJob(advanced, req.kind, ctx.now);
     // The job the request was made for must still be the running one.
     if (job === null || job.startedAt !== req.jobStartedAt) return refuse(ctx, "request_gone");

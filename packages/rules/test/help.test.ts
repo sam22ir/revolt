@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { advance, HELP_REDUCTION_MS, helpableJob, reduceJob, startTraining, startUpgrade, type BaseState } from "../src/index.ts";
+import { advance, HELP_REDUCTION_MS, helpableJob, reduceJob, startTraining, startUpgrade, type BaseState, NO_WORLD } from "../src/index.ts";
 import { base, HOUR, rich, SEC, T0 } from "./helpers.ts";
 
 const upgrading = (): BaseState => {
-  const r = startUpgrade(rich(), "farm", T0);
+  const r = startUpgrade(rich(), "farm", T0, NO_WORLD);
   if (!r.ok) throw new Error(r.reason);
   return r.state;
 };
@@ -14,12 +14,12 @@ describe("reduceJob", () => {
     const r = reduceJob(s, "upgrade", 10 * SEC, T0);
     expect(r.changed).toBe(true);
     expect(r.state.queue?.endsAt).toBe(s.queue!.endsAt - 10 * SEC);
-    expect(advance(r.state, T0 + 20 * SEC).levels.farm).toBe(2);
-    expect(advance(s, T0 + 20 * SEC).levels.farm).toBe(1);
+    expect(advance(r.state, T0 + 20 * SEC, NO_WORLD).levels.farm).toBe(2);
+    expect(advance(s, T0 + 20 * SEC, NO_WORLD).levels.farm).toBe(1);
   });
 
   test("works on a training batch", () => {
-    const t = startTraining(rich(), "infantry", 10, T0);
+    const t = startTraining(rich(), "infantry", 10, T0, NO_WORLD);
     if (!t.ok) throw new Error(t.reason);
     const r = reduceJob(t.state, "training", 30 * SEC, T0);
     expect(r.state.training?.endsAt).toBe(t.state.training!.endsAt - 30 * SEC);
@@ -47,8 +47,8 @@ describe("reduceJob", () => {
     const s = upgrading();
     const r = reduceJob(s, "upgrade", 10 * SEC, T0).state;
     const end = r.queue!.endsAt;
-    expect(advance(r, end - 1).queue).not.toBeNull();
-    expect(advance(r, end).queue).toBeNull();
+    expect(advance(r, end - 1, NO_WORLD).queue).not.toBeNull();
+    expect(advance(r, end, NO_WORLD).queue).toBeNull();
   });
 });
 

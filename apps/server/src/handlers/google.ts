@@ -73,6 +73,6 @@ export const postGoogle = async (ctx: Ctx): Promise<Response> => {
     const db = ctx.env.DB;
     await db.batch([await insertSession(db, outToken, target.id, ctx.now), ...endSession(db, session, ctx.now)]);
   }
-  const { state } = await currentBase(ctx, target.id);
-  return json({ token: outToken, account: accountView(target), state, now: ctx.now, switched });
+  const { state, world } = await currentBase(ctx, target);
+  return json({ token: outToken, account: accountView(target), state, liberations: world.liberations, now: ctx.now, switched });
 };

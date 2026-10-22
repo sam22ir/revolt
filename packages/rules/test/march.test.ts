@@ -17,6 +17,7 @@ import {
   type MarchOutcome,
   type MarchState,
   type Troops,
+  NO_WORLD,
 } from "../src/index.ts";
 import { base, DAY, HOUR, MIN, SEC, T0 } from "./helpers.ts";
 
@@ -33,7 +34,7 @@ const march = (troops: Troops, id = "m1", now = T0): Omit<MarchState, "outcome">
 });
 
 const sent = (s: BaseState, m: Omit<MarchState, "outcome">, now = T0): BaseState => {
-  const r = startMarch(s, m, now);
+  const r = startMarch(s, m, now, NO_WORLD);
   if (!r.ok) throw new Error(`expected ok, got ${r.reason}`);
   return r.state;
 };
@@ -71,26 +72,26 @@ describe("startMarch", () => {
   });
 
   test("refuses more troops than are home", () => {
-    expect(startMarch(base(), march(t(11)), T0)).toMatchObject({ ok: false, reason: "not_enough_troops" });
-    expect(startMarch(base(), march(t(0, 1)), T0)).toMatchObject({ ok: false, reason: "not_enough_troops" });
+    expect(startMarch(base(), march(t(11)), T0, NO_WORLD)).toMatchObject({ ok: false, reason: "not_enough_troops" });
+    expect(startMarch(base(), march(t(0, 1)), T0, NO_WORLD)).toMatchObject({ ok: false, reason: "not_enough_troops" });
   });
 
   test("refuses a march with no fighting troops", () => {
-    expect(startMarch(base(), march(ZERO_TROOPS), T0)).toMatchObject({ ok: false, reason: "no_troops" });
+    expect(startMarch(base(), march(ZERO_TROOPS), T0, NO_WORLD)).toMatchObject({ ok: false, reason: "no_troops" });
     const withPorters = base({ troops: t(0, 0, 0, 5) });
-    expect(startMarch(withPorters, march(t(0, 0, 0, 5)), T0)).toMatchObject({ ok: false, reason: "no_troops" });
+    expect(startMarch(withPorters, march(t(0, 0, 0, 5)), T0, NO_WORLD)).toMatchObject({ ok: false, reason: "no_troops" });
   });
 
   test(`allows at most ${MAX_MARCHES} marches out at once`, () => {
     let s = base();
     for (let i = 0; i < MAX_MARCHES; i++) s = sent(s, march(t(1), `m${i}`));
-    expect(startMarch(s, march(t(1), "extra"), T0)).toMatchObject({ ok: false, reason: "too_many_marches" });
+    expect(startMarch(s, march(t(1), "extra"), T0, NO_WORLD)).toMatchObject({ ok: false, reason: "too_many_marches" });
   });
 
   test("troops still training cannot march", () => {
     const training = base({ troops: t(0), training: { troop: "infantry", count: 10, startedAt: T0, endsAt: T0 + HOUR } });
-    expect(startMarch(training, march(t(5)), T0)).toMatchObject({ ok: false, reason: "not_enough_troops" });
-    expect(startMarch(training, march(t(5), "m1", T0 + HOUR), T0 + HOUR).ok).toBe(true);
+    expect(startMarch(training, march(t(5)), T0, NO_WORLD)).toMatchObject({ ok: false, reason: "not_enough_troops" });
+    expect(startMarch(training, march(t(5), "m1", T0 + HOUR), T0 + HOUR, NO_WORLD).ok).toBe(true);
   });
 });
 
@@ -106,37 +107,37 @@ describe("march return", () => {
   });
 
   test("troops and loot come home exactly at returnAt", () => {
-    const before = advance(settled.state, m.returnAt - 1);
+    const before = advance(settled.state, m.returnAt - 1, NO_WORLD);
     expect(before.marches).toHaveLength(1);
     expect(before.troops.infantry).toBe(4);
-    const home = advance(settled.state, m.returnAt);
+    const home = advance(settled.state, m.returnAt, NO_WORLD);
     expect(home.marches).toHaveLength(0);
     expect(home.troops.infantry).toBe(8);
     expect(home.wounded.infantry).toBe(2);
-    const produced = advance(out, m.returnAt).resources.food;
+    const produced = advance(out, m.returnAt, NO_WORLD).resources.food;
     expect(home.resources.food).toBeCloseTo(produced + 300, 6);
   });
 
   test("loot never pushes storage past the cap, and never lowers an amount above it", () => {
     const cap = storageCap(2).food;
     const full = settleMarch(sent(base({ resources: { food: cap - 100, materiel: 0, funds: 0, support: 0 } }), m), m.id, win(m)).state;
-    expect(advance(full, m.returnAt).resources.food).toBe(cap);
+    expect(advance(full, m.returnAt, NO_WORLD).resources.food).toBe(cap);
     const over = settleMarch(sent(base({ resources: { food: cap + 500, materiel: 0, funds: 0, support: 0 } }), m), m.id, win(m)).state;
-    expect(advance(over, m.returnAt).resources.food).toBe(cap + 500);
+    expect(advance(over, m.returnAt, NO_WORLD).resources.food).toBe(cap + 500);
   });
 
   test("without an outcome the march waits; after the grace period it comes home unharmed with no loot", () => {
-    expect(advance(out, m.returnAt + HOUR - 1).marches).toHaveLength(1);
-    const rescued = advance(out, m.returnAt + MARCH_RESCUE_GRACE_MS);
+    expect(advance(out, m.returnAt + HOUR - 1, NO_WORLD).marches).toHaveLength(1);
+    const rescued = advance(out, m.returnAt + MARCH_RESCUE_GRACE_MS, NO_WORLD);
     expect(rescued.marches).toHaveLength(0);
     expect(rescued.troops.infantry).toBe(10);
     expect(rescued.wounded).toEqual(ZERO_TROOPS);
   });
 
   test("time going backwards does not bring a march home", () => {
-    const home = advance(settled.state, m.returnAt);
-    expect(advance(settled.state, T0 - DAY)).toEqual(settled.state);
-    expect(advance(home, T0)).toEqual(home);
+    const home = advance(settled.state, m.returnAt, NO_WORLD);
+    expect(advance(settled.state, T0 - DAY, NO_WORLD)).toEqual(settled.state);
+    expect(advance(home, T0, NO_WORLD)).toEqual(home);
   });
 
   test("a very long offline gap resolves the march, training and an upgrade, in time order", () => {
@@ -145,7 +146,7 @@ describe("march return", () => {
       queue: { building: "farm", toLevel: 2, startedAt: T0, endsAt: T0 + 30 * SEC },
       training: { troop: "scouts", count: 3, startedAt: T0, endsAt: T0 + HOUR },
     };
-    const later = advance(busy, T0 + 365 * DAY);
+    const later = advance(busy, T0 + 365 * DAY, NO_WORLD);
     expect(later).toMatchObject({ queue: null, training: null, marches: [] });
     expect(later.levels.farm).toBe(2);
     expect(later.troops).toEqual(t(8, 3));
@@ -160,9 +161,9 @@ describe("march return", () => {
     };
     const s = settleMarch(sent(s0, m), m.id, win(m)).state;
     // HQ 2 at T0+1min raises the cap before the march returns at T0+10min with 300 food.
-    const withoutLoot = advance(sent(s0, m), m.returnAt - 1).resources.food;
+    const withoutLoot = advance(sent(s0, m), m.returnAt - 1, NO_WORLD).resources.food;
     expect(withoutLoot).toBeGreaterThan(cap1);
-    expect(advance(s, m.returnAt).resources.food).toBeCloseTo(withoutLoot + 300, 0);
+    expect(advance(s, m.returnAt, NO_WORLD).resources.food).toBeCloseTo(withoutLoot + 300, 0);
   });
 });
 

@@ -1,4 +1,4 @@
-import { advance, createBaseState, M1_IMPORT_MAX_LEVEL, START_TROOPS, startUpgrade, storageCap, ZERO_TROOPS } from "@revolt/rules";
+import { advance, createBaseState, M1_IMPORT_MAX_LEVEL, NO_WORLD, START_TROOPS, startUpgrade, storageCap, ZERO_TROOPS } from "@revolt/rules";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { body, DAY, HOUR, newGuest, startServer, T0, type Server } from "./harness.ts";
 
@@ -46,7 +46,7 @@ describe("the server computes resources and timers", () => {
     const a = await newGuest(server);
     server.now = T0 + HOUR;
     const b = await body(await server.request("GET", "/v1/state", { token: a.token }));
-    expect(b.state).toEqual(advance(createBaseState(T0), T0 + HOUR));
+    expect(b.state).toEqual(advance(createBaseState(T0), T0 + HOUR, NO_WORLD));
     expect(b.now).toBe(T0 + HOUR);
   });
 
@@ -63,7 +63,7 @@ describe("the server computes resources and timers", () => {
     await server.request("POST", "/v1/intent", { token: a.token, body: { type: "upgrade", building: "hq" } });
     server.now = T0 - DAY;
     const b = await body(await server.request("GET", "/v1/state", { token: a.token }));
-    const expected = startUpgrade(createBaseState(T0), "hq", T0 + HOUR);
+    const expected = startUpgrade(createBaseState(T0), "hq", T0 + HOUR, NO_WORLD);
     if (!expected.ok) throw new Error(expected.reason);
     expect(b.state).toEqual(expected.state);
   });
@@ -90,7 +90,7 @@ describe("M1 save import", () => {
   };
 
   test("a plausible local save becomes the guest's base", async () => {
-    const r = startUpgrade(createBaseState(T0 - HOUR), "hq", T0 - HOUR);
+    const r = startUpgrade(createBaseState(T0 - HOUR), "hq", T0 - HOUR, NO_WORLD);
     if (!r.ok) throw new Error(r.reason);
     const a = await newGuest(server, r.state);
     expect(a.res.imported).toBe(true);

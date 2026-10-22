@@ -11,6 +11,7 @@ import {
   type MapSnapshot,
   type MarchBlockReason,
   type TrainingBlockReason,
+  type Liberation,
   type TroopId,
   type Troops,
   type UpgradeBlockReason,
@@ -25,6 +26,8 @@ export interface AccountView {
 
 export interface Snapshot {
   readonly state: BaseState;
+  /** The regions the movement holds, which change production. Absent in answers from the map, which does not send them. */
+  readonly liberations?: readonly Liberation[];
   /** Server time when `state` was computed, epoch ms. */
   readonly now: number;
 }

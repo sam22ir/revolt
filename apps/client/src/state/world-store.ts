@@ -70,6 +70,7 @@ export const createWorldStore = ({ api, game, socket, storage }: WorldDeps): Wor
 
   const setSnapshot = (next: MapSnapshot | null): void => {
     snapshot = next;
+    if (next !== null) game.setLiberations(next.liberations);
     for (const fn of snapshotListeners) fn(snapshot);
   };
   const setReports = (next: BattleReport[], fresh: BattleReport | null): void => {

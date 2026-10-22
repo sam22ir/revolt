@@ -1,3 +1,4 @@
+import type { World } from "./liberation.ts";
 import { advance } from "./advance.ts";
 import type { BaseState, MapPoint, MarchOutcome, MarchState } from "./base-state.ts";
 import { MAX_MARCHES } from "./data/map.ts";
@@ -53,8 +54,8 @@ export const checkMarch = (state: BaseState, troops: Troops): MarchBlockReason |
  * Sends `march` (its id, target and timing decided by the map server) at `now`:
  * its troops leave home until it returns.
  */
-export const startMarch = (state: BaseState, march: Omit<MarchState, "outcome">, now: number): MarchStartResult => {
-  const s = advance(state, now);
+export const startMarch = (state: BaseState, march: Omit<MarchState, "outcome">, now: number, world: World): MarchStartResult => {
+  const s = advance(state, now, world);
   const reason = checkMarch(s, march.troops);
   if (reason !== null) return { ok: false, reason, state: s };
   return { ok: true, state: { ...s, troops: subtractTroops(s.troops, march.troops), marches: [...s.marches, { ...march, outcome: null }] } };

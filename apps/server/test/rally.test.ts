@@ -1,5 +1,8 @@
 import {
+  advance,
+  createBaseState,
   MAX_MARCHES,
+  NPC_RESPAWN_MS,
   NPC_LEVELS,
   RALLY_GATHER_OPTIONS_MS,
   RALLY_MAX_PARTICIPANTS,
@@ -10,10 +13,11 @@ import {
   type MapNpcView,
   type MapSnapshot,
   type Troops,
+  type World,
 } from "@revolt/rules";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { call, MANY_GUESTS, player, post, team, type Player, type Team } from "./alliance-helpers.ts";
-import { body, startServer, T0, type Json, type Server } from "./harness.ts";
+import { body, HOUR, startServer, T0, type Json, type Server } from "./harness.ts";
 import { getMap, getState, intent, march } from "./map-helpers.ts";
 
 let server: Server;
@@ -353,5 +357,52 @@ describe("the rally arrives", () => {
     server.now = rally.arriveAt;
     await server.fireAlarm();
     expect(await reportsOf(m)).toHaveLength(1);
+  });
+});
+
+describe("liberating a region", () => {
+  const BIG = t(1000, 400, 400, 60);
+
+  /** An alliance clears the level-4 stronghold with overwhelming force; a bystander's base predates the win. */
+  const clear = async () => {
+    const bystander = await player(server);
+    const s = await setup(1, BIG);
+    const rally = (await startRally(s.tm.leader, s.npc.id, BIG)).state.marches[0] as Json;
+    server.now = rally.arriveAt;
+    await server.fireAlarm();
+    return { ...s, rally, bystander };
+  };
+
+  test("clearing a stronghold liberates its region, credited to the alliance and stamped when the map recorded it", async () => {
+    const { tm, npc, rally } = await clear();
+    expect(npc.region).not.toBeNull();
+    const snap = await getMap(server, tm.leader.token);
+    expect(snap.liberations).toEqual([{ region: npc.region, from: rally.arriveAt, until: null, alliance: `A${teams}` }]);
+    expect(snap.npcs.some((n) => n.id === npc.id)).toBe(false);
+    const d1 = await server.env.DB.prepare("SELECT server, region, from_at, until_at FROM liberations").all<Json>();
+    expect(d1.results).toEqual([{ server: "algeria-1", region: npc.region, from_at: rally.arriveAt, until_at: null }]);
+  });
+
+  test("a cleared stronghold stays down: the roaming respawn never brings it back", async () => {
+    const { tm, npc } = await clear();
+    server.now += 100 * NPC_RESPAWN_MS;
+    await server.fireAlarm();
+    const snap = await getMap(server, tm.leader.token);
+    expect(snap.npcs.some((n) => n.id === npc.id || n.region === npc.region)).toBe(false);
+    expect(snap.liberations).toHaveLength(1);
+    // Nothing left to resolve: the alarm must not be set to the stronghold's never-reached sentinel.
+    expect(server.map().alarmAt).toBeNull();
+  });
+
+  test("the bonus reaches every base from the recorded time on, not before", async () => {
+    const { bystander, npc, rally } = await clear();
+    const at = rally.arriveAt + HOUR;
+    server.now = at;
+    const world: World = { liberations: [{ region: npc.region!, from: rally.arriveAt, until: null }] };
+    const got = await body(await server.request("GET", "/v1/state", { token: bystander.token }));
+    expect(got.liberations).toEqual(world.liberations);
+    const expected = advance(createBaseState(T0), at, world);
+    expect(got.state.resources).toEqual(expected.resources);
+    expect(got.state.resources.food).toBeGreaterThan(advance(createBaseState(T0), at, { liberations: [] }).resources.food);
   });
 });

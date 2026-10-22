@@ -117,8 +117,11 @@ export {
   type RallyView,
   type MapBaseView,
   type MapMarchView,
+  type LiberationView,
   type MapNpcView,
   type MapServerMessage,
   type MapSnapshot,
   type MarchPhase,
 } from "./wire.ts";
+export { LIBERATION_BONUS_CAP, LIBERATION_BONUS_PER_REGION } from "./data/liberation.ts";
+export { liberatedCount, multiplierBreakpoints, NO_WORLD, productionMultiplier, strongholdTile, type Liberation, type TakenTile, type World } from "./liberation.ts";

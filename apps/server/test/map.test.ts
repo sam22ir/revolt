@@ -1,4 +1,4 @@
-import { MAP_SIZE, NPC_COUNT_BY_LEVEL, NPC_LEVELS } from "@revolt/rules";
+import { MAP_SIZE, MAX_NPC_LEVEL, NPC_COUNT_BY_LEVEL, NPC_LEVELS, regionAt, regionsOf } from "@revolt/rules";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { body, newGuest, startServer, type Server } from "./harness.ts";
 import { getMap, march, player } from "./map-helpers.ts";
@@ -37,7 +37,11 @@ describe("GET /v1/map", () => {
 
   test("NPC targets of every level exist, on free tiles", async () => {
     const snap = await getMap(server, (await newGuest(server)).token);
-    NPC_COUNT_BY_LEVEL.forEach((n, i) => expect(snap.npcs.filter((x) => x.level === i + 1)).toHaveLength(n));
+    NPC_COUNT_BY_LEVEL.forEach((n, i) => expect(snap.npcs.filter((x) => x.level === i + 1 && x.region === null)).toHaveLength(n));
+    // Level 4 is the fixed strongholds: exactly one per region, each inside its own region.
+    const strongholds = snap.npcs.filter((x) => x.level === MAX_NPC_LEVEL);
+    expect(strongholds.map((x) => x.region).sort((a, b) => (a ?? 0) - (b ?? 0))).toEqual(regionsOf(snap.terrainSeed).map((r) => r.id));
+    for (const x of strongholds) expect(regionAt(snap.terrainSeed, x.x, x.y)).toBe(x.region);
     for (const npc of snap.npcs) expect(npc.kind).toBe(NPC_LEVELS[npc.level - 1]!.kind);
     const tiles = new Set([...snap.npcs, ...snap.bases].map((p) => `${p.x},${p.y}`));
     expect(tiles.size).toBe(snap.npcs.length + snap.bases.length);

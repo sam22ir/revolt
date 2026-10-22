@@ -1,4 +1,4 @@
-import { advance, startTraining, startUpgrade, type BaseState, type BuildingId, type TroopId, type Troops } from "@revolt/rules";
+import { advance, startTraining, startUpgrade, type BaseState, type BuildingId, type Liberation, type TroopId, type Troops, type World } from "@revolt/rules";
 import { ApiError, type AccountView, type Api, type RallyRefusal, type Snapshot } from "../net/api.ts";
 import { loadSession, storeSession } from "../net/session.ts";
 import { loadState, SAVE_KEY } from "./save.ts";
@@ -12,6 +12,10 @@ export type MarchOutcome = { readonly ok: true } | { readonly ok: false; readonl
 
 export interface GameStore {
   readonly state: () => BaseState;
+  /** The regions held, as the server last said (state answers and map snapshots). */
+  readonly world: () => World;
+  /** Takes the liberations from a map snapshot, which can be newer than the last state answer. */
+  readonly setLiberations: (liberations: readonly Liberation[]) => void;
   /** Server time as best known: the device clock corrected by the server's offset. */
   readonly now: () => number;
   readonly account: () => AccountView;
@@ -82,6 +86,7 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
   let token = session.token;
   let account = session.account;
   let state = session.state;
+  let world: World = { liberations: session.liberations ?? [] };
   let offset = session.now - clock();
   let status: SyncStatus = "online";
   const listeners = new Set<Listener>();
@@ -94,6 +99,7 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
   };
   const accept = (snap: Snapshot): void => {
     state = snap.state;
+    if (snap.liberations !== undefined) world = { liberations: snap.liberations };
     offset = snap.now - clock();
     status = "online";
     notify();
@@ -127,22 +133,26 @@ export const connectGameStore = async (deps: StoreDeps): Promise<GameStore> => {
 
   return {
     state: () => state,
+    world: () => world,
+    setLiberations: (liberations) => {
+      world = { liberations };
+    },
     now,
     account: () => account,
     status: () => status,
     tick: () => {
-      state = advance(state, now());
+      state = advance(state, now(), world);
       notify();
     },
     upgrade: (building) => {
-      const predicted = startUpgrade(state, building, now());
+      const predicted = startUpgrade(state, building, now(), world);
       if (!predicted.ok) return;
       state = predicted.state;
       notify();
       api.upgrade(token, building).then(accept, () => void resync());
     },
     train: (troop, count) => {
-      const predicted = startTraining(state, troop, count, now());
+      const predicted = startTraining(state, troop, count, now(), world);
       if (!predicted.ok) return;
       state = predicted.state;
       notify();

@@ -9,6 +9,7 @@ import {
   ZERO_TROOPS,
   type BattleReport,
   type MapPoint,
+  NO_WORLD,
 } from "@revolt/rules";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { PENDING_TIMEOUT_MS } from "../src/map/map-service.ts";
@@ -308,7 +309,7 @@ describe("train intent", () => {
     expect(r).toMatchObject({ ok: true, now: T0, state: { training: { troop: "scouts", count: 5, startedAt: T0 } } });
     server.now = r.state.training.endsAt;
     expect((await getState(server, g.token)).troops.scouts).toBe(5);
-    expect(advance(r.state, r.state.training.endsAt).troops.scouts).toBe(5);
+    expect(advance(r.state, r.state.training.endsAt, NO_WORLD).troops.scouts).toBe(5);
   });
 
   test("rule refusals are answers; malformed intents are 400", async () => {

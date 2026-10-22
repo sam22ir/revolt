@@ -137,3 +137,10 @@ adb reverse tcp:8787 tcp:8787
 ```
 
 With `adb reverse tcp:4173 tcp:4173` from `docs/device-testing.md`, the phone opens `http://localhost:4173`, which is an allowed origin. Over Wi-Fi, the page's origin (`http://<IP>:4173`) must be added to `ALLOWED_ORIGINS`, for example in `apps/server/.dev.vars`, and `wrangler dev` needs `--ip 0.0.0.0`.
+
+## Liberated regions: how it works
+
+- **One stronghold per region.** The map DO keeps a fixed level-4 NPC for every region (`npcs.region_id`, placed by `strongholdTile` in `packages/rules`), rally-only. Roaming level-4 NPCs no longer exist; an older map's are deleted when its DO starts, and a rally already marching on one comes home unharmed like for any vanished target.
+- **Clearing it liberates the region.** A rally victory records a liberation (credited to the rally's alliance) in the DO's `liberations` table and mirrors it to D1 (`liberations`, migration `0006`), D1 first, both idempotent. The cleared stronghold stays down (`respawn_at` = a never-reached sentinel); there is no season reset yet.
+- **The bonus is server-wide production.** Every call that advances a base takes a `World` (`liberations`): `accrue` integrates production piecewise across bonus changes. `from`/`until` are the time the map recorded the change, never earlier, so a base already settled past it is not paid retroactively. The Worker reads D1 (`loadWorld`); the map DO reads its own table; `/v1/state` and intent answers carry `liberations`, and the client predicts with them (map snapshots refresh them).
+- **Deploying:** migration `0006` must be applied to the remote database before the new Worker serves traffic.

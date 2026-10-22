@@ -1,4 +1,4 @@
-import type { BattleReport, BuildingId, HelpKind } from "@revolt/rules";
+import { productionMultiplier, type BattleReport, type BuildingId, type HelpKind } from "@revolt/rules";
 import { formatAmount } from "../format.ts";
 import type { Language } from "../i18n/languages.ts";
 import type { GoogleSignIn } from "../net/google.ts";
@@ -200,7 +200,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       snapshot: () => deps.world.snapshot(),
       onJoinRally: (rally) => {
         const { npcId, ...where } = rally.target;
-        dialog.open({ id: npcId, ...where }, { kind: "rally_join", rally });
+        dialog.open({ id: npcId, region: null, ...where }, { kind: "rally_join", rally });
       },
       onOpen: () => {
         select(null);
@@ -235,7 +235,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       const state = deps.store.state();
       const now = deps.store.now();
       const snapshot = deps.world.snapshot();
-      hud.update(state, now, canAskHelp("upgrade"));
+      hud.update(state, now, canAskHelp("upgrade"), productionMultiplier(deps.store.world(), now));
       hud.setOffline(deps.store.status() === "offline");
       panel.update(state, now, canAskHelp("training"));
       marches.update(state, now);

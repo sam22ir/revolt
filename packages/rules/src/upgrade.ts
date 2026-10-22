@@ -1,3 +1,4 @@
+import type { World } from "./liberation.ts";
 import { advance } from "./advance.ts";
 import type { BaseState } from "./base-state.ts";
 import type { BuildingId } from "./building-id.ts";
@@ -41,8 +42,8 @@ export const checkUpgrade = (state: BaseState, building: BuildingId): UpgradeChe
   return { ok: true, ...quote };
 };
 
-export const startUpgrade = (state: BaseState, building: BuildingId, now: number): UpgradeResult => {
-  const s = advance(state, now);
+export const startUpgrade = (state: BaseState, building: BuildingId, now: number, world: World): UpgradeResult => {
+  const s = advance(state, now, world);
   const check = checkUpgrade(s, building);
   if (!check.ok) return { ok: false, reason: check.reason, state: s };
   // If the clock went backwards, `s.lastUpdated` is the latest time we trust.

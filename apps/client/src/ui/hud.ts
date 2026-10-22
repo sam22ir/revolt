@@ -13,7 +13,7 @@ interface Chip {
 export interface Hud {
   readonly root: HTMLElement;
   /** `canAskHelp`: the player is in an alliance and has no open request for the running upgrade. */
-  readonly update: (state: BaseState, now: number, canAskHelp?: boolean) => void;
+  readonly update: (state: BaseState, now: number, canAskHelp?: boolean, multiplier?: number) => void;
   /** A short message under the help button (a refusal), gone after a few seconds. */
   readonly showHelpNote: (text: string) => void;
   readonly setOffline: (offline: boolean) => void;
@@ -79,10 +79,10 @@ export const createHud = (
   navRow.append(...nav);
   root.append(bar, navRow, queue, ...controls, helpBtn, helpNote, ...extras, offline);
 
-  const update = (state: BaseState, now: number, canAskHelp = false): void => {
+  const update = (state: BaseState, now: number, canAskHelp = false, multiplier = 1): void => {
     const lang = currentLanguage();
     const cap = storageCap(state.levels.hq);
-    const rate = productionPerHour(state.levels);
+    const rate = productionPerHour(state.levels, multiplier);
     for (const id of RESOURCE_IDS) {
       const chip = chips.get(id);
       if (chip === undefined) continue;

@@ -49,6 +49,7 @@ const fakeGame = () => {
   const game = {
     token: () => "tok",
     resync: async () => void resyncs++,
+    setLiberations: () => {},
     onSessionChange: (fn: () => void) => (session.add(fn), () => session.delete(fn)),
     state: () => createBaseState(0),
   } as unknown as GameStore;

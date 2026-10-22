@@ -1,4 +1,4 @@
-import { createBaseState, startUpgrade } from "@revolt/rules";
+import { createBaseState, NO_WORLD, startUpgrade } from "@revolt/rules";
 import { describe, expect, test } from "vitest";
 import { parseSave, serializeSave } from "../src/state/save.ts";
 
@@ -6,7 +6,7 @@ const T0 = Date.UTC(2026, 0, 1);
 
 describe("save", () => {
   test("round-trips a state with a queued upgrade", () => {
-    const r = startUpgrade(createBaseState(T0), "hq", T0);
+    const r = startUpgrade(createBaseState(T0), "hq", T0, NO_WORLD);
     expect(r.ok).toBe(true);
     expect(parseSave(serializeSave(r.state))).toEqual(r.state);
   });

@@ -1,5 +1,7 @@
-import { advance, BUILDING_IDS, canPerform, parseTroops, startTraining, startUpgrade, TROOP_IDS, type BaseState, type BuildingId, type TroopId, type Troops } from "@revolt/rules";
+import { advance, BUILDING_IDS, canPerform, parseTroops, startTraining, startUpgrade, TROOP_IDS, type BaseState, type BuildingId, type TroopId, type Troops, type World } from "@revolt/rules";
 import { loadBase, saveBase } from "../db/bases.ts";
+import { loadWorld } from "../db/liberations.ts";
+import type { Account } from "../db/accounts.ts";
 import { HttpError, json, readJson } from "../http.ts";
 import { authenticate, type Ctx } from "./context.ts";
 import { viewerFor } from "./viewer.ts";
@@ -40,24 +42,27 @@ type BaseChange = { readonly ok: true; readonly state: BaseState } | { readonly 
 const ATTEMPTS = 2;
 
 /** Applies a base-only intent with the shared rules at server time and saves it (compare-and-set). */
-const changeBase = async (ctx: Ctx, accountId: string, apply: (s: BaseState) => BaseChange): Promise<Response> => {
+const changeBase = async (ctx: Ctx, account: Account, apply: (s: BaseState, world: World) => BaseChange): Promise<Response> => {
+  const accountId = account.id;
+  const world = await loadWorld(ctx.env.DB, account.server);
   for (let i = 0; i < ATTEMPTS; i++) {
     const stored = await loadBase(ctx.env.DB, accountId);
     if (stored === null) throw new HttpError("not_found");
-    const result = apply(stored.state);
-    if (!result.ok) return json({ ok: false, reason: result.reason, state: result.state, now: ctx.now });
+    const result = apply(stored.state, world);
+    if (!result.ok) return json({ ok: false, reason: result.reason, state: result.state, liberations: world.liberations, now: ctx.now });
     if (await saveBase(ctx.env.DB, accountId, result.state, stored.version, ctx.now)) {
-      return json({ ok: true, state: result.state, now: ctx.now });
+      return json({ ok: true, state: result.state, liberations: world.liberations, now: ctx.now });
     }
   }
   throw new HttpError("conflict");
 };
 
 /** A refusal the Worker decides itself (before the map is asked), with the player's current base state. */
-const refusedIntent = async (ctx: Ctx, accountId: string, reason: string): Promise<Response> => {
-  const stored = await loadBase(ctx.env.DB, accountId);
+const refusedIntent = async (ctx: Ctx, account: Account, reason: string): Promise<Response> => {
+  const stored = await loadBase(ctx.env.DB, account.id);
   if (stored === null) throw new HttpError("not_found");
-  return json({ ok: false, reason, state: advance(stored.state, ctx.now), now: ctx.now });
+  const world = await loadWorld(ctx.env.DB, account.server);
+  return json({ ok: false, reason, state: advance(stored.state, ctx.now, world), liberations: world.liberations, now: ctx.now });
 };
 
 /**
@@ -70,9 +75,9 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
   const intent = parseIntent(await readJson(ctx.req));
   switch (intent.type) {
     case "upgrade":
-      return changeBase(ctx, account.id, (s) => startUpgrade(s, intent.building, ctx.now));
+      return changeBase(ctx, account, (s, w) => startUpgrade(s, intent.building, ctx.now, w));
     case "train":
-      return changeBase(ctx, account.id, (s) => startTraining(s, intent.troop, intent.count, ctx.now));
+      return changeBase(ctx, account, (s, w) => startTraining(s, intent.troop, intent.count, ctx.now, w));
     case "march": {
       const { viewer } = await viewerFor(ctx, account);
       const r = await ctx.deps.map(ctx.env, account.server).sendMarch(viewer, intent.target, intent.troops, ctx.now);
@@ -81,15 +86,15 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
     }
     case "rally_start": {
       const { viewer, membership } = await viewerFor(ctx, account);
-      if (membership === null) return refusedIntent(ctx, account.id, "not_member");
-      if (!canPerform(membership.rank, "start_rally")) return refusedIntent(ctx, account.id, "no_permission");
+      if (membership === null) return refusedIntent(ctx, account, "not_member");
+      if (!canPerform(membership.rank, "start_rally")) return refusedIntent(ctx, account, "no_permission");
       const r = await ctx.deps.map(ctx.env, account.server).startRally(viewer, intent.target, intent.troops, intent.gather, ctx.now);
       if ("error" in r) throw new HttpError(r.error);
       return json({ ...r, now: ctx.now });
     }
     case "rally_join": {
       const { viewer, membership } = await viewerFor(ctx, account);
-      if (membership === null) return refusedIntent(ctx, account.id, "not_member");
+      if (membership === null) return refusedIntent(ctx, account, "not_member");
       const r = await ctx.deps.map(ctx.env, account.server).joinRally(viewer, intent.rally, intent.troops, ctx.now);
       if ("error" in r) throw new HttpError(r.error);
       return json({ ...r, now: ctx.now });

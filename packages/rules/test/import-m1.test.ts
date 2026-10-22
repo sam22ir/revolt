@@ -1,12 +1,12 @@
 import { describe, expect, test } from "vitest";
-import { createBaseState, importM1Save, M1_IMPORT_MAX_LEVEL, startUpgrade, storageCap, type BaseState } from "../src/index.ts";
+import { createBaseState, importM1Save, M1_IMPORT_MAX_LEVEL, startUpgrade, storageCap, type BaseState, NO_WORLD } from "../src/index.ts";
 import { base, DAY, HOUR, T0 } from "./helpers.ts";
 
 const NOW = T0 + HOUR;
 
 describe("importM1Save", () => {
   test("keeps a plausible save as it is", () => {
-    const r = startUpgrade(base(), "farm", T0);
+    const r = startUpgrade(base(), "farm", T0, NO_WORLD);
     if (!r.ok) throw new Error(r.reason);
     expect(importM1Save(r.state, NOW)).toEqual(r.state);
   });

@@ -1,4 +1,4 @@
-import { createBaseState, startUpgrade } from "@revolt/rules";
+import { createBaseState, NO_WORLD, startUpgrade } from "@revolt/rules";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { body, HOUR, newGuest, startServer, T0, type Device, type Server } from "./harness.ts";
 
@@ -17,9 +17,9 @@ describe("upgrade intent", () => {
   test("is validated with the shared rules at server time and saved", async () => {
     server.now = T0 + HOUR;
     const b = await body(await intent({ type: "upgrade", building: "hq" }));
-    const expected = startUpgrade(createBaseState(T0), "hq", T0 + HOUR);
+    const expected = startUpgrade(createBaseState(T0), "hq", T0 + HOUR, NO_WORLD);
     if (!expected.ok) throw new Error(expected.reason);
-    expect(b).toEqual({ ok: true, state: expected.state, now: T0 + HOUR });
+    expect(b).toEqual({ ok: true, state: expected.state, liberations: [], now: T0 + HOUR });
     expect(await state()).toEqual(expected.state);
   });
 
@@ -39,7 +39,7 @@ describe("upgrade intent", () => {
   test("concurrent intents never both succeed", async () => {
     const results = await Promise.all([1, 2, 3].map(() => intent({ type: "upgrade", building: "hq" }).then(body)));
     expect(results.filter((r) => r.ok === true)).toHaveLength(1);
-    const expected = startUpgrade(createBaseState(T0), "hq", T0);
+    const expected = startUpgrade(createBaseState(T0), "hq", T0, NO_WORLD);
     if (!expected.ok) throw new Error(expected.reason);
     expect(await state()).toEqual(expected.state);
   });
@@ -59,7 +59,7 @@ describe("tampered requests", () => {
         now: T0 + 100 * HOUR,
       }),
     );
-    const expected = startUpgrade(createBaseState(T0), "hq", T0);
+    const expected = startUpgrade(createBaseState(T0), "hq", T0, NO_WORLD);
     if (!expected.ok) throw new Error(expected.reason);
     expect(b.state).toEqual(expected.state);
   });

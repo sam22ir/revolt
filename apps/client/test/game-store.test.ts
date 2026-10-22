@@ -1,4 +1,5 @@
 import {
+  advance,
   createBaseState,
   planMarch,
   startMarch,
@@ -9,6 +10,8 @@ import {
   type MapSnapshot,
   type TroopId,
   type Troops,
+  NO_WORLD,
+  type World,
 } from "@revolt/rules";
 import { describe, expect, test } from "vitest";
 import { ApiError, type AccountView, type Api, type IntentResult, type MarchReply, type TrainReply } from "../src/net/api.ts";
@@ -54,14 +57,14 @@ const fakeApi = (serverState: BaseState, validTokens = new Set(["tok-1"])) => {
     },
     upgrade: async (_token, building: BuildingId): Promise<IntentResult> => {
       calls.push(`upgrade:${building}`);
-      const r = startUpgrade(state, building, T0);
+      const r = startUpgrade(state, building, T0, NO_WORLD);
       if (!r.ok) return { ok: false, reason: r.reason, state: r.state, now: T0 };
       state = r.state;
       return { ok: true, state, now: T0 };
     },
     train: async (_token, troop: TroopId, count: number): Promise<TrainReply> => {
       calls.push(`train:${troop}:${count}`);
-      const r = startTraining(state, troop, count, T0);
+      const r = startTraining(state, troop, count, T0, NO_WORLD);
       if (!r.ok) return { ok: false, reason: r.reason, state: r.state, now: T0 };
       state = r.state;
       return { ok: true, state, now: T0 };
@@ -70,7 +73,7 @@ const fakeApi = (serverState: BaseState, validTokens = new Set(["tok-1"])) => {
       calls.push(`march:${target}`);
       if (target === "gone") return { ok: false, reason: "target_gone", state, now: T0 };
       const timing = planMarch({ x: 0, y: 0 }, { x: 10, y: 10 }, troops, T0);
-      const r = startMarch(state, { id: "m1", target: { npcId: target, level: 1, x: 10, y: 10 }, from: { x: 0, y: 0 }, troops, ...timing }, T0);
+      const r = startMarch(state, { id: "m1", target: { npcId: target, level: 1, x: 10, y: 10 }, from: { x: 0, y: 0 }, troops, ...timing }, T0, NO_WORLD);
       if (!r.ok) return { ok: false, reason: r.reason, state: r.state, now: T0 };
       state = r.state;
       return { ok: true, state, now: T0 };
@@ -112,6 +115,22 @@ describe("game store", () => {
     await connectGameStore({ api: f.api, storage, clock: () => T0 });
     expect(f.calls).toEqual(["state", "guest"]);
     expect(storage.getItem(SESSION_KEY)).toBe("tok-new");
+  });
+
+  test("liberations from the server and from the map change the predicted production", async () => {
+    const f = fakeApi(createBaseState(T0));
+    const liberations = [{ region: 3, from: T0, until: null }];
+    const api: Api = { ...f.api, getState: async () => ({ account: GUEST, state: createBaseState(T0), liberations, now: T0 }) };
+    let clock = T0;
+    const store = await connectGameStore({ api, storage: memoryStorage({ [SESSION_KEY]: "tok-1" }), clock: () => clock });
+    expect(store.world().liberations).toEqual(liberations);
+    clock = T0 + 3_600_000;
+    store.tick();
+    const food = (w: World) => advance(createBaseState(T0), clock, w).resources.food;
+    expect(store.state().resources.food).toBeCloseTo(food({ liberations }));
+    expect(store.state().resources.food).toBeGreaterThan(food(NO_WORLD));
+    store.setLiberations([]);
+    expect(store.world().liberations).toEqual([]);
   });
 
   test("the clock follows the server, not the device", async () => {
@@ -212,7 +231,7 @@ describe("game store: training and marches", () => {
       rallyStart: async (_t, target, tr, gather) => {
         sent.push(`start:${target}:${gather}`);
         const timing = { departAt: T0 + gather, arriveAt: T0 + gather + 1000, returnAt: T0 + gather + 2000 };
-        const r = startMarch(createBaseState(T0), { id: "m1", target: { npcId: target, level: 4, x: 1, y: 1 }, from: { x: 0, y: 0 }, troops: tr, rallyId: "r1", ...timing }, T0);
+        const r = startMarch(createBaseState(T0), { id: "m1", target: { npcId: target, level: 4, x: 1, y: 1 }, from: { x: 0, y: 0 }, troops: tr, rallyId: "r1", ...timing }, T0, NO_WORLD);
         return r.ok ? { ok: true, state: r.state, now: T0 } : { ok: false, reason: r.reason, state: r.state, now: T0 };
       },
       rallyJoin: async (_t, rally) => {
