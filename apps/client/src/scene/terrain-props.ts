@@ -42,12 +42,13 @@ export const propsFor = (terrain: TerrainId, x: number, y: number, interior: num
     for (let i = 0; i < trees; i++) out.push(prop(x, y, 10 + i * 7, "trees", 0.85, 1.1, i === 0 ? 0.22 : 0.3));
     if (hash01(x, y, 2) < 0.22) out.push(prop(x, y, 40, "scrub", 0.8, 1.1, 0.35));
   } else if (terrain === "mountain") {
-    if (interior > 0.6) out.push(prop(x, y, 10, "peaks", 1.05, 1.5, 0.15));
-    else if (r < 0.5) out.push(prop(x, y, 10, "peaks", 0.65, 0.95, 0.2));
-    if (hash01(x, y, 2) < 0.25) out.push(prop(x, y, 40, "rocks", 0.7, 1.1, 0.35));
+    // Snowy peaks look Alpine, not Algerian: only the deepest interior keeps one, the rest of a range is rock outcrops.
+    if (interior > 0.85 && r < 0.45) out.push(prop(x, y, 10, "peaks", 0.7, 1.0, 0.15));
+    else if (r < 0.55) out.push(prop(x, y, 10, "rocks", 1.1, 1.8, 0.25));
+    if (hash01(x, y, 2) < 0.3) out.push(prop(x, y, 40, "rocks", 0.7, 1.1, 0.35));
   } else if (terrain === "hills") {
-    if (r < 0.07) out.push(prop(x, y, 10, "terraces", 0.85, 1, 0.1));
-    else if (r < 0.25) out.push(prop(x, y, 10, "scrub", 0.8, 1.1, 0.35));
+    // No terraces: bright terraces read as Vietnam or Bali; they come back for the Vietnam background.
+    if (r < 0.25) out.push(prop(x, y, 10, "scrub", 0.8, 1.1, 0.35));
     else if (r < 0.34) out.push(prop(x, y, 10, "rocks", 0.6, 0.95, 0.35));
   } else {
     if (r < 0.14) out.push(prop(x, y, 10, "scrub", 0.8, 1.1, 0.35));

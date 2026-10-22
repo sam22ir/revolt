@@ -5,7 +5,7 @@ import { groundTexture, propsTexture, terrainAtlases, type Atlas } from "../../a
 import { SpritePool } from "../sprite-pool.ts";
 import { TILE_H, TILE_W, tileToWorld, type TileRange } from "../world-layout.ts";
 import { poly } from "./draw-helpers.ts";
-import { flatGroundRenderer, paintedGroundRenderer, type GroundPaint, type GroundRenderer } from "./ground-renderers.ts";
+import { flatGroundRenderer, softGroundRenderer, type GroundPaint, type GroundRenderer } from "./ground-renderers.ts";
 import type { SpecCache } from "./spec-cache.ts";
 import type { WorldFrame, WorldLayer } from "./world-frame.ts";
 
@@ -18,13 +18,12 @@ const PROP_ZOOM = 0.4;
 
 const TERRAIN_COLORS = theme.terrain;
 
-/** The terrain under the map: flat colours, painted ground sprites and props. Depth 0 (the rim) to 0.9 (tiles) and 0.91 to 0.99 (props). */
+/** The terrain under the map: flat colours when far out, soft blended ground and props when close. Depth 0 (the rim) to 0.9 (tiles) and 0.91 to 0.99 (props). */
 export class GroundLayer implements WorldLayer {
   private readonly graphics: Phaser.GameObjects.Graphics;
-  private readonly terrainPool: SpritePool;
   private readonly propPool: SpritePool;
   private readonly flat: GroundRenderer = flatGroundRenderer;
-  private readonly painted: GroundRenderer;
+  private readonly soft: GroundRenderer;
   private terrain = new Uint8Array(0);
   private terrainKey = "";
   private groundKey = "";
@@ -41,14 +40,14 @@ export class GroundLayer implements WorldLayer {
 
   constructor(scene: Phaser.Scene, specs: SpecCache) {
     this.graphics = scene.add.graphics().setDepth(0);
-    this.terrainPool = new SpritePool(scene);
     this.propPool = new SpritePool(scene);
     addAtlasFrames(scene.textures);
-    this.painted = paintedGroundRenderer({
+    this.soft = softGroundRenderer({
       specs,
-      terrainPool: this.terrainPool,
       propPool: this.propPool,
       interior: (x, y, size) => this.interior(x, y, size),
+      idAt: (x, y) => this.idAt(x, y),
+      palette: TERRAIN_IDS.map((id) => theme.terrain[id][0]),
     });
   }
 
@@ -81,13 +80,11 @@ export class GroundLayer implements WorldLayer {
     const g = this.graphics;
     g.clear();
     this.paintRim(g, snap.size);
-    this.terrainPool.begin();
     this.propPool.begin();
-    const renderer = art ? this.painted : this.flat;
+    const renderer = art ? this.soft : this.flat;
     const paint: GroundPaint = { g, size: snap.size, props, grid, quad: this.quad };
     renderer.begin(paint);
     this.paintTiles(paint, range, renderer);
-    this.terrainPool.end();
     this.propPool.end();
   }
 
@@ -122,6 +119,13 @@ export class GroundLayer implements WorldLayer {
     this.occupied = new Set(tiles.map((t) => t.y * snap.size + t.x));
   }
 
+  /** Terrain index of a tile, or -1 off the map. */
+  private idAt(x: number, y: number): number {
+    const size = Math.sqrt(this.terrain.length);
+    if (x < 0 || y < 0 || x >= size || y >= size) return -1;
+    return this.terrain[y * size + x] ?? -1;
+  }
+
   /** Share of a tile's eight neighbours with the same terrain: 0 at a region's border, 1 deep inside. */
   private interior(x: number, y: number, size: number): number {
     const id = this.terrain[y * size + x];
@@ -143,9 +147,9 @@ export class GroundLayer implements WorldLayer {
     const bottom = tileToWorld(size, size);
     const right = tileToWorld(size, 0);
     const depth = 22;
-    g.fillStyle(0x3b3f2f, 1);
+    g.fillStyle(0x4a3a2c, 1);
     g.fillPoints(poly([left, bottom, { x: bottom.x, y: bottom.y + depth }, { x: left.x, y: left.y + depth }]), true);
-    g.fillStyle(0x2f3326, 1);
+    g.fillStyle(0x3a2d22, 1);
     g.fillPoints(poly([bottom, right, { x: right.x, y: right.y + depth }, { x: bottom.x, y: bottom.y + depth }]), true);
   }
 }

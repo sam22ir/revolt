@@ -46,6 +46,7 @@ docs/             GDD and design notes
 - **Check UI only in `en` and `ar`.** French stays supported in the app (keep `fr` strings complete), but don't spend checking time on it.
 - Every rules change comes with Vitest tests, including the timestamp edge cases (cap reached, time going backwards, very long offline gaps).
 - UI changes: run the dev server, open it at phone size in `en` and `ar` (the preview browser or a real phone) and look at the affected screens before calling it done.
+- **Always take screenshots of the world map with the built-in browser** (the Browser pane, `mcp__Claude_Browser__*`, not Claude in Chrome) whenever a change could affect the map, and look at them before calling it done. Use `preview_start` for `client-mock` and `server-mock`.
 - Run `pnpm test` (~22 s) and `pnpm typecheck` before committing.
 - `main` requires the CI check "Typecheck and unit tests" before a PR can merge.
 - Server tests run on in-process `node:sqlite` (`apps/server/test/sqlite-db.ts`); only `miniflare-smoke.test.ts` uses Miniflare's D1. Keep it that way: Miniflare costs ~1 s per start and ~40 ms per query.

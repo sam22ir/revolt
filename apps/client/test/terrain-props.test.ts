@@ -28,9 +28,15 @@ describe("terrain props", () => {
     expect(count(0.5)).toBeGreaterThan(count(0));
   });
 
-  it("raises peaks in the middle of mountains and keeps trees to forests", () => {
+  it("keeps peaks rare and to the middle of mountains, and trees to forests", () => {
     const tiles = Array.from({ length: 400 }, (_, i) => [i % 20, Math.floor(i / 20)] as const);
-    expect(tiles.every(([x, y]) => propsFor("mountain", x, y, 1).some((p) => p.kind === "peaks"))).toBe(true);
+    const peaks = (interior: number): number => tiles.filter(([x, y]) => propsFor("mountain", x, y, interior).some((p) => p.kind === "peaks")).length;
+    expect(peaks(1)).toBeGreaterThan(0);
+    expect(peaks(1)).toBeLessThan(tiles.length / 2);
+    expect(peaks(0.6)).toBe(0);
+    for (const t of ["plain", "hills", "forest", "mountain"] as const) {
+      expect(tiles.every(([x, y]) => propsFor(t, x, y, 1).every((p) => p.kind !== "terraces"))).toBe(true);
+    }
     for (const t of ["plain", "hills", "mountain"] as const) {
       expect(tiles.every(([x, y]) => propsFor(t, x, y, 1).every((p) => p.kind !== "trees"))).toBe(true);
     }
