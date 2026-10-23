@@ -4,6 +4,8 @@
  * and a test fails when the committed files are stale.
  */
 import { accrue, productionPerHour, storageCap } from "../production.ts";
+import { LIBERATION_BONUS_CAP, LIBERATION_BONUS_PER_REGION } from "../data/liberation.ts";
+import { liberatedCount, productionMultiplier, type Liberation, type World } from "../liberation.ts";
 import type { BaseState } from "../base-state.ts";
 import { createBaseState } from "../base-state.ts";
 import { BUILDING_IDS, type BuildingId } from "../building-id.ts";
@@ -30,6 +32,7 @@ export const buildGodotBalance = (): unknown => ({
   troopIds: [...TROOP_IDS],
   cosmeticIds: [...COSMETIC_IDS],
   maxBuildingLevel: MAX_BUILDING_LEVEL,
+  liberation: { bonusPerRegion: LIBERATION_BONUS_PER_REGION, bonusCap: LIBERATION_BONUS_CAP },
   buildings: BUILDINGS,
   storageCaps: STORAGE_CAPS,
   start: { levels: START_LEVELS, resources: START_RESOURCES, troops: START_TROOPS },
@@ -71,6 +74,8 @@ interface DisplayCase {
   /** The slice of `BaseState` the display needs. */
   readonly state: Pick<BaseState, "resources" | "levels" | "lastUpdated">;
   readonly now: number;
+  /** The server-wide liberations the snapshot carried. */
+  readonly liberations?: readonly Liberation[];
 }
 
 const CASES: readonly DisplayCase[] = [
@@ -83,24 +88,65 @@ const CASES: readonly DisplayCase[] = [
   { name: "ten years offline", state: { resources: res(0, 0, 0, 0), levels: levels(4, 3, 3, 3), lastUpdated: t0 }, now: t0 + 10 * 365 * 24 * HOUR_MS },
   { name: "mid levels, fractional hours", state: { resources: res(120.5, 80, 10, 3), levels: levels(5, 6, 4, 7), lastUpdated: t0 }, now: t0 + Math.round(2.37 * HOUR_MS) },
   { name: "max levels", state: { resources: res(1, 2, 3, 4), levels: levels(MAX_BUILDING_LEVEL, MAX_BUILDING_LEVEL, MAX_BUILDING_LEVEL, MAX_BUILDING_LEVEL), lastUpdated: t0 }, now: t0 + 7 * HOUR_MS },
+  {
+    name: "liberation held the whole span",
+    state: { resources: res(0, 0, 0, 0), levels: levels(3, 3, 3, 3), lastUpdated: t0 },
+    now: t0 + 2 * HOUR_MS,
+    liberations: [{ region: 1, from: t0 - HOUR_MS, until: null }],
+  },
+  {
+    name: "liberation starts mid-span",
+    state: { resources: res(0, 0, 0, 0), levels: levels(3, 3, 3, 3), lastUpdated: t0 },
+    now: t0 + 4 * HOUR_MS,
+    liberations: [{ region: 1, from: t0 + HOUR_MS, until: null }, { region: 2, from: t0 + 3 * HOUR_MS, until: null }],
+  },
+  {
+    name: "liberation ends mid-span",
+    state: { resources: res(0, 0, 0, 0), levels: levels(3, 3, 3, 3), lastUpdated: t0 },
+    now: t0 + 3 * HOUR_MS,
+    liberations: [{ region: 1, from: t0 - HOUR_MS, until: t0 + HOUR_MS }],
+  },
+  {
+    name: "time before lastUpdated is never paid retroactively",
+    state: { resources: res(10, 10, 10, 1), levels: START_LEVELS, lastUpdated: t0 },
+    now: t0 + HOUR_MS,
+    liberations: [{ region: 5, from: t0 - 10 * HOUR_MS, until: t0 - 5 * HOUR_MS }],
+  },
+  {
+    name: "same region liberated twice counts once",
+    state: { resources: res(0, 0, 0, 0), levels: levels(3, 3, 3, 3), lastUpdated: t0 },
+    now: t0 + HOUR_MS,
+    liberations: [{ region: 7, from: t0 - 3 * HOUR_MS, until: t0 - HOUR_MS }, { region: 7, from: t0 - 2 * HOUR_MS, until: null }],
+  },
+  {
+    name: "bonus capped at many regions",
+    state: { resources: res(0, 0, 0, 0), levels: levels(6, 6, 6, 6), lastUpdated: t0 },
+    now: t0 + HOUR_MS,
+    liberations: Array.from({ length: 40 }, (_, i): Liberation => ({ region: i, from: t0 - HOUR_MS, until: null })),
+  },
 ];
 
 /**
- * Golden cases for the client's display math: rate, cap and accrual computed by the real rules.
- * The GDScript test must reproduce `expected` and `rate`/`cap` from `balance.json` alone.
+ * Golden cases for the client's display math, computed by the real rules.
+ * The GDScript test must reproduce `expected`, `baseRatePerHour`, `cap` and the multiplier from `balance.json`
+ * and the case's `liberations` alone.
  */
 export const buildGodotDisplayFixtures = (): unknown => ({
   cases: CASES.map((c) => {
     const base: BaseState = { ...createBaseState(c.state.lastUpdated), ...c.state };
+    const world: World = { liberations: c.liberations ?? [] };
     return {
       name: c.name,
       resources: c.state.resources,
       levels: c.state.levels,
       lastUpdated: c.state.lastUpdated,
       now: c.now,
-      ratePerHour: productionPerHour(c.state.levels),
+      liberations: world.liberations,
+      baseRatePerHour: productionPerHour(c.state.levels, 1),
       cap: storageCap(c.state.levels.hq),
-      expected: accrue(base, c.now).resources,
+      liberatedCountAtLastUpdated: liberatedCount(world, c.state.lastUpdated),
+      multiplierAtLastUpdated: productionMultiplier(world, c.state.lastUpdated),
+      expected: accrue(base, c.now, world).resources,
     };
   }),
 });

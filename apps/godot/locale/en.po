@@ -400,6 +400,30 @@ msgstr "Forest"
 msgid "terrain.mountain"
 msgstr "Mountain"
 
+msgid "search.title"
+msgstr "Find a target"
+
+msgid "search.go"
+msgstr "Search"
+
+msgid "search.next"
+msgstr "Next"
+
+msgid "search.level"
+msgstr "Level {level}"
+
+msgid "search.none"
+msgstr "No level {level} target right now."
+
+msgid "map.minimap"
+msgstr "Map overview. Tap to jump there."
+
+msgid "map.myBase"
+msgstr "My base"
+
+msgid "map.baseDistance"
+msgstr "{count} tiles"
+
 msgid "map.coords"
 msgstr "X {x} · Y {y}"
 

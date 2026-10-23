@@ -400,6 +400,30 @@ msgstr "غابة"
 msgid "terrain.mountain"
 msgstr "جبل"
 
+msgid "search.title"
+msgstr "البحث عن هدف"
+
+msgid "search.go"
+msgstr "بحث"
+
+msgid "search.next"
+msgstr "التالي"
+
+msgid "search.level"
+msgstr "المستوى {level}"
+
+msgid "search.none"
+msgstr "لا يوجد هدف من المستوى {level} حاليًا."
+
+msgid "map.minimap"
+msgstr "نظرة عامة على الخريطة. المس للانتقال."
+
+msgid "map.myBase"
+msgstr "قاعدتي"
+
+msgid "map.baseDistance"
+msgstr "المسافة {count}"
+
 msgid "map.coords"
 msgstr "س {x} · ص {y}"
 

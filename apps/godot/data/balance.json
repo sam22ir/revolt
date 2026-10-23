@@ -33,6 +33,10 @@
     "outfit_coat"
   ],
   "maxBuildingLevel": 10,
+  "liberation": {
+    "bonusPerRegion": 0.01,
+    "bonusCap": 0.2
+  },
   "buildings": {
     "hq": {
       "produces": "support",
@@ -1066,7 +1070,7 @@
       16,
       10,
       6,
-      2
+      0
     ],
     "placementSpacing": 2
   },

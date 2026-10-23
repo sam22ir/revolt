@@ -26,23 +26,24 @@ Branch from `main` (not `base-camera-fit`).
 4. **CLAUDE.md / GDD wording.** Rules 5-7 (strings, DOM overlay, CSS logical properties), the Stack and Testing sections, GDD §10 and the CI workflow all assume Phaser/DOM/Vite/Capacitor. I will draft replacements as a diff for approval; I will not edit your rules unprompted. The required CI check name "Typecheck and unit tests" stays unchanged.
 5. **Product name.** Keep it out of `project.godot` and the Android export; use the code name, with the app label from translations.
 
-## Server contract for a thin client
+## Server contract for a thin client (checked against `main` 7884d09)
 
-The client cannot import rules, so every state payload must let it display counters without deciding anything:
+**No server change is needed.** Every snapshot (`GET /v1/state`, intent replies, guest and Google login) already carries what the client needs:
 
-- per resource: `stored`, `rate`, `cap`, `last` (timestamp),
-- per timer (upgrade, training, march): `start`, `end`,
-- the server's `now` on each response, so the client computes a clock offset and never trusts the device clock.
+- `state.resources` (stored), `state.levels`, `state.lastUpdated` (epoch ms the amounts are settled to),
+- timers as epoch ms: `queue`/`training`/`marches[]` with `startedAt`, `endsAt`, `departAt`, `arriveAt`, `returnAt`,
+- `liberations` (server-wide regions held, `from`/`until`), which scale production,
+- the server's `now`.
 
-Client display formula (GDScript, tested): `min(cap, stored + rate * max(0, now - last))`, including cap reached, time going backwards, and multi-day offline gaps (rule 1 edge cases). The server still validates every intent.
+Rates and caps are not sent. They derive from `levels` (and the liberation multiplier), so the client computes them from the exported balance tables. Instead of a server change, drift is prevented by golden fixtures: `scripts/export-godot.mjs` runs the real `accrue` over edge cases (cap reached, above-cap kept, time going backwards, ten years offline, liberation starting/ending mid-span, bonus capped) and a GDScript test must reproduce the results from `balance.json` alone. Vitest fails when the committed JSON is stale.
 
-First task: read `apps/server/src/handlers` and `apps/client/src/net/api.ts` to see which of these fields already exist; add only what is missing, with server tests.
+Client display formula: `ResourceDisplay.amounts` (GDScript) mirrors `accrue`: segments split at liberation changes, `min(cap, stored + rate * multiplier * dt)`, amounts at or above the cap kept as is, `now` from the server-synced `Clock` (never the device clock).
 
 ## Shared data
 
-- Script `scripts/export-balance.mjs`: writes `packages/rules/src/data` (costs, times, stats, ids) to JSON under `apps/godot/data/`.
-- A test (and CI step) fails when the JSON is stale vs the TS tables.
-- i18n: convert `apps/client/src/i18n/locales` (ar, fr, en) to gettext `.po` (CSV has no plurals; Arabic has six forms). Convert `{{x}}` placeholders. Add a check that every key exists in all three languages (rule 5).
+- `pnpm godot:export` (`scripts/export-godot.mjs`) writes `apps/godot/data/balance.json`, `display-fixtures.json` and `apps/godot/locale/{en,ar,fr}.po`. Builders: `packages/rules/src/export/godot-data.ts` and `apps/client/src/i18n/export-po.ts` (the latter moves when the locales leave `apps/client`).
+- Vitest (`godot-export.test.ts`, `godot-locale.test.ts`) fails when a committed file is stale, so the existing CI check covers it. Run Godot tests with `pnpm godot:test` (headless GUT).
+- i18n: done for slice 0. `msgid` is the dotted key, `{{x}}` becomes `{x}`, `background.<id>.<key>` overrides work through `Loc.t(key, vars, background)`. GUT tests check identical key sets in all three languages, no empty strings, and that every `Loc.t("key")` in scripts exists (rule 5).
 
 ## Arabic / RTL
 
