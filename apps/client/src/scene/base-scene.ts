@@ -50,6 +50,8 @@ export class BaseScene extends Phaser.Scene {
   private viewCenter: Vec = { x: 0, y: 0 };
   /** The HUD room the camera was last fitted to; a sheet opening does not refit the base. */
   private fitted: { top: number; nav: number } | null = null;
+  /** Put to sleep by showScene while the map is open; the store is not drawn then, and WAKE redraws it all. */
+  private asleep = false;
 
   constructor(
     private readonly store: GameStore,
@@ -81,8 +83,17 @@ export class BaseScene extends Phaser.Scene {
     this.input.on(Phaser.Input.Events.POINTER_UP, (_p: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => {
       if (over.length === 0) this.onSelect(null);
     });
-    const unsubscribe = this.store.subscribe((state, now) => this.refresh(state, now));
+    const unsubscribe = this.store.subscribe((state, now) => {
+      if (!this.asleep) this.refresh(state, now);
+    });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, unsubscribe);
+    this.events.on(Phaser.Scenes.Events.SLEEP, () => {
+      this.asleep = true;
+    });
+    this.events.on(Phaser.Scenes.Events.WAKE, () => {
+      this.asleep = false;
+      this.refresh(this.store.state(), this.store.now());
+    });
     this.refresh(this.store.state(), this.store.now());
   }
 
