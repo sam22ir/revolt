@@ -7,6 +7,19 @@
 - Next: slice 1 (world map), then the open questions below that are still open (Android sign-in, CLAUDE.md/GDD wording, CI step).
 - `main` fails one server test (`live-leaderboard`, order-dependent); tracked as a separate task, not part of this branch.
 
+## Slice 1 plan: world map (in progress)
+
+Facts: `MAP_SIZE` is 64 (4096 tiles). `GET /v1/map` returns `terrainSeed`, `size`, bases, NPCs, HQs, marches, rallies, liberations, `now`. Terrain and regions are pure functions of the seed (`terrainAt`, `regionAt`), computed on the client, never sent. The mock server (`server-mock`, port 8787) allows CORS only from ports 5173, 4173 and 4174, so the Godot preview moves to **4173** (no server change). Native Android sends no Origin header.
+
+1. **Port the map math** to GDScript: `hash32` (32-bit wrap), `valueNoise`, `terrainAt`, `regionAt`, `regionSite`. Golden fixtures from the real rules (several seeds including 0 and 4294967295, full 64x64 terrain and region grids), Vitest stale check, GUT parity test.
+2. **Network:** `Api` (HTTPRequest): guest login, token kept in `user://`, `GET /v1/map`; base URL from a `?api=` query parameter on web, default `http://localhost:8787`.
+3. **Map view:** isometric `TileMapLayer` with a runtime-generated TileSet (flat colours per terrain; the real terrain art comes in a later slice), region borders, markers for bases, NPCs, HQs and marches, short ASCII tag labels only (rule 6).
+4. **Camera:** drag pan, pinch and wheel zoom, clamped to the map, starts on the player's base.
+5. **Perf probe:** FPS label so the phone run can be compared with the Phaser build.
+6. **Verify:** mock server + `godot-web` on 4173, screenshots at phone size in `en` and `ar`, compared with the Phaser map.
+
+Out of scope for slice 1: live WebSocket updates, tapping tiles, march drawing animation, final art.
+
 # Original plan (draft)
 
 Decision (user): replace the Phaser + DOM + Capacitor client with a Godot client. Language: **GDScript**. Rules: **server-driven thin client** (no GDScript port of `packages/rules`).
