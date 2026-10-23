@@ -63,7 +63,19 @@ const bbox = (m, w, h, min) => {
   return { x0: first(col), x1: last(col), y0: first(row), y1: last(row) };
 };
 
-const groundTile = async (im, c, feather = FEATHER) => {
+// A decal's outline: a soft, wobbly ellipse inside the diamond (which reaches 0.7 of the half-size along the diagonals), so stamps
+// read as irregular patches instead of tile-shaped diamonds. `phase` varies the wobble per frame.
+const blobAlpha = (nx, ny, phase) => {
+  const r = Math.hypot(nx, ny) / 0.7;
+  const t = Math.atan2(ny, nx);
+  const edge = 1 + 0.16 * Math.sin(3 * t + phase) + 0.08 * Math.sin(5 * t + phase * 1.7);
+  const d = r / edge;
+  if (d >= 1) return 0;
+  const k = Math.min(1, (1 - d) / 0.55);
+  return k * k * (3 - 2 * k);
+};
+
+const groundTile = async (im, c, feather = FEATHER, phase = null) => {
   const m = foreground(im, c, 26);
   const b = bbox(m, c.w, c.h, 6);
   const W = b.x1 - b.x0 + 1;
@@ -76,7 +88,7 @@ const groundTile = async (im, c, feather = FEATHER) => {
     for (let x = 0; x < TILE_W; x++) {
       const nx = (x + 0.5) / TILE_W * 2 - 1, ny = (y + 0.5) / OH * 2 - 1;
       const d = (Math.abs(nx) + Math.abs(ny)) / (1 - INSET);
-      const a = d >= 1 ? 0 : d <= 1 - feather ? 1 : (1 - d) / feather;
+      const a = phase !== null ? blobAlpha(nx, ny, phase) : d >= 1 ? 0 : d <= 1 - feather ? 1 : (1 - d) / feather;
       const sx = Math.min(im.w - 1, Math.max(0, Math.round(x0 + ((x + 0.5) / TILE_W) * W)));
       const sy = Math.min(im.h - 1, Math.max(0, Math.round(y0 + ((y + 0.5) / OH) * H)));
       const p = px(im, sx, sy);
@@ -174,7 +186,7 @@ const writeAtlas = async (name, frames, atlasW) => {
   return { w: atlasW, h: height, frames: rects.map((r, i) => ({ ...r, ...(frames[i].meta ?? {}) })) };
 };
 
-// ---- decals: a few flat surfaces from the ground sheets, cut with a wide feather so the stamps have no visible edge.
+// ---- decals: a few flat surfaces from the ground sheets, cut as soft irregular blobs (blobAlpha) so the stamps have no visible edge.
 //   [sheet, cell (row-major, 0..8), kind]. Flat surfaces only: no snow, no 3D shrubs or rock mounds, which would not sit in the diamond.
 const DECAL_PICKS = [
   ["plain-1", 0, "sand"],
@@ -186,7 +198,6 @@ const DECAL_PICKS = [
   ["hills-1", 5, "sand"],
   ["mountain-1", 0, "stone"],
 ];
-const DECAL_FEATHER = 0.35; // the outer 35% of the diamond fades to nothing
 const MANIFEST = join(root, "apps/client/src/art/terrain-manifest.json");
 // `--decals` rebuilds only decals.webp and its manifest entry, leaving the ground and prop atlases as they are.
 const DECALS_ONLY = process.argv.includes("--decals");
@@ -204,7 +215,7 @@ async function cutDecals() {
   for (const [sheet, idx, kind] of DECAL_PICKS) {
     const im = await load(join(SRC, "ground", `${sheet}.jpg`));
     const c = cells(im)[idx];
-    frames.push({ buf: await groundTile(im, c, DECAL_FEATHER), w: TILE_W, h: TILE_W / 2, meta: { kind, from: `${sheet}#${idx}` } });
+    frames.push({ buf: await groundTile(im, c, FEATHER, frames.length * 1.3), w: TILE_W, h: TILE_W / 2, meta: { kind, from: `${sheet}#${idx}` } });
   }
   manifest.decals = await writeAtlas("decals", frames, TILE_W * 4 + 10);
   console.log(`decals: ${frames.length} frames`);

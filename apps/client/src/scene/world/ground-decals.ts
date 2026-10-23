@@ -78,12 +78,12 @@ export const decalsFor = (
       const frames = DECAL_KIND_FRAMES[kind];
       if (frames.length === 0) continue;
       out.push({
-        x: x + 0.5 + (hash01(x, y, salt + 2) - 0.5) * 0.6,
-        y: y + 0.5 + (hash01(x, y, salt + 3) - 0.5) * 0.6,
+        x: x + 0.5 + (hash01(x, y, salt + 2) - 0.5) * 0.9,
+        y: y + 0.5 + (hash01(x, y, salt + 3) - 0.5) * 0.9,
         frame: frames[Math.floor(hash01(x, y, salt + 4) * frames.length)] ?? frames[0] ?? 0,
         scale: 2 + 2 * hash01(x, y, salt + 5),
         flip: hash01(x, y, salt + 6) < 0.5,
-        alpha: 0.5 + 0.4 * hash01(x, y, salt + 7),
+        alpha: 0.35 + 0.3 * hash01(x, y, salt + 7),
       });
     }
   }

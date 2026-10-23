@@ -10,7 +10,7 @@ import { makeGrainTiles } from "./ground-grain.ts";
 /** Texture pixels per world px. Half resolution: the ground is soft by design, and this is a quarter of a full-size bake. */
 export const BAKE_SCALE = 0.5;
 /** Cells baked per frame at most, so a fresh map fills in over a few frames instead of one long stall. */
-export const BAKE_PER_FRAME = 2;
+export const BAKE_PER_FRAME = 1;
 
 const RIM_TOP = 0x4a3a2c;
 const RIM_SIDE = 0x3a2d22;
