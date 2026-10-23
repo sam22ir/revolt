@@ -10,6 +10,7 @@ import { createAccountPanel } from "./account-panel.ts";
 import { createAlliancePanel, type AllianceTab } from "./alliance-panel.ts";
 import { createBuildingPanel } from "./building-panel.ts";
 import { el } from "./dom.ts";
+import { homeIcon } from "./icons.ts";
 import { createHud } from "./hud.ts";
 import { currentLanguage, t } from "../i18n/i18n.ts";
 import { createLanguageSwitcher } from "./language-switcher.ts";
@@ -245,9 +246,21 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
 
     panel.show(selected);
     tilePanel.show(selectedTile);
+    // Jumps the camera to the player's own base; shown only with the minimap, next to it.
+    const myBase = el("button", "my-base-btn");
+    myBase.type = "button";
+    myBase.dataset.testid = "my-base";
+    myBase.hidden = true;
+    myBase.setAttribute("aria-label", t("map.myBase"));
+    myBase.innerHTML = homeIcon();
+    myBase.addEventListener("click", () => {
+      const mine = deps.world.snapshot()?.bases.find((b) => b.mine);
+      if (mine !== undefined) deps.onJump({ x: mine.x, y: mine.y });
+    });
+
     minimap.setLabel(t("map.minimap"));
     search.relabel();
-    root.replaceChildren(hud.root, minimap.root, panel.root, tilePanel.root, alliance.root, account.root, reports.root, toast.root, dialog.root);
+    root.replaceChildren(hud.root, minimap.root, myBase, panel.root, tilePanel.root, alliance.root, account.root, reports.root, toast.root, dialog.root);
 
     ctl.refresh = () => {
       const state = deps.store.state();
@@ -258,7 +271,10 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       search.update(snapshot);
       search.setVisible(view === "map");
       // The overview is for the bare map: any sheet or panel over it takes its place.
-      minimap.setVisible(view === "map" && selectedTile === null && !alliance.isOpen() && !reports.isOpen() && account.root.hidden === true);
+      const overview = view === "map" && selectedTile === null && !alliance.isOpen() && !reports.isOpen() && account.root.hidden === true;
+      minimap.setVisible(overview);
+      myBase.hidden = !overview;
+      myBase.disabled = !snapshot?.bases.some((b) => b.mine);
       hud.setOffline(deps.store.status() === "offline");
       panel.update(state, now, canAskHelp("training"));
       marches.update(state, now);

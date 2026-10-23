@@ -28,6 +28,7 @@ export const createTargetSearch = (deps: TargetSearchDeps): TargetSearch => {
   const root = el("div", "target-search");
   root.dataset.testid = "target-search";
   root.hidden = true;
+  const levelLabel = el("span", "target-label");
   const levels = el("div", "target-levels");
   levels.setAttribute("role", "group");
   const buttons: HTMLButtonElement[] = [];
@@ -45,13 +46,14 @@ export const createTargetSearch = (deps: TargetSearchDeps): TargetSearch => {
   go.dataset.testid = "target-go";
   const note = el("p", "target-note");
   note.setAttribute("role", "status");
-  root.append(levels, go, note);
+  root.append(levelLabel, levels, go, note);
 
   let level = 1;
   let lastId: string | null = null;
   let found = false;
 
   const relabel = (): void => {
+    levelLabel.textContent = t("search.levelLabel");
     levels.setAttribute("aria-label", t("search.title"));
     for (const b of buttons) b.setAttribute("aria-label", t("search.level", { level: Number(b.dataset.level) }));
     go.textContent = found ? t("search.next") : t("search.go");
