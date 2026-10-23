@@ -188,9 +188,10 @@ RB.push(["never draws alliance text in Phaser, except the checked ASCII tag", as
   // The only `setText` calls take an NPC level or a tag that passed `drawableTag`.
   const all = code.match(/\.setText\(/g) ?? [];
   const allowed = code.match(/\.setText\((String\(n\.level\)|tag)\)/g) ?? [];
-  expect(all).toHaveLength(2);
-  expect(allowed).toHaveLength(2);
+  expect(all).toHaveLength(3);
+  expect(allowed).toHaveLength(3);
   expect(code).toContain("drawableTag(h.tag)");
+  expect(code).toContain("drawableTag(b.alliance)");
   expect(code).not.toMatch(/alliance\.name|\.leader|\.handle/);
 }]);
 

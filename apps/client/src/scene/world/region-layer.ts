@@ -35,7 +35,12 @@ export class RegionLayer implements WorldLayer {
     const { view, snap, range, now } = frame;
     const held = liberatedRegions({ liberations: snap.liberations }, now);
     const bucket = zoomBucket(view.zoom);
-    const key = `${range.x0},${range.x1},${range.y0},${range.y1}|${snap.terrainSeed}|${snap.size}|${[...held].sort((a, b) => a - b).join(",")}|${bucket}`;
+    // A region freed by the player's own alliance is washed in its teal; any other liberated region in the movement's gold.
+    const myAlliance = snap.bases.find((b) => b.mine)?.alliance ?? null;
+    const ours = new Set(
+      snap.liberations.filter((l) => held.has(l.region) && myAlliance !== null && l.alliance === myAlliance).map((l) => l.region),
+    );
+    const key = `${range.x0},${range.x1},${range.y0},${range.y1}|${snap.terrainSeed}|${snap.size}|${[...held].sort((a, b) => a - b).join(",")}|${[...ours].join(",")}|${bucket}`;
     if (key === this.key) return;
     this.key = key;
     const g = this.graphics;
@@ -44,10 +49,11 @@ export class RegionLayer implements WorldLayer {
     const hw = (TILE_W / 2) * WASH_BLEED;
     const hh = (TILE_H / 2) * WASH_BLEED;
     if (held.size > 0) {
-      g.fillStyle(theme.region.liberated, WASH_ALPHA);
       for (let x = range.x0; x <= range.x1; x++) {
         for (let y = range.y0; y <= range.y1; y++) {
-          if (!held.has(grid[y * snap.size + x] ?? -1)) continue;
+          const region = grid[y * snap.size + x] ?? -1;
+          if (!held.has(region)) continue;
+          g.fillStyle(ours.has(region) ? theme.alliance.own : theme.region.liberated, WASH_ALPHA);
           const p = tileToWorld(x, y);
           const cy = p.y + TILE_H / 2;
           g.fillPoints([new Phaser.Math.Vector2(p.x, cy - hh), new Phaser.Math.Vector2(p.x + hw, cy), new Phaser.Math.Vector2(p.x, cy + hh), new Phaser.Math.Vector2(p.x - hw, cy)], true);
@@ -57,7 +63,8 @@ export class RegionLayer implements WorldLayer {
     const width = Math.min(MAX_BORDER_WORLD, BORDER_SCREEN_PX / 2 ** (bucket / 2));
     for (const e of regionEdges(grid, snap.size, range)) {
       const liberated = held.has(e.a) || held.has(e.b);
-      g.lineStyle(width, liberated ? theme.region.liberated : theme.region.border, liberated ? 0.9 : 0.55);
+      const own = ours.has(e.a) || ours.has(e.b);
+      g.lineStyle(width, own ? theme.alliance.own : liberated ? theme.region.liberated : theme.region.border, liberated ? 0.9 : 0.55);
       const p = tileToWorld(e.x, e.y);
       const right = { x: p.x + TILE_W / 2, y: p.y + TILE_H / 2 };
       const bottom = { x: p.x, y: p.y + TILE_H };
