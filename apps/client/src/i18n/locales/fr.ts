@@ -93,6 +93,7 @@ export const fr: LocaleShape = {
   terrain: { plain: "Plaine", hills: "Collines", forest: "Forêt", mountain: "Montagne" },
   search: {
     title: "Trouver une cible",
+    levelLabel: "Niveau",
     go: "Chercher",
     next: "Suivante",
     level: "Niveau {{level}}",
@@ -101,6 +102,7 @@ export const fr: LocaleShape = {
 
   map: {
     minimap: "Aperçu de la carte. Touchez pour vous y rendre.",
+    myBase: "Ma base",
     coords: "X {{x}} · Y {{y}}",
     loading: "Chargement de la carte…",
     ownCamp: "Votre camp",

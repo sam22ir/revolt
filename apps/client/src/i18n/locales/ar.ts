@@ -90,6 +90,7 @@ export const ar: LocaleShape = {
   terrain: { plain: "سهل", hills: "تلال", forest: "غابة", mountain: "جبل" },
   search: {
     title: "البحث عن هدف",
+    levelLabel: "المستوى",
     go: "بحث",
     next: "التالي",
     level: "المستوى {{level}}",
@@ -98,6 +99,7 @@ export const ar: LocaleShape = {
 
   map: {
     minimap: "نظرة عامة على الخريطة. المس للانتقال.",
+    myBase: "قاعدتي",
     coords: "س {{x}} · ص {{y}}",
     loading: "جارٍ تحميل الخريطة…",
     ownCamp: "معسكرك",

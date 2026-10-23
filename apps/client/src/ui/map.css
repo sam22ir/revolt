@@ -280,6 +280,26 @@
 .minimap[hidden] { display: none; }
 .minimap canvas { display: block; inline-size: 100%; block-size: 100%; }
 
+/* "My base": a round home button just past the minimap (its inline-start edge is 10 + 112 + 8 px), centred on it. */
+.my-base-btn {
+  position: fixed;
+  inset-inline-start: 130px;
+  inset-block-end: calc(var(--nav-h) + env(safe-area-inset-bottom) + 18px);
+  display: grid;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 40px;
+  padding: 0;
+  border: 1px solid rgb(244 234 214 / 0.35);
+  border-radius: 50%;
+  background: rgb(43 42 36 / 0.72);
+  color: var(--paper);
+  cursor: pointer;
+}
+.my-base-btn[hidden] { display: none; }
+.my-base-btn:disabled { opacity: 0.45; cursor: default; }
+.my-base-btn .home-icon { display: block; inline-size: 22px; block-size: 22px; }
+
 /* "Find a target": level buttons and Search, on a row of the HUD header (so the free band already makes room for it). */
 .target-search {
   flex: 0 0 100%;
@@ -289,6 +309,7 @@
   gap: 6px;
 }
 .target-search[hidden] { display: none; }
+.target-label { font-size: 0.85em; opacity: 0.85; white-space: nowrap; }
 .target-levels { display: flex; gap: 4px; }
 .target-level, .target-go {
   min-block-size: 36px;
