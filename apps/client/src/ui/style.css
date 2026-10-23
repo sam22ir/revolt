@@ -88,18 +88,19 @@ html, body {
 .res {
   position: relative;
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr);
+  grid-template-columns: 24px minmax(0, 1fr);
   column-gap: 4px;
   align-items: center;
-  block-size: 46px;
+  block-size: 36px;
   padding: 4px 4px 6px;
-  border-radius: 8px;
-  background: rgb(255 255 255 / 0.06);
+  border-radius: 6px;
+  background: var(--well);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.6);
   color: var(--paper);
   min-inline-size: 0;
   overflow: hidden;
 }
-.res .icon { inline-size: 22px; block-size: 22px; object-fit: contain; }
+.res .icon { inline-size: 24px; block-size: 24px; object-fit: contain; }
 /* minmax(0, …) and ellipsis: a long number must not push the chip wider than its quarter of the row. */
 .res-text { display: flex; flex-direction: column; align-items: flex-start; min-inline-size: 0; }
 .res-amount {
@@ -109,7 +110,7 @@ html, body {
   white-space: nowrap;
   font-weight: 700;
   font-size: 13px;
-  line-height: 16px;
+  line-height: 15px;
   font-variant-numeric: tabular-nums;
 }
 .res-rate {
@@ -117,8 +118,8 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 10px;
-  line-height: 12px;
+  font-size: 9px;
+  line-height: 11px;
   opacity: 0.75;
   unicode-bidi: plaintext;
 }
@@ -126,11 +127,12 @@ html, body {
   position: absolute;
   inset-inline: 0;
   inset-block-end: 0;
-  block-size: 3px;
+  block-size: 2px;
   background: rgb(255 255 255 / 0.15);
   overflow: hidden;
 }
-.res-fill { block-size: 100%; inline-size: 0; background: var(--gold); transition: inline-size 0.25s linear; }
+.res-fill { block-size: 100%; inline-size: 0; background: rgb(244 234 214 / 0.35); transition: inline-size 0.25s linear; }
+.res-fill.near { background: var(--gold); }
 .res-fill.full { background: var(--accent); }
 
 /* Status row, in this order: queue (takes the spare width and ellipsizes), help, language at the inline end.

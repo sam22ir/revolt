@@ -91,6 +91,7 @@ export const createHud = (
       chip.rate.textContent = t("panel.perHour", { amount: `\u2066+${formatAmount(lang, rate[id])}\u2069` });
       const frac = Math.min(1, state.resources[id] / cap[id]);
       chip.fill.style.inlineSize = `${(frac * 100).toFixed(1)}%`;
+      chip.fill.classList.toggle("near", frac >= 0.9);
       chip.fill.classList.toggle("full", frac >= 1);
     }
     const job = state.queue;
