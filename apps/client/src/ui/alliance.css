@@ -193,3 +193,6 @@
 .member-row { flex-wrap: wrap; }
 .member-who { flex: 1 1 9rem; }
 .help-who { display: flex; align-items: baseline; gap: 8px; }
+
+/* These rows have light backgrounds inside the dark panels, so they set their own ink colour. */
+.alliance-row, .member-row, .help-row, .rally-row, .chat-msg, .rank-badge { color: var(--ink); }

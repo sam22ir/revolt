@@ -257,8 +257,6 @@ html, body {
 }
 /* Panels are dark now (bronze frame), so the secondary buttons in them take light text. */
 .panel .secondary-btn, .account-panel .secondary-btn { color: var(--paper); border-color: var(--bronze); }
-/* Light chips in the alliance panel (styled in alliance.css) keep ink text on the dark panel. */
-.alliance-row, .member-row, .help-row, .rally-row, .chat-msg, .rank-badge { color: var(--ink); }
 .cost.lacking { color: var(--bad); outline: 1px solid var(--bad); }
 
 .upgrade-btn {
@@ -275,7 +273,8 @@ html, body {
   cursor: pointer;
 }
 .upgrade-btn:disabled { background: #9a9282; cursor: not-allowed; }
-.panel-reason { margin-block: 8px 0; color: var(--bad); font-size: 14px; font-weight: 600; text-align: center; }
+/* A lighter red than --bad: the panels are dark slate now, and --bad is too dim on them. */
+.panel-reason { margin-block: 8px 0; color: #ec8a72; font-size: 14px; font-weight: 600; text-align: center; }
 
 .progress { block-size: 12px; border-radius: 6px; background: var(--paper-2); overflow: hidden; }
 .progress-fill { block-size: 100%; inline-size: 0; background: var(--gold); transition: inline-size 0.25s linear; }
