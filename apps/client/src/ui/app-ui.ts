@@ -10,7 +10,7 @@ import { createAccountPanel } from "./account-panel.ts";
 import { createAlliancePanel, type AllianceTab } from "./alliance-panel.ts";
 import { createBuildingPanel } from "./building-panel.ts";
 import { el } from "./dom.ts";
-import { homeIcon } from "./icons.ts";
+import { homeIcon, navIcon, type NavIconId } from "./icons.ts";
 import { createHud } from "./hud.ts";
 import { currentLanguage, t } from "../i18n/i18n.ts";
 import { createLanguageSwitcher } from "./language-switcher.ts";
@@ -66,6 +66,22 @@ interface Controls {
 }
 
 const noop = (): void => {};
+
+interface NavButton {
+  readonly button: HTMLButtonElement;
+  readonly icon: SVGSVGElement;
+  readonly label: HTMLElement;
+}
+
+/** A bottom nav button: icon, then the label (which the CSS ellipsises). Badges are appended by the caller. */
+const navButton = (icon: NavIconId, text: string): NavButton => {
+  const button = el("button", "nav-btn");
+  button.type = "button";
+  const iconEl = navIcon(icon);
+  const label = el("span", "nav-label", text);
+  button.append(iconEl, label);
+  return { button, icon: iconEl, label };
+};
 
 /** Mounts the DOM overlay (HUD, panels, dialogs). Rebuilt on language change. */
 export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
@@ -153,8 +169,9 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       onOpenChange: (open) => (accountView.open = open),
     });
     account.toggle(accountView.open);
-    const accountButton = el("button", "nav-btn account-open", t("account.button"));
-    accountButton.type = "button";
+    const accountNav = navButton("account", t("account.button"));
+    const accountButton = accountNav.button;
+    accountButton.classList.add("account-open");
     accountButton.dataset.testid = "account";
     accountButton.addEventListener("click", () => {
       select(null);
@@ -164,8 +181,10 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       account.toggle();
     });
 
-    const mapToggle = el("button", "nav-btn");
-    mapToggle.type = "button";
+    // The icon shows the view you would switch to: the map from the base, the base from the map.
+    const mapNav = navButton("map", t("nav.map"));
+    const mapToggle = mapNav.button;
+    let mapIcon = mapNav.icon;
     mapToggle.dataset.testid = "map-toggle";
     mapToggle.addEventListener("click", () => setView(view === "base" ? "map" : "base"));
     // Shown on the map toggle while the builders are idle and the player is on the map (the queue pill is hidden there).
@@ -173,25 +192,24 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
     idleBadge.dataset.testid = "builders-idle";
     idleBadge.setAttribute("aria-label", t("queue.idle"));
     idleBadge.hidden = true;
+    mapToggle.append(idleBadge);
 
-    const reportsButton = el("button", "nav-btn");
-    reportsButton.type = "button";
+    const reportsNav = navButton("reports", t("nav.reports"));
+    const reportsButton = reportsNav.button;
     reportsButton.dataset.testid = "reports-open";
-    const reportsLabel = el("span", undefined, t("nav.reports"));
     const badge = el("span", "badge");
     badge.dataset.testid = "reports-badge";
     badge.hidden = true;
-    reportsButton.append(reportsLabel, badge);
+    reportsButton.append(badge);
     reportsButton.addEventListener("click", () => reports.toggle());
 
-    const allianceButton = el("button", "nav-btn");
-    allianceButton.type = "button";
+    const allianceNav = navButton("alliance", t("nav.alliance"));
+    const allianceButton = allianceNav.button;
     allianceButton.dataset.testid = "alliance-open";
-    const allianceLabel = el("span", undefined, t("nav.alliance"));
     const allianceBadge = el("span", "badge");
     allianceBadge.dataset.testid = "alliance-badge";
     allianceBadge.hidden = true;
-    allianceButton.append(allianceLabel, allianceBadge);
+    allianceButton.append(allianceBadge);
     allianceButton.addEventListener("click", () => alliance.toggle());
 
     const coords = el("div", "coord-pill");
@@ -330,8 +348,10 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       coords.textContent = t("map.coords", { x: formatAmount(lang, center.x), y: formatAmount(lang, center.y) });
     };
     ctl.updateView = () => {
-      mapToggle.textContent = view === "base" ? t("nav.map") : t("nav.base");
-      mapToggle.append(idleBadge);
+      const next = navIcon(view === "base" ? "map" : "base");
+      mapIcon.replaceWith(next);
+      mapIcon = next;
+      mapNav.label.textContent = view === "base" ? t("nav.map") : t("nav.base");
       hud.setView(view);
       ctl.updateCenter();
     };
