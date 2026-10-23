@@ -20,6 +20,10 @@ const BADGE_RING = 0xc8964a;
 /** Ring of a base with no alliance. */
 const NEUTRAL_RING = 0xf0e4c8;
 
+/** Sets a text's raster resolution only when it changed: each change re-renders the text texture. */
+const withResolution = (text: Phaser.GameObjects.Text, px: number): Phaser.GameObjects.Text =>
+  text.style.resolution === px ? text : text.setResolution(px);
+
 /** Plate colour of a base: the player's own gold, their alliance teal, another alliance violet, none a pale ring. */
 export const relationColor = (b: { mine: boolean; alliance: string | null }, myAlliance: string | null): number =>
   b.mine ? GOLD : b.alliance === null ? NEUTRAL_RING : b.alliance === myAlliance ? HQ_OWN : HQ_OTHER;
@@ -107,7 +111,7 @@ export class ObjectLayer implements WorldLayer {
         g.lineStyle(Math.max(1.5, r * 0.18), n.kind === "fortified_line" ? 0xd0573a : BADGE_RING, 1);
         g.strokeCircle(centre.x, centre.y, r);
       }
-      this.label(n.id, LABEL_PX, 0, 0.5).setResolution(px).setText(String(n.level)).setPosition(centre.x, centre.y).setScale(labelScale).setVisible(showLabels);
+      withResolution(this.label(n.id, LABEL_PX, 0, 0.5), px).setText(String(n.level)).setPosition(centre.x, centre.y).setScale(labelScale).setVisible(showLabels);
     }
 
     // Alliance HQs: a flag medallion ringed teal (the player's own alliance) or violet, drawn over the camps and NPCs
@@ -126,7 +130,7 @@ export class ObjectLayer implements WorldLayer {
       if (tag === null) continue;
       const key = `hq:${h.x},${h.y}`;
       live.add(key);
-      this.label(key, LABEL_PX - 2, 3, 1).setResolution(px).setText(tag).setPosition(c.x, centre.y - r * 1.15).setScale(labelScale).setVisible(showLabels);
+      withResolution(this.label(key, LABEL_PX - 2, 3, 1), px).setText(tag).setPosition(c.x, centre.y - r * 1.15).setScale(labelScale).setVisible(showLabels);
     }
     this.pool.end();
     for (const [id, label] of this.labels) {
