@@ -83,3 +83,14 @@ Tests: the colour field and decal placement are pure (seeded, deterministic, in 
 Checks: screenshots at close, mid and far zoom in `en` and `ar`, same seed and spots as 1a.
 
 Then 1b (landmarks: oases, dunes, fields) goes on top of this ground.
+
+## Step 1d: more ground detail
+
+After 1c the ground is smooth but plain next to the references: the grain is baked at half resolution (so it blurs at close zoom), it is faint, and decals are sparse and pale.
+
+1. **Runtime detail overlay instead of baked grain.** One world-space `TileSprite` over the baked ground cells (below props and markers), moved to the camera's `worldView` every frame with `tilePosition` = the `worldView` origin, so its marks stay fixed to the ground (pure mapping function, tested). Texture: 512×512 seamless procedural, small even marks only (grain, pebbles at least 2–3 px across) so the repeat doesn't show; long cracks and ripples go in decals. `MULTIPLY` dark marks only at first (nearly invisible on the dark off-map void); a `SCREEN` highlight layer only if it looks dull, then clipped to the map's top face. Alpha fades with zoom: full at ≥ 0.6, gone below ~0.35; check for shimmer by panning at ~0.45. Check how the installed Phaser renders a TileSprite on the Canvas renderer before relying on it.
+2. **Remove the grain from the bake.** It is replaced by the overlay; this also cuts bake time (the soft-light composite over a whole cell is one of the costliest steps). Keep the green wash and decals.
+3. **More and stronger decals.** First add per-layer bake timing (colour field, green wash, decals, grain, upload) to the dev log and measure; choose the density from those numbers. Target about twice as many on open ground, alpha 0.45–0.8, and 6–10 more frames cut from the other ground sheets (`plain-3`, `plain-4`, `hills-2`, `forest-2/3`): flat surfaces only, same blob outline.
+4. Measure bake time again (dev log) and compare with 1c's 9.5–16 ms per cell.
+
+Checks: unit tests for the overlay maths (tile offset/scale from camera, alpha by zoom) and decal density; screenshots at close, mid and far zoom in `en` and `ar`, same seed and spot as before, plus a map corner and an oasis (no pebbles on water or the void).
