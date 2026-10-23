@@ -183,7 +183,8 @@ RB.push(["never assigns innerHTML or inserts adjacent HTML", () => {
 RB.push(["map name plates put player handles and tags in the DOM as text only, each handle isolated", async () => {
   const src = String(Object.values(import.meta.glob("../src/ui/map-labels.ts", { query: "?raw", import: "default", eager: true }))[0]);
   expect(src).not.toMatch(/innerHTML|outerHTML|insertAdjacentHTML|document\.write/);
-  expect(src).toContain("name.textContent = b.tag");
+  expect(src).toContain("plate.setName(b.tag)");
+  expect(src).toContain("name.textContent = text");
   expect(src).toContain('createElement("bdi")');
   expect(src).toContain('name.dir = "auto"');
 }]);
