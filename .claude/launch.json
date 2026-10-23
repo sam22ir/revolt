@@ -67,6 +67,18 @@
         "cd /home/saadi/game/.claude/worktrees/hud-restyle/apps/server && exec node_modules/.bin/wrangler dev --config wrangler.e2e.jsonc"
       ],
       "port": 8787
+    },
+    {
+      "name": "godot-web",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8060",
+        "--directory",
+        "apps/godot/build/web"
+      ],
+      "port": 8060
     }
   ]
 }

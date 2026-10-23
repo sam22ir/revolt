@@ -1,4 +1,13 @@
-# Godot migration plan (draft, awaiting approval)
+# Godot migration plan
+
+## Status
+
+- **Slice 0 done** (branch `godot-client`): Godot 4.7.2 + export templates installed (checksums verified), `apps/godot/` project, GUT tests (`pnpm godot:test`, 23 tests, works from a clean checkout), shared data export (`pnpm godot:export`), Web export (`pnpm godot:web`) served by the `godot-web` launch entry on port 8060 and checked in the built-in browser at phone size in `en` and `ar` (shaping and RTL mirroring correct).
+- Font: **IBM Plex Sans Arabic** (Regular + Bold, SIL OFL, from google/fonts, in `apps/godot/fonts/`), set as the project default font; it covers Arabic and Latin. Plain IBM Plex Sans has no Arabic glyphs.
+- Next: slice 1 (world map), then the open questions below that are still open (Android sign-in, CLAUDE.md/GDD wording, CI step).
+- `main` fails one server test (`live-leaderboard`, order-dependent); tracked as a separate task, not part of this branch.
+
+# Original plan (draft)
 
 Decision (user): replace the Phaser + DOM + Capacitor client with a Godot client. Language: **GDScript**. Rules: **server-driven thin client** (no GDScript port of `packages/rules`).
 

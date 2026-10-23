@@ -48,7 +48,9 @@ func test_no_empty_translations() -> void:
 
 func test_every_key_used_in_scripts_exists() -> void:
 	var known := _po_keys("en")
-	var re := RegEx.create_from_string('Loc\\.t\\("([^"]+)"')
+	# Complete literal keys only: `Loc.t("a.b")` or `Loc.t("a.b", ...)`. Keys built from ids are covered by
+	# test_every_mechanical_id_has_its_keys.
+	var re := RegEx.create_from_string('Loc\\.t\\("([^"]+)"\\s*[,)]')
 	var missing: Array[String] = []
 	for path in _gd_files("res://scripts"):
 		for m in re.search_all(FileAccess.get_file_as_string(path)):
@@ -56,6 +58,26 @@ func test_every_key_used_in_scripts_exists() -> void:
 			if not known.has(key):
 				missing.append("%s: %s" % [path, key])
 	assert_eq(missing, [] as Array[String], "keys used but missing from the locales")
+
+func test_every_mechanical_id_has_its_keys() -> void:
+	var known := _po_keys("en")
+	var data := Balance.data()
+	var missing: Array[String] = []
+	for id: String in data["resourceIds"]:
+		if not known.has("resource." + id):
+			missing.append("resource." + id)
+	for id: String in data["buildingIds"]:
+		for suffix in ["name", "desc"]:
+			if not known.has("building.%s.%s" % [id, suffix]):
+				missing.append("building.%s.%s" % [id, suffix])
+	for id: String in data["troopIds"]:
+		for suffix in ["name", "desc"]:
+			if not known.has("troop.%s.%s" % [id, suffix]):
+				missing.append("troop.%s.%s" % [id, suffix])
+	for lang in ["en", "ar", "fr"]:
+		if not known.has("language." + lang):
+			missing.append("language." + lang)
+	assert_eq(missing, [] as Array[String], "mechanical ids without translation keys")
 
 func _gd_files(dir: String) -> Array[String]:
 	var out: Array[String] = []
