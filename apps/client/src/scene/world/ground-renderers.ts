@@ -2,9 +2,9 @@ import type Phaser from "phaser";
 import type { TerrainId } from "@revolt/rules";
 import { groundTexture, propsTexture, terrainAtlases } from "../../art/art.ts";
 import type { SpritePool } from "../sprite-pool.ts";
-import { hash01, propsFor, type PropKind } from "../terrain-props.ts";
+import { hash01, NEUTRAL_CONTEXT, propsFor, type PropContext, type PropKind } from "../terrain-props.ts";
 import { TILE_BLEED, tileCenter, TILE_H, TILE_W } from "../world-layout.ts";
-import { blendedGround } from "./ground-tint.ts";
+import { blendedGround, landTint } from "./ground-tint.ts";
 import type { SpecCache } from "./spec-cache.ts";
 
 /** What one repaint of the ground needs, built once per repaint and shared by every tile. */
@@ -46,6 +46,8 @@ export interface SoftGroundDeps {
   readonly idAt: (x: number, y: number) => number;
   /** Ground colour per terrain index. */
   readonly palette: readonly number[];
+  /** Landmarks and greenness of a tile. */
+  readonly context: (x: number, y: number) => PropContext;
 }
 
 /** Share of the diamond's size the soft ground overdraws, so neighbouring tiles overlap and leave no hairline seams. */
@@ -55,14 +57,15 @@ const SPECKS = 3;
 const SPECK = 2;
 
 /** Places the props of one tile; shared by the painted and soft renderers. */
-function paintProps(paint: GroundPaint, specs: SpecCache, propPool: SpritePool, interior: PaintedGroundDeps["interior"], x: number, y: number, terrain: TerrainId): void {
+function paintProps(paint: GroundPaint, specs: SpecCache, propPool: SpritePool, interior: PaintedGroundDeps["interior"], x: number, y: number, terrain: TerrainId, ctx: PropContext = NEUTRAL_CONTEXT): void {
   const size = paint.size;
-  for (const plan of propsFor(terrain, x, y, interior(x, y, size))) {
+  for (const plan of propsFor(terrain, x, y, interior(x, y, size), ctx)) {
     const pa = terrainAtlases.props[plan.kind];
     if (pa === undefined) continue;
     const c = tileCenter(x + plan.dx, y + plan.dy);
     const pdepth = 0.91 + (0.08 * (x + y + plan.dx + plan.dy)) / (2 * size);
-    const pspec = specs.frame(propsTexture(plan.kind), pa, Math.floor(plan.pick * pa.frames.length), PROP_SCALE[plan.kind] * plan.scale, true);
+    const frame = plan.frames === undefined ? Math.floor(plan.pick * pa.frames.length) : (plan.frames[Math.floor(plan.pick * plan.frames.length)] ?? 0);
+    const pspec = specs.frame(propsTexture(plan.kind), pa, frame, PROP_SCALE[plan.kind] * plan.scale, true);
     propPool.place(pspec, c.x, c.y, pdepth, 1, plan.flip);
   }
 }
@@ -72,7 +75,7 @@ function paintProps(paint: GroundPaint, specs: SpecCache, propPool: SpritePool, 
  * reads as soft patches instead of diamonds. Props sit on top. No per-tile sprites, so it is cheap on phones.
  */
 export function softGroundRenderer(deps: SoftGroundDeps): GroundRenderer {
-  const { specs, propPool, interior, idAt, palette } = deps;
+  const { specs, propPool, interior, idAt, palette, context } = deps;
   const hw = (TILE_W / 2) * SOFT_BLEED;
   const hh = (TILE_H / 2) * SOFT_BLEED;
   return {
@@ -81,7 +84,8 @@ export function softGroundRenderer(deps: SoftGroundDeps): GroundRenderer {
       const { g, quad: q } = paint;
       const cx = p.x;
       const cy = p.y + TILE_H / 2;
-      g.fillStyle(blendedGround(idAt, x, y, palette), 1);
+      const ctx = context(x, y);
+      g.fillStyle(landTint(blendedGround(idAt, x, y, palette), terrain, ctx), 1);
       q[0].set(cx, cy - hh);
       q[1].set(cx + hw, cy);
       q[2].set(cx, cy + hh);
@@ -95,7 +99,7 @@ export function softGroundRenderer(deps: SoftGroundDeps): GroundRenderer {
         g.fillStyle(hash01(x, y, 62 + i * 3) < 0.5 ? 0x000000 : 0xffffff, 0.07);
         g.fillRect(cx + u * TILE_W - SPECK, cy + v * TILE_H - SPECK / 2, SPECK * 2, SPECK);
       }
-      if (paint.props && !occupied) paintProps(paint, specs, propPool, interior, x, y, terrain);
+      if (paint.props && !occupied) paintProps(paint, specs, propPool, interior, x, y, terrain, ctx);
     },
   };
 }

@@ -1,8 +1,9 @@
 import Phaser from "phaser";
-import { terrainAt, TERRAIN_IDS, type MapSnapshot } from "@revolt/rules";
+import { fertilityAt, GEO_OASIS_RING, geographyOf, terrainAt, TERRAIN_IDS, type MapSnapshot } from "@revolt/rules";
 import { theme } from "../../theme/theme.ts";
 import { groundTexture, propsTexture, terrainAtlases, type Atlas } from "../../art/art.ts";
 import { SpritePool } from "../sprite-pool.ts";
+import { OASIS_FRONT } from "../terrain-props.ts";
 import { TILE_H, TILE_W, tileToWorld, type TileRange } from "../world-layout.ts";
 import { poly } from "./draw-helpers.ts";
 import { flatGroundRenderer, softGroundRenderer, type GroundPaint, type GroundRenderer } from "./ground-renderers.ts";
@@ -25,6 +26,9 @@ export class GroundLayer implements WorldLayer {
   private readonly flat: GroundRenderer = flatGroundRenderer;
   private readonly soft: GroundRenderer;
   private terrain = new Uint8Array(0);
+  /** GEO_* flags and fertility per tile, row-major, rebuilt with the terrain. */
+  private geoFlags: Uint8Array = new Uint8Array(0);
+  private fertility = new Float32Array(0);
   private terrainKey = "";
   private groundKey = "";
   /** Changes when the set of occupied tiles (bases, NPCs, alliance HQs) does, so props are not drawn under them. */
@@ -48,6 +52,10 @@ export class GroundLayer implements WorldLayer {
       interior: (x, y, size) => this.interior(x, y, size),
       idAt: (x, y) => this.idAt(x, y),
       palette: TERRAIN_IDS.map((id) => theme.terrain[id][0]),
+      context: (x, y) => {
+        const i = y * Math.sqrt(this.terrain.length) + x;
+        return { flags: this.geoFlags[i] ?? 0, fertility: this.fertility[i] ?? 0.5 };
+      },
     });
   }
 
@@ -62,6 +70,19 @@ export class GroundLayer implements WorldLayer {
       for (let x = 0; x < snap.size; x++) {
         for (let y = 0; y < snap.size; y++) this.terrain[y * snap.size + x] = TERRAIN_IDS.indexOf(terrainAt(snap.terrainSeed, x, y));
       }
+      const geo = geographyOf(snap.terrainSeed, snap.size);
+      this.geoFlags = Uint8Array.from(geo.flags);
+      // The ring tiles in front of a pool on screen keep low dressing, so the water stays visible.
+      for (const o of geo.oases)
+        for (let dy = -2; dy <= 2; dy++)
+          for (let dx = -2; dx <= 2; dx++) {
+            const x = o.x + dx, y = o.y + dy;
+            if (dx + dy < 1 || x < 0 || y < 0 || x >= snap.size || y >= snap.size) continue;
+            const i = y * snap.size + x;
+            if ((this.geoFlags[i]! & GEO_OASIS_RING) !== 0) this.geoFlags[i]! |= OASIS_FRONT;
+          }
+      this.fertility = new Float32Array(snap.size * snap.size);
+      for (let y = 0; y < snap.size; y++) for (let x = 0; x < snap.size; x++) this.fertility[y * snap.size + x] = fertilityAt(snap.terrainSeed, x, y);
     }
   }
 

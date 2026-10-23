@@ -25,6 +25,7 @@ import {
   zoomAt,
   type View,
 } from "./world-layout.ts";
+import { FeatureLayer } from "./world/feature-layer.ts";
 import { GroundLayer } from "./world/ground-layer.ts";
 import { MarchLayer } from "./world/march-layer.ts";
 import { ObjectLayer } from "./world/object-layer.ts";
@@ -74,6 +75,7 @@ export class WorldScene extends Phaser.Scene {
   private gesture!: Gesture;
   private readonly specs = new SpecCache();
   private ground!: GroundLayer;
+  private features!: FeatureLayer;
   private regions!: RegionLayer;
   private lastViewKey = "";
   private objects!: ObjectLayer;
@@ -100,6 +102,7 @@ export class WorldScene extends Phaser.Scene {
     // Depths: rim 0, terrain tiles just above it (0.1 to 0.9 by row), markers 1 to 2, outlines 2.5, marches 3, labels 4.
     // Layers are built in paint order, so their Phaser objects are created in the same order as before the split.
     this.ground = new GroundLayer(this, this.specs);
+    this.features = new FeatureLayer(this);
     this.regions = new RegionLayer(this);
     this.objects = new ObjectLayer(this, this.specs);
     this.marches = new MarchLayer(this, this.specs);
@@ -138,6 +141,7 @@ export class WorldScene extends Phaser.Scene {
     this.events.on(Phaser.Scenes.Events.SLEEP, () => this.gesture.cancel());
     this.events.on(Phaser.Scenes.Events.WAKE, () => {
       this.ground.invalidate();
+      this.features.invalidate();
       this.regions.invalidate();
       this.objects.invalidate();
       this.lastViewKey = "";
@@ -167,6 +171,7 @@ export class WorldScene extends Phaser.Scene {
       snapshotVersion: this.snapshotVersion,
     };
     this.ground.paint(frame);
+    this.features.paint(frame);
     this.regions.paint(frame);
     this.objects.paint(frame);
     this.marches.paint(frame);
@@ -294,6 +299,7 @@ export class WorldScene extends Phaser.Scene {
     this.objects.invalidate();
     if (snap === null) return;
     this.ground.onSnapshot(snap);
+    this.features.onSnapshot(snap);
     if (this.needsInitialCenter) {
       const mine = snap.bases.find((b) => b.mine);
       if (mine !== undefined) {

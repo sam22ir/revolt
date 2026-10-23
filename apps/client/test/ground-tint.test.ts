@@ -1,5 +1,6 @@
 import { expect } from "vitest";
-import { blendedGround } from "../src/scene/world/ground-tint.ts";
+import { GEO_OASIS_RING } from "@revolt/rules";
+import { blendedGround, landTint } from "../src/scene/world/ground-tint.ts";
 import { test } from "vitest";
 import { rows, type Row } from "./rows.ts";
 const RA: Row[] = [];
@@ -35,5 +36,17 @@ RA.push(["treats off-map neighbours as the tile's own terrain", () => {
   expect(maxStep(c, PALETTE[1] ?? 0)).toBeLessThanOrEqual(Math.ceil(255 * 0.07));
 }]);
 
+RA.push(["land tint: greener where fertile, paler where bare, damp by an oasis, forests and mountains untouched", () => {
+  const sand = 0xc99c60;
+  const green = (c: number): number => ch(c, 8) - ch(c, 16);
+  const tint = (fertility: number, flags = 0, t: "plain" | "forest" | "mountain" = "plain"): number => landTint(sand, t, { flags, fertility });
+  expect(tint(0.5)).toBe(sand);
+  expect(green(tint(0.95))).toBeGreaterThan(green(sand));
+  const light = (c: number): number => ch(c, 16) + ch(c, 8) + ch(c, 0);
+  expect(light(tint(0.05))).toBeGreaterThan(light(sand));
+  expect(green(tint(0.5, GEO_OASIS_RING))).toBeGreaterThan(green(tint(0.95)));
+  expect(tint(0.95, 0, "forest")).toBe(sand);
+  expect(tint(0.05, GEO_OASIS_RING, "mountain")).toBe(sand);
+}]);
 
-test("ground tint: determinism, drift range, border steps, off-map neighbours", () => rows(RA));
+test("ground tint: determinism, drift range, border steps, off-map neighbours, land tint", () => rows(RA));

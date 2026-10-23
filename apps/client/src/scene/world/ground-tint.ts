@@ -1,4 +1,5 @@
-import { hash01 } from "../terrain-props.ts";
+import { GEO_OASIS_RING, type TerrainId } from "@revolt/rules";
+import { hash01, type PropContext } from "../terrain-props.ts";
 
 /** Weights of a tile and its eight neighbours: a small blur, so a terrain change fades over about two tiles. */
 const WEIGHTS = [
@@ -48,4 +49,26 @@ export const blendedGround = (idAt: (x: number, y: number) => number, x: number,
   const k = 1 + (drift(x, y) - 0.5) * DRIFT_RANGE;
   const out = sum.map((s) => Math.max(0, Math.min(255, Math.round((s / WEIGHT_SUM) * k))));
   return ((out[0] ?? 0) << 16) | ((out[1] ?? 0) << 8) | (out[2] ?? 0);
+};
+
+const mix = (a: number, b: number, t: number): number => {
+  const k = Math.max(0, Math.min(1, t));
+  const c = (shift: number): number => Math.round(channel(a, shift) * (1 - k) + channel(b, shift) * k);
+  return (c(16) << 16) | (c(8) << 8) | c(0);
+};
+
+/** Olive-green ground of fertile land, pale sand of bare land, damp green around an oasis. */
+const FERTILE = 0xa39a58;
+const BARE = 0xd9b77e;
+const DAMP = 0x8f8c4c;
+
+/**
+ * Shifts an open-ground colour (plain or hills) by how green the land is: toward olive where groves grow, toward pale sand
+ * where it is bare, and damp green near an oasis. Forests and mountains keep their colour.
+ */
+export const landTint = (colour: number, terrain: TerrainId, ctx: PropContext): number => {
+  if (terrain === "forest" || terrain === "mountain") return colour;
+  if ((ctx.flags & GEO_OASIS_RING) !== 0) return mix(colour, DAMP, 0.45);
+  if (ctx.fertility > 0.5) return mix(colour, FERTILE, (ctx.fertility - 0.5) * 0.9);
+  return mix(colour, BARE, (0.5 - ctx.fertility) * 0.8);
 };
