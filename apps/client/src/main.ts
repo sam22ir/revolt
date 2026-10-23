@@ -163,7 +163,6 @@ const start = async (): Promise<void> => {
   // Read-only hooks so screenshot tests can tap buildings and map tiles.
   window.__revolt = {
     buildingScreenPoint: (id: BuildingId) => baseScene.buildingScreenPoint(id),
-    frame: () => game?.loop.frame ?? 0,
     map: {
       snapshot: () => world.snapshot(),
       tileScreenPoint: (x, y) => scene.tileScreenPoint(x, y),
@@ -180,8 +179,6 @@ declare global {
   interface Window {
     __revolt?: {
       buildingScreenPoint: (id: BuildingId) => { x: number; y: number };
-      /** Frames Phaser has stepped (updated and drawn) so far, so tests can wait for the next one instead of sleeping. */
-      frame: () => number;
       map: {
         snapshot: () => MapSnapshot | null;
         /** CSS-pixel position of a tile's middle on the map view; null until the map has been opened. */
