@@ -74,11 +74,11 @@
       "runtimeArgs": [
         "-m",
         "http.server",
-        "8060",
+        "4173",
         "--directory",
         "apps/godot/build/web"
       ],
-      "port": 8060
+      "port": 4173
     }
   ]
 }

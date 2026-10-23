@@ -36,15 +36,19 @@ static func production_per_hour(levels: Dictionary, multiplier: float = 1.0) -> 
 static func storage_cap(hq_level: int) -> Dictionary:
 	return level_row(data()["storageCaps"], hq_level)
 
-## Number of distinct regions liberated at time `t_ms`. `liberations` is the server's list of
-## {region, from, until} (until null while still held). Mirrors liberatedCount in liberation.ts.
-static func liberated_count(liberations: Array, t_ms: int) -> int:
+## The regions liberated at time `t_ms` as a set {region id: true}. `liberations` is the server's list of
+## {region, from, until} (until null while still held). Mirrors liberatedRegions in liberation.ts.
+static func liberated_regions(liberations: Array, t_ms: int) -> Dictionary:
 	var regions := {}
 	for l: Dictionary in liberations:
 		var until: Variant = l["until"]
 		if int(l["from"]) <= t_ms and (until == null or t_ms < int(until)):
 			regions[int(l["region"])] = true
-	return regions.size()
+	return regions
+
+## Number of distinct regions liberated at time `t_ms`. Mirrors liberatedCount in liberation.ts.
+static func liberated_count(liberations: Array, t_ms: int) -> int:
+	return liberated_regions(liberations, t_ms).size()
 
 ## `1 + bonus`, bonus capped. Mirrors productionMultiplier in liberation.ts.
 static func production_multiplier(liberations: Array, t_ms: int) -> float:
