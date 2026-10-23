@@ -25,6 +25,7 @@ import {
   zoomAt,
   type View,
 } from "./world-layout.ts";
+import { AmbientLayer } from "./world/ambient-layer.ts";
 import { FeatureLayer } from "./world/feature-layer.ts";
 import { GroundLayer } from "./world/ground-layer.ts";
 import { MarchLayer } from "./world/march-layer.ts";
@@ -80,6 +81,7 @@ export class WorldScene extends Phaser.Scene {
   private lastViewKey = "";
   private objects!: ObjectLayer;
   private marches!: MarchLayer;
+  private ambient!: AmbientLayer;
 
   constructor(
     private readonly store: GameStore,
@@ -106,6 +108,7 @@ export class WorldScene extends Phaser.Scene {
     this.regions = new RegionLayer(this);
     this.objects = new ObjectLayer(this, this.specs);
     this.marches = new MarchLayer(this, this.specs);
+    this.ambient = new AmbientLayer(this);
 
     this.gesture = createGesture(
       {
@@ -175,6 +178,7 @@ export class WorldScene extends Phaser.Scene {
     this.regions.paint(frame);
     this.objects.paint(frame);
     this.marches.paint(frame);
+    this.ambient.paint(frame);
     this.reportView();
     const centre = centerTile(this.view, snap.size);
     if (this.lastCenter === null || this.lastCenter.x !== centre.x || this.lastCenter.y !== centre.y) {
