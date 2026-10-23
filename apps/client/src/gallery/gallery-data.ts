@@ -84,7 +84,7 @@ export interface SeamTile {
 
 /**
  * A size x size patch of tiles with the same frame and flip choices the game makes (salts 7 and 8 in
- * `paintedGroundRenderer`), so the patch is fixed across reloads. Sorted back to front like the game's depth.
+ * the removed painted ground renderer), so the patch is fixed across reloads. Sorted back to front like the game's depth.
  */
 export const seamTiles = (size: number, frameCount: number): SeamTile[] => {
   const tiles: SeamTile[] = [];

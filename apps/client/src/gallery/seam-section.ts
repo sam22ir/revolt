@@ -11,7 +11,7 @@ const PATCH = 6;
 const SCALE = 2;
 const PAD = 8;
 
-/** Draws one terrain's patch the way `paintedGroundRenderer` lays out tiles: same centres, same width, same order. */
+/** Draws one terrain's patch the way the removed painted ground renderer lays out tiles: same centres, same width, same order. */
 const drawPatch = (canvas: HTMLCanvasElement, terrain: string, atlas: Atlas): void => {
   const tiles = seamTiles(PATCH, atlas.frames.length);
   const drawW = TILE_W * TILE_BLEED;

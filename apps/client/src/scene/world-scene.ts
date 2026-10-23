@@ -120,8 +120,8 @@ export class WorldScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(BACKGROUND);
     // Depths: rim 0, terrain tiles just above it (0.1 to 0.9 by row), markers 1 to 2, outlines 2.5, marches 3, labels 4.
     // Layers are built in paint order, so their Phaser objects are created in the same order as before the split.
-    this.ground = new GroundLayer(this, this.specs);
-    this.features = new FeatureLayer(this);
+    this.features = new FeatureLayer();
+    this.ground = new GroundLayer(this, this.specs, this.features);
     this.regions = new RegionLayer(this);
     this.objects = new ObjectLayer(this, this.specs);
     this.marches = new MarchLayer(this, this.specs);
@@ -161,7 +161,6 @@ export class WorldScene extends Phaser.Scene {
     this.events.on(Phaser.Scenes.Events.SLEEP, () => this.gesture.cancel());
     this.events.on(Phaser.Scenes.Events.WAKE, () => {
       this.ground.invalidate();
-      this.features.invalidate();
       this.regions.invalidate();
       this.objects.invalidate();
       this.lastViewKey = "";
@@ -192,7 +191,6 @@ export class WorldScene extends Phaser.Scene {
       snapshotVersion: this.snapshotVersion,
     };
     this.ground.paint(frame);
-    this.features.paint(frame);
     this.regions.paint(frame);
     this.objects.paint(frame);
     this.marches.paint(frame);
