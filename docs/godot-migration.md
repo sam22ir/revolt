@@ -15,10 +15,11 @@ Facts: `MAP_SIZE` is 64 (4096 tiles). `GET /v1/map` returns `terrainSeed`, `size
 2. **Network:** `Api` (HTTPRequest): guest login, token kept in `user://`, `GET /v1/map`; base URL from a `?api=` query parameter on web, default `http://localhost:8787`.
 3. **Map view:** isometric `TileMapLayer` with a runtime-generated TileSet (flat colours per terrain; the real terrain art comes in a later slice), region borders, markers for bases, NPCs, HQs and marches, short ASCII tag labels only (rule 6).
 4. **Camera:** drag pan, pinch and wheel zoom, clamped to the map, starts on the player's base.
-5. **Perf probe:** FPS label so the phone run can be compared with the Phaser build.
-6. **Verify:** mock server + `godot-web` on 4173, screenshots at phone size in `en` and `ar`, compared with the Phaser map.
+5. **Verify:** mock server + `godot-web` on 4173, screenshots at phone size in `en` and `ar`, compared with the Phaser map (same geography in both languages: only the HUD mirrors in Arabic, never the map). Camera math (clamp, zoom around a point, pinch scale/centre) lives in a pure helper with GUT tests; pinch is built from raw touch events, since the browser pane can only test drag and wheel.
 
-Out of scope for slice 1: live WebSocket updates, tapping tiles, march drawing animation, final art.
+Out of scope for slice 1: live WebSocket updates, tapping tiles, march animation, final art, and **any performance comparison**. Flat-colour tiles in a desktop browser say nothing about a phone against the Phaser map's baked ground and props. The comparison happens once the real terrain art and prop density are in, on a native debug APK on the phone (templates and `adb` are already installed).
+
+Housekeeping: `project.godot` currently enables the user's `godot_ai` plugin on disk only; commits stage `project.godot` without that line and never use `git add -A apps/godot`. Whether the plugin should be committed is the user's call.
 
 # Original plan (draft)
 

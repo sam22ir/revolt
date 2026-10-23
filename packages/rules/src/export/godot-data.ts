@@ -13,7 +13,10 @@ import { BUILDINGS, MAX_BUILDING_LEVEL } from "../data/buildings.ts";
 import { COSMETIC_IDS } from "../data/cosmetics.ts";
 import { EVENTS } from "../data/events.ts";
 import { HEROES } from "../data/heroes.ts";
-import { MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING } from "../data/map.ts";
+import { MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING, REGION_CELL } from "../data/map.ts";
+import { hash32 } from "../rng.ts";
+import { regionAt, regionSite } from "../regions.ts";
+import { terrainAt, valueNoise, type TerrainId } from "../terrain.ts";
 import { NPC_LEVELS, NPC_RESPAWN_MS } from "../data/npcs.ts";
 import { PASS_TIERS, PASS_TIER_COUNT } from "../data/battle-pass.ts";
 import { START_LEVELS, START_RESOURCES, START_TROOPS } from "../data/start.ts";
@@ -44,6 +47,7 @@ export const buildGodotBalance = (): unknown => ({
   npcRespawnMs: NPC_RESPAWN_MS,
   map: {
     size: MAP_SIZE,
+    regionCell: REGION_CELL,
     marchRescueGraceMs: MARCH_RESCUE_GRACE_MS,
     maxMarches: MAX_MARCHES,
     npcCountByLevel: NPC_COUNT_BY_LEVEL,
@@ -150,3 +154,61 @@ export const buildGodotDisplayFixtures = (): unknown => ({
     };
   }),
 });
+
+const TERRAIN_LETTER: Readonly<Record<TerrainId, string>> = { plain: "p", hills: "h", forest: "f", mountain: "m" };
+
+/** Seeds include the edges of the unsigned 32-bit range: `seed + 1` and `seed + 7919` wrap there. */
+const MAP_SEEDS = [0, 1, 7, 12345, 987654321, 4294967294, 4294967295] as const;
+
+const HASH_INPUTS: readonly (readonly number[])[] = [
+  [0],
+  [1, 2, 3],
+  [12345, 4, 5],
+  [4294967295, 63, 63],
+  [4294967296, -1, -1],
+  [7, -3, 9],
+  [987654321 + 7919, 3, 3, 2],
+  [4294967295 + 7919, 0, 0, 1],
+  [5, 2147483648, 4294967295],
+];
+
+const NOISE_SAMPLES: readonly (readonly [number, number, number, number])[] = [
+  [0, 0, 0, 8],
+  [1, 5, 9, 3],
+  [12345, 31, 17, 8],
+  [12345, 63, 63, 3],
+  [4294967295, 10, 20, 8],
+  [4294967295 + 1, 10, 20, 3],
+  [7, -5, -2, 8],
+];
+
+/**
+ * Golden data for the client's port of the seed-derived map math (hash, value noise, terrain, regions).
+ * Grids are one character per tile, row-major by y: terrain p/h/f/m, regions as a hex digit.
+ */
+export const buildGodotMapFixtures = (): unknown => {
+  const size = MAP_SIZE;
+  const cells = Math.ceil(size / REGION_CELL);
+  if (cells * cells > 16) throw new Error("region ids no longer fit one hex digit: change the map fixture encoding");
+  return {
+    size,
+    hash: HASH_INPUTS.map((inputs) => ({ inputs, out: hash32(...inputs) })),
+    noise: NOISE_SAMPLES.map(([seed, x, y, cell]) => ({ seed, x, y, cell, out: valueNoise(seed, x, y, cell) })),
+    seeds: MAP_SEEDS.map((seed) => {
+      const terrain: string[] = [];
+      const regions: string[] = [];
+      for (let y = 0; y < size; y++) {
+        let t = "";
+        let r = "";
+        for (let x = 0; x < size; x++) {
+          t += TERRAIN_LETTER[terrainAt(seed, x, y)];
+          r += regionAt(seed, x, y, size).toString(16);
+        }
+        terrain.push(t);
+        regions.push(r);
+      }
+      const sites = Array.from({ length: cells * cells }, (_, id) => regionSite(seed, id, size));
+      return { seed, terrain, regions, sites };
+    }),
+  };
+};
