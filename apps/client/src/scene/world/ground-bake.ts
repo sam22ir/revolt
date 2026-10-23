@@ -22,8 +22,8 @@ const TIMING_CELLS = 20;
 let instances = 0;
 
 /** The steps of one cell's bake, in order, for the dev timing log. */
-type BakeLayer = "field" | "green" | "decals" | "upload" | "features";
-const BAKE_LAYERS: readonly BakeLayer[] = ["field", "green", "decals", "upload", "features"];
+type BakeLayer = "field" | "green" | "decals" | "upload" | "features" | "render";
+const BAKE_LAYERS: readonly BakeLayer[] = ["field", "green", "decals", "upload", "features", "render"];
 
 /** What a bake draws: the map size, the colour and fertility of each tile, the decals, and the features that lie on the ground. */
 export interface BakeSource {
@@ -95,7 +95,7 @@ export class GroundBake {
   private generation = 0;
   private timedCells = 0;
   private lastMark = 0;
-  private readonly layerMs: Record<BakeLayer, number> = { field: 0, green: 0, decals: 0, upload: 0, features: 0 };
+  private readonly layerMs: Record<BakeLayer, number> = { field: 0, green: 0, decals: 0, upload: 0, features: 0, render: 0 };
 
   constructor(private readonly scene: Phaser.Scene) {
     // Not on the display list: it is only ever drawn into a texture, so the scene never renders it.
@@ -205,12 +205,14 @@ export class GroundBake {
     this.mark("upload");
     g.clear();
     source.paintFeatures(g, tiles);
+    this.mark("features");
     cell.texture.draw(g, offX, offY);
+    // Phaser runs every buffered draw here, so this is where the rim, the scratch canvas and the features actually land.
     cell.texture.render();
     g.clear();
     this.rim.clear();
     cell.baked = true;
-    this.mark("features");
+    this.mark("render");
     this.logTiming();
   }
 
