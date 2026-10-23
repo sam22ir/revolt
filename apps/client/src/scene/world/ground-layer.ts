@@ -8,11 +8,14 @@ import type { FeatureLayer } from "./feature-layer.ts";
 import { GroundBake } from "./ground-bake.ts";
 import { buildGroundPlan, type GroundPlan } from "./ground-plan.ts";
 import { placeTileProps } from "./ground-props.ts";
+import { snapRange } from "./tile-chunks.ts";
 import type { SpecCache } from "./spec-cache.ts";
 import type { WorldFrame, WorldLayer } from "./world-frame.ts";
 
 /** Props (trees, peaks, rocks) are drawn from this zoom up; farther out the ground alone reads fine and there would be too many sprites. */
 const PROP_ZOOM = 0.4;
+/** Tiles per chunk of the props' repaint window (see snapRange). */
+const PROP_CHUNK = 8;
 
 /**
  * The terrain under the map, at depth 0 (the rim, the ground and the roads are baked into cell textures; see ground-bake.ts),
@@ -79,11 +82,13 @@ export class GroundLayer implements WorldLayer {
     const { view, snap, range } = frame;
     this.bake.update(view);
     const props = view.zoom >= PROP_ZOOM;
-    const key = `${range.x0},${range.x1},${range.y0},${range.y1}|${props}|${this.occupiedKey}`;
+    // Props are placed for a chunk-snapped window, so the sprites repaint only when the view leaves that window.
+    const win = snapRange(range, PROP_CHUNK, snap.size);
+    const key = `${win.x0},${win.x1},${win.y0},${win.y1}|${props}|${this.occupiedKey}`;
     if (key === this.propKey) return;
     this.propKey = key;
     this.propPool.begin();
-    if (props) this.placeProps(snap.size, range);
+    if (props) this.placeProps(snap.size, win);
     this.propPool.end();
   }
 
