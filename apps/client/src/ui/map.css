@@ -391,6 +391,8 @@
   color: var(--paper);
   pointer-events: auto;
   cursor: pointer;
+  /* Above the name plates, which are added after it. */
+  z-index: 1;
 }
 .base-arrow[hidden] { display: none; }
 .base-arrow-head {

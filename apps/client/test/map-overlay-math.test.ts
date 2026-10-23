@@ -4,7 +4,8 @@ import { edgeArrow } from "../src/ui/base-arrow-math.ts";
 import { rows, type Row } from "./rows.ts";
 
 const RA: Row[] = [];
-const at = (...tiles: [number, number][]) => (x: number, y: number) => tiles.some(([tx, ty]) => tx === x && ty === y);
+/** Markers of base size (2 tiles) on the given tiles. */
+const at = (...tiles: [number, number][]) => (x: number, y: number) => (tiles.some(([tx, ty]) => tx === x && ty === y) ? 2 : 0);
 
 RA.push(["tap: an occupied tile is always its own target", () => {
   expect(tapTarget({ x: 5, y: 5 }, { x: 5.5, y: 5.5 }, at([5, 5], [6, 6]))).toEqual({ x: 5, y: 5 });
@@ -18,6 +19,20 @@ RA.push(["tap: a finger on the roof behind a base picks the base in front", () =
 
 RA.push(["tap: a tall roof two tiles in front still owns the tap", () => {
   expect(tapTarget({ x: 5, y: 40 }, { x: 5.6, y: 40.6 }, at([7, 41]))).toEqual({ x: 7, y: 41 });
+}]);
+
+RA.push(["tap: a smaller target owns a smaller area, so ground just past its sprite stays selectable", () => {
+  const target = (x: number, y: number) => (x === 7 && y === 41 ? 1.45 : 0);
+  // Inside the small sprite: snaps.
+  expect(tapTarget({ x: 6, y: 40 }, { x: 6.6, y: 40.6 }, target)).toEqual({ x: 7, y: 41 });
+  // Where a base's roof would be, but above a target's: stays on the ground.
+  expect(tapTarget({ x: 5, y: 40 }, { x: 5.1, y: 40.1 }, target)).toEqual({ x: 5, y: 40 });
+}]);
+
+RA.push(["tap: far out, markers are drawn bigger, so a roof tap still snaps", () => {
+  // Same finger spot that misses at factor 1 (above), hit when the marker factor is 2.
+  const target = (x: number, y: number) => (x === 7 && y === 41 ? 1.45 : 0);
+  expect(tapTarget({ x: 5, y: 40 }, { x: 5.1, y: 40.1 }, target, 2)).toEqual({ x: 7, y: 41 });
 }]);
 
 RA.push(["tap: the nearer (front) marker wins when two could", () => {

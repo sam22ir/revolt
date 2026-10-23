@@ -7,6 +7,8 @@ import { TILE_H } from "./world-layout.ts";
 export const BASE_SCALE_OWN = 2.0;
 export const BASE_SCALE_OTHER = 1.7;
 export const NPC_SCALE = 1.45;
+/** The convoy medallion and alliance HQ pennant, for tap reach: about a tile, raised above their tile. */
+export const MEDALLION_SCALE = 1.0;
 
 /** Markers keep at least a thumb's worth of screen size however far out you zoom: the factor the sprites are scaled by. */
 export const markerFactor = (zoom: number): number => Math.max(1, 16 / (zoom * TILE_H));

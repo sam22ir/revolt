@@ -8,6 +8,7 @@ import { artPack } from "../art/pack.ts";
 import type { HudInsets, Insets } from "../ui/hud-insets.ts";
 import { createGesture, type Gesture } from "./gesture.ts";
 import type { Vec } from "./iso-layout.ts";
+import { BASE_SCALE_OTHER, BASE_SCALE_OWN, markerFactor, MEDALLION_SCALE, NPC_SCALE } from "./marker-size.ts";
 import { tapTarget } from "./tap-target.ts";
 import type { PropKind } from "./terrain-props.ts";
 import {
@@ -321,8 +322,14 @@ export class WorldScene extends Phaser.Scene {
     const under = screenToTile(this.view, x, y);
     const w = screenToWorld(this.view, x, y);
     // Sprites stand up from their tile, so a tap on a roof lands behind it: give it to the marker in front.
-    const occupied = new Set(snap === null ? [] : [...snap.bases, ...snap.npcs, ...snap.hqs].map((m) => m.y * size + m.x));
-    const t = tapTarget(under, worldToTile(w.x, w.y), (tx, ty) => isTileOnMap(size, tx, ty) && occupied.has(ty * size + tx));
+    const scales = new Map<number, number>();
+    if (snap !== null) {
+      for (const h of snap.hqs) scales.set(h.y * size + h.x, MEDALLION_SCALE);
+      for (const n of snap.npcs) scales.set(n.y * size + n.x, n.kind === "convoy" ? MEDALLION_SCALE : NPC_SCALE);
+      for (const b of snap.bases) scales.set(b.y * size + b.x, b.mine ? BASE_SCALE_OWN : BASE_SCALE_OTHER);
+    }
+    const scaleAt = (tx: number, ty: number): number => (isTileOnMap(size, tx, ty) ? scales.get(ty * size + tx) ?? 0 : 0);
+    const t = tapTarget(under, worldToTile(w.x, w.y), scaleAt, markerFactor(this.view.zoom));
     this.select(isTileOnMap(size, t.x, t.y) ? t : null);
     this.callbacks.onSelect(this.selected);
   }
