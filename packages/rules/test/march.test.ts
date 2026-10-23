@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { test } from "vitest";
 import {
   advance,
   createBaseState,
@@ -19,7 +19,7 @@ import {
   type Troops,
   NO_WORLD,
 } from "../src/index.ts";
-import { base, DAY, HOUR, MIN, SEC, T0 } from "./helpers.ts";
+import { base, DAY, ex, HOUR, MIN, SEC, T0 } from "./helpers.ts";
 
 const t = (infantry: number, scouts = 0, heavy = 0, porters = 0): Troops => ({ infantry, scouts, heavy, porters });
 const FROM = { x: 10, y: 10 };
@@ -47,112 +47,129 @@ const win = (m: Omit<MarchState, "outcome">): MarchOutcome => ({
   loot: { food: 300, materiel: 0, funds: 0, support: 0 },
 });
 
-describe("travel", () => {
-  test("moves at the slowest unit's speed", () => {
-    expect(marchSpeed(t(5))).toBe(2);
-    expect(marchSpeed(t(5, 5))).toBe(2);
-    expect(marchSpeed(t(5, 5, 1))).toBe(1);
-    expect(marchSpeed(t(0, 5))).toBe(4);
-    expect(marchSpeed(ZERO_TROOPS)).toBe(0);
-  });
+test("travel: slowest unit's speed, distance over speed, planMarch", () => {
+  {
+    const e = ex("moves at the slowest unit's speed");
+    e(marchSpeed(t(5)), "infantry").toBe(2);
+    e(marchSpeed(t(5, 5)), "infantry + scouts").toBe(2);
+    e(marchSpeed(t(5, 5, 1)), "with heavy").toBe(1);
+    e(marchSpeed(t(0, 5)), "scouts only").toBe(4);
+    e(marchSpeed(ZERO_TROOPS), "nobody").toBe(0);
+  }
 
-  test("travel time is distance over speed, in whole ms, at least a second", () => {
-    expect(travelMs(FROM, TO, t(5))).toBe(5 * MIN); // 10 tiles at 2/min
-    expect(travelMs(FROM, TO, t(0, 0, 1))).toBe(10 * MIN);
-    expect(travelMs(FROM, FROM, t(5))).toBe(SEC);
-    expect(planMarch(FROM, TO, t(5), T0)).toEqual({ departAt: T0, arriveAt: T0 + 5 * MIN, returnAt: T0 + 10 * MIN });
-  });
+  {
+    const e = ex("travel time is distance over speed, in whole ms, at least a second");
+    e(travelMs(FROM, TO, t(5)), "infantry").toBe(5 * MIN); // 10 tiles at 2/min
+    e(travelMs(FROM, TO, t(0, 0, 1)), "heavy").toBe(10 * MIN);
+    e(travelMs(FROM, FROM, t(5)), "zero distance").toBe(SEC);
+    e(planMarch(FROM, TO, t(5), T0), "planMarch").toEqual({ departAt: T0, arriveAt: T0 + 5 * MIN, returnAt: T0 + 10 * MIN });
+  }
 });
 
-describe("startMarch", () => {
-  test("takes the troops out of the base and records the march", () => {
+test("startMarch: takes troops out, refusals, march limit, training troops", () => {
+  {
+    const e = ex("takes the troops out of the base and records the march");
     const s = sent(base(), march(t(6)));
-    expect(s.troops.infantry).toBe(4);
-    expect(s.marches).toEqual([{ ...march(t(6)), outcome: null }]);
-  });
+    e(s.troops.infantry, "troops left home").toBe(4);
+    e(s.marches, "marches").toEqual([{ ...march(t(6)), outcome: null }]);
+  }
 
-  test("refuses more troops than are home", () => {
-    expect(startMarch(base(), march(t(11)), T0, NO_WORLD)).toMatchObject({ ok: false, reason: "not_enough_troops" });
-    expect(startMarch(base(), march(t(0, 1)), T0, NO_WORLD)).toMatchObject({ ok: false, reason: "not_enough_troops" });
-  });
+  {
+    const e = ex("refuses more troops than are home");
+    e(startMarch(base(), march(t(11)), T0, NO_WORLD), "11 infantry").toMatchObject({ ok: false, reason: "not_enough_troops" });
+    e(startMarch(base(), march(t(0, 1)), T0, NO_WORLD), "1 scout").toMatchObject({ ok: false, reason: "not_enough_troops" });
+  }
 
-  test("refuses a march with no fighting troops", () => {
-    expect(startMarch(base(), march(ZERO_TROOPS), T0, NO_WORLD)).toMatchObject({ ok: false, reason: "no_troops" });
+  {
+    const e = ex("refuses a march with no fighting troops");
+    e(startMarch(base(), march(ZERO_TROOPS), T0, NO_WORLD), "nobody").toMatchObject({ ok: false, reason: "no_troops" });
     const withPorters = base({ troops: t(0, 0, 0, 5) });
-    expect(startMarch(withPorters, march(t(0, 0, 0, 5)), T0, NO_WORLD)).toMatchObject({ ok: false, reason: "no_troops" });
-  });
+    e(startMarch(withPorters, march(t(0, 0, 0, 5)), T0, NO_WORLD), "porters only").toMatchObject({ ok: false, reason: "no_troops" });
+  }
 
-  test(`allows at most ${MAX_MARCHES} marches out at once`, () => {
+  {
+    const e = ex(`allows at most MAX_MARCHES marches out at once`);
     let s = base();
     for (let i = 0; i < MAX_MARCHES; i++) s = sent(s, march(t(1), `m${i}`));
-    expect(startMarch(s, march(t(1), "extra"), T0, NO_WORLD)).toMatchObject({ ok: false, reason: "too_many_marches" });
-  });
+    e(startMarch(s, march(t(1), "extra"), T0, NO_WORLD), "one too many").toMatchObject({ ok: false, reason: "too_many_marches" });
+  }
 
-  test("troops still training cannot march", () => {
+  {
+    const e = ex("troops still training cannot march");
     const training = base({ troops: t(0), training: { troop: "infantry", count: 10, startedAt: T0, endsAt: T0 + HOUR } });
-    expect(startMarch(training, march(t(5)), T0, NO_WORLD)).toMatchObject({ ok: false, reason: "not_enough_troops" });
-    expect(startMarch(training, march(t(5), "m1", T0 + HOUR), T0 + HOUR, NO_WORLD).ok).toBe(true);
-  });
+    e(startMarch(training, march(t(5)), T0, NO_WORLD), "before training ends").toMatchObject({ ok: false, reason: "not_enough_troops" });
+    e(startMarch(training, march(t(5), "m1", T0 + HOUR), T0 + HOUR, NO_WORLD).ok, "after training ends").toBe(true);
+  }
 });
 
-describe("march return", () => {
+test("march return: settle once, exact returnAt, loot cap, rescue, clock backwards, long gap, time order", () => {
   const m = march(t(6));
   const out = sent(base(), m);
   const settled = settleMarch(out, m.id, win(m));
 
-  test("settleMarch records the outcome once; later calls change nothing", () => {
-    expect(settled.changed).toBe(true);
-    expect(settleMarch(settled.state, m.id, { ...win(m), loot: { food: 9999, materiel: 0, funds: 0, support: 0 } })).toEqual({ state: settled.state, changed: false });
-    expect(settleMarch(out, "unknown", win(m))).toEqual({ state: out, changed: false });
-  });
+  {
+    const e = ex("settleMarch records the outcome once; later calls change nothing");
+    e(settled.changed, "first settle").toBe(true);
+    e(settleMarch(settled.state, m.id, { ...win(m), loot: { food: 9999, materiel: 0, funds: 0, support: 0 } }), "second settle").toEqual({
+      state: settled.state,
+      changed: false,
+    });
+    e(settleMarch(out, "unknown", win(m)), "unknown id").toEqual({ state: out, changed: false });
+  }
 
-  test("troops and loot come home exactly at returnAt", () => {
+  {
+    const e = ex("troops and loot come home exactly at returnAt");
     const before = advance(settled.state, m.returnAt - 1, NO_WORLD);
-    expect(before.marches).toHaveLength(1);
-    expect(before.troops.infantry).toBe(4);
+    e(before.marches, "1ms before: still out").toHaveLength(1);
+    e(before.troops.infantry, "1ms before: troops").toBe(4);
     const home = advance(settled.state, m.returnAt, NO_WORLD);
-    expect(home.marches).toHaveLength(0);
-    expect(home.troops.infantry).toBe(8);
-    expect(home.wounded.infantry).toBe(2);
+    e(home.marches, "at returnAt: marches").toHaveLength(0);
+    e(home.troops.infantry, "at returnAt: troops").toBe(8);
+    e(home.wounded.infantry, "at returnAt: wounded").toBe(2);
     const produced = advance(out, m.returnAt, NO_WORLD).resources.food;
-    expect(home.resources.food).toBeCloseTo(produced + 300, 6);
-  });
+    e(home.resources.food, "at returnAt: loot").toBeCloseTo(produced + 300, 6);
+  }
 
-  test("loot never pushes storage past the cap, and never lowers an amount above it", () => {
+  {
+    const e = ex("loot never pushes storage past the cap, and never lowers an amount above it");
     const cap = storageCap(2).food;
     const full = settleMarch(sent(base({ resources: { food: cap - 100, materiel: 0, funds: 0, support: 0 } }), m), m.id, win(m)).state;
-    expect(advance(full, m.returnAt, NO_WORLD).resources.food).toBe(cap);
+    e(advance(full, m.returnAt, NO_WORLD).resources.food, "near cap").toBe(cap);
     const over = settleMarch(sent(base({ resources: { food: cap + 500, materiel: 0, funds: 0, support: 0 } }), m), m.id, win(m)).state;
-    expect(advance(over, m.returnAt, NO_WORLD).resources.food).toBe(cap + 500);
-  });
+    e(advance(over, m.returnAt, NO_WORLD).resources.food, "above cap").toBe(cap + 500);
+  }
 
-  test("without an outcome the march waits; after the grace period it comes home unharmed with no loot", () => {
-    expect(advance(out, m.returnAt + HOUR - 1, NO_WORLD).marches).toHaveLength(1);
+  {
+    const e = ex("without an outcome the march waits; after the grace period it comes home unharmed with no loot");
+    e(advance(out, m.returnAt + HOUR - 1, NO_WORLD).marches, "within grace").toHaveLength(1);
     const rescued = advance(out, m.returnAt + MARCH_RESCUE_GRACE_MS, NO_WORLD);
-    expect(rescued.marches).toHaveLength(0);
-    expect(rescued.troops.infantry).toBe(10);
-    expect(rescued.wounded).toEqual(ZERO_TROOPS);
-  });
+    e(rescued.marches, "rescued: marches").toHaveLength(0);
+    e(rescued.troops.infantry, "rescued: troops").toBe(10);
+    e(rescued.wounded, "rescued: wounded").toEqual(ZERO_TROOPS);
+  }
 
-  test("time going backwards does not bring a march home", () => {
+  {
+    const e = ex("time going backwards does not bring a march home");
     const home = advance(settled.state, m.returnAt, NO_WORLD);
-    expect(advance(settled.state, T0 - DAY, NO_WORLD)).toEqual(settled.state);
-    expect(advance(home, T0, NO_WORLD)).toEqual(home);
-  });
+    e(advance(settled.state, T0 - DAY, NO_WORLD), "while out").toEqual(settled.state);
+    e(advance(home, T0, NO_WORLD), "after home").toEqual(home);
+  }
 
-  test("a very long offline gap resolves the march, training and an upgrade, in time order", () => {
+  {
+    const e = ex("a very long offline gap resolves the march, training and an upgrade, in time order");
     const busy: BaseState = {
       ...settled.state,
       queue: { building: "farm", toLevel: 2, startedAt: T0, endsAt: T0 + 30 * SEC },
       training: { troop: "scouts", count: 3, startedAt: T0, endsAt: T0 + HOUR },
     };
     const later = advance(busy, T0 + 365 * DAY, NO_WORLD);
-    expect(later).toMatchObject({ queue: null, training: null, marches: [] });
-    expect(later.levels.farm).toBe(2);
-    expect(later.troops).toEqual(t(8, 3));
-  });
+    e(later, "queues cleared").toMatchObject({ queue: null, training: null, marches: [] });
+    e(later.levels.farm, "farm level").toBe(2);
+    e(later.troops, "troops").toEqual(t(8, 3));
+  }
 
-  test("events are applied in time order: loot lands after an upgrade raised the storage cap", () => {
+  {
+    const e = ex("events are applied in time order: loot lands after an upgrade raised the storage cap");
     const cap1 = storageCap(1).food;
     const s0: BaseState = {
       ...createBaseState(T0),
@@ -162,33 +179,36 @@ describe("march return", () => {
     const s = settleMarch(sent(s0, m), m.id, win(m)).state;
     // HQ 2 at T0+1min raises the cap before the march returns at T0+10min with 300 food.
     const withoutLoot = advance(sent(s0, m), m.returnAt - 1, NO_WORLD).resources.food;
-    expect(withoutLoot).toBeGreaterThan(cap1);
-    expect(advance(s, m.returnAt, NO_WORLD).resources.food).toBeCloseTo(withoutLoot + 300, 0);
-  });
+    e(withoutLoot, "cap raised first").toBeGreaterThan(cap1);
+    e(advance(s, m.returnAt, NO_WORLD).resources.food, "loot added").toBeCloseTo(withoutLoot + 300, 0);
+  }
 });
 
-describe("migrateBaseState", () => {
+test("migrateBaseState and isBaseState: M2 base, current base, garbage, forged troops", () => {
   const m2Base = { resources: { food: 1, materiel: 2, funds: 3, support: 0 }, levels: { hq: 2, farm: 1, armory: 1, treasury: 1 }, queue: null, lastUpdated: T0 };
 
-  test("an M2-era base gains a level-1 barracks and no troops", () => {
-    expect(isBaseState(m2Base)).toBe(false);
+  {
+    const e = ex("an M2-era base gains a level-1 barracks and no troops");
+    e(isBaseState(m2Base), "old shape invalid").toBe(false);
     const v = migrateBaseState(m2Base);
-    expect(isBaseState(v)).toBe(true);
-    expect(v).toMatchObject({ levels: { barracks: 1 }, troops: ZERO_TROOPS, wounded: ZERO_TROOPS, training: null, marches: [] });
-  });
+    e(isBaseState(v), "migrated valid").toBe(true);
+    e(v, "migrated content").toMatchObject({ levels: { barracks: 1 }, troops: ZERO_TROOPS, wounded: ZERO_TROOPS, training: null, marches: [] });
+  }
 
-  test("a current base passes through unchanged", () => {
+  {
     const s = base();
-    expect(migrateBaseState(s)).toEqual(s);
-  });
+    ex("a current base passes through unchanged")(migrateBaseState(s)).toEqual(s);
+  }
 
-  test("garbage stays garbage", () => {
-    for (const bad of [null, 1, "x", [], { levels: 3 }]) expect(isBaseState(migrateBaseState(bad))).toBe(false);
-  });
+  {
+    const e = ex("garbage stays garbage");
+    for (const bad of [null, 1, "x", [], { levels: 3 }]) e(isBaseState(migrateBaseState(bad)), JSON.stringify(bad)).toBe(false);
+  }
 
-  test("forged troop counts fail the shape check", () => {
+  {
+    const e = ex("forged troop counts fail the shape check");
     for (const troops of [{ ...ZERO_TROOPS, infantry: -1 }, { ...ZERO_TROOPS, infantry: 1.5 }, { ...ZERO_TROOPS, infantry: 1e12 }, { infantry: 1 }]) {
-      expect(isBaseState({ ...base(), troops })).toBe(false);
+      e(isBaseState({ ...base(), troops }), JSON.stringify(troops)).toBe(false);
     }
-  });
+  }
 });

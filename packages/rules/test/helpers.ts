@@ -1,3 +1,4 @@
+import { expect } from "vitest";
 import { createBaseState, type BaseState } from "../src/index.ts";
 
 export const T0 = Date.UTC(2026, 0, 1);
@@ -15,3 +16,9 @@ export const base = (overrides: Partial<BaseState> = {}): BaseState => ({
 
 export const rich = (): BaseState =>
   base({ resources: { food: 2000, materiel: 2000, funds: 2000, support: 300 } });
+
+/** Soft expect labelled with the behaviour (and optional row) so a failing row names itself. */
+export const ex =
+  (label: string) =>
+  (value: unknown, row = "") =>
+    expect.soft(value, row === "" ? label : `${label} :: ${row}`);

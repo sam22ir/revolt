@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { test } from "vitest";
 import {
   ALLIANCE_ACTIONS,
   ALLIANCE_RANKS,
@@ -12,89 +12,102 @@ import {
   validateAllianceTag,
   validateChatText,
 } from "../src/index.ts";
+import { ex } from "./helpers.ts";
 
-describe("permissions", () => {
-  test("the matrix", () => {
+const AR = "الحرية";
+
+test("alliance permissions: action matrix, kick rank, promotion and demotion", () => {
+  {
+    const e = ex("the matrix");
     const allowed = (a: (typeof ALLIANCE_ACTIONS)[number]) => ALLIANCE_RANKS.filter((r) => canPerform(r, a));
-    expect(allowed("kick")).toEqual(["leader", "officer"]);
-    expect(allowed("start_rally")).toEqual(["leader", "officer"]);
-    for (const a of ["promote", "demote", "transfer", "set_hq", "disband"] as const) expect(allowed(a), a).toEqual(["leader"]);
-  });
+    e(allowed("kick"), "kick").toEqual(["leader", "officer"]);
+    e(allowed("start_rally"), "start_rally").toEqual(["leader", "officer"]);
+    for (const a of ["promote", "demote", "transfer", "set_hq", "disband"] as const) e(allowed(a), a).toEqual(["leader"]);
+  }
 
-  test("kicking needs a strictly lower rank", () => {
-    expect(canKick("leader", "officer")).toBe(true);
-    expect(canKick("leader", "member")).toBe(true);
-    expect(canKick("officer", "member")).toBe(true);
-    expect(canKick("officer", "officer")).toBe(false);
-    expect(canKick("officer", "leader")).toBe(false);
-    expect(canKick("member", "member")).toBe(false);
-    expect(canKick("leader", "leader")).toBe(false);
-  });
+  {
+    const e = ex("kicking needs a strictly lower rank");
+    e(canKick("leader", "officer"), "leader>officer").toBe(true);
+    e(canKick("leader", "member"), "leader>member").toBe(true);
+    e(canKick("officer", "member"), "officer>member").toBe(true);
+    e(canKick("officer", "officer"), "officer=officer").toBe(false);
+    e(canKick("officer", "leader"), "officer<leader").toBe(false);
+    e(canKick("member", "member"), "member=member").toBe(false);
+    e(canKick("leader", "leader"), "leader=leader").toBe(false);
+  }
 
-  test("promotion and demotion move one step; a leader changes only by transfer", () => {
-    expect(promotedRank("member")).toBe("officer");
-    expect(promotedRank("officer")).toBeNull();
-    expect(promotedRank("leader")).toBeNull();
-    expect(demotedRank("officer")).toBe("member");
-    expect(demotedRank("member")).toBeNull();
-    expect(demotedRank("leader")).toBeNull();
-  });
+  {
+    const e = ex("promotion and demotion move one step; a leader changes only by transfer");
+    e(promotedRank("member"), "promote member").toBe("officer");
+    e(promotedRank("officer"), "promote officer").toBeNull();
+    e(promotedRank("leader"), "promote leader").toBeNull();
+    e(demotedRank("officer"), "demote officer").toBe("member");
+    e(demotedRank("member"), "demote member").toBeNull();
+    e(demotedRank("leader"), "demote leader").toBeNull();
+  }
 });
 
-describe("validateAllianceName", () => {
-  test("accepts 3–24 characters, trimmed, single spaces, NFC", () => {
-    expect(validateAllianceName("  Free   Lands ")).toBe("Free Lands");
-    expect(validateAllianceName("abc")).toBe("abc");
-    expect(validateAllianceName("x".repeat(24))).toBe("x".repeat(24));
-    expect(validateAllianceName("équipe")).toBe("équipe");
-  });
+test("validateAllianceName: normalising, unicode, rejects, forbidden characters, nameKey", () => {
+  {
+    const e = ex("accepts 3–24 characters, trimmed, single spaces, NFC");
+    e(validateAllianceName("  Free   Lands "), "spaces").toBe("Free Lands");
+    e(validateAllianceName("abc"), "min length").toBe("abc");
+    e(validateAllianceName("x".repeat(24)), "max length").toBe("x".repeat(24));
+    e(validateAllianceName("équipe"), "NFC").toBe("\xe9quipe");
+  }
 
-  test("counts characters, not UTF-16 units, and accepts Arabic and French", () => {
-    expect(validateAllianceName("الحرية")).toBe("الحرية");
-    expect(validateAllianceName("Les Aurès")).toBe("Les Aurès");
-    expect(validateAllianceName("😀".repeat(24))).not.toBeNull();
-    expect(validateAllianceName("😀".repeat(25))).toBeNull();
-  });
+  {
+    const e = ex("counts characters, not UTF-16 units, and accepts Arabic and French");
+    e(validateAllianceName(AR), "arabic").toBe(AR);
+    e(validateAllianceName("Les Aur\xe8s"), "french").toBe("Les Aur\xe8s");
+    e(validateAllianceName("\u{1f600}".repeat(24)), "24 emoji").not.toBeNull();
+    e(validateAllianceName("\u{1f600}".repeat(25)), "25 emoji").toBeNull();
+  }
 
-  test("rejects too short, too long, empty and non-strings", () => {
-    for (const v of ["", "  ", "ab", "x".repeat(25), null, 5, undefined, {}]) expect(validateAllianceName(v), String(v)).toBeNull();
-  });
+  {
+    const e = ex("rejects too short, too long, empty and non-strings");
+    for (const v of ["", "  ", "ab", "x".repeat(25), null, 5, undefined, {}]) e(validateAllianceName(v), String(v)).toBeNull();
+  }
 
-  test("rejects control, format and separator characters (bidi overrides, zero-width, newlines)", () => {
+  {
+    const e = ex("rejects control, format and separator characters (bidi overrides, zero-width, newlines)");
     for (const bad of ["ab‮cd", "ab⁦cd", "ab​cd", "ab‏cd", "ab\ncd", "ab\tcd", "ab cd", "ab\u0000cd", "ab﻿cd", "abcd"]) {
-      expect(validateAllianceName(bad), JSON.stringify(bad)).toBeNull();
+      e(validateAllianceName(bad), JSON.stringify(bad)).toBeNull();
     }
-  });
+  }
 
-  test("nameKey folds ASCII case and normalises, so duplicates are caught", () => {
-    expect(nameKey("Free Lands")).toBe(nameKey("free lands"));
-    expect(nameKey("é")).toBe(nameKey("é"));
-    expect(nameKey("الحرية")).toBe("الحرية");
-  });
+  {
+    const e = ex("nameKey folds ASCII case and normalises, so duplicates are caught");
+    e(nameKey("Free Lands"), "case").toBe(nameKey("free lands"));
+    e(nameKey("é"), "normalisation").toBe(nameKey("\xe9"));
+    e(nameKey(AR), "arabic").toBe(AR);
+  }
 });
 
-describe("validateAllianceTag", () => {
-  test("2–4 ASCII letters and digits, upper-cased", () => {
-    expect(validateAllianceTag("ab")).toBe("AB");
-    expect(validateAllianceTag(" z9x1 ")).toBe("Z9X1");
-    for (const bad of ["a", "abcde", "a b", "é", "ا", "a-b", "", null, 3]) expect(validateAllianceTag(bad), String(bad)).toBeNull();
-  });
-});
+test("validateAllianceTag and validateChatText", () => {
+  {
+    const e = ex("2–4 ASCII letters and digits, upper-cased");
+    e(validateAllianceTag("ab"), "ab").toBe("AB");
+    e(validateAllianceTag(" z9x1 "), "z9x1").toBe("Z9X1");
+    for (const bad of ["a", "abcde", "a b", "\xe9", "ا", "a-b", "", null, 3]) e(validateAllianceTag(bad), String(bad)).toBeNull();
+  }
 
-describe("validateChatText", () => {
-  test("accepts plain text up to the limit and trims", () => {
-    expect(validateChatText("  salut  ")).toBe("salut");
-    expect(validateChatText("مرحبا بالجميع")).toBe("مرحبا بالجميع");
-    expect(validateChatText("x".repeat(CHAT_MAX_LENGTH))).not.toBeNull();
-  });
+  {
+    const e = ex("accepts plain text up to the limit and trims");
+    e(validateChatText("  salut  "), "trim").toBe("salut");
+    const ar = "مرحبا بالجميع";
+    e(validateChatText(ar), "arabic").toBe(ar);
+    e(validateChatText("x".repeat(CHAT_MAX_LENGTH)), "limit").not.toBeNull();
+  }
 
-  test("rejects empty, too long, newlines, bidi overrides and non-strings", () => {
+  {
+    const e = ex("rejects empty, too long, newlines, bidi overrides and non-strings");
     for (const bad of ["", "   ", "x".repeat(CHAT_MAX_LENGTH + 1), "a\nb", "a‮b", "a​b", null, 4, {}]) {
-      expect(validateChatText(bad), JSON.stringify(bad)).toBeNull();
+      e(validateChatText(bad), JSON.stringify(bad)).toBeNull();
     }
-  });
+  }
 
-  test("markup is not special: it is just text for the client to show as text", () => {
-    expect(validateChatText("<img src=x onerror=alert(1)>")).toBe("<img src=x onerror=alert(1)>");
-  });
+  ex("markup is not special: it is just text for the client to show as text")(validateChatText("<img src=x onerror=alert(1)>")).toBe(
+    "<img src=x onerror=alert(1)>",
+  );
 });
