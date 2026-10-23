@@ -12,7 +12,7 @@
     "art:process": "node scripts/process-art.mjs",
     "art:terrain": "node scripts/process-terrain.mjs",
     "godot:export": "node scripts/export-godot.mjs",
-    "godot:test": "cd apps/godot && godot --headless -s addons/gut/gut_cmdln.gd"
+    "godot:test": "cd apps/godot && godot --headless --import && godot --headless -s addons/gut/gut_cmdln.gd"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "5.0.5",

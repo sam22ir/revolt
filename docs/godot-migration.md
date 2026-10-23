@@ -35,9 +35,27 @@ Branch from `main` (not `base-camera-fit`).
 - `liberations` (server-wide regions held, `from`/`until`), which scale production,
 - the server's `now`.
 
-Rates and caps are not sent. They derive from `levels` (and the liberation multiplier), so the client computes them from the exported balance tables. Instead of a server change, drift is prevented by golden fixtures: `scripts/export-godot.mjs` runs the real `accrue` over edge cases (cap reached, above-cap kept, time going backwards, ten years offline, liberation starting/ending mid-span, bonus capped) and a GDScript test must reproduce the results from `balance.json` alone. Vitest fails when the committed JSON is stale.
+Rates and caps are not sent. They derive from `levels` (and the liberation multiplier), so the client computes them from the exported balance tables. Instead of a server change, drift is caught by golden fixtures: `scripts/export-godot.mjs` runs the real `accrue` over edge cases (cap reached, above-cap kept, time going backwards, ten years offline, liberation starting/ending mid-span, bonus capped) and a GDScript test must reproduce the results from `balance.json` alone. Vitest fails when the committed JSON is stale. **The GDScript half of this check runs locally only (`pnpm godot:test`) until the CI step below is approved**: if someone changes `accrue` and regenerates the fixtures, only the Godot run shows the mismatch.
 
-Client display formula: `ResourceDisplay.amounts` (GDScript) mirrors `accrue`: segments split at liberation changes, `min(cap, stored + rate * multiplier * dt)`, amounts at or above the cap kept as is, `now` from the server-synced `Clock` (never the device clock).
+Client display formula: `ResourceDisplay.amounts` (GDScript) mirrors `accrue`: segments split at liberation changes, `min(cap, stored + rate * multiplier * dt)`, amounts at or above the cap kept as is, `now` from `Clock`: the server's `now` from the last response plus monotonic ticks since (`Time.get_ticks_msec`), so changing the phone's date or time cannot move counters or timers.
+
+### Draft CI step (not applied; needs your OK)
+
+Same job and check name ("Typecheck and unit tests"), added to `.github/workflows/ci.yml` after `pnpm test`:
+
+```yaml
+      - name: Install Godot (pinned, checksum verified)
+        run: |
+          V=4.7.2-stable
+          B=https://github.com/godotengine/godot/releases/download/$V
+          curl -fsSL -O "$B/Godot_v${V}_linux.x86_64.zip" -O "$B/SHA512-SUMS.txt"
+          grep "Godot_v${V}_linux.x86_64.zip" SHA512-SUMS.txt | sha512sum -c -
+          unzip -q "Godot_v${V}_linux.x86_64.zip"
+          sudo install "Godot_v${V}_linux.x86_64" /usr/local/bin/godot
+      - run: pnpm godot:test
+```
+
+About 80 MB download and ~10 s of tests per run; `pnpm godot:test` imports first, so it works from a clean checkout.
 
 ## Shared data
 
