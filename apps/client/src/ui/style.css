@@ -92,7 +92,7 @@ html, body {
   padding: 5px 8px;
 }
 
-/* Icon at the inline start, amount with the hourly rate under it; the fill meter runs along the bottom edge. */
+/* Icon at the inline start, then the amount; the fill meter runs along the bottom edge. */
 .res {
   position: relative;
   display: grid;
@@ -117,19 +117,9 @@ html, body {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 700;
-  font-size: 13px;
-  line-height: 15px;
+  font-size: 14px;
+  line-height: 18px;
   font-variant-numeric: tabular-nums;
-}
-.res-rate {
-  max-inline-size: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 9px;
-  line-height: 11px;
-  opacity: 0.75;
-  unicode-bidi: plaintext;
 }
 .res-meter {
   position: absolute;

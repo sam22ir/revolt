@@ -5,8 +5,8 @@ import { el } from "./dom.ts";
 import { resourceIcon } from "./icons.ts";
 
 interface Chip {
+  readonly li: HTMLElement;
   readonly amount: HTMLElement;
-  readonly rate: HTMLElement;
   readonly fill: HTMLElement;
 }
 
@@ -46,14 +46,13 @@ export const createHud = (
     li.innerHTML = resourceIcon(id);
     const text = el("div", "res-text");
     const amount = el("span", "res-amount");
-    const rate = el("span", "res-rate");
-    text.append(amount, rate);
+    text.append(amount);
     const meter = el("div", "res-meter");
     const fill = el("div", "res-fill");
     meter.append(fill);
     li.append(text, meter);
     list.append(li);
-    chips.set(id, { amount, rate, fill });
+    chips.set(id, { li, amount, fill });
   }
   bar.append(list);
   const queue = el("div", "queue-pill");
@@ -91,8 +90,9 @@ export const createHud = (
       const chip = chips.get(id);
       if (chip === undefined) continue;
       chip.amount.textContent = formatAmount(lang, state.resources[id]);
+      // The hourly rate is not shown on the bar (it stays in the building panels); a long press or hover still tells it.
       // LRI…PDI keeps the sign before the number in Arabic ("+100/سا", not "100+").
-      chip.rate.textContent = t("panel.perHour", { amount: `\u2066+${formatAmount(lang, rate[id])}\u2069` });
+      chip.li.title = `${t(`resource.${id}`)} · ${t("panel.perHour", { amount: `\u2066+${formatAmount(lang, rate[id])}\u2069` })}`;
       const frac = Math.min(1, state.resources[id] / cap[id]);
       chip.fill.style.inlineSize = `${(frac * 100).toFixed(1)}%`;
       chip.fill.classList.toggle("near", frac >= 0.9);
