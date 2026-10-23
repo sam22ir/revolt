@@ -1,0 +1,337 @@
+{
+  "cases": [
+    {
+      "name": "fresh base, one hour",
+      "resources": {
+        "food": 500,
+        "materiel": 500,
+        "funds": 500,
+        "support": 0
+      },
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700003600000,
+      "ratePerHour": {
+        "food": 120,
+        "materiel": 100,
+        "funds": 110,
+        "support": 20
+      },
+      "cap": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      },
+      "expected": {
+        "food": 620,
+        "materiel": 600,
+        "funds": 610,
+        "support": 20
+      }
+    },
+    {
+      "name": "no time passed",
+      "resources": {
+        "food": 500,
+        "materiel": 500,
+        "funds": 500,
+        "support": 0
+      },
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700000000000,
+      "ratePerHour": {
+        "food": 120,
+        "materiel": 100,
+        "funds": 110,
+        "support": 20
+      },
+      "cap": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      },
+      "expected": {
+        "food": 500,
+        "materiel": 500,
+        "funds": 500,
+        "support": 0
+      }
+    },
+    {
+      "name": "time going backwards keeps the amounts",
+      "resources": {
+        "food": 500,
+        "materiel": 400,
+        "funds": 300,
+        "support": 20
+      },
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1699982000000,
+      "ratePerHour": {
+        "food": 120,
+        "materiel": 100,
+        "funds": 110,
+        "support": 20
+      },
+      "cap": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      },
+      "expected": {
+        "food": 500,
+        "materiel": 400,
+        "funds": 300,
+        "support": 20
+      }
+    },
+    {
+      "name": "cap reached on one resource only",
+      "resources": {
+        "food": 1990,
+        "materiel": 100,
+        "funds": 100,
+        "support": 10
+      },
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700036000000,
+      "ratePerHour": {
+        "food": 120,
+        "materiel": 100,
+        "funds": 110,
+        "support": 20
+      },
+      "cap": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      },
+      "expected": {
+        "food": 2000,
+        "materiel": 1100,
+        "funds": 1200,
+        "support": 210
+      }
+    },
+    {
+      "name": "amount above the cap is kept, never clamped down",
+      "resources": {
+        "food": 9000,
+        "materiel": 2500,
+        "funds": 2001,
+        "support": 400
+      },
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700010800000,
+      "ratePerHour": {
+        "food": 120,
+        "materiel": 100,
+        "funds": 110,
+        "support": 20
+      },
+      "cap": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      },
+      "expected": {
+        "food": 9000,
+        "materiel": 2500,
+        "funds": 2001,
+        "support": 400
+      }
+    },
+    {
+      "name": "amount exactly at the cap",
+      "resources": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      },
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700003600000,
+      "ratePerHour": {
+        "food": 120,
+        "materiel": 100,
+        "funds": 110,
+        "support": 20
+      },
+      "cap": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      },
+      "expected": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      }
+    },
+    {
+      "name": "ten years offline",
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "levels": {
+        "hq": 4,
+        "farm": 3,
+        "armory": 3,
+        "treasury": 3,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 2015360000000,
+      "ratePerHour": {
+        "food": 260,
+        "materiel": 220,
+        "funds": 240,
+        "support": 55
+      },
+      "cap": {
+        "food": 8000,
+        "materiel": 8000,
+        "funds": 8000,
+        "support": 1100
+      },
+      "expected": {
+        "food": 8000,
+        "materiel": 8000,
+        "funds": 8000,
+        "support": 1100
+      }
+    },
+    {
+      "name": "mid levels, fractional hours",
+      "resources": {
+        "food": 120.5,
+        "materiel": 80,
+        "funds": 10,
+        "support": 3
+      },
+      "levels": {
+        "hq": 5,
+        "farm": 6,
+        "armory": 4,
+        "treasury": 7,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700008532000,
+      "ratePerHour": {
+        "food": 640,
+        "materiel": 300,
+        "funds": 760,
+        "support": 70
+      },
+      "cap": {
+        "food": 11000,
+        "materiel": 11000,
+        "funds": 11000,
+        "support": 1500
+      },
+      "expected": {
+        "food": 1637.3,
+        "materiel": 791,
+        "funds": 1811.2,
+        "support": 168.9
+      }
+    },
+    {
+      "name": "max levels",
+      "resources": {
+        "food": 1,
+        "materiel": 2,
+        "funds": 3,
+        "support": 4
+      },
+      "levels": {
+        "hq": 10,
+        "farm": 10,
+        "armory": 10,
+        "treasury": 10,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700025200000,
+      "ratePerHour": {
+        "food": 1740,
+        "materiel": 1450,
+        "funds": 1580,
+        "support": 190
+      },
+      "cap": {
+        "food": 42000,
+        "materiel": 42000,
+        "funds": 42000,
+        "support": 5000
+      },
+      "expected": {
+        "food": 12181,
+        "materiel": 10152,
+        "funds": 11063,
+        "support": 1334
+      }
+    }
+  ]
+}

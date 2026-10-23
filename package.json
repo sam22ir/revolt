@@ -10,7 +10,9 @@
     "build": "pnpm --filter @revolt/client build",
     "preview:lan": "pnpm --filter @revolt/client build && pnpm --filter @revolt/client preview",
     "art:process": "node scripts/process-art.mjs",
-    "art:terrain": "node scripts/process-terrain.mjs"
+    "art:terrain": "node scripts/process-terrain.mjs",
+    "godot:export": "node scripts/export-godot.mjs",
+    "godot:test": "cd apps/godot && godot --headless -s addons/gut/gut_cmdln.gd"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "5.0.5",

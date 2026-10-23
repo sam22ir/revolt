@@ -15,6 +15,11 @@ window/handheld/orientation=1
 [editor_plugins]
 enabled=PackedStringArray("res://addons/gut/plugin.cfg")
 
+[internationalization]
+
+locale/translations=PackedStringArray("res://locale/en.po", "res://locale/ar.po", "res://locale/fr.po")
+locale/fallback="en"
+
 [rendering]
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
