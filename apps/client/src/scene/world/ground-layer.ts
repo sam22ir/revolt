@@ -4,6 +4,7 @@ import { theme } from "../../theme/theme.ts";
 import { groundTexture, propsTexture, terrainAtlases, type Atlas } from "../../art/art.ts";
 import { SpritePool } from "../sprite-pool.ts";
 import { OASIS_FRONT } from "../terrain-props.ts";
+import { buildGroundPlan, type GroundPlan } from "./ground-plan.ts";
 import { TILE_H, TILE_W, tileToWorld, type TileRange } from "../world-layout.ts";
 import { poly } from "./draw-helpers.ts";
 import { flatGroundRenderer, softGroundRenderer, type GroundPaint, type GroundRenderer } from "./ground-renderers.ts";
@@ -34,6 +35,7 @@ export class GroundLayer implements WorldLayer {
   /** Changes when the set of occupied tiles (bases, NPCs, alliance HQs) does, so props are not drawn under them. */
   private occupiedKey = "";
   private occupied = new Set<number>();
+  private plan: GroundPlan = { colours: new Uint32Array(0), props: [] };
   // Reused for every tile so a repaint allocates nothing.
   private readonly quad: [Phaser.Math.Vector2, Phaser.Math.Vector2, Phaser.Math.Vector2, Phaser.Math.Vector2] = [
     new Phaser.Math.Vector2(),
@@ -46,17 +48,7 @@ export class GroundLayer implements WorldLayer {
     this.graphics = scene.add.graphics().setDepth(0);
     this.propPool = new SpritePool(scene);
     addAtlasFrames(scene.textures);
-    this.soft = softGroundRenderer({
-      specs,
-      propPool: this.propPool,
-      interior: (x, y, size) => this.interior(x, y, size),
-      idAt: (x, y) => this.idAt(x, y),
-      palette: TERRAIN_IDS.map((id) => theme.terrain[id][0]),
-      context: (x, y) => {
-        const i = y * Math.sqrt(this.terrain.length) + x;
-        return { flags: this.geoFlags[i] ?? 0, fertility: this.fertility[i] ?? 0.5 };
-      },
-    });
+    this.soft = softGroundRenderer({ specs, propPool: this.propPool });
   }
 
   /** Called by the scene when the snapshot changes: rebuilds the terrain and occupied tiles when they change. */
@@ -83,6 +75,7 @@ export class GroundLayer implements WorldLayer {
           }
       this.fertility = new Float32Array(snap.size * snap.size);
       for (let y = 0; y < snap.size; y++) for (let x = 0; x < snap.size; x++) this.fertility[y * snap.size + x] = fertilityAt(snap.terrainSeed, x, y);
+      this.plan = buildGroundPlan({ size: snap.size, terrain: this.terrain, flags: this.geoFlags, fertility: this.fertility, palette: TERRAIN_IDS.map((id) => theme.terrain[id][0]) });
     }
   }
 
@@ -103,7 +96,7 @@ export class GroundLayer implements WorldLayer {
     this.paintRim(g, snap.size);
     this.propPool.begin();
     const renderer = art ? this.soft : this.flat;
-    const paint: GroundPaint = { g, size: snap.size, props, grid, quad: this.quad };
+    const paint: GroundPaint = { g, size: snap.size, props, grid, quad: this.quad, plan: this.plan };
     renderer.begin(paint);
     this.paintTiles(paint, range, renderer);
     this.propPool.end();
@@ -145,28 +138,6 @@ export class GroundLayer implements WorldLayer {
           const x = t.x + dx, y = t.y + dy;
           if (x >= 0 && y >= 0 && x < snap.size && y < snap.size) this.occupied.add(y * snap.size + x);
         }
-  }
-
-  /** Terrain index of a tile, or -1 off the map. */
-  private idAt(x: number, y: number): number {
-    const size = Math.sqrt(this.terrain.length);
-    if (x < 0 || y < 0 || x >= size || y >= size) return -1;
-    return this.terrain[y * size + x] ?? -1;
-  }
-
-  /** Share of a tile's eight neighbours with the same terrain: 0 at a region's border, 1 deep inside. */
-  private interior(x: number, y: number, size: number): number {
-    const id = this.terrain[y * size + x];
-    let same = 0;
-    for (let dx = -1; dx <= 1; dx++) {
-      for (let dy = -1; dy <= 1; dy++) {
-        if (dx === 0 && dy === 0) continue;
-        const nx = x + dx, ny = y + dy;
-        // Off the map counts as the same, so a region does not thin out at the map's edge.
-        if (nx < 0 || ny < 0 || nx >= size || ny >= size || this.terrain[ny * size + nx] === id) same++;
-      }
-    }
-    return same / 8;
   }
 
   /** The slab edge below the map's two near sides, so the land has some thickness. */
