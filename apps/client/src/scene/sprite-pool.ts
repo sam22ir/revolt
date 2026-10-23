@@ -36,15 +36,19 @@ export class SpritePool {
     }
     this.used++;
     const ax = flip ? spec.w - spec.anchorX : spec.anchorX;
-    img
-      .setTexture(spec.texture, spec.frame)
-      .setFlipX(flip)
-      .setScale(spec.scale * k)
-      .setPosition(x - ax * spec.scale * k, y - spec.anchorY * spec.scale * k)
-      .setDepth(depth)
-      .setVisible(true)
-      .setAlpha(1)
-      .clearTint();
+    // Each setter below queues work in Phaser (a depth sort, a texture rebind), so only the ones that change run.
+    const frame = spec.frame ?? "__BASE";
+    if (img.texture.key !== spec.texture || img.frame.name !== frame) img.setTexture(spec.texture, spec.frame);
+    if (img.flipX !== flip) img.setFlipX(flip);
+    const scale = spec.scale * k;
+    if (img.scaleX !== scale || img.scaleY !== scale) img.setScale(scale);
+    const px = x - ax * scale;
+    const py = y - spec.anchorY * scale;
+    if (img.x !== px || img.y !== py) img.setPosition(px, py);
+    if (img.depth !== depth) img.setDepth(depth);
+    if (!img.visible) img.setVisible(true);
+    if (img.alpha !== 1) img.setAlpha(1);
+    if (img.isTinted) img.clearTint();
     return img;
   }
 

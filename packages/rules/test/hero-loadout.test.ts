@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { NO_WORLD } from "../src/index.ts";
 import {
   fightNpc,
   parseHeroLoadout,
@@ -37,7 +38,7 @@ const roster = (levels: Partial<Record<keyof typeof HEROES, number>>): HeroRoste
 const withHeroes = (r: HeroRoster, overrides: Partial<BaseState> = {}): BaseState => base({ ...rich(), heroes: r, troops: t(40, 20, 10), ...overrides });
 const ALL = roster({ mountain_guide: 1, dock_foreman: 1, iron_quartermaster: 1, hill_commander: 1 });
 const send = (s: BaseState, loadout: HeroLoadout | null, id = "m1", troops = t(10), now = T0) =>
-  startMarch(s, { id, target: { npcId: "n1", level: 1, ...TO }, from: FROM, troops, departAt: now, arriveAt: now + MIN, returnAt: now + 2 * MIN, rallyId: undefined }, now, loadout);
+  startMarch(s, { id, target: { npcId: "n1", level: 1, ...TO }, from: FROM, troops, departAt: now, arriveAt: now + MIN, returnAt: now + 2 * MIN, rallyId: undefined }, now, NO_WORLD, loadout);
 
 describe("checkLoadout", () => {
   const s = withHeroes(ALL);
@@ -66,7 +67,7 @@ describe("checkLoadout", () => {
     expect(checkLoadout(sent.state, { lead: "hill_commander", deputies: [] })).toBe("hero_busy");
     expect(checkLoadout(sent.state, { lead: "dock_foreman", deputies: [] })).toBeNull();
     // Past the return (with the rescue grace in case the map never settled it), the hero is home.
-    const back = advance(sent.state, T0 + 2 * MIN + MARCH_RESCUE_GRACE_MS + SEC);
+    const back = advance(sent.state, T0 + 2 * MIN + MARCH_RESCUE_GRACE_MS + SEC, NO_WORLD);
     expect(back.marches).toHaveLength(0);
     expect(checkLoadout(back, { lead: "hill_commander", deputies: [] })).toBeNull();
   });

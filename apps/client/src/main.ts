@@ -20,11 +20,24 @@ import { createWorldStore } from "./state/world-store.ts";
 import { mountUi } from "./ui/app-ui.ts";
 import { pickBackground } from "./ui/background-picker.ts";
 import { showBootStatus } from "./ui/boot-status.ts";
+import { createHudInsets } from "./ui/hud-insets.ts";
 import "./ui/style.css";
 import "./ui/map.css";
 import "./ui/alliance.css";
 import "./ui/heroes.css";
 import "./ui/live.css";
+import { applyThemeToCss, hex, theme } from "./theme/theme.ts";
+import { applyFrameArt } from "./ui/frame-art.ts";
+import { pickRenderer, readGpuRenderer } from "./render-mode.ts";
+
+applyThemeToCss(document.documentElement);
+applyFrameArt(document.documentElement);
+
+/** WebGL where it works; Canvas on GPUs known to draw sprite transparency as black (see render-mode.ts). `?renderer=canvas|webgl|auto` overrides. */
+const rendererType = (): number => {
+  const choice = pickRenderer({ override: new URLSearchParams(window.location.search).get("renderer"), gpu: readGpuRenderer() });
+  return choice === "canvas" ? Phaser.CANVAS : choice === "webgl" ? Phaser.WEBGL : Phaser.AUTO;
+};
 
 const TICK_MS = 250;
 const RETRY_MS = [1000, 2000, 5000, 10_000];
@@ -101,20 +114,23 @@ const start = async (): Promise<void> => {
     },
     onSelectionChange: (id) => baseScene?.setSelected(id),
     onTileSelectionChange: (tile) => worldScene?.setSelectedTile(tile),
+    onJump: (tile) => worldScene?.centerOn(tile.x, tile.y),
     onViewChange: (view) => {
       if (game !== null) showScene(game, view === "map" ? "world" : "base");
     },
   });
 
-  baseScene = new BaseScene(store, (id: BuildingId | null) => ui.select(id));
-  worldScene = new WorldScene(store, world, { onSelect: ui.selectTile, onCenter: ui.setCenter });
+  // The scenes read the live HUD sizes (header, nav bar, open sheet) to place the map between them.
+  const insets = createHudInsets();
+  baseScene = new BaseScene(store, (id: BuildingId | null) => ui.select(id), insets);
+  worldScene = new WorldScene(store, world, { onSelect: ui.selectTile, onCenter: ui.setCenter, onView: ui.setViewport, onCamera: ui.setCamera }, insets);
   const gameRoot = document.getElementById("game");
   if (gameRoot === null) throw new Error("#game missing");
   // The base scene starts; the world scene waits until the map is first opened.
   game = new Phaser.Game({
-    type: Phaser.AUTO,
+    type: rendererType(),
     parent: gameRoot,
-    backgroundColor: "#3d4a3a",
+    backgroundColor: hex(theme.ground.base),
     scale: hiDpiScaleConfig(gameRoot),
     banner: false,
     // By default Phaser also listens on the whole window, so a tap on a DOM panel or button would reach

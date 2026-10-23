@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { NO_WORLD } from "../src/index.ts";
 import {
   advance,
   BACKGROUND_IDS,
@@ -108,11 +109,11 @@ describe("story per background", () => {
   });
 
   test("Vietnam chapter 1 finishes from the start resources and its reward covers a recruit draw", () => {
-    const up = startUpgrade(createBaseState(T0), "hq", T0);
+    const up = startUpgrade(createBaseState(T0), "hq", T0, NO_WORLD);
     if (!up.ok) throw new Error(up.reason);
-    const done = advance(up.state, T0 + 60 * SEC);
+    const done = advance(up.state, T0 + 60 * SEC, NO_WORLD);
     expect(chapterStatus(done, "vietnam")).toBe("ready");
-    const claim = claimChapter(done, T0 + 60 * SEC, "vietnam");
+    const claim = claimChapter(done, T0 + 60 * SEC, NO_WORLD, "vietnam");
     if (!claim.ok) throw new Error(claim.reason);
     expect(claim.state.story.chapter).toBe(1);
     expect(claim.state.resources.funds).toBeGreaterThanOrEqual(HERO_DRAW_COST.funds);
@@ -128,21 +129,21 @@ describe("story per background", () => {
         if (o.kind === "troops_owned") s = { ...s, troops: { ...s.troops, infantry: o.count } };
         if (o.kind === "hero_recruited" || o.kind === "hero_level") s = withHeroes(s, { trail_scout: { level: 5, shards: s.heroes.owned.trail_scout?.shards ?? 0 } });
       }
-      const r = claimChapter(s, T0, "vietnam");
+      const r = claimChapter(s, T0, NO_WORLD, "vietnam");
       if (!r.ok) throw new Error(`chapter ${i + 1}: ${r.reason}`);
       s = r.state;
     }
     for (const id of HEROES_BY_BACKGROUND.algeria) expect(s.heroes.owned[id], id).toBeUndefined();
-    expect(claimChapter(s, T0, "vietnam")).toMatchObject({ ok: false, reason: "story_complete" });
+    expect(claimChapter(s, T0, NO_WORLD, "vietnam")).toMatchObject({ ok: false, reason: "story_complete" });
   });
 
   test("a Vietnam claim is refused until its objectives are met; time going back or far ahead behaves", () => {
     const s = createBaseState(T0);
-    expect(claimChapter(s, T0, "vietnam")).toMatchObject({ ok: false, reason: "objectives_unmet" });
-    const back = claimChapter({ ...s, levels: { ...s.levels, hq: 2 } }, T0 - DAY, "vietnam");
+    expect(claimChapter(s, T0, NO_WORLD, "vietnam")).toMatchObject({ ok: false, reason: "objectives_unmet" });
+    const back = claimChapter({ ...s, levels: { ...s.levels, hq: 2 } }, T0 - DAY, NO_WORLD, "vietnam");
     if (!back.ok) throw new Error(back.reason);
     expect(back.state.lastUpdated).toBe(s.lastUpdated);
-    const far = claimChapter({ ...s, levels: { ...s.levels, hq: 2 } }, T0 + 1000 * DAY, "vietnam");
+    const far = claimChapter({ ...s, levels: { ...s.levels, hq: 2 } }, T0 + 1000 * DAY, NO_WORLD, "vietnam");
     expect(far.ok).toBe(true);
   });
 });

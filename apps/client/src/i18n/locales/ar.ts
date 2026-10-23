@@ -121,7 +121,18 @@ export const ar: LocaleShape = {
     fortified_line: { name: "خط محصّن", desc: "سلسلة مواقع محصّنة يحتفظ بها الجيش الاستعماري. أقوى من أن تواجهها قوة واحدة: يتطلب حشدًا من التحالف." },
   },
   terrain: { plain: "سهل", hills: "تلال", forest: "غابة", mountain: "جبل" },
+  search: {
+    title: "البحث عن هدف",
+    go: "بحث",
+    next: "التالي",
+    level: "المستوى {{level}}",
+    none: "لا يوجد هدف من المستوى {{level}} حاليًا.",
+  },
+
   map: {
+    minimap: "نظرة عامة على الخريطة. المس للانتقال.",
+    myBase: "قاعدتي",
+    baseDistance: "المسافة {{count}}",
     coords: "س {{x}} · ص {{y}}",
     loading: "جارٍ تحميل الخريطة…",
     ownCamp: "معسكرك",

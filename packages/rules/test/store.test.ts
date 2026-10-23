@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { NO_WORLD } from "../src/index.ts";
 import {
   advance,
   COSMETIC_IDS,
@@ -32,7 +33,7 @@ const building = (): BaseState => {
     levels: { ...rich().levels, hq: 8, farm: 5 },
     resources: { food: 50_000, materiel: 50_000, funds: 50_000, support: 5000 },
   };
-  const r = startUpgrade(big, "farm", T0);
+  const r = startUpgrade(big, "farm", T0, NO_WORLD);
   if (!r.ok) throw new Error(r.reason);
   return r.state;
 };
@@ -41,7 +42,7 @@ describe("speedUp", () => {
   test("removes token time from a running upgrade and charges for it", () => {
     const s = building();
     const before = s.queue!.endsAt;
-    const r = speedUp(s, "upgrade", 1, 5, 0, T0);
+    const r = speedUp(s, "upgrade", 1, 5, 0, T0, NO_WORLD);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.appliedMs).toBe(SPEEDUP_TOKEN_MS);
@@ -50,34 +51,34 @@ describe("speedUp", () => {
   });
 
   test("works on training too", () => {
-    const t = startTraining(rich(), "infantry", 20, T0);
+    const t = startTraining(rich(), "infantry", 20, T0, NO_WORLD);
     if (!t.ok) throw new Error(t.reason);
-    const r = speedUp(t.state, "training", 1, 1, 0, T0);
+    const r = speedUp(t.state, "training", 1, 1, 0, T0, NO_WORLD);
     expect(r.ok && r.state.training!.endsAt).toBeLessThan(t.state.training!.endsAt);
   });
 
   test("refuses nothing-to-speed, too few tokens and silly amounts", () => {
     const s = rich();
-    expect(speedUp(s, "upgrade", 1, 5, 0, T0)).toMatchObject({ ok: false, reason: "no_speedup_job" });
+    expect(speedUp(s, "upgrade", 1, 5, 0, T0, NO_WORLD)).toMatchObject({ ok: false, reason: "no_speedup_job" });
     const b = building();
-    expect(speedUp(b, "upgrade", 3, 2, 0, T0)).toMatchObject({ ok: false, reason: "too_few_tokens" });
-    for (const n of [0, -1, 1.5, NaN, SPEEDUP_MAX_PER_USE + 1]) expect(speedUp(b, "upgrade", n, 99, 0, T0)).toMatchObject({ ok: false, reason: "bad_amount" });
+    expect(speedUp(b, "upgrade", 3, 2, 0, T0, NO_WORLD)).toMatchObject({ ok: false, reason: "too_few_tokens" });
+    for (const n of [0, -1, 1.5, NaN, SPEEDUP_MAX_PER_USE + 1]) expect(speedUp(b, "upgrade", n, 99, 0, T0, NO_WORLD)).toMatchObject({ ok: false, reason: "bad_amount" });
   });
 
   test("never touches the headquarters' own upgrade: paid time cannot buy the progression gate", () => {
-    const hq = startUpgrade(rich(), "hq", T0);
+    const hq = startUpgrade(rich(), "hq", T0, NO_WORLD);
     if (!hq.ok) throw new Error(hq.reason);
-    expect(speedUp(hq.state, "upgrade", 1, 99, 0, T0)).toMatchObject({ ok: false, reason: "hq_job" });
+    expect(speedUp(hq.state, "upgrade", 1, 99, 0, T0, NO_WORLD)).toMatchObject({ ok: false, reason: "hq_job" });
     // The gate that blocks other buildings is unchanged by any amount of speed-up.
-    const gated = startUpgrade({ ...rich(), levels: { ...rich().levels, hq: 1 } }, "farm", T0);
+    const gated = startUpgrade({ ...rich(), levels: { ...rich().levels, hq: 1 } }, "farm", T0, NO_WORLD);
     expect(gated).toMatchObject({ ok: false, reason: "hq_gate" });
   });
 
   test("the daily cap limits total time, and the last token is clamped to what is left", () => {
     const b = building();
-    expect(speedUp(b, "upgrade", 1, 5, SPEEDUP_DAILY_CAP_MS, T0)).toMatchObject({ ok: false, reason: "daily_cap" });
+    expect(speedUp(b, "upgrade", 1, 5, SPEEDUP_DAILY_CAP_MS, T0, NO_WORLD)).toMatchObject({ ok: false, reason: "daily_cap" });
     const left = 5 * MIN;
-    const r = speedUp(b, "upgrade", 5, 5, SPEEDUP_DAILY_CAP_MS - left, T0);
+    const r = speedUp(b, "upgrade", 5, 5, SPEEDUP_DAILY_CAP_MS - left, T0, NO_WORLD);
     expect(r.ok && r.appliedMs).toBe(left);
     expect(r.ok && r.tokensUsed).toBe(1);
   });
@@ -85,24 +86,24 @@ describe("speedUp", () => {
   test("a speed-up never ends a job before now or before settled time", () => {
     const b = building();
     const nearEnd = b.queue!.endsAt - MIN;
-    const r = speedUp(b, "upgrade", 20, 20, 0, nearEnd);
+    const r = speedUp(b, "upgrade", 20, 20, 0, nearEnd, NO_WORLD);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.state.queue === null || r.state.queue.endsAt >= nearEnd).toBe(true);
     // Time going backwards: asking with an earlier clock cannot pull the end before the settled time.
-    const backwards = speedUp(r.state, "upgrade", 1, 5, 0, T0 - HOUR);
+    const backwards = speedUp(r.state, "upgrade", 1, 5, 0, T0 - HOUR, NO_WORLD);
     if (backwards.ok) expect(backwards.state.queue!.endsAt).toBeGreaterThanOrEqual(backwards.state.lastUpdated);
   });
 
   test("a job that is already finished is no job", () => {
     const b = building();
-    expect(speedUp(b, "upgrade", 1, 1, 0, b.queue!.endsAt + 1)).toMatchObject({ ok: false, reason: "no_speedup_job" });
+    expect(speedUp(b, "upgrade", 1, 1, 0, b.queue!.endsAt + 1, NO_WORLD)).toMatchObject({ ok: false, reason: "no_speedup_job" });
   });
 
   test("tokens are charged for time removed, not for time wished for", () => {
     const b = building();
     const almost = b.queue!.endsAt - 2 * MIN;
-    const r = speedUp(b, "upgrade", 10, 10, 0, almost);
+    const r = speedUp(b, "upgrade", 10, 10, 0, almost, NO_WORLD);
     expect(r.ok && r.tokensUsed).toBe(1);
   });
 });
@@ -126,28 +127,28 @@ describe("grantReward", () => {
   test("fills storage up to the cap and never lowers an amount above it", () => {
     const s = rich();
     const cap = storageCap(s.levels.hq);
-    const g = grantReward(s, { resources: { food: 1e9 } }, T0);
+    const g = grantReward(s, { resources: { food: 1e9 } }, T0, NO_WORLD);
     expect(g.resources.food).toBe(cap.food);
     const over: BaseState = { ...s, resources: { ...s.resources, food: cap.food + 500 } };
-    expect(grantReward(over, { resources: { food: 100 } }, T0).resources.food).toBe(advance(over, T0).resources.food);
+    expect(grantReward(over, { resources: { food: 100 } }, T0, NO_WORLD).resources.food).toBe(advance(over, T0, NO_WORLD).resources.food);
   });
 
   test("shards go to the first owned hero of the background", () => {
-    const a = grantReward(withHeroes(rich(), { dock_foreman: { level: 1, shards: 0 }, hill_commander: { level: 1, shards: 0 } }), { shards: 3 }, T0, "algeria");
+    const a = grantReward(withHeroes(rich(), { dock_foreman: { level: 1, shards: 0 }, hill_commander: { level: 1, shards: 0 } }), { shards: 3 }, T0, NO_WORLD, "algeria");
     expect(a.heroes.owned.dock_foreman?.shards).toBe(3);
     expect(a.heroes.owned.hill_commander?.shards).toBe(0);
-    const v = grantReward(withHeroes(rich(), { trail_scout: { level: 1, shards: 0 } }), { shards: 3 }, T0, "vietnam");
+    const v = grantReward(withHeroes(rich(), { trail_scout: { level: 1, shards: 0 } }), { shards: 3 }, T0, NO_WORLD, "vietnam");
     expect(v.heroes.owned.trail_scout?.shards).toBe(3);
   });
 
   test("shards are dropped when the player owns no hero of the background", () => {
-    const g = grantReward(withHeroes(rich(), { trail_scout: { level: 1, shards: 0 } }), { shards: 3 }, T0, "algeria");
+    const g = grantReward(withHeroes(rich(), { trail_scout: { level: 1, shards: 0 } }), { shards: 3 }, T0, NO_WORLD, "algeria");
     expect(g.heroes.owned.trail_scout?.shards).toBe(0);
   });
 
   test("ignores negative amounts", () => {
     const s = withHeroes(rich(), { mountain_guide: { level: 1, shards: 0 } });
-    expect(grantReward(s, { resources: { food: -999 }, shards: -4 }, T0).heroes.owned.mountain_guide?.shards).toBe(0);
+    expect(grantReward(s, { resources: { food: -999 }, shards: -4 }, T0, NO_WORLD).heroes.owned.mountain_guide?.shards).toBe(0);
   });
 });
 

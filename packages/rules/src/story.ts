@@ -1,3 +1,4 @@
+import type { World } from "./liberation.ts";
 import { advance } from "./advance.ts";
 import type { BaseState } from "./base-state.ts";
 import { DEFAULT_BACKGROUND, type BackgroundId } from "./background.ts";
@@ -71,8 +72,8 @@ export const chapterStatus = (state: BaseState, background: BackgroundId = DEFAU
 };
 
 /** Claims the current chapter's reward once its objectives are met and moves on to the next chapter. */
-export const claimChapter = (state: BaseState, now: number, background: BackgroundId = DEFAULT_BACKGROUND): StoryResult => {
-  const s = advance(state, now);
+export const claimChapter = (state: BaseState, now: number, world: World, background: BackgroundId = DEFAULT_BACKGROUND): StoryResult => {
+  const s = advance(state, now, world);
   const chapter = currentChapter(s, background);
   if (chapter === null) return { ok: false, reason: "story_complete", state: s };
   if (!chapter.objectives.every((o) => objectiveProgress(s, o).done)) return { ok: false, reason: "objectives_unmet", state: s };

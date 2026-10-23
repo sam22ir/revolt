@@ -1,4 +1,5 @@
 import { claimChapter, createBaseState, levelUpHero, recruitHero, seededRng, type BaseState, type HeroLoadout } from "@revolt/rules";
+import { NO_WORLD } from "@revolt/rules";
 import { describe, expect, test } from "vitest";
 import { ApiError, type AccountView, type Api, type HeroReply, type MarchReply, type StoryReply } from "../src/net/api.ts";
 import { SESSION_KEY } from "../src/net/session.ts";
@@ -59,7 +60,7 @@ const fakeApi = (initial: BaseState, opts: { fail?: boolean; serverState?: () =>
     heroRecruit: async (): Promise<HeroReply> => {
       calls.push("recruit");
       if (opts.fail === true) throw new Error("offline");
-      const r = recruitHero(state, T0, seededRng(7));
+      const r = recruitHero(state, T0, seededRng(7), NO_WORLD);
       if (opts.serverState !== undefined) state = opts.serverState();
       else state = r.state;
       return r.ok
@@ -74,7 +75,7 @@ const fakeApi = (initial: BaseState, opts: { fail?: boolean; serverState?: () =>
     },
     storyClaim: async (): Promise<StoryReply> => {
       calls.push("claim");
-      const r = claimChapter(state, T0);
+      const r = claimChapter(state, T0, NO_WORLD);
       state = r.state;
       return r.ok ? { ok: true, state, now: T0 } : { ok: false, reason: r.reason, state, now: T0 };
     },

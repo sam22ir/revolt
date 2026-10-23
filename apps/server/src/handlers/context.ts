@@ -1,8 +1,9 @@
-import { advance, backgroundOfServer, type BackgroundId, type BaseState } from "@revolt/rules";
+import { advance, backgroundOfServer, type BackgroundId, type BaseState, type World } from "@revolt/rules";
 import { bearerToken } from "../auth/tokens.ts";
 import type { Account } from "../db/accounts.ts";
 import { findAccountById } from "../db/accounts.ts";
 import { loadBase } from "../db/bases.ts";
+import { loadWorld } from "../db/liberations.ts";
 import { findSession, touchSession, type Session } from "../db/sessions.ts";
 import type { Deps, Env } from "../env.ts";
 import { HttpError } from "../http.ts";
@@ -51,8 +52,9 @@ export const authenticateToken = async (ctx: Ctx, token: string | null): Promise
 };
 
 /** The account's base brought up to `now`. Reads never write: `advance` is pure. */
-export const currentBase = async (ctx: Ctx, accountId: string): Promise<{ state: BaseState; version: number }> => {
-  const stored = await loadBase(ctx.env.DB, accountId);
+export const currentBase = async (ctx: Ctx, account: Account): Promise<{ state: BaseState; version: number; world: World }> => {
+  const stored = await loadBase(ctx.env.DB, account.id);
   if (stored === null) throw new HttpError("not_found");
-  return { state: advance(stored.state, ctx.now), version: stored.version };
+  const world = await loadWorld(ctx.env.DB, account.server);
+  return { state: advance(stored.state, ctx.now, world), version: stored.version, world };
 };

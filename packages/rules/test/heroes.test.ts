@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { NO_WORLD } from "../src/index.ts";
 import {
   BACKGROUND_IDS,
   heroesFor,
@@ -170,30 +171,30 @@ describe("drawHero", () => {
 describe("recruitHero", () => {
   test("is refused below the minimum hall level, and nothing is charged", () => {
     const s = base({ ...rich(), levels: { ...base().levels, hero_hall: HERO_DRAW_MIN_HALL - 1 } });
-    const r = recruitHero(s, T0, constant(0));
+    const r = recruitHero(s, T0, constant(0), NO_WORLD);
     expect(r).toMatchObject({ ok: false, reason: "hero_hall_level" });
     expect(r.state.resources).toEqual(s.resources);
   });
 
   test("is refused when the draw cost cannot be paid", () => {
     const s = base({ resources: { food: 0, materiel: 0, funds: HERO_DRAW_COST.funds - 1, support: 0 }, levels: { ...base().levels, hero_hall: HERO_DRAW_MIN_HALL } });
-    expect(recruitHero(s, T0, constant(0))).toMatchObject({ ok: false, reason: "insufficient" });
+    expect(recruitHero(s, T0, constant(0), NO_WORLD)).toMatchObject({ ok: false, reason: "insufficient" });
   });
 
   test("charges the cost, settles production to now, and adds the hero", () => {
     const s = withRoster(EMPTY_HERO_ROSTER, { levels: { ...base().levels, hero_hall: HERO_DRAW_MIN_HALL }, lastUpdated: T0 });
     const now = T0 + HOUR;
-    const r = recruitHero(s, now, constant(0));
+    const r = recruitHero(s, now, constant(0), NO_WORLD);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.state.lastUpdated).toBe(now);
-    expect(r.state.resources.funds).toBe(advance(s, now).resources.funds - HERO_DRAW_COST.funds);
+    expect(r.state.resources.funds).toBe(advance(s, now, NO_WORLD).resources.funds - HERO_DRAW_COST.funds);
     expect(r.state.heroes.owned[r.draw.heroId]).toEqual({ level: 1, shards: 0 });
   });
 
   test("a clock that went backwards does not roll the base back or refund the draw", () => {
     const s = withRoster(EMPTY_HERO_ROSTER, { levels: { ...base().levels, hero_hall: HERO_DRAW_MIN_HALL }, lastUpdated: T0 + HOUR });
-    const r = recruitHero(s, T0, constant(0));
+    const r = recruitHero(s, T0, constant(0), NO_WORLD);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.state.lastUpdated).toBe(T0 + HOUR);

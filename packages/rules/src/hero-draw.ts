@@ -1,3 +1,4 @@
+import type { World } from "./liberation.ts";
 import { advance } from "./advance.ts";
 import type { BaseState } from "./base-state.ts";
 import { HEROES } from "./data/heroes.ts";
@@ -66,8 +67,8 @@ export const drawHero = (roster: HeroRoster, rng: () => number, background: Back
 };
 
 /** Recruits a hero at `now`: checks the hall, charges the draw cost, then draws. */
-export const recruitHero = (state: BaseState, now: number, rng: () => number, background: BackgroundId = DEFAULT_BACKGROUND): HeroRecruitResult => {
-  const s = advance(state, now);
+export const recruitHero = (state: BaseState, now: number, rng: () => number, world: World, background: BackgroundId = DEFAULT_BACKGROUND): HeroRecruitResult => {
+  const s = advance(state, now, world);
   if (s.levels.hero_hall < HERO_DRAW_MIN_HALL) return { ok: false, reason: "hero_hall_level", state: s };
   if (!canAfford(s.resources, HERO_DRAW_COST)) return { ok: false, reason: "insufficient", state: s };
   const draw = drawHero(s.heroes, rng, background);

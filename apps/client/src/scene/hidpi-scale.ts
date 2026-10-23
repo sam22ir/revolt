@@ -1,9 +1,7 @@
 import Phaser from "phaser";
+import { pixelRatioFor } from "./pixel-ratio.ts";
 
-/** Above 3× the extra pixels cost GPU fill-rate without a visible gain on phones. */
-const MAX_PIXEL_RATIO = 3;
-
-const pixelRatio = (): number => Math.min(MAX_PIXEL_RATIO, Math.max(1, window.devicePixelRatio || 1));
+const pixelRatio = (): number => pixelRatioFor(window.devicePixelRatio);
 
 interface CanvasSize {
   readonly width: number;

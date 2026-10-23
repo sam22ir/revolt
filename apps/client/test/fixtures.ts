@@ -10,12 +10,13 @@ export const SNAPSHOT: MapSnapshot = {
     { x: 30, y: 8, tag: "XYZ", mine: false, alliance: null },
   ],
   npcs: [
-    { id: "npc-1", x: 14, y: 16, kind: "patrol", level: 1 },
-    { id: "npc-2", x: 40, y: 40, kind: "outpost", level: 3 },
+    { id: "npc-1", x: 14, y: 16, kind: "patrol", level: 1, region: null },
+    { id: "npc-2", x: 40, y: 40, kind: "outpost", level: 3, region: null },
   ],
   marches: [],
   hqs: [],
   rallies: [],
+  liberations: [],
   now: 1000,
 };
 

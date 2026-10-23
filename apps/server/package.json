@@ -8,8 +8,7 @@
     "deploy:prod": "VITE_API_URL=same-origin pnpm --filter @revolt/client build && wrangler d1 migrations apply DB --remote && wrangler deploy --assets ../client/dist",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "test": "vitest run",
-    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
-    "e2e:serve": "rm -rf .wrangler/e2e && wrangler d1 migrations apply DB --local --config wrangler.e2e.jsonc --persist-to .wrangler/e2e && wrangler dev --config wrangler.e2e.jsonc --port 8788 --persist-to .wrangler/e2e"
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json"
   },
   "dependencies": {
     "@revolt/rules": "workspace:*",

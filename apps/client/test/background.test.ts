@@ -7,6 +7,7 @@ import {
   startUpgrade,
   type BackgroundId,
   type BaseState,
+  NO_WORLD,
 } from "@revolt/rules";
 import i18next from "i18next";
 import { afterEach, beforeAll, describe, expect, test } from "vitest";
@@ -141,13 +142,13 @@ const fakeServer = (background: BackgroundId, initial: BaseState = createBaseSta
       return { account: account(background), state, now: T0 };
     },
     heroRecruit: async (): Promise<HeroReply> => {
-      const r = recruitHero(state, T0, seededRng(3), background);
+      const r = recruitHero(state, T0, seededRng(3), NO_WORLD, background);
       state = r.state;
       return r.ok ? { ok: true, state, now: T0, draw: { heroId: r.draw.heroId, rarity: r.draw.rarity, duplicate: r.draw.duplicate, forced: r.draw.forced } } : { ok: false, reason: r.reason, state, now: T0 };
     },
     storyClaim: async (): Promise<StoryReply> => {
       calls.push("claim");
-      const r = claimChapter(state, T0, background);
+      const r = claimChapter(state, T0, NO_WORLD, background);
       state = r.state;
       return r.ok ? { ok: true, state, now: T0 } : { ok: false, reason: r.reason, state, now: T0 };
     },
@@ -156,7 +157,7 @@ const fakeServer = (background: BackgroundId, initial: BaseState = createBaseSta
 };
 
 const ready = (): BaseState => {
-  const up = startUpgrade(createBaseState(T0), "hq", T0);
+  const up = startUpgrade(createBaseState(T0), "hq", T0, NO_WORLD);
   if (!up.ok) throw new Error(up.reason);
   return { ...up.state, levels: { ...up.state.levels, hq: 2 }, queue: null };
 };
@@ -216,7 +217,7 @@ describe("the game store and the chosen background", () => {
   test("a Vietnam claim is predicted like the rules (and the server) decide it", async () => {
     const f = fakeServer("vietnam", ready());
     const store = await connectGameStore({ api: f.api, storage: memoryStorage({ [SESSION_KEY]: "tok-1" }), clock: () => T0 });
-    const predicted = claimChapter(store.state(), T0, "vietnam");
+    const predicted = claimChapter(store.state(), T0, NO_WORLD, "vietnam");
     if (!predicted.ok) throw new Error(predicted.reason);
     expect(await store.claimChapter()).toEqual({ ok: true });
     expect(store.state().story.chapter).toBe(1);

@@ -1,3 +1,4 @@
+import { expect } from "vitest";
 import { createBaseState, type BaseState } from "../src/index.ts";
 
 export const T0 = Date.UTC(2026, 0, 1);
@@ -21,3 +22,8 @@ export const withHeroes = (s: BaseState, owned: Partial<BaseState["heroes"]["own
   ...s,
   heroes: { ...s.heroes, owned: { ...s.heroes.owned, ...owned } },
 });
+/** Soft expect labelled with the behaviour (and optional row) so a failing row names itself. */
+export const ex =
+  (label: string) =>
+  (value: unknown, row = "") =>
+    expect.soft(value, row === "" ? label : `${label} :: ${row}`);

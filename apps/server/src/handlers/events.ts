@@ -73,7 +73,7 @@ export const postEventClaim = async (ctx: Ctx): Promise<Response> => {
   await ctx.deps.map(ctx.env, account.server).view(viewer, ctx.now);
   const reward = eventReward(w.id, await eventScore(ctx.env.DB, account.id, w.key));
   if (reward === null) return refuse(ctx, "no_reward");
-  const g = await runGrant(ctx.env.DB, { accountId: account.id, claimKey: `event:${w.key}`, now: ctx.now, background: bg, reward });
+  const g = await runGrant(ctx.env.DB, { accountId: account.id, server: account.server, claimKey: `event:${w.key}`, now: ctx.now, background: bg, reward });
   if (g.kind === "duplicate") return refuse(ctx, "already_claimed");
   if (g.kind === "conflict" || g.kind === "refused") throw new HttpError("conflict");
   ctx.deps.analytics.track("event_claim", { event: w.id });

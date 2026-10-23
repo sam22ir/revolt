@@ -243,11 +243,14 @@ const openDb = async (miniflare: boolean): Promise<{ db: Db; dispose: () => Prom
   return { db, dispose: () => mf.dispose() };
 };
 
+// RSA key generation is slow on this machine and every row starts its own server: share one signing key.
+let sharedGoogle: Promise<Keypair> | undefined;
+
 /** `miniflare: true` runs on real D1; only `miniflare-smoke.test.ts` needs it. */
 export const startServer = async (envOverrides: Partial<Env> = {}, opts: { miniflare?: boolean } = {}): Promise<Server> => {
   const { db, dispose } = await openDb(opts.miniflare ?? false);
   await migrate(db);
-  const google = await keypair("google-1");
+  const google = await (sharedGoogle ??= keypair("google-1"));
   // The DO namespace is never reached in Node tests: `deps.map` stands in for it.
   const noNamespace = { idFromName: () => { throw new Error("no DO in tests"); }, get: () => { throw new Error("no DO in tests"); } };
   const env: Env = { DB: db, WORLD_MAP: noNamespace, ALLIANCE_ROOM: noNamespace, GOOGLE_CLIENT_IDS: CLIENT_ID, ALLOWED_ORIGINS: "http://localhost:4173", ...envOverrides };

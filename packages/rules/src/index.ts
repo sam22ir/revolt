@@ -44,7 +44,7 @@ export { HEROES, type HeroDef, type SkillDef } from "./data/heroes.ts";
 export * from "./data/hero-progression.ts";
 export { NO_BATTLE_MODIFIER, type BattleModifier } from "./battle.ts";
 export { BUILDINGS, MAX_BUILDING_LEVEL, type BuildingDef, type BuildingLevel } from "./data/buildings.ts";
-export { MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING } from "./data/map.ts";
+export { MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING, REGION_CELL } from "./data/map.ts";
 export { MAX_NPC_LEVEL, NPC_KINDS, NPC_LEVELS, NPC_RESPAWN_MS, type NpcKind, type NpcLevelDef } from "./data/npcs.ts";
 export { STORAGE_CAPS } from "./data/storage.ts";
 export { START_LEVELS, START_RESOURCES, START_TROOPS } from "./data/start.ts";
@@ -70,7 +70,18 @@ export { fightNpc, npcLevel, targetGone } from "./npc-battle.ts";
 export { RESOURCE_IDS, type ResourceId } from "./resource-id.ts";
 export { canAfford, ZERO_RESOURCES, type Resources } from "./resources.ts";
 export { hash32, isSeed, seededRng } from "./rng.ts";
-export { isOnMap, terrainAt, TERRAIN_IDS, type TerrainId } from "./terrain.ts";
+export { isOnMap, terrainAt, TERRAIN_IDS, valueNoise, type TerrainId } from "./terrain.ts";
+export { fertilityAt, GEO_BANK, GEO_OASIS, GEO_OASIS_RING, GEO_OASIS_SHORE, GEO_ROAD, GEO_WADI, geographyOf, type GeoTile, type Geography } from "./geography.ts";
+export {
+  isRegionBorder,
+  regionAt,
+  regionGrid,
+  regionNeighbors,
+  regionSite,
+  regionsOf,
+  type Region,
+  type RegionId,
+} from "./regions.ts";
 export {
   checkTraining,
   maxTrainingBatch,
@@ -119,6 +130,7 @@ export {
   type RallyView,
   type MapBaseView,
   type MapMarchView,
+  type LiberationView,
   type MapNpcView,
   type MapServerMessage,
   type MapSnapshot,
@@ -215,3 +227,5 @@ export {
   type SpeedUpResult,
   type StoreBlockReason,
 } from "./store.ts";
+export { LIBERATION_BONUS_CAP, LIBERATION_BONUS_PER_REGION } from "./data/liberation.ts";
+export { liberatedCount, liberatedRegions, multiplierBreakpoints, NO_WORLD, productionMultiplier, strongholdTile, type Liberation, type TakenTile, type World } from "./liberation.ts";

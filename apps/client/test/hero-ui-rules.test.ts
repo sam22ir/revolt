@@ -1,4 +1,5 @@
 import { claimChapter, createBaseState, startMarch, type BaseState, type MarchState } from "@revolt/rules";
+import { NO_WORLD } from "@revolt/rules";
 import { beforeAll, describe, expect, test } from "vitest";
 import { initI18n } from "../src/i18n/i18n.ts";
 import { availableHeroes, bonusSummary, heroCard, heroCards, recruitBlock, storyClaimable, storyView } from "../src/state/hero-view.ts";
@@ -49,7 +50,7 @@ describe("hero cards: which buttons are on", () => {
       returnAt: T0 + 2000,
       heroes: { lead: "mountain_guide", deputies: [], levels: { mountain_guide: 2 } },
     };
-    const out = startMarch(base, march, T0);
+    const out = startMarch(base, march, T0, NO_WORLD);
     if (!out.ok) throw new Error(out.reason);
     expect(availableHeroes(out.state)).toEqual(["dock_foreman"]);
     expect(heroCard(out.state, "mountain_guide").busy).toBe(true);
@@ -94,7 +95,7 @@ describe("story view", () => {
   test("the claim badge shows when the objectives are met, and clears after claiming", () => {
     const ready: BaseState = { ...createBaseState(T0), levels: { ...createBaseState(T0).levels, hq: 2 } };
     expect(storyClaimable(ready)).toBe(true);
-    const claimed = claimChapter(ready, T0);
+    const claimed = claimChapter(ready, T0, NO_WORLD);
     if (!claimed.ok) throw new Error(claimed.reason);
     expect(storyClaimable(claimed.state)).toBe(false);
     expect(storyView(claimed.state).claimed).toBe(1);

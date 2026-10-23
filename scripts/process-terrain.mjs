@@ -1,8 +1,9 @@
 // Cuts the terrain sheets in art/raw/terrain/ into atlases for the world map.
 //   ground/<terrain>-<n>.jpg : 3x3 sheets of flat diamond tiles -> one atlas per terrain (20 variants), diamond-masked with a feathered edge
 //   props/<kind>-<n>.jpg     : 3x3 sheets of separate objects  -> one atlas per kind, background removed
+//   DECAL_PICKS              : flat surfaces from the ground sheets -> decals.webp, wide feather, tagged by kind (`--decals` rebuilds only this)
 // Writes apps/client/public/art/terrain/*.webp and apps/client/src/art/terrain-manifest.json. Run: pnpm art:terrain
-import { mkdir, readdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
@@ -62,7 +63,19 @@ const bbox = (m, w, h, min) => {
   return { x0: first(col), x1: last(col), y0: first(row), y1: last(row) };
 };
 
-const groundTile = async (im, c) => {
+// A decal's outline: a soft, wobbly ellipse inside the diamond (which reaches 0.7 of the half-size along the diagonals), so stamps
+// read as irregular patches instead of tile-shaped diamonds. `phase` varies the wobble per frame.
+const blobAlpha = (nx, ny, phase) => {
+  const r = Math.hypot(nx, ny) / 0.7;
+  const t = Math.atan2(ny, nx);
+  const edge = 1 + 0.16 * Math.sin(3 * t + phase) + 0.08 * Math.sin(5 * t + phase * 1.7);
+  const d = r / edge;
+  if (d >= 1) return 0;
+  const k = Math.min(1, (1 - d) / 0.55);
+  return k * k * (3 - 2 * k);
+};
+
+const groundTile = async (im, c, feather = FEATHER, phase = null) => {
   const m = foreground(im, c, 26);
   const b = bbox(m, c.w, c.h, 6);
   const W = b.x1 - b.x0 + 1;
@@ -75,7 +88,7 @@ const groundTile = async (im, c) => {
     for (let x = 0; x < TILE_W; x++) {
       const nx = (x + 0.5) / TILE_W * 2 - 1, ny = (y + 0.5) / OH * 2 - 1;
       const d = (Math.abs(nx) + Math.abs(ny)) / (1 - INSET);
-      const a = d >= 1 ? 0 : d <= 1 - FEATHER ? 1 : (1 - d) / FEATHER;
+      const a = phase !== null ? blobAlpha(nx, ny, phase) : d >= 1 ? 0 : d <= 1 - feather ? 1 : (1 - d) / feather;
       const sx = Math.min(im.w - 1, Math.max(0, Math.round(x0 + ((x + 0.5) / TILE_W) * W)));
       const sy = Math.min(im.h - 1, Math.max(0, Math.round(y0 + ((y + 0.5) / OH) * H)));
       const p = px(im, sx, sy);
@@ -173,9 +186,52 @@ const writeAtlas = async (name, frames, atlasW) => {
   return { w: atlasW, h: height, frames: rects.map((r, i) => ({ ...r, ...(frames[i].meta ?? {}) })) };
 };
 
-await mkdir(OUT, { recursive: true });
-const manifest = { ground: {}, props: {} };
+// ---- decals: a few flat surfaces from the ground sheets, cut as soft irregular blobs (blobAlpha) so the stamps have no visible edge.
+//   [sheet, cell (row-major, 0..8), kind]. Flat surfaces only: no snow, no 3D shrubs or rock mounds, which would not sit in the diamond.
+const DECAL_PICKS = [
+  ["plain-1", 0, "sand"],
+  ["plain-1", 4, "grass"],
+  ["plain-1", 2, "stone"],
+  ["plain-1", 3, "track"],
+  ["plain-1", 7, "track"],
+  ["forest-1", 4, "grass"],
+  ["hills-1", 5, "sand"],
+  ["mountain-1", 0, "stone"],
+  // 1d: more from the other ground sheets, flat cells only (no shrubs taller than the surface, no roots, no snow, no slab rocks).
+  ["plain-3", 0, "sand"],
+  ["plain-3", 3, "grass"],
+  ["plain-3", 7, "stone"],
+  ["plain-4", 0, "sand"],
+  ["plain-4", 3, "stone"],
+  ["plain-4", 4, "sand"],
+  ["forest-2", 0, "grass"],
+  ["forest-2", 4, "grass"],
+  ["hills-2", 2, "grass"],
+];
+const MANIFEST = join(root, "apps/client/src/art/terrain-manifest.json");
+// `--decals` rebuilds only decals.webp and its manifest entry, leaving the ground and prop atlases as they are.
+const DECALS_ONLY = process.argv.includes("--decals");
 
+await mkdir(OUT, { recursive: true });
+const manifest = DECALS_ONLY ? JSON.parse(await readFile(MANIFEST, "utf8")) : { ground: {}, props: {} };
+
+if (!DECALS_ONLY) await cutGround();
+if (!DECALS_ONLY) await cutProps();
+await cutDecals();
+await writeFile(MANIFEST, `${JSON.stringify(manifest)}\n`);
+
+async function cutDecals() {
+  const frames = [];
+  for (const [sheet, idx, kind] of DECAL_PICKS) {
+    const im = await load(join(SRC, "ground", `${sheet}.jpg`));
+    const c = cells(im)[idx];
+    frames.push({ buf: await groundTile(im, c, FEATHER, frames.length * 1.3), w: TILE_W, h: TILE_W / 2, meta: { kind, from: `${sheet}#${idx}` } });
+  }
+  manifest.decals = await writeAtlas("decals", frames, TILE_W * 4 + 10);
+  console.log(`decals: ${frames.length} frames`);
+}
+
+async function cutGround() {
 // ---- ground
 const groundFiles = (await readdir(join(SRC, "ground"))).filter((f) => f.endsWith(".jpg")).sort();
 const terrains = [...new Set(groundFiles.map((f) => f.split("-")[0]))];
@@ -191,7 +247,9 @@ for (const t of terrains) {
   manifest.ground[t] = await writeAtlas(`ground-${t}`, frames, TILE_W * 4 + 10);
   console.log(`ground ${t}: ${tiles.length} found, ${frames.length} kept`);
 }
+}
 
+async function cutProps() {
 // ---- props
 const propFiles = (await readdir(join(SRC, "props"))).filter((f) => f.endsWith(".jpg")).sort();
 const kinds = [...new Set(propFiles.map((f) => f.split("-")[0]))];
@@ -218,4 +276,4 @@ for (const k of kinds) {
   manifest.props[k] = await writeAtlas(`props-${k}`, frames, 1024);
   console.log(`props ${k}: ${frames.length} objects`);
 }
-await writeFile(join(root, "apps/client/src/art/terrain-manifest.json"), `${JSON.stringify(manifest)}\n`);
+}

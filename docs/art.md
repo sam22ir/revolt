@@ -16,8 +16,8 @@ Style and rules: GDD §7. Generated painted-isometric art, Algerian palette, no 
 ## Assets and where they are used
 
 - **buildings/** `hq farm armory treasury barracks`: the five buildings in the rules (`BUILDING_IDS`), drawn by `BaseScene` on one shared plot diamond. `ground_tile` is the base's ground slab. `academy hero_hall infirmary liaison_office storehouse watchtower` are processed but unused until the rules have those buildings. `storehouse_alt` is a spare.
-- **map/** The world ground and props are no longer single tiles: see "World terrain" below. `outpost_watch` / `outpost_barracks` / `outpost_fort` and `marker_convoy` are the NPC kinds (patrol, outpost, fortified line, convoy). `marker_march` / `marker_return` are marching columns, `marker_battle` flashes at the target on arrival, `marker_rally` is an alliance HQ. Player camps on the map are the `hq` building sprite, scaled.
-- **ui/** `resource_{food,materiel,funds,support}` are the HUD, cost and report icons (`ui/icons.ts`). `hud_top_bar` and `hero_frame_*` are processed but unused: the bar has a baked-in avatar circle and four "+" slots that do nothing yet, and it assumes four resources in one row while the HUD is a 2×2 grid; there is no hero screen yet.
+- **map/** The world ground and props are no longer single tiles: see "World terrain" below. `outpost_watch` / `outpost_barracks` / `outpost_fort` and `marker_convoy` are the NPC kinds (patrol, outpost, fortified line, convoy). `marker_march` / `marker_return` are marching columns, `marker_battle` flashes at the target on arrival, `marker_rally` is an alliance HQ. Player camps on the map are `map/camp` (a hidden camp on the outpost slab, Flow batch of 23 Oct; prompts in `art/raw/prompts/`).
+- **ui/** `resource_{food,materiel,funds,support}` are the HUD, cost and report icons (`ui/icons.ts`). `frame_*` and `button_round*` are the painted UI kit frames, drawn by CSS border-image and backgrounds through `ui/frame-art.ts`; `nav_*` are the bottom-nav medallions. `hud_top_bar` and `hero_frame_*` are processed but unused: the bar has a baked-in avatar circle and four "+" slots that do nothing yet; there is no hero screen yet.
 - **units/** `troop_{infantry,scouts,heavy,porters}` appear in the training panel and the march dialog.
 
 The world scene's textures load when the map is first opened, not at start-up.
@@ -31,7 +31,7 @@ The world scene's textures load when the map is first opened, not at start-up.
 The world map's ground is flat painted diamonds (4 terrains, 18 to 20 variants each) with separate cut-out props (trees, rocks, peaks, scrub, terraces). Sheets are in `art/raw/terrain/{ground,props}/` (generated with the brief in `docs/terrain-art-brief.md`; sheets not used are in `art/raw/terrain/unused/`). `pnpm art:terrain` (`scripts/process-terrain.mjs`) cuts them into one WebP atlas per terrain and per prop kind in `apps/client/public/art/terrain/` plus `src/art/terrain-manifest.json`.
 
 - **Ground:** each tile is cropped to its top surface, masked to the exact diamond with a feathered edge, and drawn 25% wider than the tile, so neighbours overlap and blend with no seams, across terrain borders too. A hash of the tile coordinates picks the variant and mirroring, so the map never changes between visits. Under every tile there is a flat colour (also the whole look below zoom 0.3).
-- **Props:** chosen per tile by `scene/terrain-props.ts` (pure, tested). Forests get denser and mountains taller toward the middle of a region and thinner at its edge (the share of the eight neighbours with the same terrain), and props overhang neighbouring tiles, so each region reads as one forest or one ridge. Props show from zoom 0.4, never on a tile that has a camp, NPC or alliance HQ.
+- **Props:** chosen per tile by `scene/terrain-props.ts` (pure, tested). Open ground is mostly bare, with rock outcrops and olive or scrub patches only inside seeded clusters from `scene/decor-clusters.ts` (about a quarter of the map). Forests get denser and mountains taller toward the middle of a region and thinner at its edge (the share of the eight neighbours with the same terrain), and props overhang neighbouring tiles, so each region reads as one forest or one ridge. Props show from zoom 0.4, never on a tile that has a camp, NPC or alliance HQ.
 - **Hills** has 18 ground variants and **mountain** 18 (the sheets with paths and walls crossing the tile were dropped because they break at tile edges); the other terrains keep 20.
 
 ## Add or swap a sprite
@@ -46,6 +46,24 @@ Placement is measured, not hand-tuned: buildings and terrain are anchored by the
 ## Processing step
 
 `scripts/process-art.mjs` (uses `sharp`, a dev dependency) resizes each master with Lanczos, zeroes the colour of fully transparent pixels (the generator's grey would otherwise bleed into edges), writes lossy WebP (q80, alpha q90) and the manifest. Sizes are chosen for a 2.6× phone: a plot is about 350 device px wide on screen, a terrain tile about 175.
+
+## Style gallery (dev only)
+
+A single page that shows the whole look in one place: palette, UI kit sprites, terrain art and the seam check. Open it with:
+
+1. `pnpm --filter @revolt/client dev`
+2. go to `/gallery.html` (add `?lang=ar` for right-to-left, or use the buttons on the page)
+
+Sections:
+
+- **Header:** language and direction toggle (sets `lang` and `dir`, writes `?lang=`), and a background toggle (dark, `theme.ground.base`, `theme.ground.world`) to judge sprites on each. Nothing is saved.
+- **Palette:** every token in `src/theme/theme.ts`, with its hex value. Terrain pairs are light and dark.
+- **Art pack:** every entry of `artPack`, grouped by field, with its id and sprite key.
+- **All sprites:** every key in `src/art/manifest.json` by folder, with pixel size. A red "unused" badge marks sprites no pack entry names, so leftover art is easy to spot.
+- **Terrain:** every frame of each ground atlas and prop atlas, with the flat light and dark swatches. Prop anchors are marked with a red dot.
+- **Seam check:** a 6×6 isometric patch per terrain on the game's tile grid, with the same frame choices and overlap as the world map, fixed so it does not change on reload.
+
+The gallery is dev-only. `gallery.html` is not a build input, so `pnpm --filter @revolt/client build` does not ship it. Its data helpers are tested in `apps/client/test/gallery.test.ts`.
 
 ## Licensing TODO (before release)
 
@@ -70,3 +88,8 @@ Seen in the en and ar screenshots (nothing here has been tried on a real phone y
 ## Cosmetics (M7, placeholder)
 
 Cosmetic ids (`packages/rules/src/data/cosmetics.ts`) have names but no art yet. The server serves `equipped` per slot (`GET /v1/store`); the base scene should look up `base_skin` by id and fall back to the default art. Not wired yet.
+## Renderer fallback (old Intel GPUs)
+
+On an Intel HD Graphics 3000 (Sandy Bridge, Mesa) Phaser's WebGL renderer drew the transparent pixels of every sprite as opaque black (black boxes around buildings, black gaps between ground tiles). The textures decode correctly, the blend state is right and a plain WebGL draw with the same settings is fine; Phaser's Canvas renderer draws the scene correctly, and no Phaser option (premultiplied alpha, `maxTextures`, antialiasing) changed it. `src/render-mode.ts` therefore picks the Canvas renderer on GPUs matching that family, and `?renderer=canvas|webgl|auto` overrides the choice for testing.
+
+Known limits of Canvas mode: `setTint` is ignored, so other players' camps on the map lose their cool tone; it is slower with many sprites. Phones have not been checked, and the cause on the old GPU is not understood.

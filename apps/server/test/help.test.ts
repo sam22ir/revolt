@@ -1,14 +1,9 @@
 import { HELP_REDUCTION_MS, MAX_HELPS_PER_REQUEST } from "@revolt/rules";
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { test } from "vitest";
 import { MANY_GUESTS, mine, player, post, team, type Player } from "./alliance-helpers.ts";
-import { body, HOUR, startServer, T0, type Json, type Server } from "./harness.ts";
+import { body, HOUR, T0, type Json, type Server } from "./harness.ts";
 import { getState, intent } from "./map-helpers.ts";
-
-let server: Server;
-beforeEach(async () => {
-  server = await startServer(MANY_GUESTS);
-});
-afterEach(() => server.dispose());
+import { LONG, rows } from "./rows.ts";
 
 const BATCH = 20;
 /** Long enough that every allowed help fits before the job ends. */
@@ -18,197 +13,185 @@ const TRAIN_MS = HOUR;
  * Gives `p` a rich base and a running training batch of `TRAIN_MS` (or an upgrade queue), written straight to
  * the base row: the real batch is capped at a few minutes, too short to try the help cap.
  */
-const train = async (p: Player, kind: "training" | "upgrade" = "training", ms = TRAIN_MS): Promise<number> => {
-  const row = await server.env.DB.prepare("SELECT state FROM bases WHERE account_id = ?").bind(p.id).first<{ state: string }>();
+const train = async (s: Server, p: Player, kind: "training" | "upgrade" = "training", ms = TRAIN_MS): Promise<number> => {
+  const row = await s.env.DB.prepare("SELECT state FROM bases WHERE account_id = ?").bind(p.id).first<{ state: string }>();
   const state = JSON.parse(row?.state ?? "{}") as Json;
   state.resources = { food: 9000, materiel: 9000, funds: 9000, support: 0 };
   const endsAt = T0 + ms;
   if (kind === "training") state.training = { troop: "infantry", count: BATCH, startedAt: T0, endsAt };
   else state.queue = { building: "hq", toLevel: 2, startedAt: T0, endsAt };
-  await server.env.DB.prepare("UPDATE bases SET state = ?, version = version + 1 WHERE account_id = ?").bind(JSON.stringify(state), p.id).run();
+  await s.env.DB.prepare("UPDATE bases SET state = ?, version = version + 1 WHERE account_id = ?").bind(JSON.stringify(state), p.id).run();
   return endsAt;
 };
 
-const request = (p: Player, kind: unknown = "training"): Promise<Json> => post(server, p, "/v1/help/request", { kind });
-const give = (p: Player, requestId: string): Promise<Json> => post(server, p, "/v1/help/give", { requestId });
+const request = (s: Server, p: Player, kind: unknown = "training"): Promise<Json> => post(s, p, "/v1/help/request", { kind });
+const give = (s: Server, p: Player, requestId: string): Promise<Json> => post(s, p, "/v1/help/give", { requestId });
 /** `batch_assert` only ever receives a row to make a batch fail, so it must stay empty. */
-const assertRows = async (): Promise<number> => (await server.env.DB.prepare("SELECT COUNT(*) AS n FROM batch_assert").first<{ n: number }>())?.n ?? -1;
-const endsAt = async (p: Player): Promise<number> => (await getState(server, p.token)).training.endsAt;
+const assertRows = async (s: Server): Promise<number> => (await s.env.DB.prepare("SELECT COUNT(*) AS n FROM batch_assert").first<{ n: number }>())?.n ?? -1;
+const endsAt = async (s: Server, p: Player): Promise<number> => (await getState(s, p.token)).training.endsAt;
+const num = async (s: Server, sql: string, id: string): Promise<number | undefined> => (await s.env.DB.prepare(sql).bind(id).first<{ n: number }>())?.n;
 
-describe("asking for help", () => {
-  test("needs an alliance and a running job of that kind", async () => {
-    const solo = await player(server);
-    await train(solo);
-    expect(await request(solo)).toMatchObject({ ok: false, reason: "not_member" });
-    const t = await team(server, 1);
-    expect(await request(t.leader)).toMatchObject({ ok: false, reason: "no_job" });
-    expect(await request(t.leader, "upgrade")).toMatchObject({ ok: false, reason: "no_job" });
-    await train(t.leader);
-    expect(await request(t.leader, "upgrade")).toMatchObject({ ok: false, reason: "no_job" });
-    for (const bad of ["build", 5, null, undefined]) expect((await server.request("POST", "/v1/help/request", { token: t.leader.token, body: { kind: bad } })).status).toBe(400);
+test("asking for help: membership, job, listing, expiry", async () => {
+  await rows(MANY_GUESTS, {
+    "needs an alliance and a running job of that kind": async (s, ex) => {
+      const solo = await player(s);
+      await train(s, solo);
+      ex(await request(s, solo), "no alliance").toMatchObject({ ok: false, reason: "not_member" });
+      const t = await team(s, 1);
+      ex(await request(s, t.leader), "no job").toMatchObject({ ok: false, reason: "no_job" });
+      ex(await request(s, t.leader, "upgrade"), "no upgrade").toMatchObject({ ok: false, reason: "no_job" });
+      await train(s, t.leader);
+      ex(await request(s, t.leader, "upgrade"), "training only").toMatchObject({ ok: false, reason: "no_job" });
+      for (const bad of ["build", 5, null, undefined]) ex((await s.request("POST", "/v1/help/request", { token: t.leader.token, body: { kind: bad } })).status, `kind ${String(bad)}`).toBe(400);
+    },
+    "a request for a running training is listed for the alliance, once per job": async (s, ex) => {
+      const t = await team(s, 2);
+      const end = await train(s, t.leader);
+      const r = await request(s, t.leader);
+      ex(r).toMatchObject({ ok: true, request: { handle: t.leader.handle, kind: "training", endsAt: end, helps: 0, maxHelps: MAX_HELPS_PER_REQUEST, mine: true, helped: false } });
+      ex(await request(s, t.leader), "second request").toMatchObject({ ok: false, reason: "already_requested" });
+      const seenByMember = (await mine(s, t.members[0]!)).help;
+      ex(seenByMember).toEqual([{ ...r.request, mine: false }]);
+      ex(s.room(t.allianceId).notices).toContain("help_changed");
+    },
+    "a finished job cannot be asked for, and a request stops being listed when its job ends": async (s, ex) => {
+      const t = await team(s, 2);
+      const end = await train(s, t.leader);
+      s.now = end;
+      ex(await request(s, t.leader), "finished job").toMatchObject({ ok: false, reason: "no_job" });
+      s.now = T0;
+      const r = await request(s, t.leader);
+      ex((await mine(s, t.members[0]!)).help, "listed while running").toHaveLength(1);
+      s.now = end;
+      ex((await mine(s, t.members[0]!)).help, "gone when it ends").toEqual([]);
+      ex(await give(s, t.members[0]!, r.request.id), "help after the end").toMatchObject({ ok: false, reason: "request_gone" });
+    },
   });
+}, LONG);
 
-  test("a request for a running training is listed for the alliance, once per job", async () => {
-    const t = await team(server, 2);
-    const end = await train(t.leader);
-    const r = await request(t.leader);
-    expect(r).toMatchObject({ ok: true, request: { handle: t.leader.handle, kind: "training", endsAt: end, helps: 0, maxHelps: MAX_HELPS_PER_REQUEST, mine: true, helped: false } });
-    expect(await request(t.leader)).toMatchObject({ ok: false, reason: "already_requested" });
-    const seenByMember = (await mine(server, t.members[0]!)).help;
-    expect(seenByMember).toEqual([{ ...r.request, mine: false }]);
-    expect(server.room(t.allianceId).notices).toContain("help_changed");
+test("giving help: effect, limits, permissions, vanished requests, upgrades", async () => {
+  await rows(MANY_GUESTS, {
+    "each help ends the job a minute sooner and is counted": async (s, ex) => {
+      const t = await team(s, 3);
+      const [a, b] = t.members as [Player, Player];
+      const end = await train(s, t.leader);
+      const { request: req } = await request(s, t.leader);
+      const r1 = await give(s, a, req.id);
+      ex(r1).toMatchObject({ ok: true, request: { helps: 1, helped: true, mine: false, endsAt: end - HELP_REDUCTION_MS } });
+      ex(await endsAt(s, t.leader)).toBe(end - HELP_REDUCTION_MS);
+      ex((await give(s, b, req.id)).request.helps).toBe(2);
+      ex(await endsAt(s, t.leader)).toBe(end - 2 * HELP_REDUCTION_MS);
+      ex((await mine(s, a)).help[0]).toMatchObject({ helps: 2, helped: true, endsAt: end - 2 * HELP_REDUCTION_MS });
+      ex((await mine(s, t.leader)).help[0]).toMatchObject({ mine: true, helped: false });
+      // The shortened job really completes sooner.
+      s.now = end - 2 * HELP_REDUCTION_MS;
+      ex((await getState(s, t.leader.token)).troops.infantry).toBe(10 + BATCH);
+    },
+    "never past now: help on a nearly finished job ends it now, not in the past": async (s, ex) => {
+      const t = await team(s, 2);
+      const end = await train(s, t.leader);
+      const { request: req } = await request(s, t.leader);
+      s.now = end - 20_000;
+      ex(await give(s, t.members[0]!, req.id)).toMatchObject({ ok: true, request: { endsAt: s.now } });
+      const st = await getState(s, t.leader.token);
+      ex(st.training).toBeNull();
+      ex(st.troops.infantry).toBe(10 + BATCH);
+    },
+    "not your own request, not twice, not beyond the cap": async (s, ex) => {
+      const t = await team(s, MAX_HELPS_PER_REQUEST + 3);
+      await train(s, t.leader);
+      const { request: req } = await request(s, t.leader);
+      ex(await give(s, t.leader, req.id), "own request").toMatchObject({ ok: false, reason: "own_request" });
+      const helpers = t.members;
+      ex((await give(s, helpers[0]!, req.id)).ok).toBe(true);
+      ex(await give(s, helpers[0]!, req.id), "twice").toMatchObject({ ok: false, reason: "already_helped" });
+      for (let i = 1; i < MAX_HELPS_PER_REQUEST; i++) ex((await give(s, helpers[i]!, req.id)).ok, `helper ${i}`).toBe(true);
+      ex(await give(s, helpers[MAX_HELPS_PER_REQUEST]!, req.id), "beyond the cap").toMatchObject({ ok: false, reason: "help_full" });
+      ex(await num(s, "SELECT helps AS n FROM help_requests WHERE id = ?", req.id)).toBe(MAX_HELPS_PER_REQUEST);
+    },
+    "strangers, other alliances and unknown ids are refused and change nothing": async (s, ex) => {
+      const t = await team(s, 2);
+      const other = await team(s, 2, "Other", "OT");
+      const end = await train(s, t.leader);
+      const { request: req } = await request(s, t.leader);
+      const loner = await player(s);
+      ex(await give(s, loner, req.id), "stranger").toMatchObject({ ok: false, reason: "not_member" });
+      ex(await give(s, other.members[0]!, req.id), "other alliance").toMatchObject({ ok: false, reason: "request_gone" });
+      ex(await give(s, t.members[0]!, "no-such-request"), "unknown id").toMatchObject({ ok: false, reason: "request_gone" });
+      for (const bad of [5, "", "x".repeat(70), null, undefined]) {
+        ex((await s.request("POST", "/v1/help/give", { token: t.members[0]!.token, body: { requestId: bad } })).status, `requestId ${String(bad)}`).toBe(400);
+      }
+      ex(await endsAt(s, t.leader)).toBe(end);
+    },
+    "a request whose job was replaced or whose owner left is gone": async (s, ex) => {
+      const t = await team(s, 3);
+      const [a, b] = t.members as [Player, Player];
+      await train(s, t.leader);
+      const { request: req } = await request(s, t.leader);
+      // The owner leaves the alliance: nobody can help what is no longer the alliance's.
+      await post(s, b, "/v1/alliance/leave");
+      await post(s, t.leader, "/v1/alliance/transfer", { handle: a.handle });
+      await post(s, t.leader, "/v1/alliance/leave");
+      ex(await give(s, a, req.id)).toMatchObject({ ok: false, reason: "request_gone" });
+      ex(await num(s, "SELECT COUNT(*) AS n FROM help_requests WHERE account_id = ?", t.leader.id)).toBe(0);
+    },
+    "works on upgrades too": async (s, ex) => {
+      const t = await team(s, 2);
+      const end = await train(s, t.leader, "upgrade");
+      const { request: req } = await request(s, t.leader, "upgrade");
+      ex(await give(s, t.members[0]!, req.id)).toMatchObject({ ok: true, request: { kind: "upgrade", endsAt: end - HELP_REDUCTION_MS } });
+      ex((await getState(s, t.leader.token)).queue.endsAt).toBe(end - HELP_REDUCTION_MS);
+    },
   });
+}, LONG);
 
-  test("a finished job cannot be asked for, and a request stops being listed when its job ends", async () => {
-    const t = await team(server, 2);
-    const end = await train(t.leader);
-    server.now = end;
-    expect(await request(t.leader)).toMatchObject({ ok: false, reason: "no_job" });
-    server.now = T0;
-    const r = await request(t.leader);
-    expect((await mine(server, t.members[0]!)).help).toHaveLength(1);
-    server.now = end;
-    expect((await mine(server, t.members[0]!)).help).toEqual([]);
-    expect(await give(t.members[0]!, r.request.id)).toMatchObject({ ok: false, reason: "request_gone" });
+test("help races: last help, same helper, requester's own action, no help without effect", async () => {
+  await rows(MANY_GUESTS, {
+    "two helpers racing for the last help: exactly one is applied": async (s, ex) => {
+      const t = await team(s, MAX_HELPS_PER_REQUEST + 3);
+      const end = await train(s, t.leader);
+      const { request: req } = await request(s, t.leader);
+      for (let i = 0; i < MAX_HELPS_PER_REQUEST - 1; i++) await give(s, t.members[i]!, req.id);
+      const racers = [t.members[MAX_HELPS_PER_REQUEST - 1]!, t.members[MAX_HELPS_PER_REQUEST]!, t.members[MAX_HELPS_PER_REQUEST + 1]!];
+      const rs = await Promise.all(racers.map((p) => give(s, p, req.id)));
+      ex(rs.filter((r) => r.ok)).toHaveLength(1);
+      ex(rs.filter((r) => !r.ok).every((r) => r.reason === "help_full")).toBe(true);
+      ex(await num(s, "SELECT helps AS n FROM help_requests WHERE id = ?", req.id)).toBe(MAX_HELPS_PER_REQUEST);
+      ex(await num(s, "SELECT COUNT(*) AS n FROM help_given WHERE request_id = ?", req.id)).toBe(MAX_HELPS_PER_REQUEST);
+      ex(await endsAt(s, t.leader)).toBe(end - MAX_HELPS_PER_REQUEST * HELP_REDUCTION_MS);
+      ex(await assertRows(s)).toBe(0);
+    },
+    "the same helper twice at once: one help, one 'already helped', nothing recorded without effect": async (s, ex) => {
+      const t = await team(s, 2);
+      const end = await train(s, t.leader);
+      const { request: req } = await request(s, t.leader);
+      const rs = await Promise.all([give(s, t.members[0]!, req.id), give(s, t.members[0]!, req.id)]);
+      ex(rs.filter((r) => r.ok)).toHaveLength(1);
+      ex(rs.find((r) => !r.ok)?.reason).toBe("already_helped");
+      ex(await endsAt(s, t.leader)).toBe(end - HELP_REDUCTION_MS);
+      ex(await num(s, "SELECT COUNT(*) AS n FROM help_given WHERE request_id = ?", req.id)).toBe(1);
+    },
+    "a help racing the requester's own action never loses either: the base changes are both kept": async (s, ex) => {
+      const t = await team(s, 2);
+      await train(s, t.leader);
+      const { request: req } = await request(s, t.leader);
+      const [h, up] = await Promise.all([give(s, t.members[0]!, req.id), body(await intent(s, t.leader.token, { type: "upgrade", building: "hq" }))]);
+      ex(h.ok).toBe(true);
+      ex(up.ok).toBe(true);
+      const st = await getState(s, t.leader.token);
+      ex(st.queue).not.toBeNull();
+      ex(st.training.endsAt).toBeLessThan(T0 + TRAIN_MS);
+      ex(st.training.endsAt).toBeGreaterThanOrEqual(T0 + TRAIN_MS - HELP_REDUCTION_MS);
+    },
+    "the database never records a help without its effect, whatever the interleaving": async (s, ex) => {
+      const t = await team(s, 5);
+      await train(s, t.leader);
+      const { request: req } = await request(s, t.leader);
+      await Promise.all(t.members.map((p) => give(s, p, req.id)));
+      const helps = await num(s, "SELECT helps AS n FROM help_requests WHERE id = ?", req.id);
+      ex(await num(s, "SELECT COUNT(*) AS n FROM help_given WHERE request_id = ?", req.id)).toBe(helps);
+      ex(await endsAt(s, t.leader)).toBe(T0 + TRAIN_MS - (helps ?? 0) * HELP_REDUCTION_MS);
+      ex(await assertRows(s)).toBe(0);
+    },
   });
-});
-
-describe("giving help", () => {
-  test("each help ends the job a minute sooner and is counted", async () => {
-    const t = await team(server, 3);
-    const [a, b] = t.members as [Player, Player];
-    const end = await train(t.leader);
-    const { request: req } = await request(t.leader);
-    const r1 = await give(a, req.id);
-    expect(r1).toMatchObject({ ok: true, request: { helps: 1, helped: true, mine: false, endsAt: end - HELP_REDUCTION_MS } });
-    expect(await endsAt(t.leader)).toBe(end - HELP_REDUCTION_MS);
-    expect((await give(b, req.id)).request.helps).toBe(2);
-    expect(await endsAt(t.leader)).toBe(end - 2 * HELP_REDUCTION_MS);
-    expect((await mine(server, a)).help[0]).toMatchObject({ helps: 2, helped: true, endsAt: end - 2 * HELP_REDUCTION_MS });
-    expect((await mine(server, t.leader)).help[0]).toMatchObject({ mine: true, helped: false });
-    // The shortened job really completes sooner.
-    server.now = end - 2 * HELP_REDUCTION_MS;
-    expect((await getState(server, t.leader.token)).troops.infantry).toBe(10 + BATCH);
-  });
-
-  test("never past now: help on a nearly finished job ends it now, not in the past", async () => {
-    const t = await team(server, 2);
-    const end = await train(t.leader);
-    const { request: req } = await request(t.leader);
-    server.now = end - 20_000;
-    expect(await give(t.members[0]!, req.id)).toMatchObject({ ok: true, request: { endsAt: server.now } });
-    const s = await getState(server, t.leader.token);
-    expect(s.training).toBeNull();
-    expect(s.troops.infantry).toBe(10 + BATCH);
-  });
-
-  test("not your own request, not twice, not beyond the cap", async () => {
-    const t = await team(server, MAX_HELPS_PER_REQUEST + 3);
-    const { request: req } = await (async () => {
-      await train(t.leader);
-      return request(t.leader);
-    })();
-    expect(await give(t.leader, req.id)).toMatchObject({ ok: false, reason: "own_request" });
-    const helpers = t.members;
-    expect((await give(helpers[0]!, req.id)).ok).toBe(true);
-    expect(await give(helpers[0]!, req.id)).toMatchObject({ ok: false, reason: "already_helped" });
-    for (let i = 1; i < MAX_HELPS_PER_REQUEST; i++) expect((await give(helpers[i]!, req.id)).ok, `helper ${i}`).toBe(true);
-    expect(await give(helpers[MAX_HELPS_PER_REQUEST]!, req.id)).toMatchObject({ ok: false, reason: "help_full" });
-    const row = await server.env.DB.prepare("SELECT helps FROM help_requests WHERE id = ?").bind(req.id).first<{ helps: number }>();
-    expect(row?.helps).toBe(MAX_HELPS_PER_REQUEST);
-  });
-
-  test("strangers, other alliances and unknown ids are refused and change nothing", async () => {
-    const t = await team(server, 2);
-    const other = await team(server, 2, "Other", "OT");
-    const end = await train(t.leader);
-    const { request: req } = await request(t.leader);
-    const loner = await player(server);
-    expect(await give(loner, req.id)).toMatchObject({ ok: false, reason: "not_member" });
-    expect(await give(other.members[0]!, req.id)).toMatchObject({ ok: false, reason: "request_gone" });
-    expect(await give(t.members[0]!, "no-such-request")).toMatchObject({ ok: false, reason: "request_gone" });
-    for (const bad of [5, "", "x".repeat(70), null, undefined]) {
-      expect((await server.request("POST", "/v1/help/give", { token: t.members[0]!.token, body: { requestId: bad } })).status).toBe(400);
-    }
-    expect(await endsAt(t.leader)).toBe(end);
-  });
-
-  test("a request whose job was replaced or whose owner left is gone", async () => {
-    const t = await team(server, 3);
-    const [a, b] = t.members as [Player, Player];
-    await train(t.leader);
-    const { request: req } = await request(t.leader);
-    // The owner leaves the alliance: nobody can help what is no longer the alliance's.
-    await post(server, b, "/v1/alliance/leave");
-    await post(server, t.leader, "/v1/alliance/transfer", { handle: a.handle });
-    await post(server, t.leader, "/v1/alliance/leave");
-    expect(await give(a, req.id)).toMatchObject({ ok: false, reason: "request_gone" });
-    const rows = await server.env.DB.prepare("SELECT COUNT(*) AS n FROM help_requests WHERE account_id = ?").bind(t.leader.id).first<{ n: number }>();
-    expect(rows?.n).toBe(0);
-  });
-
-  test("works on upgrades too", async () => {
-    const t = await team(server, 2);
-    const end = await train(t.leader, "upgrade");
-    const { request: req } = await request(t.leader, "upgrade");
-    expect(await give(t.members[0]!, req.id)).toMatchObject({ ok: true, request: { kind: "upgrade", endsAt: end - HELP_REDUCTION_MS } });
-    expect((await getState(server, t.leader.token)).queue.endsAt).toBe(end - HELP_REDUCTION_MS);
-  });
-});
-
-describe("races", () => {
-  test("two helpers racing for the last help: exactly one is applied", async () => {
-    const t = await team(server, MAX_HELPS_PER_REQUEST + 3);
-    const end = await train(t.leader);
-    const { request: req } = await request(t.leader);
-    for (let i = 0; i < MAX_HELPS_PER_REQUEST - 1; i++) await give(t.members[i]!, req.id);
-    const racers = [t.members[MAX_HELPS_PER_REQUEST - 1]!, t.members[MAX_HELPS_PER_REQUEST]!, t.members[MAX_HELPS_PER_REQUEST + 1]!];
-    const rs = await Promise.all(racers.map((p) => give(p, req.id)));
-    expect(rs.filter((r) => r.ok)).toHaveLength(1);
-    expect(rs.filter((r) => !r.ok).every((r) => r.reason === "help_full")).toBe(true);
-    const row = await server.env.DB.prepare("SELECT helps FROM help_requests WHERE id = ?").bind(req.id).first<{ helps: number }>();
-    expect(row?.helps).toBe(MAX_HELPS_PER_REQUEST);
-    const given = await server.env.DB.prepare("SELECT COUNT(*) AS n FROM help_given WHERE request_id = ?").bind(req.id).first<{ n: number }>();
-    expect(given?.n).toBe(MAX_HELPS_PER_REQUEST);
-    expect(await endsAt(t.leader)).toBe(end - MAX_HELPS_PER_REQUEST * HELP_REDUCTION_MS);
-    expect(await assertRows()).toBe(0);
-  });
-
-  test("the same helper twice at once: one help, one 'already helped', nothing recorded without effect", async () => {
-    const t = await team(server, 2);
-    const end = await train(t.leader);
-    const { request: req } = await request(t.leader);
-    const rs = await Promise.all([give(t.members[0]!, req.id), give(t.members[0]!, req.id)]);
-    expect(rs.filter((r) => r.ok)).toHaveLength(1);
-    expect(rs.find((r) => !r.ok)?.reason).toBe("already_helped");
-    expect(await endsAt(t.leader)).toBe(end - HELP_REDUCTION_MS);
-    const given = await server.env.DB.prepare("SELECT COUNT(*) AS n FROM help_given WHERE request_id = ?").bind(req.id).first<{ n: number }>();
-    expect(given?.n).toBe(1);
-  });
-
-  test("a help racing the requester's own action never loses either: the base changes are both kept", async () => {
-    const t = await team(server, 2);
-    await train(t.leader);
-    const { request: req } = await request(t.leader);
-    const [h, up] = await Promise.all([give(t.members[0]!, req.id), body(await intent(server, t.leader.token, { type: "upgrade", building: "hq" }))]);
-    expect(h.ok).toBe(true);
-    expect(up.ok).toBe(true);
-    const s = await getState(server, t.leader.token);
-    expect(s.queue).not.toBeNull();
-    expect(s.training.endsAt).toBeLessThan(T0 + TRAIN_MS);
-    expect(s.training.endsAt).toBeGreaterThanOrEqual(T0 + TRAIN_MS - HELP_REDUCTION_MS);
-  });
-
-  test("the database never records a help without its effect, whatever the interleaving", async () => {
-    const t = await team(server, 5);
-    await train(t.leader);
-    const { request: req } = await request(t.leader);
-    await Promise.all(t.members.map((p) => give(p, req.id)));
-    const row = await server.env.DB.prepare("SELECT helps FROM help_requests WHERE id = ?").bind(req.id).first<{ helps: number }>();
-    const given = await server.env.DB.prepare("SELECT COUNT(*) AS n FROM help_given WHERE request_id = ?").bind(req.id).first<{ n: number }>();
-    expect(given?.n).toBe(row?.helps);
-    expect(await endsAt(t.leader)).toBe(T0 + TRAIN_MS - (row?.helps ?? 0) * HELP_REDUCTION_MS);
-    expect(await assertRows()).toBe(0);
-  });
-});
-
+}, LONG);

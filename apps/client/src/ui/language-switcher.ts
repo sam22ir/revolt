@@ -3,7 +3,8 @@ import { currentLanguage, t } from "../i18n/i18n.ts";
 import { el } from "./dom.ts";
 
 export const createLanguageSwitcher = (onChange: (lang: Language) => void): HTMLElement => {
-  const label = el("label", "lang");
+  const label = el("label", "lang-field");
+  const text = el("span", "lang-label", t("settings.language"));
   const select = el("select");
   select.setAttribute("aria-label", t("settings.language"));
   select.dataset.testid = "language";
@@ -18,6 +19,6 @@ export const createLanguageSwitcher = (onChange: (lang: Language) => void): HTML
     const v = LANGUAGES.find((l) => l === select.value);
     if (v !== undefined) onChange(v);
   });
-  label.append(select);
+  label.append(text, select);
   return label;
 };

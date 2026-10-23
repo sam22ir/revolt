@@ -11,6 +11,7 @@ import type { CosmeticId, CosmeticSlot } from "./data/cosmetics.ts";
 import type { EventId } from "./data/events.ts";
 import type { ProductKind, ProductSku } from "./data/store.ts";
 import type { LeaderboardId } from "./leaderboard.ts";
+import type { Liberation } from "./liberation.ts";
 import type { Resources } from "./resources.ts";
 import type { Troops } from "./troops.ts";
 
@@ -48,6 +49,14 @@ export interface MapNpcView extends MapPoint {
   readonly id: string;
   readonly kind: NpcKind;
   readonly level: number;
+  /** The region this stronghold liberates when cleared; null for ordinary targets. */
+  readonly region: number | null;
+}
+
+/** A region held by the movement (GDD §4.5), with the alliance credited for it. */
+export interface LiberationView extends Liberation {
+  /** Tag of the credited alliance; null if it is no longer known. */
+  readonly alliance: string | null;
 }
 
 export const MARCH_PHASES = ["outbound", "returning"] as const;
@@ -73,6 +82,8 @@ export interface MapSnapshot {
   readonly marches: readonly MapMarchView[];
   readonly hqs: readonly MapHqView[];
   readonly rallies: readonly RallyView[];
+  /** Regions held now or earlier this season; the server-wide production bonus follows from these. */
+  readonly liberations: readonly LiberationView[];
   /** Server time, epoch ms. */
   readonly now: number;
 }

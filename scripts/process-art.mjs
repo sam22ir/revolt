@@ -30,6 +30,20 @@ const OVERRIDES = {
   "ui/hero_frame_common": 256,
   "ui/hero_frame_rare": 256,
   "ui/hero_frame_legendary": 256,
+  // UI kit frames keep their native size: the CSS border-image slices are in these pixels.
+  "ui/frame_panel": 643,
+  "ui/frame_button": 343,
+  "ui/frame_button_active": 361,
+  "ui/frame_plate": 228,
+  "ui/frame_button_disabled": 578,
+  "ui/button_round": 128,
+  "ui/button_round_active": 128,
+  "ui/nav_map": 96,
+  "ui/nav_base": 96,
+  "ui/nav_alliance": 96,
+  "ui/nav_reports": 96,
+  "ui/nav_account": 96,
+  "map/camp": 320,
 };
 const SRC = join(root, "art/raw");
 const OUT = join(root, "apps/client/public/art");

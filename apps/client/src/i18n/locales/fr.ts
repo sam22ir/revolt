@@ -124,7 +124,18 @@ export const fr: LocaleShape = {
     fortified_line: { name: "Ligne fortifiée", desc: "Une chaîne de postes fortifiés tenus par l’armée coloniale. Trop forte pour une seule colonne : il faut un rassemblement d’alliance." },
   },
   terrain: { plain: "Plaine", hills: "Collines", forest: "Forêt", mountain: "Montagne" },
+  search: {
+    title: "Trouver une cible",
+    go: "Chercher",
+    next: "Suivante",
+    level: "Niveau {{level}}",
+    none: "Aucune cible de niveau {{level}} pour l'instant.",
+  },
+
   map: {
+    minimap: "Aperçu de la carte. Touchez pour vous y rendre.",
+    myBase: "Ma base",
+    baseDistance: "{{count}} cases",
     coords: "X {{x}} · Y {{y}}",
     loading: "Chargement de la carte…",
     ownCamp: "Votre camp",

@@ -1,6 +1,7 @@
 import { advance, speedUp, usedToday, utcDay, type HelpKind } from "@revolt/rules";
 import type { Account } from "../db/accounts.ts";
 import { loadBase } from "../db/bases.ts";
+import { loadWorld } from "../db/liberations.ts";
 import { loadWallet, reserveTokensStatement } from "../db/live.ts";
 import { HttpError, json } from "../http.ts";
 import type { Ctx } from "./context.ts";
@@ -22,8 +23,9 @@ export const speedUpIntent = async (ctx: Ctx, account: Account, job: HelpKind, t
     const stored = await loadBase(db, account.id);
     if (stored === null) throw new HttpError("not_found");
     const w = await loadWallet(db, account.id);
+    const world = await loadWorld(db, account.server);
     const used = usedToday(w.day, w.usedMs, ctx.now);
-    const r = speedUp(stored.state, job, tokens, w.tokens, used, ctx.now);
+    const r = speedUp(stored.state, job, tokens, w.tokens, used, ctx.now, world);
     if (!r.ok) return json({ ok: false, reason: r.reason, state: r.state, wallet: walletView(w, ctx.now), now: ctx.now });
     // Keep the later day if the clock went backwards, so rewinding it cannot reopen the allowance.
     const newDay = Math.max(day, w.day);
@@ -35,7 +37,7 @@ export const speedUpIntent = async (ctx: Ctx, account: Account, job: HelpKind, t
     ])) as { meta: { changes: number } }[];
     if (results[1]?.meta.changes === 1) {
       ctx.deps.analytics.track("speedup", { job, tokens: r.tokensUsed });
-      await syncSnapshot(ctx, account, advance(r.state, ctx.now));
+      await syncSnapshot(ctx, account, advance(r.state, ctx.now, world));
       return json({ ok: true, state: r.state, wallet: walletView(await loadWallet(db, account.id), ctx.now), now: ctx.now });
     }
   }

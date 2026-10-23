@@ -1,3 +1,4 @@
+import type { World } from "./liberation.ts";
 import { advance } from "./advance.ts";
 import type { BaseState } from "./base-state.ts";
 import { TRAINING_BATCH_PER_LEVEL, TROOPS } from "./data/troops.ts";
@@ -35,8 +36,8 @@ export const checkTraining = (state: BaseState, troop: TroopId, count: number): 
   return null;
 };
 
-export const startTraining = (state: BaseState, troop: TroopId, count: number, now: number): TrainingResult => {
-  const s = advance(state, now);
+export const startTraining = (state: BaseState, troop: TroopId, count: number, now: number, world: World): TrainingResult => {
+  const s = advance(state, now, world);
   const reason = checkTraining(s, troop, count);
   if (reason !== null) return { ok: false, reason, state: s };
   const { cost, durationMs } = trainingQuote(troop, count);

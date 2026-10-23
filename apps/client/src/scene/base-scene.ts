@@ -1,7 +1,10 @@
 import Phaser from "phaser";
 import { BUILDING_IDS, type BaseState, type BuildingId } from "@revolt/rules";
 import type { GameStore } from "../state/game-store.ts";
+import type { HudInsets } from "../ui/hud-insets.ts";
+import { hex, theme } from "../theme/theme.ts";
 import { artKeyFor, artUrl, spriteInfo, textureKey } from "../art/art.ts";
+import { artPack } from "../art/pack.ts";
 import { activeBackground } from "../state/background.ts";
 import {
   isoToWorld,
@@ -43,19 +46,20 @@ const ALPHA_TAP = 40;
 const D_HUD = 200;
 const UPGRADING_TINT = 0xb8aa94;
 
-/** Room reserved for the DOM HUD above the map, in CSS pixels. */
-const HUD_TOP = 120;
-const HUD_BOTTOM = 40;
-
 export class BaseScene extends Phaser.Scene {
   private readonly views = new Map<BuildingId, BuildingView>();
   private readonly placements = new Map<BuildingId, Placement>();
   private selected: BuildingId | null = null;
   private viewCenter: Vec = { x: 0, y: 0 };
+  /** The HUD room the camera was last fitted to; a sheet opening does not refit the base. */
+  private fitted: { top: number; nav: number } | null = null;
+  /** Put to sleep by showScene while the map is open; the store is not drawn then, and WAKE redraws it all. */
+  private asleep = false;
 
   constructor(
     private readonly store: GameStore,
     private readonly onSelect: (id: BuildingId | null) => void,
+    private readonly insets: HudInsets,
   ) {
     super("base");
   }
@@ -65,19 +69,34 @@ export class BaseScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.cameras.main.setBackgroundColor("#3d4a3a");
+    this.cameras.main.setBackgroundColor(hex(theme.ground.base));
     this.drawGround();
     // Draw back-to-front so nearer buildings overlap farther ones.
     const order = [...BUILDING_IDS].sort((a, b) => plotCenter(PLOTS[a]).y - plotCenter(PLOTS[b]).y);
     order.forEach((id, i) => this.views.set(id, this.createBuilding(id, i)));
     this.fitCamera();
     this.scale.on(Phaser.Scale.Events.RESIZE, () => this.fitCamera());
+    // The HUD header or nav bar changed size (e.g. a third march row, or a new home-indicator inset).
+    const unsubscribeInsets = this.insets.subscribe(() => {
+      const now = this.insets.get();
+      if (this.fitted === null || Math.abs(now.top - this.fitted.top) >= 1 || Math.abs(now.nav - this.fitted.nav) >= 1) this.fitCamera();
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, unsubscribeInsets);
     // A tap on empty ground clears the selection.
     this.input.on(Phaser.Input.Events.POINTER_UP, (_p: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => {
       if (over.length === 0) this.onSelect(null);
     });
-    const unsubscribe = this.store.subscribe((state, now) => this.refresh(state, now));
+    const unsubscribe = this.store.subscribe((state, now) => {
+      if (!this.asleep) this.refresh(state, now);
+    });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, unsubscribe);
+    this.events.on(Phaser.Scenes.Events.SLEEP, () => {
+      this.asleep = true;
+    });
+    this.events.on(Phaser.Scenes.Events.WAKE, () => {
+      this.asleep = false;
+      this.refresh(this.store.state(), this.store.now());
+    });
     this.refresh(this.store.state(), this.store.now());
   }
 
@@ -108,12 +127,22 @@ export class BaseScene extends Phaser.Scene {
   private fitCamera(): void {
     const cam = this.cameras.main;
     const { width, height } = this.scale.gameSize;
-    // Game size is in device pixels; the HUD margins are CSS pixels.
+    // Game size is in device pixels; the HUD room is in CSS pixels. The base keeps clear of the nav bar,
+    // not of an open sheet: it must not shrink when a building panel opens.
+    const room = this.insets.get();
+    this.fitted = { top: room.top, nav: room.nav };
     const px = this.scale.displayScale.y;
-    const hudTop = HUD_TOP * px;
-    const hudBottom = HUD_BOTTOM * px;
+    const hudTop = room.top * px;
+    const hudBottom = room.nav * px;
     const usableH = Math.max(100 * px, height - hudTop - hudBottom);
-    const zoom = Math.min((width - 16 * px) / MAP_WORLD_WIDTH, usableH / (MAP_WORLD_HEIGHT + 80));
+    // Fit the buildings' sprite bitmaps, not the whole ground slab: the slab is a wide diamond that
+    // left the base at under half a phone's width. The slab is simply cropped at the sides.
+    const xs = BUILDING_IDS.flatMap((id) => {
+      const place = this.placement(id);
+      return [place.x, place.x + spriteInfo(artPack.buildings[id]).w * place.scale];
+    });
+    const span = Math.max(...xs) - Math.min(...xs);
+    const zoom = Math.min((width - 16 * px) / span, usableH / (MAP_WORLD_HEIGHT + 80));
     cam.setZoom(zoom);
     const center = mapCenter();
     // Shift the view so the map sits between the HUD and the bottom edge.
@@ -142,7 +171,7 @@ export class BaseScene extends Phaser.Scene {
   private placement(id: BuildingId): Placement {
     const cached = this.placements.get(id);
     if (cached !== undefined) return cached;
-    const info = spriteInfo(spriteKey(id));
+    const info = spriteInfo(artPack.buildings[id]);
     const scale = (PLOTS[id].size * TILE_W) / (info.right.x - info.left.x);
     const cx = (info.left.x + info.right.x) / 2;
     const cy = (info.left.y + info.right.y) / 2;
@@ -154,7 +183,7 @@ export class BaseScene extends Phaser.Scene {
 
   private createBuilding(id: BuildingId, index: number): BuildingView {
     const place = this.placement(id);
-    const sprite = this.add.image(place.x, place.y, textureKey(spriteKey(id))).setOrigin(0, 0).setScale(place.scale).setDepth(D_SPRITE + index);
+    const sprite = this.add.image(place.x, place.y, textureKey(artPack.buildings[id])).setOrigin(0, 0).setScale(place.scale).setDepth(D_SPRITE + index);
     // Taps hit the painted pixels, so where sprites overlap the one drawn on top (the nearer building) wins.
     sprite.setInteractive({ pixelPerfect: true, alphaTolerance: ALPHA_TAP });
     sprite.on(Phaser.Input.Events.GAMEOBJECT_POINTER_UP, () => this.onSelect(id));
@@ -197,7 +226,7 @@ export class BaseScene extends Phaser.Scene {
     // Level badge on the plot's front corner, clear of the walls.
     const badgePos = { x: bottom.x, y: bottom.y + 2 };
     view.badge.clear();
-    view.badge.fillStyle(0x2b2a24, 0.9);
+    view.badge.fillStyle(theme.ink.base, 0.9);
     view.badge.fillCircle(badgePos.x, badgePos.y, 23);
     view.badge.lineStyle(3, 0xfff1b8, 1);
     view.badge.strokeCircle(badgePos.x, badgePos.y, 23);
@@ -214,9 +243,9 @@ export class BaseScene extends Phaser.Scene {
     const c = plotCenter(PLOTS[id]);
     const w = 70;
     const y = c.y - 6;
-    g.fillStyle(0x2b2a24, 0.85);
+    g.fillStyle(theme.ink.base, 0.85);
     g.fillRoundedRect(c.x - w / 2 - 3, y - 3, w + 6, 14, 6);
-    g.fillStyle(0xe0b040, 1);
+    g.fillStyle(theme.accent.gold, 1);
     g.fillRoundedRect(c.x - w / 2, y, Math.max(4, w * frac), 8, 4);
   }
 

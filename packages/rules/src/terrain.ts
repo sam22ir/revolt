@@ -4,8 +4,8 @@ import { hash32 } from "./rng.ts";
 export const TERRAIN_IDS = ["plain", "hills", "forest", "mountain"] as const;
 export type TerrainId = (typeof TERRAIN_IDS)[number];
 
-/** Smooth-ish value noise: hashed lattice every `cell` tiles, bilinearly blended. */
-const noise = (seed: number, x: number, y: number, cell: number): number => {
+/** Smooth-ish value noise in [0, 1]: hashed lattice every `cell` tiles, bilinearly blended. */
+export const valueNoise =(seed: number, x: number, y: number, cell: number): number => {
   const gx = Math.floor(x / cell);
   const gy = Math.floor(y / cell);
   const fx = (x - gx * cell) / cell;
@@ -18,7 +18,7 @@ const noise = (seed: number, x: number, y: number, cell: number): number => {
 
 /** Terrain of a tile: a pure function of the map seed, so it is never stored or sent. Cosmetic in M3. */
 export const terrainAt = (seed: number, x: number, y: number): TerrainId => {
-  const h = 0.65 * noise(seed, x, y, 8) + 0.35 * noise(seed + 1, x, y, 3);
+  const h = 0.65 * valueNoise(seed, x, y, 8) + 0.35 * valueNoise(seed + 1, x, y, 3);
   if (h > 0.72) return "mountain";
   if (h > 0.58) return "hills";
   if (h < 0.3) return "forest";
