@@ -43,7 +43,7 @@ export const detailAlpha = (zoom: number): number => {
 };
 
 /**
- * The fine detail texture, made once: a seamless white tile with faint grain and small dark pebbles (2 to 4 px across), for a MULTIPLY
+ * The fine detail texture, made once: a seamless white tile with soft mottling, fine grit and pale pebble clusters (2 to 5 px across), for a MULTIPLY
  * overlay. No long lines: cracks and ripples are decals. Deterministic. Browser only (uses a canvas), so call it lazily.
  */
 export const makeDetailTexture = (): HTMLCanvasElement => {
@@ -53,23 +53,30 @@ export const makeDetailTexture = (): HTMLCanvasElement => {
   c.height = n;
   const ctx = c.getContext("2d");
   if (ctx === null) return c;
-  const grain = tileableNoise(n, 5, 21);
+  const grain = tileableNoise(n, 4, 21);
+  // Broad soft mottling (cells of 64 and 128 px): the sand is lighter and darker in patches, as in painted ground.
+  const mottle = tileableNoise(n, 64, 22);
+  const broad = tileableNoise(n, 128, 23);
   const img = ctx.createImageData(n, n);
   for (let i = 0; i < n * n; i++) {
-    // Mostly white; the peaks of the noise darken a little, warmly, so the sand picks up fine grit.
-    const dark = Math.max(0, (grain[i]! - 0.62) / 0.38) * 60;
+    const patch = (mottle[i]! * 0.6 + broad[i]! * 0.4) * 22;
+    const grit = Math.max(0, (grain[i]! - 0.7) / 0.3) * 34;
+    const dark = patch + grit;
     img.data[i * 4] = 255 - dark;
     img.data[i * 4 + 1] = 255 - dark * 1.05;
-    img.data[i * 4 + 2] = 255 - dark * 1.15;
+    img.data[i * 4 + 2] = 255 - dark * 1.2;
     img.data[i * 4 + 3] = 255;
   }
   ctx.putImageData(img, 0, 0);
-  // Pebbles: an ellipse squashed for the iso ground, drawn at the four wrap offsets so the edges match.
+  // Pebbles in loose clusters: only where a mid-size noise is high, so they gather instead of dotting the sand evenly. Each is an
+  // ellipse squashed for the iso ground, pale and soft, drawn at the wrap offsets so the edges match.
+  const gather = tileableNoise(n, 48, 24);
   const r = rng(31);
-  for (let k = 0; k < 240; k++) {
-    const x = r() * n, y = r() * n, rad = 1.2 + r() * 1.4;
-    const shade = 120 + r() * 50;
-    ctx.fillStyle = `rgba(${shade}, ${shade * 0.85}, ${shade * 0.7}, ${0.5 + r() * 0.3})`;
+  for (let k = 0; k < 400; k++) {
+    const x = r() * n, y = r() * n, rad = 1.1 + r() * 1.3, shade = 150 + r() * 50, alpha = 0.25 + r() * 0.3;
+    const g = gather[(Math.floor(y) % n) * n + (Math.floor(x) % n)] ?? 0;
+    if (g < 0.58) continue;
+    ctx.fillStyle = `rgba(${shade}, ${shade * 0.86}, ${shade * 0.72}, ${alpha})`;
     for (const dx of [-n, 0, n]) {
       for (const dy of [-n, 0, n]) {
         ctx.beginPath();
