@@ -3,7 +3,7 @@ import type { MapSnapshot } from "@revolt/rules";
 import type { GameStore } from "../state/game-store.ts";
 import type { WorldStore } from "../state/world-store.ts";
 import { hex, theme } from "../theme/theme.ts";
-import { artUrl, groundUrl, propsUrl, terrainAtlases, groundTexture, propsTexture, textureKey } from "../art/art.ts";
+import { artUrl, decalsTexture, decalsUrl, groundUrl, propsUrl, terrainAtlases, groundTexture, propsTexture, textureKey } from "../art/art.ts";
 import { artPack } from "../art/pack.ts";
 import type { HudInsets, Insets } from "../ui/hud-insets.ts";
 import { createGesture, type Gesture } from "./gesture.ts";
@@ -32,6 +32,7 @@ import {
 import { AmbientLayer } from "./world/ambient-layer.ts";
 import { FeatureLayer } from "./world/feature-layer.ts";
 import { GroundLayer } from "./world/ground-layer.ts";
+import { DetailLayer } from "./world/ground-detail.ts";
 import { MarchLayer } from "./world/march-layer.ts";
 import { ObjectLayer } from "./world/object-layer.ts";
 import { RegionLayer } from "./world/region-layer.ts";
@@ -92,6 +93,7 @@ export class WorldScene extends Phaser.Scene {
   private gesture!: Gesture;
   private readonly specs = new SpecCache();
   private ground!: GroundLayer;
+  private detail!: DetailLayer;
   private features!: FeatureLayer;
   private regions!: RegionLayer;
   private lastViewKey = "";
@@ -114,6 +116,7 @@ export class WorldScene extends Phaser.Scene {
     for (const key of ART_KEYS) if (!this.textures.exists(textureKey(key))) this.load.image(textureKey(key), artUrl(key));
     for (const t of Object.keys(terrainAtlases.ground)) if (!this.textures.exists(groundTexture(t))) this.load.image(groundTexture(t), groundUrl(t));
     for (const k of PROP_KINDS) if (!this.textures.exists(propsTexture(k))) this.load.image(propsTexture(k), propsUrl(k));
+    if (terrainAtlases.decals !== undefined && !this.textures.exists(decalsTexture)) this.load.image(decalsTexture, decalsUrl);
   }
 
   create(): void {
@@ -122,6 +125,7 @@ export class WorldScene extends Phaser.Scene {
     // Layers are built in paint order, so their Phaser objects are created in the same order as before the split.
     this.features = new FeatureLayer();
     this.ground = new GroundLayer(this, this.specs, this.features);
+    this.detail = new DetailLayer(this);
     this.regions = new RegionLayer(this);
     this.objects = new ObjectLayer(this, this.specs);
     this.marches = new MarchLayer(this, this.specs);
@@ -191,6 +195,7 @@ export class WorldScene extends Phaser.Scene {
       snapshotVersion: this.snapshotVersion,
     };
     this.ground.paint(frame);
+    this.detail.paint(frame);
     this.regions.paint(frame);
     this.objects.paint(frame);
     this.marches.paint(frame);

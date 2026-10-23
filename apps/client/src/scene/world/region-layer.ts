@@ -14,6 +14,10 @@ const WASH_ALPHA = 0.24;
 /** Border width on screen, CSS px; the world width follows the zoom so a border is as thin close up as far out. */
 const BORDER_SCREEN_PX = 2.5;
 const MAX_BORDER_WORLD = 18;
+/** Below this zoom (the far overview) ordinary borders stay a faint dark line; closer in they are a warm seam. */
+const FAR_ZOOM = 0.3;
+/** Opacity of the warm seam between ordinary regions: visible on sand without reading as a crack. */
+const SEAM_ALPHA = 0.32;
 
 /** Zoom steps of half an octave: a pinch redraws the borders only when it crosses one. */
 const zoomBucket = (zoom: number): number => Math.round(Math.log2(zoom) * 2);
@@ -42,7 +46,9 @@ export class RegionLayer implements WorldLayer {
         .filter((l) => l.from <= now && (l.until === null || l.until > now) && myAlliance !== null && l.alliance === myAlliance)
         .map((l) => l.region),
     );
-    const key = `${range.x0},${range.x1},${range.y0},${range.y1}|${snap.terrainSeed}|${snap.size}|${[...held].sort((a, b) => a - b).join(",")}|${[...ours].join(",")}|${bucket}`;
+    // `far` is its own key term: the 0.3 switch falls inside one zoom bucket, so the bucket alone would keep a stale style.
+    const far = view.zoom < FAR_ZOOM;
+    const key = `${range.x0},${range.x1},${range.y0},${range.y1}|${snap.terrainSeed}|${snap.size}|${[...held].sort((a, b) => a - b).join(",")}|${[...ours].join(",")}|${bucket}|${far}`;
     if (key === this.key) return;
     this.key = key;
     const g = this.graphics;
@@ -66,7 +72,15 @@ export class RegionLayer implements WorldLayer {
     for (const e of regionEdges(grid, snap.size, range)) {
       const liberated = held.has(e.a) || held.has(e.b);
       const own = ours.has(e.a) || ours.has(e.b);
-      g.lineStyle(width, own ? theme.alliance.own : liberated ? theme.region.liberated : theme.region.border, liberated ? 0.9 : 0.55);
+      if (own || liberated) {
+        g.lineStyle(width, own ? theme.alliance.own : theme.region.liberated, 0.9);
+      } else if (far) {
+        // Far out, a faint dark line keeps the regions readable on the overview.
+        g.lineStyle(width, theme.region.border, 0.55);
+      } else {
+        // Ordinary borders are a soft, wider warm seam rather than a crack.
+        g.lineStyle(width * 2, theme.region.seam, SEAM_ALPHA);
+      }
       const p = tileToWorld(e.x, e.y);
       const right = { x: p.x + TILE_W / 2, y: p.y + TILE_H / 2 };
       const bottom = { x: p.x, y: p.y + TILE_H };

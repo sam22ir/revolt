@@ -51,8 +51,18 @@ export interface Atlas {
   readonly h: number;
   readonly frames: readonly AtlasFrame[];
 }
-export const terrainAtlases = terrainManifest as unknown as { readonly ground: Readonly<Record<string, Atlas>>; readonly props: Readonly<Record<string, Atlas>> };
+/** Painted decal stamps for the ground (cut from the ground sheets; each frame is tagged with its kind). */
+export interface DecalAtlas extends Atlas {
+  readonly frames: readonly (AtlasFrame & { readonly kind: string })[];
+}
+export const terrainAtlases = terrainManifest as unknown as {
+  readonly ground: Readonly<Record<string, Atlas>>;
+  readonly props: Readonly<Record<string, Atlas>>;
+  readonly decals?: DecalAtlas;
+};
 export const groundTexture = (terrain: string): string => `terrain:ground-${terrain}`;
 export const propsTexture = (kind: string): string => `terrain:props-${kind}`;
+export const decalsTexture = "terrain:decals";
+export const decalsUrl = `${import.meta.env.BASE_URL}art/terrain/decals.webp`;
 export const groundUrl = (terrain: string): string => `${import.meta.env.BASE_URL}art/terrain/ground-${terrain}.webp`;
 export const propsUrl = (kind: string): string => `${import.meta.env.BASE_URL}art/terrain/props-${kind}.webp`;
