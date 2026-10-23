@@ -141,9 +141,12 @@
   inline-size: min(100%, 440px);
   max-block-size: 100%;
   overflow-y: auto;
-  padding: 14px 16px 16px;
-  border-radius: 16px;
-  background: var(--paper);
+  /* The panel frame around a paper sheet: 12px border under the painted bar, as on .panel. */
+  padding: 10px 14px 12px;
+  border: 12px solid transparent;
+  border-image: var(--frame-panel-image);
+  border-radius: 0;
+  background: var(--paper) padding-box;
   /* Not box-shadow: on a scrolling element above the WebGL canvas it made headless Chromium paint the canvas
      area above the panel solid white/black. drop-shadow renders the same and does not. */
   filter: drop-shadow(0 -4px 12px rgb(0 0 0 / 0.35));
@@ -290,7 +293,7 @@
   border-image: var(--art-frame-plate) 48 60 / 10px 13px / 6px stretch;
   border-radius: 0;
   background: var(--frame-bg);
-  overflow: visible;
+  overflow: hidden;
   cursor: pointer;
 }
 .minimap[hidden] { display: none; }

@@ -17,7 +17,8 @@
   --frame-border: 1px solid var(--bronze);
   --frame-shadow: 0 2px 6px rgb(0 0 0 / 0.5), inset 0 1px 0 rgb(233 213 170 / 0.25), inset 0 -1px 0 rgb(0 0 0 / 0.4);
   /* Painted frames (art/ui/frame_*, set by ui/frame-art.ts). Slices are in the shipped image's pixels and keep the
-     corner ornaments whole; the widths draw them at about a third of their size. Without the art, the CSS border shows. */
+     corner ornaments whole; the widths draw them at about a third of their size. Framed elements have transparent
+     borders, so without the art only the slate (--frame-bg) shows. */
   --frame-panel-image: var(--art-frame-panel) 100 130 / 30px 39px stretch;
   --frame-button-image: var(--art-frame-button) 52 82 fill / 15px 24px stretch;
   --frame-button-active-image: var(--art-frame-button-active) 58 90 fill / 15px 24px stretch;
@@ -282,8 +283,9 @@ html, body {
   cursor: pointer;
 }
 .upgrade-btn:disabled { background: #9a9282; cursor: not-allowed; }
-/* A lighter red than --bad: the panels are dark slate now, and --bad is too dim on them. */
-.panel-reason { margin-block: 8px 0; color: #ec8a72; font-size: 14px; font-weight: 600; text-align: center; }
+.panel-reason { margin-block: 8px 0; color: var(--bad); font-size: 14px; font-weight: 600; text-align: center; }
+/* A lighter red on the dark slate panels, where --bad is too dim; paper dialogs keep --bad. */
+.panel .panel-reason, .account-panel .panel-reason { color: #ec8a72; }
 
 .progress { block-size: 12px; border-radius: 6px; background: var(--paper-2); overflow: hidden; }
 .progress-fill { block-size: 100%; inline-size: 0; background: var(--gold); transition: inline-size 0.25s linear; }
