@@ -5,6 +5,7 @@ import { centerTile } from "../scene/world-layout.ts";
 import type { WorldCamera } from "../scene/world-scene.ts";
 import { edgeArrow, type Rect } from "./base-arrow-math.ts";
 import { el } from "./dom.ts";
+import { writeOnChange } from "./write-on-change.ts";
 
 /** Name plates show from this zoom up; farther out they would pile up, and the canvas ring colour already says who is who. */
 const PLATE_ZOOM = 0.55;
@@ -47,7 +48,19 @@ export const createMapLabels = (deps: MapLabelsDeps): MapLabels => {
   const root = el("div", "map-labels");
   root.dir = "ltr";
   root.hidden = true;
-  const plates = new Map<string, { node: HTMLElement; tag: HTMLElement; name: HTMLElement }>();
+  // Every DOM write below goes through writeOnChange: the camera callback runs each frame and most frames change nothing.
+  interface Plate {
+    readonly node: HTMLElement;
+    readonly setRel: (rel: string) => void;
+    readonly setTag: (text: string) => void;
+    readonly setTagHidden: (hidden: boolean) => void;
+    readonly setName: (text: string) => void;
+    readonly setPos: (transform: string) => void;
+  }
+  const plates = new Map<string, Plate>();
+  const setClip = writeOnChange((clip: string) => {
+    root.style.clipPath = clip;
+  });
 
   const arrow = el("button", "base-arrow");
   arrow.type = "button";
@@ -57,12 +70,24 @@ export const createMapLabels = (deps: MapLabelsDeps): MapLabels => {
   const distance = el("span", "base-arrow-distance");
   arrow.append(head, distance);
   root.append(arrow);
+  const setArrowHidden = writeOnChange((hidden: boolean) => {
+    arrow.hidden = hidden;
+  });
+  const setArrowPos = writeOnChange((transform: string) => {
+    arrow.style.transform = transform;
+  });
+  const setHeadAngle = writeOnChange((transform: string) => {
+    head.style.transform = transform;
+  });
+  const setDistance = writeOnChange((text: string) => {
+    distance.textContent = text;
+  });
   let mine: { x: number; y: number } | null = null;
   arrow.addEventListener("click", () => {
     if (mine !== null) deps.onJump(mine);
   });
 
-  const plateFor = (key: string): { node: HTMLElement; tag: HTMLElement; name: HTMLElement } => {
+  const plateFor = (key: string): Plate => {
     let p = plates.get(key);
     if (p === undefined) {
       const node = el("div", "map-plate");
@@ -73,7 +98,24 @@ export const createMapLabels = (deps: MapLabelsDeps): MapLabels => {
       name.dir = "auto";
       node.append(tag, name);
       root.append(node);
-      p = { node, tag, name };
+      p = {
+        node,
+        setRel: writeOnChange((rel: string) => {
+          node.className = `map-plate ${rel}`;
+        }),
+        setTag: writeOnChange((text: string) => {
+          tag.textContent = text;
+        }),
+        setTagHidden: writeOnChange((hidden: boolean) => {
+          tag.hidden = hidden;
+        }),
+        setName: writeOnChange((text: string) => {
+          name.textContent = text;
+        }),
+        setPos: writeOnChange((transform: string) => {
+          node.style.transform = transform;
+        }),
+      };
       plates.set(key, p);
     }
     return p;
@@ -84,7 +126,7 @@ export const createMapLabels = (deps: MapLabelsDeps): MapLabels => {
     const top = view.insetTop ?? 0;
     const bottom = view.height - (view.insetBottom ?? 0);
     // Plates under the header or a sheet are cut off with the band, so the HUD stays readable.
-    root.style.clipPath = `inset(${top}px 0 ${view.insetBottom ?? 0}px 0)`;
+    setClip(`inset(${top}px 0 ${view.insetBottom ?? 0}px 0)`);
     const own = snap.bases.find((b) => b.mine) ?? null;
     const myAlliance = own?.alliance ?? null;
     const live = new Set<string>();
@@ -101,12 +143,12 @@ export const createMapLabels = (deps: MapLabelsDeps): MapLabels => {
         const key = `${b.x},${b.y}`;
         live.add(key);
         const plate = plateFor(key);
-        plate.node.className = `map-plate rel-${relationOf(b, myAlliance)}`;
-        plate.tag.textContent = b.alliance === null ? "" : `[${b.alliance}]`;
-        plate.tag.hidden = b.alliance === null;
-        plate.name.textContent = b.tag;
+        plate.setRel(`rel-${relationOf(b, myAlliance)}`);
+        plate.setTag(b.alliance === null ? "" : `[${b.alliance}]`);
+        plate.setTagHidden(b.alliance === null);
+        plate.setName(b.tag);
         const y = p.y - plateLift(b.mine, view.zoom) * view.zoom;
-        plate.node.style.transform = `translate(${Math.round(p.x)}px, ${Math.round(y)}px) translate(-50%, -100%)`;
+        plate.setPos(`translate(${Math.round(p.x)}px, ${Math.round(y)}px) translate(-50%, -100%)`);
       }
     }
     for (const [key, p] of plates) {
@@ -121,11 +163,11 @@ export const createMapLabels = (deps: MapLabelsDeps): MapLabels => {
       ? { left: view.width - CORNER_W, top: bottom - CORNER_H, right: view.width, bottom }
       : { left: 0, top: bottom - CORNER_H, right: CORNER_W, bottom };
     const a = own === null ? null : edgeArrow(project(own.x, own.y), band, ARROW_MARGIN, corner);
-    arrow.hidden = a === null;
+    setArrowHidden(a === null);
     if (a !== null && own !== null) {
-      arrow.style.transform = `translate(${Math.round(a.x)}px, ${Math.round(a.y)}px) translate(-50%, -50%)`;
-      head.style.transform = `rotate(${a.angle}rad)`;
-      distance.textContent = t("map.baseDistance", { count: Math.round(tileDistance(centerTile(view, snap.size), own)) });
+      setArrowPos(`translate(${Math.round(a.x)}px, ${Math.round(a.y)}px) translate(-50%, -50%)`);
+      setHeadAngle(`rotate(${a.angle}rad)`);
+      setDistance(t("map.baseDistance", { count: Math.round(tileDistance(centerTile(view, snap.size), own)) }));
     }
   };
 
