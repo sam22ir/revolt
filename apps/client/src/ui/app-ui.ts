@@ -1,8 +1,8 @@
 import { productionMultiplier, type BattleReport, type BuildingId, type HelpKind } from "@revolt/rules";
 import { formatAmount } from "../format.ts";
-import type { Language } from "../i18n/languages.ts";
+import { textDirection, type Language } from "../i18n/languages.ts";
 import type { GoogleSignIn } from "../net/google.ts";
-import type { TileRef } from "../scene/world-scene.ts";
+import type { TileRef, WorldCamera } from "../scene/world-scene.ts";
 import type { AllianceStore } from "../state/alliance-store.ts";
 import type { GameStore } from "../state/game-store.ts";
 import type { WorldStore } from "../state/world-store.ts";
@@ -18,6 +18,7 @@ import { createMarchDialog } from "./march-dialog.ts";
 import { createMarchesList } from "./marches-list.ts";
 import { createReportToast } from "./report-toast.ts";
 import { createReportsPanel } from "./reports-panel.ts";
+import { createMapLabels } from "./map-labels.ts";
 import { createMinimap } from "./minimap.ts";
 import { createTargetSearch } from "./target-search.ts";
 import { createTilePanel } from "./tile-panel.ts";
@@ -32,6 +33,8 @@ export interface AppUi {
   readonly setCenter: (tile: TileRef) => void;
   /** Where the map camera looks, for the minimap's outline (the free band's corners in fractional tiles). */
   readonly setViewport: (corners: readonly { readonly x: number; readonly y: number }[]) => void;
+  /** The map camera or snapshot changed: name plates and the arrow home follow. */
+  readonly setCamera: (camera: WorldCamera) => void;
 }
 
 interface UiDeps {
@@ -72,6 +75,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
   let center: TileRef | null = null;
   // Built once: a language change rebuilds the overlay around it but must not redraw it.
   const minimap = createMinimap({ onJump: deps.onJump });
+  const labels = createMapLabels({ onJump: deps.onJump, rtl: () => textDirection(currentLanguage()) === "rtl" });
   const search = createTargetSearch({
     snapshot: () => deps.world.snapshot(),
     // Centre first, then select: opening the tile sheet changes the free band, and the selection pans the tile above it.
@@ -260,7 +264,8 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
 
     minimap.setLabel(t("map.minimap"));
     search.relabel();
-    root.replaceChildren(hud.root, minimap.root, myBase, panel.root, tilePanel.root, alliance.root, account.root, reports.root, toast.root, dialog.root);
+    labels.relabel();
+    root.replaceChildren(labels.root, hud.root, minimap.root, myBase, panel.root, tilePanel.root, alliance.root, account.root, reports.root, toast.root, dialog.root);
 
     ctl.refresh = () => {
       const state = deps.store.state();
@@ -270,6 +275,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       minimap.update(snapshot, now);
       search.update(snapshot);
       search.setVisible(view === "map");
+      labels.setVisible(view === "map");
       // The overview is for the bare map: any sheet or panel over it takes its place.
       const overview = view === "map" && selectedTile === null && !alliance.isOpen() && !reports.isOpen() && account.root.hidden === true;
       minimap.setVisible(overview);
@@ -335,5 +341,6 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       ctl.updateCenter();
     },
     setViewport: (corners) => minimap.setViewport(corners),
+    setCamera: (camera) => labels.update(camera),
   };
 };

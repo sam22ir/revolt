@@ -2,6 +2,7 @@ import type Phaser from "phaser";
 import { theme, hex } from "../../theme/theme.ts";
 import { artPack } from "../../art/pack.ts";
 import { drawableTag } from "../../state/tile-info.ts";
+import { BASE_SCALE_OTHER, BASE_SCALE_OWN, markerFactor, NPC_SCALE } from "../marker-size.ts";
 import { SpritePool } from "../sprite-pool.ts";
 import { tileCenter, TILE_H, TILE_W } from "../world-layout.ts";
 import { GOLD, HQ_OTHER, HQ_OWN, outlineTile } from "./draw-helpers.ts";
@@ -20,7 +21,7 @@ const BADGE_RING = 0xc8964a;
 const NEUTRAL_RING = 0xf0e4c8;
 
 /** Plate colour of a base: the player's own gold, their alliance teal, another alliance violet, none a pale ring. */
-const relationColor = (b: { mine: boolean; alliance: string | null }, myAlliance: string | null): number =>
+export const relationColor = (b: { mine: boolean; alliance: string | null }, myAlliance: string | null): number =>
   b.mine ? GOLD : b.alliance === null ? NEUTRAL_RING : b.alliance === myAlliance ? HQ_OWN : HQ_OTHER;
 
 /** Bases, NPC targets, alliance HQs, the selection outline and their level labels. Depth 2.5 (outlines) to 2 (markers) and 4 (labels). */
@@ -56,7 +57,7 @@ export class ObjectLayer implements WorldLayer {
     const pg = this.plates;
     pg.clear();
     // Markers keep at least a thumb's worth of screen size however far out you zoom.
-    const k = Math.max(1, 16 / (zoom * TILE_H));
+    const k = markerFactor(zoom);
     const inRange = (m: { x: number; y: number }): boolean => m.x >= range.x0 && m.x <= range.x1 && m.y >= range.y0 && m.y <= range.y1;
 
     if (sel !== null) outlineTile(g, sel, 0xfff1b8, 3.5 / zoom);
@@ -73,22 +74,11 @@ export class ObjectLayer implements WorldLayer {
     for (const b of bases) {
       const c = tileCenter(b.x, b.y);
       // The plate says whose base it is; the player's own also gets a soft gold glow.
-      this.plate(pg, c, k, relationColor(b, myAlliance), b.mine ? 1.75 : 1.45, b.mine);
+      this.plate(pg, c, k, relationColor(b, myAlliance), b.mine ? 2.2 : 1.9, b.mine);
       // A base is a small headquarters; other players' are cooler in tone so the two read apart.
-      const img = this.pool.place(this.specs.tile(artPack.camp, (b.mine ? 1.5 : 1.25) * 1.0), c.x, c.y, depthOf(b), k);
+      // Names and alliance tags are DOM plates above the canvas (ui/map-labels.ts), so Arabic handles shape correctly.
+      const img = this.pool.place(this.specs.tile(artPack.camp, b.mine ? BASE_SCALE_OWN : BASE_SCALE_OTHER), c.x, c.y, depthOf(b), k);
       if (!b.mine) img.setTint(0xbfc6dc);
-      // Alliance members carry their alliance's ASCII tag, the same rule as HQs; player names stay in the tile panel.
-      const tag = b.alliance === null ? null : drawableTag(b.alliance);
-      if (tag === null) continue;
-      const key = `base:${b.x},${b.y}`;
-      live.add(key);
-      this.label(key, LABEL_PX - 4, 3, 1)
-        .setResolution(px)
-        .setText(tag)
-        .setColor(b.alliance === myAlliance ? "#bff0e6" : "#fff8e6")
-        .setPosition(c.x, c.y - TILE_H * 1.05 * k)
-        .setScale(labelScale)
-        .setVisible(showLabels);
     }
 
     const npcs = snap.npcs.filter(inRange).sort((a, b) => a.x + a.y - (b.x + b.y));
@@ -105,8 +95,8 @@ export class ObjectLayer implements WorldLayer {
         this.pool.place(this.specs.icon(artPack.npc.convoy, TILE_H * 1.1), c.x, c.y - lift, depthOf(n), k);
         centre = { x: c.x + TILE_H * 0.42 * k, y: c.y - lift + TILE_H * 0.32 * k };
       } else {
-        this.plate(pg, c, k, n.kind === "fortified_line" ? 0xb5452f : BADGE_RING, n.kind === "fortified_line" ? 1.55 : 1.35, false);
-        this.pool.place(this.specs.tile(artPack.npc[n.kind], 1.15), c.x, c.y, depthOf(n), k);
+        this.plate(pg, c, k, n.kind === "fortified_line" ? 0xb5452f : BADGE_RING, n.kind === "fortified_line" ? 1.85 : 1.65, false);
+        this.pool.place(this.specs.tile(artPack.npc[n.kind], NPC_SCALE), c.x, c.y, depthOf(n), k);
         centre = { x: c.x, y: c.y + TILE_H * 0.18 * k };
       }
       live.add(n.id);

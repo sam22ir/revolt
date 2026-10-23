@@ -1,4 +1,6 @@
-import { MAX_NPC_LEVEL, type MapNpcView, type MapSnapshot } from "@revolt/rules";
+import { MAX_NPC_LEVEL, NPC_LEVELS, type MapNpcView, type MapSnapshot, type NpcKind } from "@revolt/rules";
+import { artUrl } from "../art/art.ts";
+import { artPack } from "../art/pack.ts";
 import { t } from "../i18n/i18n.ts";
 import { nextTarget } from "../state/target-search.ts";
 import { el } from "./dom.ts";
@@ -20,14 +22,18 @@ export interface TargetSearchDeps {
 }
 
 /**
- * The "find a target" bar: pick a level, tap Search, and the camera goes to the nearest target of that level from the
+ * The "find a target" bar: pick a target type (each type is one level: patrol 1, convoy 2, outpost 3, fortified line 4),
+ * shown as its map picture with the level on it, then tap Search, and the camera goes to the nearest target of that level from the
  * player's base. Searching again goes to the next-nearest. It lives in the HUD header, so it stays on screen when a
  * tile sheet opens and the map's free band already accounts for it.
  */
+const kindOf = (level: number): NpcKind => NPC_LEVELS[level - 1]?.kind ?? "patrol";
+
 export const createTargetSearch = (deps: TargetSearchDeps): TargetSearch => {
   const root = el("div", "target-search");
   root.dataset.testid = "target-search";
   root.hidden = true;
+  /** The chosen target's name, on its own line under the chips. */
   const levelLabel = el("span", "target-label");
   const levels = el("div", "target-levels");
   levels.setAttribute("role", "group");
@@ -36,7 +42,13 @@ export const createTargetSearch = (deps: TargetSearchDeps): TargetSearch => {
     const b = el("button", "target-level");
     b.type = "button";
     b.dataset.level = String(level);
-    b.textContent = String(level);
+    const img = document.createElement("img");
+    img.src = artUrl(artPack.npc[kindOf(level)]);
+    img.alt = "";
+    img.className = "target-level-icon";
+    const num = el("span", "target-level-num");
+    num.textContent = String(level);
+    b.append(img, num);
     b.addEventListener("click", () => choose(level));
     buttons.push(b);
     levels.append(b);
@@ -46,16 +58,19 @@ export const createTargetSearch = (deps: TargetSearchDeps): TargetSearch => {
   go.dataset.testid = "target-go";
   const note = el("p", "target-note");
   note.setAttribute("role", "status");
-  root.append(levelLabel, levels, go, note);
+  root.append(levels, go, levelLabel, note);
 
   let level = 1;
   let lastId: string | null = null;
   let found = false;
 
   const relabel = (): void => {
-    levelLabel.textContent = t("search.levelLabel");
+    levelLabel.textContent = `${t(`npc.${kindOf(level)}.name`)} · ${t("search.level", { level })}`;
     levels.setAttribute("aria-label", t("search.title"));
-    for (const b of buttons) b.setAttribute("aria-label", t("search.level", { level: Number(b.dataset.level) }));
+    for (const b of buttons) {
+      const n = Number(b.dataset.level);
+      b.setAttribute("aria-label", `${t(`npc.${kindOf(n)}.name`)}, ${t("search.level", { level: n })}`);
+    }
     go.textContent = found ? t("search.next") : t("search.go");
     showNote();
   };
@@ -72,6 +87,7 @@ export const createTargetSearch = (deps: TargetSearchDeps): TargetSearch => {
     found = false;
     for (const b of buttons) b.setAttribute("aria-pressed", String(Number(b.dataset.level) === level));
     go.textContent = t("search.go");
+    levelLabel.textContent = `${t(`npc.${kindOf(level)}.name`)} · ${t("search.level", { level })}`;
     showNote();
   };
 

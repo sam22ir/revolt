@@ -88,7 +88,6 @@ export const en = {
   terrain: { plain: "Plain", hills: "Hills", forest: "Forest", mountain: "Mountain" },
   search: {
     title: "Find a target",
-    levelLabel: "Level",
     go: "Search",
     next: "Next",
     level: "Level {{level}}",
@@ -98,6 +97,7 @@ export const en = {
   map: {
     minimap: "Map overview. Tap to jump there.",
     myBase: "My base",
+    baseDistance: "{{count}} tiles",
     coords: "X {{x}} · Y {{y}}",
     loading: "Loading the map…",
     ownCamp: "Your camp",

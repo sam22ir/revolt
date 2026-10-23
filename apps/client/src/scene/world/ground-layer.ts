@@ -137,7 +137,14 @@ export class GroundLayer implements WorldLayer {
     const key = String(h);
     if (key === this.occupiedKey) return;
     this.occupiedKey = key;
-    this.occupied = new Set(tiles.map((t) => t.y * snap.size + t.x));
+    // Bases and targets are drawn wider than their tile: keep the ring of tiles around them clear of trees and rocks too.
+    this.occupied = new Set();
+    for (const t of tiles)
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dx = -1; dx <= 1; dx++) {
+          const x = t.x + dx, y = t.y + dy;
+          if (x >= 0 && y >= 0 && x < snap.size && y < snap.size) this.occupied.add(y * snap.size + x);
+        }
   }
 
   /** Terrain index of a tile, or -1 off the map. */

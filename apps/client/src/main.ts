@@ -84,7 +84,7 @@ const start = async (): Promise<void> => {
   // The scenes read the live HUD sizes (header, nav bar, open sheet) to place the map between them.
   const insets = createHudInsets();
   baseScene = new BaseScene(store, (id: BuildingId | null) => ui.select(id), insets);
-  worldScene = new WorldScene(store, world, { onSelect: ui.selectTile, onCenter: ui.setCenter, onView: ui.setViewport }, insets);
+  worldScene = new WorldScene(store, world, { onSelect: ui.selectTile, onCenter: ui.setCenter, onView: ui.setViewport, onCamera: ui.setCamera }, insets);
   const gameRoot = document.getElementById("game");
   if (gameRoot === null) throw new Error("#game missing");
   // The base scene starts; the world scene waits until the map is first opened.

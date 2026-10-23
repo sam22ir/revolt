@@ -309,7 +309,7 @@
   gap: 6px;
 }
 .target-search[hidden] { display: none; }
-.target-label { font-size: 0.85em; font-weight: 600; color: var(--paper); text-shadow: 0 1px 2px rgb(0 0 0 / 0.6); white-space: nowrap; }
+.target-label { flex: 0 0 100%; font-size: 0.85em; font-weight: 600; color: var(--paper); text-shadow: 0 1px 2px rgb(0 0 0 / 0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .target-levels { display: flex; gap: 4px; }
 .target-level, .target-go {
   min-block-size: 36px;
@@ -322,9 +322,90 @@
   font-weight: 600;
   cursor: pointer;
 }
-.target-level { min-inline-size: 36px; padding-inline: 0; }
+.target-level { position: relative; inline-size: 48px; min-block-size: 44px; padding: 2px; display: grid; place-items: center; }
+.target-level-icon { inline-size: 38px; block-size: 38px; object-fit: contain; pointer-events: none; }
+/* The level number on the picture's corner, like the map's level badge. */
+.target-level-num {
+  position: absolute;
+  inset-block-end: -4px;
+  inset-inline-end: -4px;
+  min-inline-size: 18px;
+  block-size: 18px;
+  border-radius: 9px;
+  border: 1.5px solid #c8964a;
+  background: #2b2219;
+  color: var(--paper);
+  font-size: 11px;
+  line-height: 15px;
+  text-align: center;
+}
 .target-level[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: var(--ink); }
 .target-go { margin-inline-start: auto; }
 .target-go:disabled { opacity: 0.5; cursor: default; }
 .target-note { flex: 0 1 auto; margin: 0; padding: 4px 12px; border-radius: 999px; background: rgb(43 42 36 / 0.78); font-size: 13px; color: var(--paper); }
 .target-note[hidden] { display: none; }
+
+/* Name plates and the arrow home over the map canvas (ui/map-labels.ts). The map never mirrors, so this layer is placed
+   in physical px from the camera and is dir="ltr"; each handle carries its own dir="auto". It sits first in #ui and is
+   clipped to the free band, so the header and sheets stay on top of it. */
+#ui > .map-labels { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.map-labels[hidden] { display: none; }
+.map-plate {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 170px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border-bottom: 2px solid var(--plate-edge, rgb(240 228 200 / 0.7));
+  background: rgb(28 22 16 / 0.78);
+  color: var(--paper);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+  will-change: transform;
+}
+.map-plate bdi { overflow: hidden; text-overflow: ellipsis; }
+.map-plate-tag { color: #f2d48a; }
+.map-plate.rel-own { --plate-edge: var(--gold); }
+.map-plate.rel-ally { --plate-edge: var(--alliance-own); }
+.map-plate.rel-ally .map-plate-tag { color: #9fe3d6; }
+.map-plate.rel-other { --plate-edge: var(--alliance-other); }
+.map-plate.rel-other .map-plate-tag { color: #c9b8f2; }
+.base-arrow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 1px solid rgb(244 234 214 / 0.4);
+  border-radius: 50%;
+  background: rgb(28 22 16 / 0.8);
+  color: var(--paper);
+  pointer-events: auto;
+  cursor: pointer;
+}
+.base-arrow[hidden] { display: none; }
+.base-arrow-head {
+  position: absolute;
+  inset: 0;
+}
+/* A small triangle on the ring's rim, rotated toward the base by the inline transform. */
+.base-arrow-head::after {
+  content: "";
+  position: absolute;
+  right: -7px;
+  top: 50%;
+  margin-top: -7px;
+  border: 7px solid transparent;
+  border-left: 9px solid var(--gold);
+  border-right: 0;
+}
+.base-arrow-distance { font-size: 11px; font-weight: 700; line-height: 1.1; text-align: center; padding: 0 3px; }

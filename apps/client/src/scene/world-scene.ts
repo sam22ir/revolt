@@ -8,6 +8,7 @@ import { artPack } from "../art/pack.ts";
 import type { HudInsets, Insets } from "../ui/hud-insets.ts";
 import { createGesture, type Gesture } from "./gesture.ts";
 import type { Vec } from "./iso-layout.ts";
+import { tapTarget } from "./tap-target.ts";
 import type { PropKind } from "./terrain-props.ts";
 import {
   canvasCentre,
@@ -18,10 +19,12 @@ import {
   panBy,
   withInsets,
   screenToTile,
+  screenToWorld,
   tileCenter,
   tileToScreen,
   viewCorners,
   visibleTileRange,
+  worldToTile,
   zoomAt,
   type View,
 } from "./world-layout.ts";
@@ -43,10 +46,21 @@ export interface WorldCallbacks {
   readonly onCenter: (tile: TileRef) => void;
   /** What the player is looking at, as the four corners of the free band in fractional tile coordinates. Fired only when it moves by half a tile or more. */
   readonly onView: (corners: readonly { readonly x: number; readonly y: number }[]) => void;
+  /** The camera or the snapshot changed: DOM overlays (name plates, the arrow home) reposition from this. */
+  readonly onCamera?: (camera: WorldCamera) => void;
+}
+
+/** What a DOM overlay needs to place things over the map. */
+export interface WorldCamera {
+  readonly view: View;
+  readonly snap: MapSnapshot;
+  /** CSS px of a tile's middle. */
+  readonly project: (x: number, y: number) => Vec;
 }
 
 const BACKGROUND = hex(theme.ground.world);
-const START_ZOOM = 0.7;
+/** Close enough that bases read as buildings, not icons (the reference games open this close). */
+const START_ZOOM = 0.9;
 /** Finger travel (CSS px) that still counts as a tap. */
 const TAP_SLOP = 8;
 
@@ -79,6 +93,7 @@ export class WorldScene extends Phaser.Scene {
   private features!: FeatureLayer;
   private regions!: RegionLayer;
   private lastViewKey = "";
+  private lastCameraKey = "";
   private objects!: ObjectLayer;
   private marches!: MarchLayer;
   private ambient!: AmbientLayer;
@@ -148,6 +163,7 @@ export class WorldScene extends Phaser.Scene {
       this.regions.invalidate();
       this.objects.invalidate();
       this.lastViewKey = "";
+      this.lastCameraKey = "";
       this.syncSize();
     });
     const unsubscribe = this.world.subscribeSnapshot((s) => this.setSnapshot(s));
@@ -180,6 +196,7 @@ export class WorldScene extends Phaser.Scene {
     this.marches.paint(frame);
     this.ambient.paint(frame);
     this.reportView();
+    this.reportCamera(snap);
     const centre = centerTile(this.view, snap.size);
     if (this.lastCenter === null || this.lastCenter.x !== centre.x || this.lastCenter.y !== centre.y) {
       this.lastCenter = centre;
@@ -194,6 +211,17 @@ export class WorldScene extends Phaser.Scene {
     if (key === this.lastViewKey) return;
     this.lastViewKey = key;
     this.callbacks.onView(corners);
+  }
+
+  /** Tells the DOM overlays where things are, but only when the view or the snapshot changed. */
+  private reportCamera(snap: MapSnapshot): void {
+    const onCamera = this.callbacks.onCamera;
+    if (onCamera === undefined) return;
+    const v = this.view;
+    const key = `${v.cx},${v.cy},${v.zoom},${v.width},${v.height},${v.insetTop},${v.insetBottom}|${this.snapshotVersion}`;
+    if (key === this.lastCameraKey) return;
+    this.lastCameraKey = key;
+    onCamera({ view: v, snap, project: (x, y) => tileToScreen(v, x, y) });
   }
 
   /** Selection changed from the DOM (e.g. the panel was closed). */
@@ -288,8 +316,13 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private tap(x: number, y: number): void {
-    const size = this.snapshot?.size ?? 0;
-    const t = screenToTile(this.view, x, y);
+    const snap = this.snapshot;
+    const size = snap?.size ?? 0;
+    const under = screenToTile(this.view, x, y);
+    const w = screenToWorld(this.view, x, y);
+    // Sprites stand up from their tile, so a tap on a roof lands behind it: give it to the marker in front.
+    const occupied = new Set(snap === null ? [] : [...snap.bases, ...snap.npcs, ...snap.hqs].map((m) => m.y * size + m.x));
+    const t = tapTarget(under, worldToTile(w.x, w.y), (tx, ty) => isTileOnMap(size, tx, ty) && occupied.has(ty * size + tx));
     this.select(isTileOnMap(size, t.x, t.y) ? t : null);
     this.callbacks.onSelect(this.selected);
   }
