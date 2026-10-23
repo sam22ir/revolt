@@ -72,16 +72,17 @@ html, body {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+  inline-size: 100%;
   max-inline-size: 520px;
   margin-inline: auto;
 }
-.hud-bar { display: flex; flex: 0 0 100%; align-items: stretch; min-inline-size: 0; }
+.hud-bar { order: -3; display: flex; flex-direction: column; flex: 1 1 200px; align-items: stretch; min-inline-size: 0; }
 
 .hud-resources {
   list-style: none;
   margin: 0;
   padding: 4px;
-  flex: 1;
+  flex: none;
   min-inline-size: 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -97,11 +98,11 @@ html, body {
 .res {
   position: relative;
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
-  column-gap: 4px;
+  grid-template-columns: 18px minmax(0, 1fr);
+  column-gap: 2px;
   align-items: center;
   block-size: 36px;
-  padding: 4px 4px 6px;
+  padding: 3px 2px 7px;
   border-radius: 6px;
   background: var(--well);
   box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.6);
@@ -109,7 +110,7 @@ html, body {
   min-inline-size: 0;
   overflow: hidden;
 }
-.res .icon { inline-size: 24px; block-size: 24px; object-fit: contain; }
+.res .icon { inline-size: 18px; block-size: 18px; object-fit: contain; }
 /* minmax(0, …) and ellipsis: a long number must not push the chip wider than its quarter of the row. */
 .res-text { display: flex; flex-direction: column; align-items: flex-start; min-inline-size: 0; }
 .res-amount {
@@ -118,7 +119,7 @@ html, body {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 18px;
   font-variant-numeric: tabular-nums;
 }
@@ -126,19 +127,19 @@ html, body {
   position: absolute;
   inset-inline: 0;
   inset-block-end: 0;
-  block-size: 2px;
-  background: rgb(255 255 255 / 0.15);
+  block-size: 4px;
+  background: rgb(0 0 0 / 0.45);
   overflow: hidden;
 }
-.res-fill { block-size: 100%; inline-size: 0; background: rgb(244 234 214 / 0.35); transition: inline-size 0.25s linear; }
+.res-fill { block-size: 100%; inline-size: 0; background: rgb(244 234 214 / 0.75); transition: inline-size 0.25s linear; }
 .res-fill.near { background: var(--gold); }
 .res-fill.full { background: var(--accent); }
 
 /* Status row, in this order: queue (takes the spare width and ellipsizes), then help.
    Everything else (note, marches, coords, offline) comes after and wraps below, so line one never wraps. */
-.queue-pill { order: 0; flex: 1 1 0; min-inline-size: 0; }
+.queue-pill { order: 0; flex: 1 1 100%; min-inline-size: 0; }
 .hud .help-btn { order: 1; }
-.hud .help-note-line, .marches, .coord-pill, .target-search, .sync-offline { order: 3; }
+.hud .help-note-line, .marches, .sync-offline { order: 3; }
 
 /* The language switch, in the account panel: a label, then the select on the same row. */
 .account-settings { display: flex; align-items: center; gap: 8px; margin-block: 0 10px; }

@@ -2,7 +2,7 @@ import type Phaser from "phaser";
 import { theme, hex } from "../../theme/theme.ts";
 import { artPack } from "../../art/pack.ts";
 import { drawableTag } from "../../state/tile-info.ts";
-import { BASE_SCALE_OTHER, BASE_SCALE_OWN, markerFactor, NPC_SCALE } from "../marker-size.ts";
+import { BASE_SCALE_OTHER, BASE_OUTLINE_FIT_X, BASE_OUTLINE_FIT_Y, BASE_SCALE_OWN, BASE_SPAN, markerFactor, NPC_SCALE } from "../marker-size.ts";
 import { SpritePool } from "../sprite-pool.ts";
 import { tileCenter, TILE_H, TILE_W } from "../world-layout.ts";
 import { GOLD, HQ_OTHER, HQ_OWN, outlineTile } from "./draw-helpers.ts";
@@ -64,21 +64,20 @@ export class ObjectLayer implements WorldLayer {
     const k = markerFactor(zoom);
     const inRange = (m: { x: number; y: number }): boolean => m.x >= range.x0 && m.x <= range.x1 && m.y >= range.y0 && m.y <= range.y1;
 
-    if (sel !== null) outlineTile(g, sel, 0xfff1b8, 3.5 / zoom);
+    const selIsBase = sel !== null && snap.bases.some((b) => b.x === sel.x && b.y === sel.y);
+    if (sel !== null) outlineTile(g, sel, 0xfff1b8, 3.5 / zoom, selIsBase ? BASE_SPAN : 1, selIsBase ? BASE_OUTLINE_FIT_X : 1, selIsBase ? BASE_OUTLINE_FIT_Y : 1);
 
     this.pool.begin();
     const depthOf = (t: { x: number; y: number }): number => 1 + (t.x + t.y) / (2 * snap.size);
     // Back to front so nearer markers overlap farther ones.
     const bases = snap.bases.filter(inRange).sort((a, b) => a.x + a.y - (b.x + b.y));
-    const myAlliance = snap.bases.find((b) => b.mine)?.alliance ?? null;
     const showLabels = zoom >= LABEL_ZOOM;
     const live = new Set<string>();
     const px = frame.pixelRatio;
     const labelScale = Math.min(1, zoom / 0.8) / zoom;
     for (const b of bases) {
-      const c = tileCenter(b.x, b.y);
-      // The plate says whose base it is; the player's own also gets a soft gold glow.
-      this.plate(pg, c, k, relationColor(b, myAlliance), b.mine ? 2.2 : 1.9, b.mine);
+      // The camp stands on a square of BASE_SPAN tiles, b being its top corner: centre it on that square.
+      const c = tileCenter(b.x + (BASE_SPAN - 1), b.y + (BASE_SPAN - 1));
       // A base is a small headquarters; other players' are cooler in tone so the two read apart.
       // Names and alliance tags are DOM plates above the canvas (ui/map-labels.ts), so Arabic handles shape correctly.
       const img = this.pool.place(this.specs.tile(artPack.camp, b.mine ? BASE_SCALE_OWN : BASE_SCALE_OTHER), c.x, c.y, depthOf(b), k);
@@ -99,7 +98,6 @@ export class ObjectLayer implements WorldLayer {
         this.pool.place(this.specs.icon(artPack.npc.convoy, TILE_H * 1.1), c.x, c.y - lift, depthOf(n), k);
         centre = { x: c.x + TILE_H * 0.42 * k, y: c.y - lift + TILE_H * 0.32 * k };
       } else {
-        this.plate(pg, c, k, n.kind === "fortified_line" ? 0xb5452f : BADGE_RING, n.kind === "fortified_line" ? 1.85 : 1.65, false);
         this.pool.place(this.specs.tile(artPack.npc[n.kind], NPC_SCALE), c.x, c.y, depthOf(n), k);
         centre = { x: c.x, y: c.y + TILE_H * 0.18 * k };
       }

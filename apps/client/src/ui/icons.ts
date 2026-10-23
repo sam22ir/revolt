@@ -24,6 +24,10 @@ export const troopIcon = (id: TroopId): HTMLImageElement => {
 export const homeIcon = (): string =>
   '<svg class="home-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 3.2 2.5 11l1.1 1.3L5 11.2V20h5v-5h4v5h5v-8.8l1.4 1.1 1.1-1.3z" fill="currentColor"/></svg>';
 
+/** A magnifying glass for the target search button. */
+export const searchIcon = (): string =>
+  '<svg class="home-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M10 3a7 7 0 1 0 4.2 12.6l5.1 5.1 1.4-1.4-5.1-5.1A7 7 0 0 0 10 3zm0 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10z" fill="currentColor"/></svg>';
+
 export type NavIconId = "map" | "base" | "alliance" | "reports" | "account";
 
 /** A bottom-nav medallion (art/ui/nav_*), built with DOM calls (no markup strings). Decorative: the button's label names it. */

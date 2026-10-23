@@ -5,34 +5,39 @@
 /* Bottom nav bar: fixed to the bottom edge, thumb-sized equal buttons, 520px max so it is a phone column on desktop. */
 .hud-nav {
   position: fixed;
-  inset-inline: 0;
-  inset-block-end: 0;
+  /* A plain square-cornered tray beside the corner medallion: four equal slots from the medallion outwards, two filled so far. */
+  inset-inline-start: 96px;
+  inset-inline-end: 8px;
+  inset-block-end: calc(6px + env(safe-area-inset-bottom));
   z-index: 15;
-  max-inline-size: 520px;
-  margin-inline: auto;
+  box-sizing: border-box;
+  block-size: 58px;
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-  gap: 6px;
-  padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  justify-items: center;
+  align-items: center;
+  gap: 2px;
+  padding: 0 4px;
+  border: 2px solid var(--bronze);
+  border-radius: 0;
   background: var(--frame-bg);
-  border-block-start: 1px solid var(--bronze);
+  pointer-events: none;
 }
+.hud-nav > * { pointer-events: auto; }
 
 .nav-btn {
   position: relative;
   min-inline-size: 0;
-  min-block-size: 52px;
+  min-block-size: 46px;
   padding-inline: 4px;
   font: inherit;
   font-size: 13px;
   font-weight: 600;
   color: var(--bronze-hi);
-  background: var(--frame-bg) padding-box;
-  /* 1px border keeps the button 52px tall (--nav-h); the painted frame is drawn wider over it. */
+  background: none;
   border: 1px solid transparent;
-  border-image: var(--frame-button-image);
   border-radius: 0;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.65));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -40,7 +45,7 @@
   gap: 0;
   cursor: pointer;
 }
-.nav-btn:active { border-image: var(--frame-button-active-image); color: var(--paper); }
+.nav-btn:active { color: var(--paper); transform: translateY(1px); }
 .nav-icon { flex: none; inline-size: 30px; block-size: 30px; object-fit: contain; pointer-events: none; }
 .nav-label {
   max-inline-size: 100%;
@@ -51,6 +56,28 @@
   font-size: 11px;
   line-height: 13px;
 }
+/* The base/map switch: just the dark inner disc of its medallion (no bronze rim), sunk into the bottom inline-start corner and clipped by the screen edge. */
+.nav-corner {
+  position: fixed;
+  /* A 64px box (its disc reads about as big as the neighbouring icons) centred 47px from the inline-start edge and 35px from the bottom, level with them. */
+  inset-inline-start: 15px;
+  inset-block-end: 3px;
+  z-index: 16;
+  inline-size: 64px;
+  block-size: 64px;
+  min-block-size: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  filter: drop-shadow(0 3px 5px rgb(0 0 0 / 0.7));
+}
+.nav-corner:active { transform: scale(0.97); }
+/* The rim is the outer ~26% of the art's radius: clip to the disc inside it. */
+.nav-corner .nav-icon { inline-size: 100%; block-size: 100%; clip-path: circle(37%); }
+.nav-corner > .badge { inset-block-start: 0; inset-inline-end: 0; }
+/* The label stays for screen readers only. */
+.nav-corner .nav-label { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 /* Badges sit on the button's top inline-end corner, clear of the label. */
 .nav-btn > .badge { position: absolute; inset-block-start: -6px; inset-inline-end: -4px; }
 .badge {
@@ -69,17 +96,18 @@
 /* A dot with no number: "builders idle" on the map toggle. */
 .badge.dot { min-inline-size: 12px; block-size: 12px; padding: 0; border-radius: 50%; }
 
+/* A small tab hanging from the middle of the resources bar. */
 .coord-pill {
   align-self: center;
-  padding-block: 4px;
-  padding-inline: 14px;
-  border-radius: 3px;
-  font-size: 13px;
+  margin-block-start: -4px;
+  padding-block: 1px 2px;
+  padding-inline: 10px;
+  border-radius: 0 0 6px 6px;
+  font-size: 11px;
+  line-height: 14px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  background: var(--frame-bg) padding-box;
-  border: 1px solid transparent;
-  border-image: var(--frame-plate-image);
+  background: var(--frame-bg);
   color: var(--paper);
   pointer-events: none;
   unicode-bidi: plaintext;
@@ -321,9 +349,55 @@
 .my-base-btn:disabled { opacity: 0.45; cursor: default; }
 .my-base-btn .home-icon { display: block; inline-size: 22px; block-size: 22px; }
 
-/* "Find a target": level buttons and Search, on a row of the HUD header (so the free band already makes room for it). */
+/* Account: a round icon beside the resources bar, at the top inline-end corner. */
+.account-open {
+  order: -2;
+  flex: none;
+  align-self: flex-start;
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.65));
+  cursor: pointer;
+}
+.account-open .nav-icon { inline-size: 40px; block-size: 40px; }
+
+/* Search: a round button beside the home button; it opens the target sheet above the minimap row. */
+.search-open-btn {
+  position: fixed;
+  inset-inline-start: 178px;
+  inset-block-end: calc(var(--nav-h) + env(safe-area-inset-bottom) + 18px);
+  display: grid;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--art-button-round) center / 100% 100% no-repeat, var(--frame-bg);
+  color: var(--paper);
+  cursor: pointer;
+}
+.search-open-btn:active { background-image: var(--art-button-round-active); }
+.search-open-btn[hidden] { display: none; }
+.search-open-btn .home-icon { display: block; inline-size: 22px; block-size: 22px; }
+
+/* "Find a target": the sheet's level buttons and Search. */
 .target-search {
-  flex: 0 0 100%;
+  position: fixed;
+  inset-inline: 10px;
+  inset-block-end: calc(var(--nav-h) + env(safe-area-inset-bottom) + 76px);
+  max-inline-size: 500px;
+  margin-inline: auto;
+  padding: 10px;
+  background: var(--frame-bg);
+  border: 1px solid transparent;
+  border-image: var(--frame-panel-image);
+  z-index: 14;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -344,7 +418,7 @@
   font-weight: 600;
   cursor: pointer;
 }
-.target-level { position: relative; inline-size: 48px; min-block-size: 44px; padding: 2px; display: grid; place-items: center; }
+.target-level { position: relative; inline-size: 64px; min-block-size: 44px; padding: 2px; display: grid; place-items: center; }
 .target-level-icon { inline-size: 38px; block-size: 38px; object-fit: contain; pointer-events: none; }
 /* The level number on the picture's corner, like the map's level badge. */
 .target-level-num {

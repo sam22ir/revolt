@@ -10,7 +10,7 @@ import { createAccountPanel } from "./account-panel.ts";
 import { createAlliancePanel, type AllianceTab } from "./alliance-panel.ts";
 import { createBuildingPanel } from "./building-panel.ts";
 import { el } from "./dom.ts";
-import { homeIcon, navIcon, type NavIconId } from "./icons.ts";
+import { homeIcon, navIcon, searchIcon, type NavIconId } from "./icons.ts";
 import { createHud } from "./hud.ts";
 import { currentLanguage, t } from "../i18n/i18n.ts";
 import { createLanguageSwitcher } from "./language-switcher.ts";
@@ -96,6 +96,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
     snapshot: () => deps.world.snapshot(),
     // Centre first, then select: opening the tile sheet changes the free band, and the selection pans the tile above it.
     onFound: (npc) => {
+      searchView.open = false;
       deps.onJump({ x: npc.x, y: npc.y });
       selectTile({ x: npc.x, y: npc.y });
     },
@@ -104,6 +105,8 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
   const allianceView: { open: boolean; tab: AllianceTab } = { open: false, tab: "members" };
   // Kept here for the same reason: a language change rebuilds the account panel, and it should stay open.
   const accountView = { open: false };
+  // The target search sheet, opened from the icon beside the minimap; kept here so a rebuild does not close it.
+  const searchView = { open: false };
   let disposeAlliance = noop;
   const ctl: Controls = {
     refresh: noop,
@@ -169,9 +172,12 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       onOpenChange: (open) => (accountView.open = open),
     });
     account.toggle(accountView.open);
-    const accountNav = navButton("account", t("account.button"));
-    const accountButton = accountNav.button;
-    accountButton.classList.add("account-open");
+    // A round icon in the top inline-start corner of the HUD (not in the bottom nav).
+    const accountButton = el("button", "account-open");
+    accountButton.type = "button";
+    accountButton.setAttribute("aria-label", t("account.button"));
+    accountButton.title = t("account.button");
+    accountButton.append(navIcon("account"));
     accountButton.dataset.testid = "account";
     accountButton.addEventListener("click", () => {
       select(null);
@@ -186,6 +192,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
     const mapToggle = mapNav.button;
     let mapIcon = mapNav.icon;
     mapToggle.dataset.testid = "map-toggle";
+    mapToggle.classList.add("nav-corner");
     mapToggle.addEventListener("click", () => setView(view === "base" ? "map" : "base"));
     // Shown on the map toggle while the builders are idle and the player is on the map (the queue pill is hidden there).
     const idleBadge = el("span", "badge dot");
@@ -223,7 +230,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
         if (!outcome.ok) note(t(`reason.${outcome.reason}`));
       });
     };
-    const hud = createHud([], [mapToggle, allianceButton, reportsButton, accountButton], [marches.root, search.root, coords], () =>
+    const hud = createHud([accountButton], [mapToggle, allianceButton, reportsButton], [marches.root], [coords], () =>
       askHelp("upgrade", (text) => hud.showHelpNote(text)),
     );
     const panel = createBuildingPanel({
@@ -293,10 +300,22 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       if (mine !== undefined) deps.onJump({ x: mine.x, y: mine.y });
     });
 
+    // Opens the target search sheet; sits beside the minimap, after the home button.
+    const searchButton = el("button", "search-open-btn");
+    searchButton.type = "button";
+    searchButton.dataset.testid = "search-open";
+    searchButton.hidden = true;
+    searchButton.setAttribute("aria-label", t("search.title"));
+    searchButton.innerHTML = searchIcon();
+    searchButton.addEventListener("click", () => {
+      searchView.open = !searchView.open;
+      ctl.refresh();
+    });
+
     minimap.setLabel(t("map.minimap"));
     search.relabel();
     labels.relabel();
-    root.replaceChildren(labels.root, hud.root, minimap.root, myBase, panel.root, tilePanel.root, alliance.root, account.root, reports.root, toast.root, dialog.root);
+    root.replaceChildren(labels.root, hud.root, minimap.root, myBase, searchButton, search.root, panel.root, tilePanel.root, alliance.root, account.root, reports.root, toast.root, dialog.root);
 
     ctl.refresh = () => {
       const state = deps.store.state();
@@ -305,12 +324,14 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       hud.update(state, now, canAskHelp("upgrade"), productionMultiplier(deps.store.world(), now));
       minimap.update(snapshot, now);
       search.update(snapshot);
-      search.setVisible(view === "map");
+      if (view !== "map" || selectedTile !== null) searchView.open = false;
+      search.setVisible(view === "map" && searchView.open);
       labels.setVisible(view === "map");
       // The overview is for the bare map: any sheet or panel over it takes its place.
       const overview = view === "map" && selectedTile === null && !alliance.isOpen() && !reports.isOpen() && account.root.hidden === true;
       minimap.setVisible(overview);
       myBase.hidden = !overview;
+      searchButton.hidden = !overview;
       myBase.disabled = !snapshot?.bases.some((b) => b.mine);
       hud.setOffline(deps.store.status() === "offline");
       panel.update(state, now, canAskHelp("training"));

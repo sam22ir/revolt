@@ -26,12 +26,14 @@ const NOTE_MS = 4000;
 /**
  * `controls` sit on the status row under the resources, at the inline end (none now: the language switch is in the account panel).
  * `nav` is the bottom bar of view buttons (fixed in CSS), `extras` hang on the status row after the queue pill.
+ * `attached` hang from the middle of the resources bar (the coordinate tab).
  * `onAskHelp` is the button under the pill that asks the alliance to speed up the running upgrade.
  */
 export const createHud = (
   controls: readonly HTMLElement[],
   nav: readonly HTMLElement[],
   extras: readonly HTMLElement[],
+  attached: readonly HTMLElement[],
   onAskHelp: () => void,
 ): Hud => {
   const root = el("header", "hud");
@@ -54,7 +56,7 @@ export const createHud = (
     list.append(li);
     chips.set(id, { li, amount, fill });
   }
-  bar.append(list);
+  bar.append(list, ...attached);
   const queue = el("div", "queue-pill");
   queue.setAttribute("role", "status");
   const queueLabel = el("span", "queue-label");

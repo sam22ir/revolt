@@ -8,7 +8,7 @@ import { artPack } from "../art/pack.ts";
 import type { HudInsets, Insets } from "../ui/hud-insets.ts";
 import { createGesture, type Gesture } from "./gesture.ts";
 import type { Vec } from "./iso-layout.ts";
-import { BASE_SCALE_OTHER, BASE_SCALE_OWN, markerFactor, MEDALLION_SCALE, NPC_SCALE } from "./marker-size.ts";
+import { BASE_SCALE_OTHER, BASE_SCALE_OWN, BASE_SPAN, markerFactor, MEDALLION_SCALE, NPC_SCALE } from "./marker-size.ts";
 import { tapTarget } from "./tap-target.ts";
 import type { PropKind } from "./terrain-props.ts";
 import {
@@ -327,13 +327,19 @@ export class WorldScene extends Phaser.Scene {
     const w = screenToWorld(this.view, x, y);
     // Sprites stand up from their tile, so a tap on a roof lands behind it: give it to the marker in front.
     const scales = new Map<number, number>();
+    const footprint = new Map<number, { x: number; y: number }>();
     if (snap !== null) {
       for (const h of snap.hqs) scales.set(h.y * size + h.x, MEDALLION_SCALE);
       for (const n of snap.npcs) scales.set(n.y * size + n.x, n.kind === "convoy" ? MEDALLION_SCALE : NPC_SCALE);
-      for (const b of snap.bases) scales.set(b.y * size + b.x, b.mine ? BASE_SCALE_OWN : BASE_SCALE_OTHER);
+      for (const b of snap.bases) {
+        scales.set(b.y * size + b.x, b.mine ? BASE_SCALE_OWN : BASE_SCALE_OTHER);
+        // Any tile of the camp's square taps the camp.
+        for (let dy = 0; dy < BASE_SPAN; dy++) for (let dx = 0; dx < BASE_SPAN; dx++) footprint.set((b.y + dy) * size + b.x + dx, b);
+      }
     }
     const scaleAt = (tx: number, ty: number): number => (isTileOnMap(size, tx, ty) ? scales.get(ty * size + tx) ?? 0 : 0);
-    const t = tapTarget(under, worldToTile(w.x, w.y), scaleAt, markerFactor(this.view.zoom));
+    const hit = isTileOnMap(size, under.x, under.y) ? footprint.get(under.y * size + under.x) : undefined;
+    const t = hit ?? tapTarget(under, worldToTile(w.x, w.y), scaleAt, markerFactor(this.view.zoom));
     this.select(isTileOnMap(size, t.x, t.y) ? t : null);
     this.callbacks.onSelect(this.selected);
   }

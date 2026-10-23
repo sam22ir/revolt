@@ -1,6 +1,6 @@
 import { tileDistance, type MapBaseView } from "@revolt/rules";
 import { t } from "../i18n/i18n.ts";
-import { plateLift } from "../scene/marker-size.ts";
+import { BASE_SPAN, plateLift } from "../scene/marker-size.ts";
 import { centerTile } from "../scene/world-layout.ts";
 import type { WorldCamera } from "../scene/world-scene.ts";
 import { edgeArrow, type Rect } from "./base-arrow-math.ts";
@@ -135,7 +135,7 @@ export const createMapLabels = (deps: MapLabelsDeps): MapLabels => {
       const cx = view.width / 2;
       const cy = (top + bottom) / 2;
       const shown = snap.bases
-        .map((b) => ({ b, p: project(b.x, b.y) }))
+        .map((b) => ({ b, p: project(b.x + (BASE_SPAN - 1), b.y + (BASE_SPAN - 1)) }))
         .filter(({ p }) => p.x > -80 && p.x < view.width + 80 && p.y > top - 40 && p.y < bottom + 120)
         .sort((a, z) => Number(z.b.mine) - Number(a.b.mine) || Math.hypot(a.p.x - cx, a.p.y - cy) - Math.hypot(z.p.x - cx, z.p.y - cy))
         .slice(0, MAX_PLATES);
