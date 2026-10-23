@@ -1,0 +1,20 @@
+; Engine configuration file. Edit through the editor where possible.
+config_version=5
+
+[application]
+config/name="revolt"
+config/features=PackedStringArray("4.7", "Mobile")
+
+[display]
+window/size/viewport_width=1080
+window/size/viewport_height=1920
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[editor_plugins]
+enabled=PackedStringArray("res://addons/gut/plugin.cfg")
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
