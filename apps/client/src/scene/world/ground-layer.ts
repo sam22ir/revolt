@@ -1,13 +1,14 @@
 import type Phaser from "phaser";
 import { fertilityAt, GEO_OASIS_RING, geographyOf, terrainAt, TERRAIN_IDS, type MapSnapshot } from "@revolt/rules";
 import { theme } from "../../theme/theme.ts";
-import { groundTexture, propsTexture, terrainAtlases, type Atlas } from "../../art/art.ts";
+import { decalsTexture, groundTexture, propsTexture, terrainAtlases, type Atlas } from "../../art/art.ts";
 import { SpritePool } from "../sprite-pool.ts";
 import { OASIS_FRONT } from "../terrain-props.ts";
 import { clusterMask } from "../decor-clusters.ts";
 import type { FeatureLayer } from "./feature-layer.ts";
 import { GroundBake } from "./ground-bake.ts";
 import { buildGroundPlan, type GroundPlan } from "./ground-plan.ts";
+import { decalsFor } from "./ground-decals.ts";
 import { placeTileProps } from "./ground-props.ts";
 import { snapRange } from "./tile-chunks.ts";
 import type { SpecCache } from "./spec-cache.ts";
@@ -73,7 +74,8 @@ export class GroundLayer implements WorldLayer {
     const grove = clusterMask(snap.terrainSeed, snap.size, "grove");
     this.plan = buildGroundPlan({ size: snap.size, terrain: this.terrain, flags: this.geoFlags, fertility: this.fertility, rocks, grove, palette: TERRAIN_IDS.map((id) => theme.terrain[id][0]) });
     // The features are read when a cell bakes, which is after the scene has handed them the same snapshot.
-    this.bake.reset({ size: snap.size, colours: this.plan.colours, paintFeatures: (g, range) => this.features.paintInto(g, range) });
+    const decals = decalsFor(snap.terrainSeed, snap.size, this.terrain, this.fertility, this.geoFlags, rocks, grove);
+    this.bake.reset({ size: snap.size, colours: this.plan.colours, fertility: this.fertility, decals, paintFeatures: (g, range) => this.features.paintInto(g, range) });
     this.propKey = "";
   }
 
@@ -132,4 +134,5 @@ function addAtlasFrames(textures: Phaser.Textures.TextureManager): void {
   };
   for (const [t, atlas] of Object.entries(terrainAtlases.ground)) add(groundTexture(t), atlas);
   for (const [k, atlas] of Object.entries(terrainAtlases.props)) add(propsTexture(k), atlas);
+  if (terrainAtlases.decals !== undefined) add(decalsTexture, terrainAtlases.decals);
 }

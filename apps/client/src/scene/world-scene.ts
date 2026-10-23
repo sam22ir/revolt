@@ -3,7 +3,7 @@ import type { MapSnapshot } from "@revolt/rules";
 import type { GameStore } from "../state/game-store.ts";
 import type { WorldStore } from "../state/world-store.ts";
 import { hex, theme } from "../theme/theme.ts";
-import { artUrl, groundUrl, propsUrl, terrainAtlases, groundTexture, propsTexture, textureKey } from "../art/art.ts";
+import { artUrl, decalsTexture, decalsUrl, groundUrl, propsUrl, terrainAtlases, groundTexture, propsTexture, textureKey } from "../art/art.ts";
 import { artPack } from "../art/pack.ts";
 import type { HudInsets, Insets } from "../ui/hud-insets.ts";
 import { createGesture, type Gesture } from "./gesture.ts";
@@ -114,6 +114,7 @@ export class WorldScene extends Phaser.Scene {
     for (const key of ART_KEYS) if (!this.textures.exists(textureKey(key))) this.load.image(textureKey(key), artUrl(key));
     for (const t of Object.keys(terrainAtlases.ground)) if (!this.textures.exists(groundTexture(t))) this.load.image(groundTexture(t), groundUrl(t));
     for (const k of PROP_KINDS) if (!this.textures.exists(propsTexture(k))) this.load.image(propsTexture(k), propsUrl(k));
+    if (terrainAtlases.decals !== undefined && !this.textures.exists(decalsTexture)) this.load.image(decalsTexture, decalsUrl);
   }
 
   create(): void {
