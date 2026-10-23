@@ -30,8 +30,8 @@ export const DECAL_KIND_FRAMES: Readonly<Record<DecalKind, readonly number[]>> =
 };
 
 /** Base chance that a tile gets a decal; rock and grove clusters add to it, so stamps gather where the 1a clusters are. */
-const BASE_CHANCE = 0.09;
-const CLUSTER_CHANCE = 0.2;
+const BASE_CHANCE = 0.16;
+const CLUSTER_CHANCE = 0.34;
 /** Cluster strength (0..1) above which a cluster decides the kind. */
 const CLUSTER_KIND = 0.2;
 /** Fertility above which open ground gets grass rather than sand. */
@@ -83,7 +83,7 @@ export const decalsFor = (
         frame: frames[Math.floor(hash01(x, y, salt + 4) * frames.length)] ?? frames[0] ?? 0,
         scale: 2 + 2 * hash01(x, y, salt + 5),
         flip: hash01(x, y, salt + 6) < 0.5,
-        alpha: 0.35 + 0.3 * hash01(x, y, salt + 7),
+        alpha: 0.45 + 0.35 * hash01(x, y, salt + 7),
       });
     }
   }

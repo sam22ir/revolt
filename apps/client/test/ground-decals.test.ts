@@ -37,12 +37,24 @@ RA.push(["is deterministic for a seed and differs between seeds", () => {
   expect(JSON.stringify(decalsOf(3))).not.toBe(JSON.stringify(decalsOf(4)));
 }]);
 
-RA.push(["places about one decal per 6 to 10 tiles, and more inside clusters", () => {
+// Measured 1d: 0.17 to 0.20 of tiles on these seeds (about one per five tiles, roughly twice 1c). The bounds leave room for tuning.
+RA.push(["places about one decal per four to eight tiles, more inside clusters", () => {
   for (const seed of SEEDS) {
     const share = decalsOf(seed).length / (SIZE * SIZE);
-    expect(share).toBeGreaterThan(0.07);
-    expect(share).toBeLessThan(0.25);
+    expect(share).toBeGreaterThan(0.12);
+    expect(share).toBeLessThan(0.28);
   }
+}]);
+
+RA.push(["gives open ground about twice the 1c density: more decals inside a grove cluster than outside", () => {
+  const n = SIZE * SIZE;
+  const plain = new Uint8Array(n).fill(TERRAIN_IDS.indexOf("plain"));
+  const flags = new Uint8Array(n);
+  const fert = new Float32Array(n).fill(0.3);
+  const none = new Uint8Array(n), full = new Uint8Array(n).fill(255);
+  const count = (g: Uint8Array): number => decalsFor(9, SIZE, plain, fert, flags, none, g).length;
+  expect(count(full)).toBeGreaterThan(count(none) * 2);
+  expect(count(none) / n).toBeGreaterThan(0.12);
 }]);
 
 RA.push(["keeps decals off roads, oasis pools and riverbeds", () => {

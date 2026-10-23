@@ -32,6 +32,7 @@ import {
 import { AmbientLayer } from "./world/ambient-layer.ts";
 import { FeatureLayer } from "./world/feature-layer.ts";
 import { GroundLayer } from "./world/ground-layer.ts";
+import { DetailLayer } from "./world/ground-detail.ts";
 import { MarchLayer } from "./world/march-layer.ts";
 import { ObjectLayer } from "./world/object-layer.ts";
 import { RegionLayer } from "./world/region-layer.ts";
@@ -92,6 +93,7 @@ export class WorldScene extends Phaser.Scene {
   private gesture!: Gesture;
   private readonly specs = new SpecCache();
   private ground!: GroundLayer;
+  private detail!: DetailLayer;
   private features!: FeatureLayer;
   private regions!: RegionLayer;
   private lastViewKey = "";
@@ -123,6 +125,7 @@ export class WorldScene extends Phaser.Scene {
     // Layers are built in paint order, so their Phaser objects are created in the same order as before the split.
     this.features = new FeatureLayer();
     this.ground = new GroundLayer(this, this.specs, this.features);
+    this.detail = new DetailLayer(this);
     this.regions = new RegionLayer(this);
     this.objects = new ObjectLayer(this, this.specs);
     this.marches = new MarchLayer(this, this.specs);
@@ -192,6 +195,7 @@ export class WorldScene extends Phaser.Scene {
       snapshotVersion: this.snapshotVersion,
     };
     this.ground.paint(frame);
+    this.detail.paint(frame);
     this.regions.paint(frame);
     this.objects.paint(frame);
     this.marches.paint(frame);

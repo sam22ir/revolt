@@ -1,4 +1,4 @@
-/** Side of the grain tile, px. It repeats every GRAIN_SIZE world px, anchored at the world origin, so neighbouring cells line up. */
+/** Side of the green grain tile, px. It repeats every GRAIN_SIZE world px, anchored at the world origin, so neighbouring cells line up. */
 export const GRAIN_SIZE = 256;
 
 /** Seamless value noise in [0, 1): random values on a lattice `cell` px apart, bilinearly blended, with the lattice wrapping at `size`. */
@@ -33,8 +33,8 @@ const hash = (i: number, j: number, salt: number): number => {
 
 const smooth = (t: number): number => t * t * (3 - 2 * t);
 
-/** A seeded generator in [0, 1), so the pebbles and ripples come out the same every time. */
-const rng = (seed: number): (() => number) => {
+/** A seeded generator in [0, 1), so scattered marks come out the same every time. */
+export const rng = (seed: number): (() => number) => {
   let s = seed >>> 0;
   return () => {
     s = (s + 0x6d2b79f5) >>> 0;
@@ -46,48 +46,16 @@ const rng = (seed: number): (() => number) => {
 };
 
 /**
- * The two grain tiles, made once: `dry` is neutral grey with fine grain, pebbles and a few ripple strokes, meant for soft-light;
- * `green` is dark olive mottling with alpha, drawn as a wash over fertile ground. Both are GRAIN_SIZE square and repeat seamlessly.
- * Browser only (uses a canvas), so call it lazily.
+ * The green grain tile, made once: dark olive mottling with alpha, drawn as a wash over fertile ground and weighted there by the
+ * fertility field. GRAIN_SIZE square and seamless. Browser only (uses a canvas), so call it lazily.
  */
-export const makeGrainTiles = (): { readonly dry: HTMLCanvasElement; readonly green: HTMLCanvasElement } => {
+export const makeGreenGrain = (): HTMLCanvasElement => {
   const n = GRAIN_SIZE;
   const fine = tileableNoise(n, 8, 12), coarse = tileableNoise(n, 32, 11);
-  const dry = canvas(n);
-  const dctx = dry.getContext("2d");
-  if (dctx !== null) {
-    const img = dctx.createImageData(n, n);
-    for (let i = 0; i < n * n; i++) {
-      const v = 128 + ((0.6 * coarse[i]! + 0.4 * fine[i]! - 0.5) * 90);
-      img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = v;
-      img.data[i * 4 + 3] = 255;
-    }
-    dctx.putImageData(img, 0, 0);
-    // Pebbles (dark and light) and soft ripples; each drawn at the four wrap offsets so the edges match.
-    const r = rng(7);
-    for (let k = 0; k < 70; k++) {
-      const x = r() * n, y = r() * n, rad = 0.8 + r() * 1.6;
-      dctx.fillStyle = r() < 0.5 ? "rgba(60,50,40,0.8)" : "rgba(235,225,205,0.8)";
-      wrapped(n, x, y, (ox, oy) => {
-        dctx.beginPath();
-        dctx.arc(ox, oy, rad, 0, Math.PI * 2);
-        dctx.fill();
-      });
-    }
-    for (let k = 0; k < 6; k++) {
-      const x = r() * n, y = r() * n, len = 50 + r() * 70, bend = (r() - 0.5) * 16;
-      dctx.strokeStyle = r() < 0.5 ? "rgba(90,70,50,0.16)" : "rgba(250,240,220,0.18)";
-      dctx.lineWidth = 1.2;
-      wrapped(n, x, y, (ox, oy) => {
-        dctx.beginPath();
-        dctx.moveTo(ox, oy);
-        dctx.quadraticCurveTo(ox + len / 2, oy + bend, ox + len, oy);
-        dctx.stroke();
-      });
-    }
-  }
-  const green = canvas(n);
-  const gctx = green.getContext("2d");
+  const c = document.createElement("canvas");
+  c.width = n;
+  c.height = n;
+  const gctx = c.getContext("2d");
   if (gctx !== null) {
     const img = gctx.createImageData(n, n);
     for (let i = 0; i < n * n; i++) {
@@ -100,17 +68,5 @@ export const makeGrainTiles = (): { readonly dry: HTMLCanvasElement; readonly gr
     }
     gctx.putImageData(img, 0, 0);
   }
-  return { dry, green };
-};
-
-/** Calls `draw` at (x, y) and at every offset that wraps it across the tile's edges. */
-const wrapped = (n: number, x: number, y: number, draw: (ox: number, oy: number) => void): void => {
-  for (const dx of [-n, 0, n]) for (const dy of [-n, 0, n]) draw(x + dx, y + dy);
-};
-
-const canvas = (n: number): HTMLCanvasElement => {
-  const c = document.createElement("canvas");
-  c.width = n;
-  c.height = n;
   return c;
 };

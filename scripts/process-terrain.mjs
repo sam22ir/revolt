@@ -197,6 +197,16 @@ const DECAL_PICKS = [
   ["forest-1", 4, "grass"],
   ["hills-1", 5, "sand"],
   ["mountain-1", 0, "stone"],
+  // 1d: more from the other ground sheets, flat cells only (no shrubs taller than the surface, no roots, no snow, no slab rocks).
+  ["plain-3", 0, "sand"],
+  ["plain-3", 3, "grass"],
+  ["plain-3", 7, "stone"],
+  ["plain-4", 0, "sand"],
+  ["plain-4", 3, "stone"],
+  ["plain-4", 4, "sand"],
+  ["forest-2", 0, "grass"],
+  ["forest-2", 4, "grass"],
+  ["hills-2", 2, "grass"],
 ];
 const MANIFEST = join(root, "apps/client/src/art/terrain-manifest.json");
 // `--decals` rebuilds only decals.webp and its manifest entry, leaving the ground and prop atlases as they are.

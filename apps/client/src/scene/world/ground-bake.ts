@@ -5,7 +5,7 @@ import { CELL_H, CELL_W, cellGrid, cellRect, cellsInRect, RIM, tilesInRect, type
 import { poly } from "./draw-helpers.ts";
 import { cellTransform, fieldPixels, GREEN_FROM, greenPixels } from "./ground-field.ts";
 import { type Decal } from "./ground-decals.ts";
-import { makeGrainTiles } from "./ground-grain.ts";
+import { makeGreenGrain } from "./ground-grain.ts";
 
 /** Texture pixels per world px. Half resolution: the ground is soft by design, and this is a quarter of a full-size bake. */
 export const BAKE_SCALE = 0.5;
@@ -14,13 +14,16 @@ export const BAKE_PER_FRAME = 1;
 
 const RIM_TOP = 0x4a3a2c;
 const RIM_SIDE = 0x3a2d22;
-/** Strength of the dry grain (soft-light) and of the green wash over fertile ground. */
-const GRAIN_ALPHA = 0.35;
+/** Strength of the green wash over fertile ground. */
 const GREEN_ALPHA = 0.6;
 /** Dev only: bake time is averaged over this many cells and logged. */
 const TIMING_CELLS = 20;
 
 let instances = 0;
+
+/** The steps of one cell's bake, in order, for the dev timing log. */
+type BakeLayer = "field" | "green" | "decals" | "upload" | "features";
+const BAKE_LAYERS: readonly BakeLayer[] = ["field", "green", "decals", "upload", "features"];
 
 /** What a bake draws: the map size, the colour and fertility of each tile, the decals, and the features that lie on the ground. */
 export interface BakeSource {
@@ -70,8 +73,9 @@ const scratchCanvas = (w: number, h: number): HTMLCanvasElement => {
  * frame. Cells that are off screen are hidden, not destroyed.
  *
  * A bake paints the smooth colour field (one pixel per tile, drawn with the isometric transform, so colours blend between tile
- * centres), a green wash over fertile ground, the decals, and the dry grain, all into one scratch canvas. That canvas is then
- * uploaded to the cell's texture once, with the rim below it and the features (roads, markers) above it.
+ * centres), a green wash over fertile ground and the decals, all into one scratch canvas. That canvas is then uploaded to the
+ * cell's texture once, with the rim below it and the features (roads, markers) above it. The fine grain is not baked: it is a
+ * runtime overlay (ground-detail.ts).
  */
 export class GroundBake {
   private readonly g: Phaser.GameObjects.Graphics;
@@ -82,16 +86,16 @@ export class GroundBake {
   private readonly gctx: CanvasRenderingContext2D;
   private readonly scratchKey: string;
   private readonly scratchTexture: Phaser.Textures.CanvasTexture | null;
-  private readonly grainBlend: GlobalCompositeOperation;
-  private grain: ReturnType<typeof makeGrainTiles> | null = null;
+  private grain: HTMLCanvasElement | null = null;
   private fieldCanvas: HTMLCanvasElement | null = null;
   private greenField: HTMLCanvasElement | null = null;
   private source: BakeSource | null = null;
   private grid: CellGrid | null = null;
   private cells: Cell[] = [];
   private generation = 0;
-  private timedMs = 0;
   private timedCells = 0;
+  private lastMark = 0;
+  private readonly layerMs: Record<BakeLayer, number> = { field: 0, green: 0, decals: 0, upload: 0, features: 0 };
 
   constructor(private readonly scene: Phaser.Scene) {
     // Not on the display list: it is only ever drawn into a texture, so the scene never renders it.
@@ -101,10 +105,6 @@ export class GroundBake {
     this.gctx = this.greenCanvas.getContext("2d") ?? throwNoCanvas();
     this.cctx.imageSmoothingEnabled = true;
     this.cctx.imageSmoothingQuality = "high";
-    // Soft-light where the browser supports it; overlay otherwise.
-    this.cctx.globalCompositeOperation = "soft-light";
-    this.grainBlend = this.cctx.globalCompositeOperation === "soft-light" ? "soft-light" : "overlay";
-    this.cctx.globalCompositeOperation = "source-over";
     this.scratchKey = `ground-scratch-${++instances}`;
     this.scratchTexture = scene.textures.addCanvas(this.scratchKey, this.cellCanvas);
     // Textures outlive the scene, so the cells and the scratch texture are dropped with it or they would pile up on every rebuild.
@@ -169,12 +169,12 @@ export class GroundBake {
     return left;
   }
 
-  /** Paints one cell into its texture: rim, then the field, green wash, decals and grain (scratch canvas), then the features. */
+  /** Paints one cell into its texture: the field, green wash and decals (scratch canvas), then the rim and features around them. */
   private bakeCell(cell: Cell, col: number, row: number): void {
     const source = this.source;
     const grid = this.grid;
     if (source === null || grid === null || this.fieldCanvas === null || this.scratchTexture === null) return;
-    const t0 = import.meta.env.DEV ? performance.now() : 0;
+    this.mark("start");
     const rect = cellRect(grid, col, row);
     const tiles = tilesInRect(rect, source.size);
     const g = this.g;
@@ -185,7 +185,9 @@ export class GroundBake {
     cctx.setTransform(...cellTransform(S, rect.x, rect.y));
     cctx.drawImage(this.fieldCanvas, 0, 0);
     cctx.setTransform(1, 0, 0, 1, 0, 0);
+    this.mark("field");
     if (anyFertile(source.fertility, source.size, tiles)) this.paintGreen(rect);
+    this.mark("green");
     this.paintTop(rect, source);
     cctx.setTransform(1, 0, 0, 1, 0, 0);
     cctx.globalAlpha = 1;
@@ -200,6 +202,7 @@ export class GroundBake {
     cell.texture.draw(this.rim, offX, offY);
     // A texture key is drawn by its centre, so this puts the scratch canvas at the texture's top-left corner.
     cell.texture.draw(this.scratchKey, this.cellCanvas.width / 2, this.cellCanvas.height / 2);
+    this.mark("upload");
     g.clear();
     source.paintFeatures(g, tiles);
     cell.texture.draw(g, offX, offY);
@@ -207,7 +210,8 @@ export class GroundBake {
     g.clear();
     this.rim.clear();
     cell.baked = true;
-    if (import.meta.env.DEV) this.timeBake(t0);
+    this.mark("features");
+    this.logTiming();
   }
 
   /** The green wash: a feathered green grain, weighted by the fertility field, laid over the field at GREEN_ALPHA. */
@@ -219,7 +223,7 @@ export class GroundBake {
     gctx.globalCompositeOperation = "source-over";
     gctx.clearRect(0, 0, this.greenCanvas.width, this.greenCanvas.height);
     gctx.setTransform(S, 0, 0, S, -S * rect.x, -S * rect.y);
-    const pattern = gctx.createPattern(grain.green, "repeat");
+    const pattern = gctx.createPattern(grain, "repeat");
     if (pattern !== null) {
       gctx.fillStyle = pattern;
       gctx.fillRect(rect.x, rect.y, CELL_W, CELL_H);
@@ -258,10 +262,7 @@ export class GroundBake {
     }
   }
 
-  /**
-   * The decals and the dry grain, both clipped to the map's top face so nothing floats past the edge onto the rim or the background.
-   * The grain is world-anchored, so neighbouring cells line up.
-   */
+  /** The decals, clipped to the map's top face so no stamp floats past the edge onto the rim or the background. */
   private paintTop(rect: WorldRect, source: BakeSource): void {
     const cctx = this.cctx;
     const S = BAKE_SCALE;
@@ -273,38 +274,35 @@ export class GroundBake {
     cctx.closePath();
     cctx.clip();
     this.paintDecals(rect, source.decals);
-    this.paintGrain(rect);
+    this.mark("decals");
     cctx.restore();
   }
 
-  private paintGrain(rect: WorldRect): void {
-    const grain = this.grainTiles();
-    const cctx = this.cctx;
-    const S = BAKE_SCALE;
-    cctx.save();
-    cctx.setTransform(S, 0, 0, S, -S * rect.x, -S * rect.y);
-    const pattern = cctx.createPattern(grain.dry, "repeat");
-    if (pattern !== null) {
-      cctx.fillStyle = pattern;
-      cctx.globalCompositeOperation = this.grainBlend;
-      cctx.globalAlpha = GRAIN_ALPHA;
-      cctx.fillRect(rect.x, rect.y, CELL_W, CELL_H);
-    }
-    cctx.restore();
-  }
-
-  private grainTiles(): ReturnType<typeof makeGrainTiles> {
-    this.grain ??= makeGrainTiles();
+  private grainTiles(): HTMLCanvasElement {
+    this.grain ??= makeGreenGrain();
     return this.grain;
   }
 
-  /** Dev only: the average bake time of the last TIMING_CELLS cells, logged once per batch. */
-  private timeBake(t0: number): void {
-    this.timedMs += performance.now() - t0;
+  /** Dev only: the per-layer clock for one cell. Does nothing in production builds. */
+  private mark(layer: BakeLayer | "start"): void {
+    if (!import.meta.env.DEV) return;
+    const now = performance.now();
+    if (layer === "start") this.lastMark = now;
+    else {
+      this.layerMs[layer] += now - this.lastMark;
+      this.lastMark = now;
+    }
+  }
+
+  /** Dev only: every TIMING_CELLS cells, logs the average time per layer, in ms per cell. */
+  private logTiming(): void {
+    if (!import.meta.env.DEV) return;
     this.timedCells++;
     if (this.timedCells < TIMING_CELLS) return;
-    console.debug(`[ground] bake ${(this.timedMs / this.timedCells).toFixed(2)} ms per cell (last ${this.timedCells})`);
-    this.timedMs = 0;
+    const avg = (layer: BakeLayer): string => (this.layerMs[layer] / this.timedCells).toFixed(2);
+    const total = BAKE_LAYERS.reduce((sum, l) => sum + this.layerMs[l], 0) / this.timedCells;
+    console.debug(`[ground] bake ${total.toFixed(2)} ms per cell (last ${this.timedCells}): ${BAKE_LAYERS.map((l) => `${l} ${avg(l)}`).join(", ")}`);
+    for (const l of BAKE_LAYERS) this.layerMs[l] = 0;
     this.timedCells = 0;
   }
 
