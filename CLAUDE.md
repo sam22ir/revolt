@@ -52,6 +52,7 @@ docs/             GDD and design notes
 - `main` requires the CI check "Typecheck and unit tests" before a PR can merge.
 - Server tests run on in-process `node:sqlite` (`apps/server/test/sqlite-db.ts`); only `miniflare-smoke.test.ts` uses Miniflare's D1. Keep it that way: Miniflare costs ~1 s per start and ~40 ms per query.
 - This machine is slow (2 cores, runs hot): never run two test suites at once.
+- Run only one dev server at a time across all sessions: one client plus the mock server it needs. Before starting one, check whether one is already running (`ss -ltnp`) and reuse it instead of starting another on a new port. Stop it when you're done.
 
 ## Working in this repo
 

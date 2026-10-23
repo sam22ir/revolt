@@ -135,12 +135,12 @@ export class BaseScene extends Phaser.Scene {
     const hudTop = room.top * px;
     const hudBottom = room.nav * px;
     const usableH = Math.max(100 * px, height - hudTop - hudBottom);
-    // Fit the buildings' sprite bitmaps, not the whole ground slab: the slab is a wide diamond that
-    // left the base at under half a phone's width. The slab is simply cropped at the sides.
+    // Fit the buildings and the whole ground diamond: a cropped slab reads as a cut-off edge, so its corners stay on screen.
     const xs = BUILDING_IDS.flatMap((id) => {
       const place = this.placement(id);
       return [place.x, place.x + spriteInfo(artPack.buildings[id]).w * place.scale];
     });
+    xs.push(-MAP_WORLD_WIDTH / 2, MAP_WORLD_WIDTH / 2);
     const span = Math.max(...xs) - Math.min(...xs);
     const zoom = Math.min((width - 16 * px) / span, usableH / (MAP_WORLD_HEIGHT + 80));
     cam.setZoom(zoom);
