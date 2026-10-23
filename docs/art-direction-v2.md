@@ -66,7 +66,7 @@ Do not generate more tile sheets, and do not change the building art.
 
 ## Decisions needed
 
-- [ ] **World map style:** inked strategic layer (recommended) or realistic everywhere?
+- [x] **World map style:** decided 23 Oct: painted everywhere; the same baked ground at every zoom (map ground step 1c, `docs/map-ground-plan.md`). No inked strategic layer.
 - [x] **Ground:** decided 22 Oct: soft blended ground plus sparse props, as built in `5c4c465`. One large painted map is out: it cannot scroll or show region changes. Checked in Arabic at phone size: the close zoom reads well. Known gap: zoomed out, the flat renderer shows a checkered grid with hard-edged terrain patches and no region borders, so far zoom is the weak spot; the inked-layer decision below is what fixes it.
 - [ ] **Base:** the painted camp scene with empty plots?
 - [x] **Order of work:** decided 21 Oct: no quick win first; build the foundation first (below), then the visual changes.
