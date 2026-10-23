@@ -13,6 +13,7 @@
     "art:terrain": "node scripts/process-terrain.mjs"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "5.0.5",
     "typescript": "7.0.2",
     "vitest": "5.0.5"
   }
