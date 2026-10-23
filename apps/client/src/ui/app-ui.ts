@@ -168,6 +168,11 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
     mapToggle.type = "button";
     mapToggle.dataset.testid = "map-toggle";
     mapToggle.addEventListener("click", () => setView(view === "base" ? "map" : "base"));
+    // Shown on the map toggle while the builders are idle and the player is on the map (the queue pill is hidden there).
+    const idleBadge = el("span", "badge dot");
+    idleBadge.dataset.testid = "builders-idle";
+    idleBadge.setAttribute("aria-label", t("queue.idle"));
+    idleBadge.hidden = true;
 
     const reportsButton = el("button", "nav-btn");
     reportsButton.type = "button";
@@ -296,6 +301,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
       alliance.update();
       dialog.update(state, snapshot);
       account.update(deps.store.account());
+      idleBadge.hidden = !(state.queue === null && view === "map");
       const unread = deps.world.unread();
       badge.hidden = unread === 0;
       badge.textContent = formatAmount(currentLanguage(), unread);
@@ -325,6 +331,8 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
     };
     ctl.updateView = () => {
       mapToggle.textContent = view === "base" ? t("nav.map") : t("nav.base");
+      mapToggle.append(idleBadge);
+      hud.setView(view);
       ctl.updateCenter();
     };
     ctl.updateView();

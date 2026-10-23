@@ -17,12 +17,14 @@ export interface Hud {
   /** A short message under the help button (a refusal), gone after a few seconds. */
   readonly showHelpNote: (text: string) => void;
   readonly setOffline: (offline: boolean) => void;
+  /** The view the canvas shows. On the map the idle hint is left to the builders badge on the nav instead. */
+  readonly setView: (view: "base" | "map") => void;
 }
 
 const NOTE_MS = 4000;
 
 /**
- * `controls` (the language switch) sit on the status row under the resources, at the inline end.
+ * `controls` sit on the status row under the resources, at the inline end (none now: the language switch is in the account panel).
  * `nav` is the bottom bar of view buttons (fixed in CSS), `extras` hang on the status row after the queue pill.
  * `onAskHelp` is the button under the pill that asks the alliance to speed up the running upgrade.
  */
@@ -71,6 +73,8 @@ export const createHud = (
   helpNote.dataset.testid = "help-ask-error";
   helpNote.hidden = true;
   let noteTimer: number | null = null;
+  let view: "base" | "map" = "base";
+  let idle = false;
   const offline = el("p", "sync-offline", t("sync.offline"));
   offline.setAttribute("role", "status");
   offline.dataset.testid = "offline";
@@ -95,6 +99,8 @@ export const createHud = (
       chip.fill.classList.toggle("full", frac >= 1);
     }
     const job = state.queue;
+    idle = job === null;
+    queue.hidden = idle && view === "map";
     if (job === null) {
       queueLabel.textContent = t("queue.idle");
       queueTime.textContent = "";
@@ -108,6 +114,11 @@ export const createHud = (
     helpBtn.hidden = !(canAskHelp && helpableJob(state, "upgrade", now) !== null);
   };
 
+  const setView = (next: "base" | "map"): void => {
+    view = next;
+    queue.hidden = idle && view === "map";
+  };
+
   const showHelpNote = (text: string): void => {
     helpNote.textContent = text;
     helpNote.hidden = false;
@@ -115,5 +126,5 @@ export const createHud = (
     noteTimer = window.setTimeout(() => (helpNote.hidden = true), NOTE_MS);
   };
 
-  return { root, update, showHelpNote, setOffline: (v) => (offline.hidden = !v) };
+  return { root, update, showHelpNote, setOffline: (v) => (offline.hidden = !v), setView };
 };

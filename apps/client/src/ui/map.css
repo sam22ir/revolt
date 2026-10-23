@@ -57,6 +57,8 @@
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
+/* A dot with no number: "builders idle" on the map toggle. */
+.badge.dot { min-inline-size: 12px; block-size: 12px; padding: 0; border-radius: 50%; }
 
 .coord-pill {
   align-self: center;
