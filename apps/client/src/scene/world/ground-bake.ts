@@ -107,6 +107,11 @@ export class GroundBake {
     this.cctx.globalCompositeOperation = "source-over";
     this.scratchKey = `ground-scratch-${++instances}`;
     this.scratchTexture = scene.textures.addCanvas(this.scratchKey, this.cellCanvas);
+    // Textures outlive the scene, so the cells and the scratch texture are dropped with it or they would pile up on every rebuild.
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.destroyCells();
+      scene.textures.remove(this.scratchKey);
+    });
   }
 
   /** Drops every cell and lays out a fresh grid for `source`; the cells bake from `update`. */

@@ -78,7 +78,7 @@ The ground is baked once per cell, so detail costs bake time only, not frame tim
 
 Source of the grain texture (decision): procedural (code noise, free), cut from the existing painted sheets (free, style match, needs seam blending), or a newly generated seamless painted texture (ask before spending).
 
-Tests: the colour field and decal placement are pure (seeded, deterministic, in range, off roads/water). Bake time per cell is logged in dev builds only and must stay around 4 ms on the phone (two cells bake per frame); otherwise bake one cell per frame.
+Tests: the colour field and decal placement are pure (seeded, deterministic, in range, off roads/water). Bake time per cell is logged in dev builds only and must stay around 4 ms on the phone (one cell bakes per frame). Measured on desktop: 9.5–16 ms per cell, over budget; next, time each layer to find what dominates.
 
 Checks: screenshots at close, mid and far zoom in `en` and `ar`, same seed and spots as 1a.
 
