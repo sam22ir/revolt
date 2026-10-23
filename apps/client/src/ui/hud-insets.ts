@@ -12,7 +12,10 @@ export interface Insets {
 }
 
 export interface HudInsets {
-  /** The insets as they are on the screen right now. */
+  /**
+   * The insets as last measured by the observers (resize, DOM changes, window resize), batched into a frame.
+   * Reads no layout, so it is cheap to call every frame.
+   */
   get(): Insets;
   /** Called when a value moved by at least 1px. Returns the unsubscribe function. */
   subscribe(cb: () => void): () => void;
@@ -88,7 +91,7 @@ export const createHudInsets = (): HudInsets => {
   schedule();
 
   return {
-    get: measure,
+    get: () => notified,
     subscribe(cb) {
       listeners.add(cb);
       return () => {
