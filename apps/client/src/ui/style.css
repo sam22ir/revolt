@@ -135,26 +135,31 @@ html, body {
 .res-fill.near { background: var(--gold); }
 .res-fill.full { background: var(--accent); }
 
-/* Status row, in this order: queue (takes the spare width and ellipsizes), help, language at the inline end.
+/* Status row, in this order: queue (takes the spare width and ellipsizes), then help.
    Everything else (note, marches, coords, offline) comes after and wraps below, so line one never wraps. */
 .queue-pill { order: 0; flex: 1 1 0; min-inline-size: 0; }
 .hud .help-btn { order: 1; }
-.hud .lang { order: 2; margin-inline-start: auto; min-inline-size: 0; max-inline-size: 84px; }
 .hud .help-note-line, .marches, .coord-pill, .target-search, .sync-offline { order: 3; }
-.lang select {
+
+/* The language switch, in the account panel: a label, then the select on the same row. */
+.account-settings { display: flex; align-items: center; gap: 8px; margin-block: 0 10px; }
+.lang-field { display: flex; align-items: center; gap: 8px; inline-size: 100%; min-inline-size: 0; }
+.lang-label { flex: none; font-size: 14px; font-weight: 600; }
+.account-settings select {
+  flex: 1 1 auto;
   appearance: none;
   inline-size: 100%;
   min-inline-size: 0;
-  block-size: 32px;
+  block-size: 36px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font: inherit;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--paper);
-  background: rgb(43 42 36 / 0.82);
-  border: 1px solid rgb(244 234 214 / 0.3);
-  border-radius: var(--radius);
+  background: var(--frame-bg);
+  border: var(--frame-border);
+  border-radius: 8px;
   padding-block: 0;
   padding-inline: 8px;
 }

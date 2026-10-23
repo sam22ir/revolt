@@ -86,6 +86,8 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
   });
   // Kept here, not in the panel, so a language change (which rebuilds the overlay) does not close it.
   const allianceView: { open: boolean; tab: AllianceTab } = { open: false, tab: "members" };
+  // Kept here for the same reason: a language change rebuilds the account panel, and it should stay open.
+  const accountView = { open: false };
   let disposeAlliance = noop;
   const ctl: Controls = {
     refresh: noop,
@@ -144,7 +146,13 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
     const switcher = createLanguageSwitcher((lang) => {
       void deps.onLanguage(lang).then(build);
     });
-    const account = createAccountPanel({ google: deps.google, onIdToken: (idToken) => deps.store.signInWithGoogle(idToken) });
+    const account = createAccountPanel({
+      google: deps.google,
+      onIdToken: (idToken) => deps.store.signInWithGoogle(idToken),
+      settings: switcher,
+      onOpenChange: (open) => (accountView.open = open),
+    });
+    account.toggle(accountView.open);
     const accountButton = el("button", "nav-btn account-open", t("account.button"));
     accountButton.type = "button";
     accountButton.dataset.testid = "account";
@@ -192,7 +200,7 @@ export const mountUi = (root: HTMLElement, deps: UiDeps): AppUi => {
         if (!outcome.ok) note(t(`reason.${outcome.reason}`));
       });
     };
-    const hud = createHud([switcher], [mapToggle, allianceButton, reportsButton, accountButton], [marches.root, search.root, coords], () =>
+    const hud = createHud([], [mapToggle, allianceButton, reportsButton, accountButton], [marches.root, search.root, coords], () =>
       askHelp("upgrade", (text) => hud.showHelpNote(text)),
     );
     const panel = createBuildingPanel({
