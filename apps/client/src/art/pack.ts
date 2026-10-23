@@ -24,6 +24,13 @@ export interface ArtPack {
   readonly resources: Readonly<Record<ResourceId, string>>;
   /** Troop medallions. */
   readonly troops: Readonly<Record<TroopId, string>>;
+  /** Painted frames the DOM overlay stretches with CSS border-image (see ui/frame-art.ts). */
+  readonly frames: {
+    readonly panel: string;
+    readonly button: string;
+    readonly buttonActive: string;
+    readonly plate: string;
+  };
 }
 
 /** The first pack: the Algeria art set, using the sprite keys shipped in public/art. */
@@ -60,6 +67,12 @@ export const algeriaPack: ArtPack = {
     scouts: "units/troop_scouts",
     heavy: "units/troop_heavy",
     porters: "units/troop_porters",
+  },
+  frames: {
+    panel: "ui/frame_panel",
+    button: "ui/frame_button",
+    buttonActive: "ui/frame_button_active",
+    plate: "ui/frame_plate",
   },
 };
 

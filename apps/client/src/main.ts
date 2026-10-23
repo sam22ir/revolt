@@ -21,9 +21,11 @@ import "./ui/style.css";
 import "./ui/map.css";
 import "./ui/alliance.css";
 import { applyThemeToCss, hex, theme } from "./theme/theme.ts";
+import { applyFrameArt } from "./ui/frame-art.ts";
 import { pickRenderer, readGpuRenderer } from "./render-mode.ts";
 
 applyThemeToCss(document.documentElement);
+applyFrameArt(document.documentElement);
 
 /** WebGL where it works; Canvas on GPUs known to draw sprite transparency as black (see render-mode.ts). `?renderer=canvas|webgl|auto` overrides. */
 const rendererType = (): number => {

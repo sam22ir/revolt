@@ -16,6 +16,12 @@
   --frame-bg: linear-gradient(180deg, var(--slate-1), var(--slate-2));
   --frame-border: 1px solid var(--bronze);
   --frame-shadow: 0 2px 6px rgb(0 0 0 / 0.5), inset 0 1px 0 rgb(233 213 170 / 0.25), inset 0 -1px 0 rgb(0 0 0 / 0.4);
+  /* Painted frames (art/ui/frame_*, set by ui/frame-art.ts). Slices are in the shipped image's pixels and keep the
+     corner ornaments whole; the widths draw them at about a third of their size. Without the art, the CSS border shows. */
+  --frame-panel-image: var(--art-frame-panel) 100 130 / 30px 39px stretch;
+  --frame-button-image: var(--art-frame-button) 52 82 fill / 15px 24px stretch;
+  --frame-button-active-image: var(--art-frame-button-active) 58 90 fill / 15px 24px stretch;
+  --frame-plate-image: var(--art-frame-plate) 48 60 / 10px 13px stretch;
   /* Bottom nav bar: 1px border + 6px + 52px button + 6px, plus the home-indicator inset (see .hud-nav in map.css). */
   --nav-h: 65px;
   color-scheme: light;
@@ -78,10 +84,11 @@ html, body {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 4px;
-  background: var(--frame-bg);
-  border: var(--frame-border);
-  box-shadow: var(--frame-shadow);
-  border-radius: var(--radius);
+  background: var(--frame-bg) padding-box;
+  border: 1px solid transparent;
+  border-image: var(--frame-button-image);
+  border-radius: 0;
+  padding: 5px 8px;
 }
 
 /* Icon at the inline start, amount with the hourly rate under it; the fill meter runs along the bottom edge. */
@@ -170,11 +177,11 @@ html, body {
   min-block-size: 28px;
   padding-block: 4px;
   padding-inline: 12px;
-  border-radius: 999px;
+  border-radius: 3px;
   font-size: 12px;
-  background: var(--frame-bg);
-  border: var(--frame-border);
-  box-shadow: var(--frame-shadow);
+  background: var(--frame-bg) padding-box;
+  border: 1px solid transparent;
+  border-image: var(--frame-plate-image);
   color: var(--paper);
   display: flex;
   gap: 8px;
@@ -184,16 +191,18 @@ html, body {
 .queue-label { overflow: hidden; text-overflow: ellipsis; min-inline-size: 0; }
 .queue-time { flex-shrink: 0; font-variant-numeric: tabular-nums; }
 .queue-time:empty { display: none; }
-.queue-pill.busy { background: rgb(224 176 64 / 0.92); color: var(--ink); font-weight: 600; }
+.queue-pill.busy { background: rgb(224 176 64 / 0.92) padding-box; color: var(--ink); font-weight: 600; }
 
 .panel,
 .account-panel {
   margin: var(--gutter);
-  padding: 14px 16px 16px;
-  background: var(--frame-bg);
-  border: var(--frame-border);
+  /* 12px border under the painted bar, then padding: content starts clear of the corner ornaments. */
+  padding: 10px 14px 12px;
+  background: var(--frame-bg) padding-box;
+  border: 12px solid transparent;
+  border-image: var(--frame-panel-image);
   color: var(--paper);
-  border-radius: 16px;
+  border-radius: 0;
   /* Not box-shadow: on a scrolling element above the WebGL canvas it made headless Chromium paint the canvas
      area above the panel solid white/black. drop-shadow renders the same and does not. */
   filter: drop-shadow(0 -4px 12px rgb(0 0 0 / 0.35));
