@@ -59,7 +59,8 @@ export { fightNpc, npcLevel, targetGone } from "./npc-battle.ts";
 export { RESOURCE_IDS, type ResourceId } from "./resource-id.ts";
 export { canAfford, ZERO_RESOURCES, type Resources } from "./resources.ts";
 export { hash32, isSeed, seededRng } from "./rng.ts";
-export { isOnMap, terrainAt, TERRAIN_IDS, type TerrainId } from "./terrain.ts";
+export { isOnMap, terrainAt, TERRAIN_IDS, valueNoise, type TerrainId } from "./terrain.ts";
+export { fertilityAt, GEO_BANK, GEO_OASIS, GEO_OASIS_RING, GEO_OASIS_SHORE, GEO_ROAD, GEO_WADI, geographyOf, type GeoTile, type Geography } from "./geography.ts";
 export {
   isRegionBorder,
   regionAt,
