@@ -1,5 +1,5 @@
 import type { AllianceView, ChatMessage, HelpRequestView, RallyView } from "@revolt/rules";
-import { beforeAll, describe, expect, test } from "vitest";
+import { beforeAll, expect } from "vitest";
 import { initI18n } from "../src/i18n/i18n.ts";
 import { createAllianceHelp } from "../src/ui/alliance-help.ts";
 import { createAllianceMembers } from "../src/ui/alliance-members.ts";
@@ -7,6 +7,10 @@ import { createAllianceRallies } from "../src/ui/alliance-rallies.ts";
 import { allianceResultRow, chatMessageRow } from "../src/ui/alliance-rows.ts";
 import type { AllianceStore } from "../src/state/alliance-store.ts";
 import type { ConfirmDialog } from "../src/ui/confirm-dialog.ts";
+import { test } from "vitest";
+import { rows, type Row } from "./rows.ts";
+const RA: Row[] = [];
+const RB: Row[] = [];
 
 /*
  * The client has no DOM test library (no jsdom or happy-dom is installed), so this is a small stand-in for
@@ -82,114 +86,114 @@ beforeAll(async () => {
   await initI18n("en");
 });
 
-describe("player-written text never becomes markup", () => {
-  test("a chat message with HTML in its text and handle is plain text with dir=auto", () => {
-    created.length = 0;
-    const msg: ChatMessage = { id: 1, at: Date.UTC(2026, 9, 1, 12, 0), handle: HOSTILE, rank: "officer", text: HOSTILE };
-    const row = asNode(chatMessageRow(msg, "ME2345", "en"));
-    expectInert();
-    const holders = textNodes(row, HOSTILE);
-    expect(holders.length).toBeGreaterThanOrEqual(2);
-    for (const h of holders) expect(h.attrs.dir).toBe("auto");
-    expect(row.dataset.mine).toBe("0");
-  });
+RA.push(["a chat message with HTML in its text and handle is plain text with dir=auto", () => {
+  created.length = 0;
+  const msg: ChatMessage = { id: 1, at: Date.UTC(2026, 9, 1, 12, 0), handle: HOSTILE, rank: "officer", text: HOSTILE };
+  const row = asNode(chatMessageRow(msg, "ME2345", "en"));
+  expectInert();
+  const holders = textNodes(row, HOSTILE);
+  expect(holders.length).toBeGreaterThanOrEqual(2);
+  for (const h of holders) expect(h.attrs.dir).toBe("auto");
+  expect(row.dataset.mine).toBe("0");
+}]);
 
-  test("own messages are marked, and an Arabic line keeps its text exactly", () => {
-    created.length = 0;
-    const text = "مرحبا بالجميع";
-    const row = asNode(chatMessageRow({ id: 2, at: 0, handle: "ME2345", rank: "member", text }, "ME2345", "ar"));
-    expect(row.dataset.mine).toBe("1");
-    expect(row.className).toContain("mine");
-    expect(textNodes(row, text)[0]?.attrs.dir).toBe("auto");
-  });
+RA.push(["own messages are marked, and an Arabic line keeps its text exactly", () => {
+  created.length = 0;
+  const text = "مرحبا بالجميع";
+  const row = asNode(chatMessageRow({ id: 2, at: 0, handle: "ME2345", rank: "member", text }, "ME2345", "ar"));
+  expect(row.dataset.mine).toBe("1");
+  expect(row.className).toContain("mine");
+  expect(textNodes(row, text)[0]?.attrs.dir).toBe("auto");
+}]);
 
-  test("an alliance with HTML in its name and tag, in the search results", () => {
-    created.length = 0;
-    const { li } = allianceResultRow({ id: "a1", name: HOSTILE, tag: HOSTILE, members: 3, maxMembers: 30 }, "en");
-    expectInert();
-    const holders = textNodes(asNode(li), HOSTILE);
-    expect(holders).toHaveLength(2);
-    for (const h of holders) expect(h.attrs.dir).toBe("auto");
-  });
+RA.push(["an alliance with HTML in its name and tag, in the search results", () => {
+  created.length = 0;
+  const { li } = allianceResultRow({ id: "a1", name: HOSTILE, tag: HOSTILE, members: 3, maxMembers: 30 }, "en");
+  expectInert();
+  const holders = textNodes(asNode(li), HOSTILE);
+  expect(holders).toHaveLength(2);
+  for (const h of holders) expect(h.attrs.dir).toBe("auto");
+}]);
 
-  test("the members tab: alliance name, tag and member handles", () => {
-    created.length = 0;
-    const alliance: AllianceView = {
-      id: "a1",
-      name: HOSTILE,
-      tag: "LF",
-      myRank: "leader",
-      members: [
-        { handle: "ME2345", rank: "leader", joinedAt: 0, me: true },
-        { handle: HOSTILE, rank: "member", joinedAt: 1, me: false },
-      ],
-      maxMembers: 30,
-      hq: null,
-    };
-    const store = {} as unknown as AllianceStore;
-    const confirm = { root: {}, ask: async () => false } as unknown as ConfirmDialog;
-    const members = createAllianceMembers({ store, confirm, onError: () => {} });
-    members.update(alliance);
-    expectInert();
-    const root = asNode(members.root);
-    expect(textNodes(root, HOSTILE).length).toBeGreaterThanOrEqual(2);
-    for (const h of textNodes(root, HOSTILE)) expect(h.attrs.dir).toBe("auto");
-    // The kick button for the hostile handle exists, addressed by a plain dataset value.
-    expect(root.all().some((n) => n.dataset.testid === `member-kick-${HOSTILE}`)).toBe(true);
-  });
+RA.push(["the members tab: alliance name, tag and member handles", () => {
+  created.length = 0;
+  const alliance: AllianceView = {
+    id: "a1",
+    name: HOSTILE,
+    tag: "LF",
+    myRank: "leader",
+    members: [
+      { handle: "ME2345", rank: "leader", joinedAt: 0, me: true },
+      { handle: HOSTILE, rank: "member", joinedAt: 1, me: false },
+    ],
+    maxMembers: 30,
+    hq: null,
+  };
+  const store = {} as unknown as AllianceStore;
+  const confirm = { root: {}, ask: async () => false } as unknown as ConfirmDialog;
+  const members = createAllianceMembers({ store, confirm, onError: () => {} });
+  members.update(alliance);
+  expectInert();
+  const root = asNode(members.root);
+  expect(textNodes(root, HOSTILE).length).toBeGreaterThanOrEqual(2);
+  for (const h of textNodes(root, HOSTILE)) expect(h.attrs.dir).toBe("auto");
+  // The kick button for the hostile handle exists, addressed by a plain dataset value.
+  expect(root.all().some((n) => n.dataset.testid === `member-kick-${HOSTILE}`)).toBe(true);
+}]);
 
-  test("help requests and rallies show handles as text", () => {
-    created.length = 0;
-    const request: HelpRequestView = { id: "h1", handle: HOSTILE, kind: "upgrade", endsAt: 10_000, helps: 0, maxHelps: 5, mine: false, helped: false };
-    const help = createAllianceHelp({ store: {} as unknown as AllianceStore, onError: () => {} });
-    help.update([request], 0);
-    const rally: RallyView = {
-      id: "r1",
-      leader: HOSTILE,
-      target: { npcId: "n1", kind: "outpost", level: 3, x: 1, y: 2 },
-      gatherUntil: 10_000,
-      arriveAt: 20_000,
-      returnAt: 30_000,
-      participants: 1,
-      maxParticipants: 10,
-      joined: false,
-    };
-    const rallies = createAllianceRallies({ onJoin: () => {} });
-    rallies.update([rally], 0);
-    expectInert();
-    expect(textNodes(asNode(help.root), HOSTILE)[0]?.attrs.dir).toBe("auto");
-    expect(textNodes(asNode(rallies.root), HOSTILE)[0]?.attrs.dir).toBe("auto");
-  });
+RA.push(["help requests and rallies show handles as text", () => {
+  created.length = 0;
+  const request: HelpRequestView = { id: "h1", handle: HOSTILE, kind: "upgrade", endsAt: 10_000, helps: 0, maxHelps: 5, mine: false, helped: false };
+  const help = createAllianceHelp({ store: {} as unknown as AllianceStore, onError: () => {} });
+  help.update([request], 0);
+  const rally: RallyView = {
+    id: "r1",
+    leader: HOSTILE,
+    target: { npcId: "n1", kind: "outpost", level: 3, x: 1, y: 2 },
+    gatherUntil: 10_000,
+    arriveAt: 20_000,
+    returnAt: 30_000,
+    participants: 1,
+    maxParticipants: 10,
+    joined: false,
+  };
+  const rallies = createAllianceRallies({ onJoin: () => {} });
+  rallies.update([rally], 0);
+  expectInert();
+  expect(textNodes(asNode(help.root), HOSTILE)[0]?.attrs.dir).toBe("auto");
+  expect(textNodes(asNode(rallies.root), HOSTILE)[0]?.attrs.dir).toBe("auto");
+}]);
+
+const sources = import.meta.glob(["../src/ui/alliance-*.ts", "../src/ui/confirm-dialog.ts", "../src/ui/tile-panel.ts", "../src/ui/march-dialog.ts"], {
+  query: "?raw",
+  import: "default",
+  eager: true,
 });
 
-describe("the alliance UI source", () => {
-  const sources = import.meta.glob(["../src/ui/alliance-*.ts", "../src/ui/confirm-dialog.ts", "../src/ui/tile-panel.ts", "../src/ui/march-dialog.ts"], {
-    query: "?raw",
-    import: "default",
-    eager: true,
-  });
+RB.push(["never assigns innerHTML or inserts adjacent HTML", () => {
+  const files = Object.entries(sources);
+  expect(files.length).toBeGreaterThanOrEqual(8);
+  for (const [name, code] of files) {
+    // Comments may say "never innerHTML"; the code may not use it.
+    const code2 = code.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    expect(code2, name).not.toMatch(/innerHTML|outerHTML|insertAdjacentHTML|document\.write/);
+  }
+}]);
 
-  test("never assigns innerHTML or inserts adjacent HTML", () => {
-    const files = Object.entries(sources);
-    expect(files.length).toBeGreaterThanOrEqual(8);
-    for (const [name, code] of files) {
-      // Comments may say "never innerHTML"; the code may not use it.
-      const code2 = code.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
-      expect(code2, name).not.toMatch(/innerHTML|outerHTML|insertAdjacentHTML|document\.write/);
-    }
-  });
+RB.push(["never draws alliance text in Phaser, except the checked ASCII tag", async () => {
+  // The world scene is split into layers; the check covers the scene and every file beside it.
+  const scene = Object.entries(import.meta.glob(["../src/scene/world-scene.ts", "../src/scene/world/*.ts"], { query: "?raw", import: "default", eager: true }));
+  expect(scene.length).toBeGreaterThanOrEqual(2);
+  const code = scene.map(([, source]) => String(source)).join("\n");
+  // The only `setText` calls take an NPC level or a tag that passed `drawableTag`.
+  const all = code.match(/\.setText\(/g) ?? [];
+  const allowed = code.match(/\.setText\((String\(n\.level\)|tag)\)/g) ?? [];
+  expect(all).toHaveLength(2);
+  expect(allowed).toHaveLength(2);
+  expect(code).toContain("drawableTag(h.tag)");
+  expect(code).not.toMatch(/alliance\.name|\.leader|\.handle/);
+}]);
 
-  test("never draws alliance text in Phaser, except the checked ASCII tag", async () => {
-    // The world scene is split into layers; the check covers the scene and every file beside it.
-    const scene = Object.entries(import.meta.glob(["../src/scene/world-scene.ts", "../src/scene/world/*.ts"], { query: "?raw", import: "default", eager: true }));
-    expect(scene.length).toBeGreaterThanOrEqual(2);
-    const code = scene.map(([, source]) => String(source)).join("\n");
-    // The only `setText` calls take an NPC level or a tag that passed `drawableTag`.
-    const all = code.match(/\.setText\(/g) ?? [];
-    const allowed = code.match(/\.setText\((String\(n\.level\)|tag)\)/g) ?? [];
-    expect(all).toHaveLength(2);
-    expect(allowed).toHaveLength(2);
-    expect(code).toContain("drawableTag(h.tag)");
-    expect(code).not.toMatch(/alliance\.name|\.leader|\.handle/);
-  });
-});
+
+test("player-written text never becomes markup", () => rows(RA));
+test("the alliance UI source never injects HTML or draws text in Phaser", () => rows(RB));
