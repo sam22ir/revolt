@@ -69,7 +69,7 @@ const noop = (): void => {};
 
 interface NavButton {
   readonly button: HTMLButtonElement;
-  readonly icon: SVGSVGElement;
+  readonly icon: HTMLImageElement;
   readonly label: HTMLElement;
 }
 

@@ -21,6 +21,7 @@ const packKeys = (pack: ArtPack): string[] => [
   ...Object.values(pack.resources),
   ...Object.values(pack.troops),
   ...Object.values(pack.frames),
+  ...Object.values(pack.nav),
 ];
 
 RA.push(["has a sprite for every building, troop, resource, NPC kind and terrain", () => {

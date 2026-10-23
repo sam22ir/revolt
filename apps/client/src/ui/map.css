@@ -37,11 +37,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 0;
   cursor: pointer;
 }
 .nav-btn:active { border-image: var(--frame-button-active-image); color: var(--paper); }
-.nav-icon { flex: none; inline-size: 24px; block-size: 24px; }
+.nav-icon { flex: none; inline-size: 30px; block-size: 30px; object-fit: contain; pointer-events: none; }
 .nav-label {
   max-inline-size: 100%;
   min-inline-size: 0;
@@ -309,13 +309,14 @@
   inline-size: 40px;
   block-size: 40px;
   padding: 0;
-  border: var(--frame-border);
+  border: 0;
   border-radius: 50%;
-  background: var(--frame-bg);
-  box-shadow: var(--frame-shadow);
+  /* The painted round button (art/ui/button_round); gold while pressed. */
+  background: var(--art-button-round) center / 100% 100% no-repeat, var(--frame-bg);
   color: var(--paper);
   cursor: pointer;
 }
+.my-base-btn:active { background-image: var(--art-button-round-active); }
 .my-base-btn[hidden] { display: none; }
 .my-base-btn:disabled { opacity: 0.45; cursor: default; }
 .my-base-btn .home-icon { display: block; inline-size: 22px; block-size: 22px; }
@@ -362,7 +363,7 @@
 }
 .target-level[aria-pressed="true"] { border-image: var(--frame-button-active-image); }
 .target-go { margin-inline-start: auto; }
-.target-go:disabled { opacity: 0.5; cursor: default; }
+.target-go:disabled { border-image: var(--frame-button-disabled-image); color: rgb(244 234 214 / 0.55); cursor: default; }
 .target-note { flex: 0 1 auto; margin: 0; padding: 4px 12px; border-radius: 3px; background: var(--frame-bg) padding-box; border: 1px solid transparent; border-image: var(--frame-plate-image); font-size: 13px; color: var(--paper); }
 .target-note[hidden] { display: none; }
 

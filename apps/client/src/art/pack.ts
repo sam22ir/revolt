@@ -9,7 +9,7 @@ export interface ArtPack {
   readonly buildings: Readonly<Record<BuildingId, string>>;
   /** The painted ground slab under the base screen. */
   readonly baseGround: string;
-  /** The sprite a player camp uses on the world map. */
+  /** The sprite a player camp uses on the world map: a hidden camp on the same earth slab as the outposts. */
   readonly camp: string;
   /** World-map sprite per NPC kind. Each keeps its own silhouette: watch tower, cart medallion, stone yard, star fort. */
   readonly npc: Readonly<Record<NpcKind, string>>;
@@ -30,6 +30,17 @@ export interface ArtPack {
     readonly button: string;
     readonly buttonActive: string;
     readonly plate: string;
+    readonly buttonDisabled: string;
+    readonly round: string;
+    readonly roundActive: string;
+  };
+  /** Bottom-nav medallions, keyed by the nav icon id in ui/icons.ts. */
+  readonly nav: {
+    readonly map: string;
+    readonly base: string;
+    readonly alliance: string;
+    readonly reports: string;
+    readonly account: string;
   };
 }
 
@@ -43,7 +54,7 @@ export const algeriaPack: ArtPack = {
     barracks: "buildings/barracks",
   },
   baseGround: "buildings/ground_tile",
-  camp: "buildings/hq",
+  camp: "map/camp",
   npc: {
     patrol: "map/outpost_watch",
     convoy: "map/marker_convoy",
@@ -73,6 +84,16 @@ export const algeriaPack: ArtPack = {
     button: "ui/frame_button",
     buttonActive: "ui/frame_button_active",
     plate: "ui/frame_plate",
+    buttonDisabled: "ui/frame_button_disabled",
+    round: "ui/button_round",
+    roundActive: "ui/button_round_active",
+  },
+  nav: {
+    map: "ui/nav_map",
+    base: "ui/nav_base",
+    alliance: "ui/nav_alliance",
+    reports: "ui/nav_reports",
+    account: "ui/nav_account",
   },
 };
 

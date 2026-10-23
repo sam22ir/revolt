@@ -23,6 +23,7 @@
   --frame-button-image: var(--art-frame-button) 52 82 fill / 15px 24px stretch;
   --frame-button-active-image: var(--art-frame-button-active) 58 90 fill / 15px 24px stretch;
   --frame-plate-image: var(--art-frame-plate) 48 60 / 10px 13px stretch;
+  --frame-button-disabled-image: var(--art-frame-button-disabled) 60 100 fill / 12px 18px stretch;
   /* Bottom nav bar: 1px border + 6px + 52px button + 6px, plus the home-indicator inset (see .hud-nav in map.css). */
   --nav-h: 65px;
   color-scheme: light;
@@ -222,11 +223,13 @@ html, body {
   block-size: 40px;
   border: 0;
   border-radius: 50%;
-  background: var(--paper-2);
+  background: var(--art-button-round) center / 100% 100% no-repeat, var(--slate-2);
+  color: var(--paper);
   font-size: 24px;
   line-height: 1;
   cursor: pointer;
 }
+.panel-close:active { background-image: var(--art-button-round-active); }
 .panel-desc { margin-block: 6px 10px; font-size: 14px; opacity: 0.8; }
 .panel-sub { margin-block: 10px 6px; font-size: 15px; font-weight: 700; }
 
