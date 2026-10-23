@@ -48,6 +48,8 @@ export const OLIVE_FRAMES: readonly number[] = [3, 7, 12, 15];
 export const ORCHARD_FRAMES: readonly number[] = [...OLIVE_FRAMES, 1, 5, 13, 17];
 /** Below this fertility a grove cluster is scrub rather than olives. */
 const ARID = 0.38;
+/** Rock clusters show only below this fertility, so green ground is never covered in boulders. */
+const ROCKY = 0.6;
 
 const prop = (x: number, y: number, salt: number, kind: PropKind, scaleLo: number, scaleHi: number, spread = 0.3, frames?: readonly number[]): PropPlan => ({
   kind,
@@ -89,8 +91,8 @@ export const propsFor = (terrain: TerrainId, x: number, y: number, interior: num
   }
   if (terrain === "plain" || terrain === "hills") {
     // Open ground is quiet: outcrops inside rock clusters, olive or scrub patches inside grove clusters, and almost nothing elsewhere.
-    if (ctx.rocks > 0) {
-      // Rock clusters: outcrops, bigger toward the core of the cluster.
+    if (ctx.rocks > 0 && fertility < ROCKY) {
+      // Rock clusters: outcrops, bigger toward the core of the cluster. Green ground keeps its groves instead.
       if (r < 0.35 + 0.5 * ctx.rocks) {
         const lo = 0.6 + 0.3 * ctx.rocks, hi = 0.9 + 0.4 * ctx.rocks;
         out.push(prop(x, y, 10, "rocks", lo, hi, 0.3));
@@ -103,9 +105,10 @@ export const propsFor = (terrain: TerrainId, x: number, y: number, interior: num
       if (r < p) out.push(fertility > ARID ? prop(x, y, 10, "trees", 0.72, 0.92, 0.28, OLIVE_FRAMES) : prop(x, y, 10, "scrub", 0.75, 1.0, 0.35));
       else if (hash01(x, y, 2) < 0.15) out.push(prop(x, y, 40, "scrub", 0.75, 1.0, 0.35));
     } else {
-      // Outside every cluster: at most about 3% of tiles get a single scrub or a small rock.
-      if (r < 0.02) out.push(prop(x, y, 10, "scrub", 0.7, 1.0, 0.35));
-      else if (r < 0.03) out.push(prop(x, y, 10, "rocks", 0.5, 0.8, 0.35));
+      // Outside every cluster: at most about 3% of plain tiles get a single scrub or a small rock; hills keep a little more scrub so they still read as hills.
+      const scrub = terrain === "hills" ? 0.06 : 0.02;
+      if (r < scrub) out.push(prop(x, y, 10, "scrub", 0.7, 1.0, 0.35));
+      else if (r < scrub + 0.01) out.push(prop(x, y, 10, "rocks", 0.5, 0.8, 0.35));
     }
     return out;
   }

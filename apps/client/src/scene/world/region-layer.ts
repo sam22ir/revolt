@@ -16,6 +16,8 @@ const BORDER_SCREEN_PX = 2.5;
 const MAX_BORDER_WORLD = 18;
 /** Below this zoom (the far overview) ordinary borders stay a faint dark line; closer in they are a warm seam. */
 const FAR_ZOOM = 0.3;
+/** Opacity of the warm seam between ordinary regions: visible on sand without reading as a crack. */
+const SEAM_ALPHA = 0.32;
 
 /** Zoom steps of half an octave: a pinch redraws the borders only when it crosses one. */
 const zoomBucket = (zoom: number): number => Math.round(Math.log2(zoom) * 2);
@@ -77,7 +79,7 @@ export class RegionLayer implements WorldLayer {
         g.lineStyle(width, theme.region.border, 0.55);
       } else {
         // Ordinary borders are a soft, wider warm seam rather than a crack.
-        g.lineStyle(width * 2, theme.region.seam, 0.18);
+        g.lineStyle(width * 2, theme.region.seam, SEAM_ALPHA);
       }
       const p = tileToWorld(e.x, e.y);
       const right = { x: p.x + TILE_W / 2, y: p.y + TILE_H / 2 };
