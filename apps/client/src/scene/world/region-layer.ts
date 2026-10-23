@@ -38,7 +38,9 @@ export class RegionLayer implements WorldLayer {
     // A region freed by the player's own alliance is washed in its teal; any other liberated region in the movement's gold.
     const myAlliance = snap.bases.find((b) => b.mine)?.alliance ?? null;
     const ours = new Set(
-      snap.liberations.filter((l) => held.has(l.region) && myAlliance !== null && l.alliance === myAlliance).map((l) => l.region),
+      snap.liberations
+        .filter((l) => l.from <= now && (l.until === null || l.until > now) && myAlliance !== null && l.alliance === myAlliance)
+        .map((l) => l.region),
     );
     const key = `${range.x0},${range.x1},${range.y0},${range.y1}|${snap.terrainSeed}|${snap.size}|${[...held].sort((a, b) => a - b).join(",")}|${[...ours].join(",")}|${bucket}`;
     if (key === this.key) return;

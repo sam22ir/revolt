@@ -12,6 +12,12 @@ const MARGIN = 2;
 const SMOOTH = 4;
 /** Tiles cut from each end of a road, so it stops at the stronghold's plate instead of running under the sprite. */
 const ROAD_TRIM = 0.55;
+/** Below the painted-ground zoom a riverbed is only its bed stroke on every few points: the detail would not show. */
+const DETAIL_ZOOM = 0.3;
+/** Round joins on every few points only: after the smoothing passes neighbouring segments are nearly straight. */
+const JOIN_EVERY = 3;
+/** Segments per join disc: they are a few pixels across, so a coarse polygon is invisible and much cheaper. */
+const DISC_SMOOTHNESS = 8;
 
 const WADI_BANK = 0x9c784a;
 const WADI_BED = 0xc9b48a;
@@ -106,22 +112,29 @@ export class FeatureLayer implements WorldLayer {
 
   paint(frame: WorldFrame): void {
     const { range, snapshotVersion } = frame;
-    const key = `${range.x0},${range.x1},${range.y0},${range.y1}|${this.geoKey}|${snapshotVersion}`;
+    const detail = frame.view.zoom >= DETAIL_ZOOM;
+    const key = `${range.x0},${range.x1},${range.y0},${range.y1}|${this.geoKey}|${snapshotVersion}|${detail}`;
     if (key === this.key) return;
     this.key = key;
     const g = this.graphics;
     g.clear();
     // Widths are in tile heights; the iso squash flattens a stroke's look on its own, so one width per stroke is enough.
-    for (const w of this.wadis) {
-      this.stroke(g, w, range, WADI_BANK, TILE_H * 0.9);
-      this.stroke(g, w, range, WADI_BED, TILE_H * 0.66);
-      // Pale gravel bars only where the bed is wide, so the middle line breaks up.
-      this.stroke(g, w, range, WADI_SHINE, TILE_H * 0.22, 1.05);
-      this.pebbles(g, w, range);
-    }
-    for (const r of this.roads) {
-      this.stroke(g, r, range, ROAD_EDGE, TILE_H * 0.3);
-      this.stroke(g, r, range, ROAD_TOP, TILE_H * 0.17);
+    if (!detail) {
+      // Far out: one stroke per path over every fourth point, no joins.
+      for (const w of this.wadis) this.stroke(g, w.filter((_, i) => i % 4 === 0), range, WADI_BED, TILE_H * 0.8, 0, false);
+      for (const r of this.roads) this.stroke(g, r.filter((_, i) => i % 4 === 0), range, ROAD_EDGE, TILE_H * 0.3, 0, false);
+    } else {
+      for (const w of this.wadis) {
+        this.stroke(g, w, range, WADI_BANK, TILE_H * 0.9);
+        this.stroke(g, w, range, WADI_BED, TILE_H * 0.66);
+        // Pale gravel bars only where the bed is wide, so the middle line breaks up.
+        this.stroke(g, w, range, WADI_SHINE, TILE_H * 0.22, 1.05);
+        this.pebbles(g, w, range);
+      }
+      for (const r of this.roads) {
+        this.stroke(g, r, range, ROAD_EDGE, TILE_H * 0.3);
+        this.stroke(g, r, range, ROAD_TOP, TILE_H * 0.17);
+      }
     }
     for (const o of this.oases) {
       if (!inRange({ x: o.x + 0.5, y: o.y + 0.5, w: 1 }, range)) continue;
@@ -141,11 +154,11 @@ export class FeatureLayer implements WorldLayer {
    * Strokes the visible runs of a tile-space polyline with round joins (a disc at every vertex), scaling `width` by each point's
    * width factor. Opaque, so overlapping joins leave no dark blots. Points whose factor is under `minW` are skipped.
    */
-  private stroke(g: Phaser.GameObjects.Graphics, pts: readonly Pt[], range: TileRange, color: number, width: number, minW = 0): void {
+  private stroke(g: Phaser.GameObjects.Graphics, pts: readonly Pt[], range: TileRange, color: number, width: number, minW = 0, joins = true): void {
     g.fillStyle(color, 1);
     let prev: Pt | null = null;
     let prevIn = false;
-    for (const p of pts) {
+    for (const [i, p] of pts.entries()) {
       const isIn = inRange(p, range);
       const on = p.w >= minW;
       const w = tileCenter(p.x - 0.5, p.y - 0.5);
@@ -154,7 +167,7 @@ export class FeatureLayer implements WorldLayer {
         g.lineStyle(width * (p.w + prev.w) * 0.5, color, 1);
         g.lineBetween(a.x, a.y, w.x, w.y);
       }
-      if (isIn && on) g.fillEllipse(w.x, w.y, width * p.w, width * p.w * 0.6);
+      if (joins && isIn && on && (i % JOIN_EVERY === 0 || i === pts.length - 1)) g.fillEllipse(w.x, w.y, width * p.w, width * p.w * 0.6, DISC_SMOOTHNESS);
       prev = p;
       prevIn = isIn;
     }
@@ -170,7 +183,7 @@ export class FeatureLayer implements WorldLayer {
       if (hash01(Math.floor(p.x * 7), Math.floor(p.y * 7), salt) > 0.45) continue;
       const c = tileCenter(p.x - 0.5 + (hash01(i, 1, 90) - 0.5) * 0.4, p.y - 0.5 + (hash01(i, 2, 90) - 0.5) * 0.4);
       const r = 1.5 + hash01(i, 3, 90) * 2;
-      g.fillEllipse(c.x, c.y, r * 2, r * 1.2);
+      g.fillEllipse(c.x, c.y, r * 2, r * 1.2, 6);
     }
   }
 }
