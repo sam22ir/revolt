@@ -65,7 +65,8 @@ const START_ZOOM = 0.9;
 /** Finger travel (CSS px) that still counts as a tap. */
 const TAP_SLOP = 8;
 
-const PROP_KINDS: readonly PropKind[] = ["trees", "rocks", "peaks", "scrub", "terraces"];
+// "terraces" is left out: terrain-props places none (see there), so its sheet would only be downloaded for nothing.
+const PROP_KINDS: readonly PropKind[] = ["trees", "rocks", "peaks", "scrub"];
 const ART_KEYS: readonly string[] = [...Object.values(artPack.npc), artPack.camp, ...Object.values(artPack.markers)];
 
 /**
