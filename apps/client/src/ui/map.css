@@ -15,8 +15,8 @@
   grid-auto-columns: minmax(0, 1fr);
   gap: 6px;
   padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
-  background: rgb(43 42 36 / 0.92);
-  border-block-start: 1px solid rgb(244 234 214 / 0.3);
+  background: var(--frame-bg);
+  border-block-start: 1px solid var(--bronze);
 }
 
 .nav-btn {
@@ -66,7 +66,9 @@
   font-size: 13px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  background: rgb(43 42 36 / 0.7);
+  background: var(--frame-bg);
+  border: var(--frame-border);
+  box-shadow: var(--frame-shadow);
   color: var(--paper);
   pointer-events: none;
   unicode-bidi: plaintext;
@@ -84,7 +86,8 @@
   padding-inline: 10px;
   border-radius: 999px;
   font-size: 12px;
-  background: rgb(43 42 36 / 0.78);
+  background: var(--frame-bg);
+  border: var(--frame-border);
   color: var(--paper);
 }
 .march-row[data-stage="fighting"] { background: rgb(181 64 47 / 0.9); }
@@ -271,9 +274,10 @@
   inline-size: 112px;
   block-size: 56px;
   padding: 0;
-  border: 1px solid rgb(244 234 214 / 0.35);
+  border: var(--frame-border);
   border-radius: 8px;
-  background: rgb(43 42 36 / 0.72);
+  background: var(--frame-bg);
+  box-shadow: var(--frame-shadow);
   overflow: hidden;
   cursor: pointer;
 }
@@ -290,9 +294,10 @@
   inline-size: 40px;
   block-size: 40px;
   padding: 0;
-  border: 1px solid rgb(244 234 214 / 0.35);
+  border: var(--frame-border);
   border-radius: 50%;
-  background: rgb(43 42 36 / 0.72);
+  background: var(--frame-bg);
+  box-shadow: var(--frame-shadow);
   color: var(--paper);
   cursor: pointer;
 }
@@ -314,9 +319,9 @@
 .target-level, .target-go {
   min-block-size: 36px;
   padding-inline: 12px;
-  border: 1px solid rgb(244 234 214 / 0.3);
+  border: var(--frame-border);
   border-radius: 10px;
-  background: rgb(43 42 36 / 0.78);
+  background: var(--frame-bg);
   color: var(--paper);
   font: inherit;
   font-weight: 600;
@@ -342,7 +347,7 @@
 .target-level[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: var(--ink); }
 .target-go { margin-inline-start: auto; }
 .target-go:disabled { opacity: 0.5; cursor: default; }
-.target-note { flex: 0 1 auto; margin: 0; padding: 4px 12px; border-radius: 999px; background: rgb(43 42 36 / 0.78); font-size: 13px; color: var(--paper); }
+.target-note { flex: 0 1 auto; margin: 0; padding: 4px 12px; border-radius: 999px; background: var(--frame-bg); border: var(--frame-border); font-size: 13px; color: var(--paper); }
 .target-note[hidden] { display: none; }
 
 /* Name plates and the arrow home over the map canvas (ui/map-labels.ts). The map never mirrors, so this layer is placed

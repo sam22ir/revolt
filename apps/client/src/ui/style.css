@@ -6,6 +6,16 @@
   --bad: #b5402f;
   --radius: 12px;
   --gutter: 10px;
+  /* Bronze frame, sampled from the painted art. Every HUD panel, pill and nav button uses these. */
+  --bronze: #b28154;
+  --bronze-hi: #e9d5aa;
+  --bronze-dark: #5a3d2b;
+  --slate-1: #4a4d4c;
+  --slate-2: #393a35;
+  --well: #262420;
+  --frame-bg: linear-gradient(180deg, var(--slate-1), var(--slate-2));
+  --frame-border: 1px solid var(--bronze);
+  --frame-shadow: 0 2px 6px rgb(0 0 0 / 0.5), inset 0 1px 0 rgb(233 213 170 / 0.25), inset 0 -1px 0 rgb(0 0 0 / 0.4);
   /* Bottom nav bar: 1px border + 6px + 52px button + 6px, plus the home-indicator inset (see .hud-nav in map.css). */
   --nav-h: 65px;
   color-scheme: light;
@@ -68,7 +78,9 @@ html, body {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 4px;
-  background: rgb(43 42 36 / 0.92);
+  background: var(--frame-bg);
+  border: var(--frame-border);
+  box-shadow: var(--frame-shadow);
   border-radius: var(--radius);
 }
 
@@ -153,7 +165,9 @@ html, body {
   padding-inline: 12px;
   border-radius: 999px;
   font-size: 12px;
-  background: rgb(43 42 36 / 0.7);
+  background: var(--frame-bg);
+  border: var(--frame-border);
+  box-shadow: var(--frame-shadow);
   color: var(--paper);
   display: flex;
   gap: 8px;
@@ -169,7 +183,9 @@ html, body {
 .account-panel {
   margin: var(--gutter);
   padding: 14px 16px 16px;
-  background: var(--paper);
+  background: var(--frame-bg);
+  border: var(--frame-border);
+  color: var(--paper);
   border-radius: 16px;
   /* Not box-shadow: on a scrolling element above the WebGL canvas it made headless Chromium paint the canvas
      area above the panel solid white/black. drop-shadow renders the same and does not. */
@@ -228,9 +244,14 @@ html, body {
   padding-inline: 8px;
   border-radius: 8px;
   background: var(--paper-2);
+  color: var(--ink);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+/* Panels are dark now (bronze frame), so the secondary buttons in them take light text. */
+.panel .secondary-btn, .account-panel .secondary-btn { color: var(--paper); border-color: var(--bronze); }
+/* Light chips in the alliance panel (styled in alliance.css) keep ink text on the dark panel. */
+.alliance-row, .member-row, .help-row, .rally-row, .chat-msg, .rank-badge { color: var(--ink); }
 .cost.lacking { color: var(--bad); outline: 1px solid var(--bad); }
 
 .upgrade-btn {
