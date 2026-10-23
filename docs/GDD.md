@@ -174,7 +174,7 @@ These are hard rules for all content:
 
 ## 7. Art and audio
 
-- **Style (approved 19 Oct 2026):** semi-realistic painted isometric 2D, in the register of *Z Day: Hearts of Heroes*: rich warm sunlight, soft shadows, real materials, dense small props, buildings readable by silhouette at phone size. Algeria palette: sand, terracotta, whitewash, olive, rock brown. UI is dark metal with bronze accents, with local motifs and no baked-in text.
+- **Style (approved 19 Oct 2026):** semi-realistic painted isometric 2D, in the register of *Z Day: Hearts of Heroes*: rich warm sunlight, soft shadows, real materials, quiet ground with sparse, clustered props (see docs/art-direction-v2.md), buildings readable by silhouette at phone size. Algeria palette: sand, terracotta, whitewash, olive, rock brown. UI is dark metal with bronze accents, with local motifs and no baked-in text.
 - **No faces:** people appear small and without readable faces in art; heroes follow §6.
 - **Sources:** art is generated (Nano Banana 2.1 in Google Flow), one building per image at a fixed angle and lighting, on a plain background for cutout, using the approved base-camp scene as the style reference. Check Flow's commercial-use terms and Google Play's AI-content disclosure before release.
 - **Budget:** under $500 in year one. Use generated art, free asset packs (Kenney.nl) and code-drawn placeholders. Hire artists only if the budget grows; the first hires would be a building/unit artist, then a hero portrait artist.

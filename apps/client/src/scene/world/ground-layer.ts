@@ -4,6 +4,7 @@ import { theme } from "../../theme/theme.ts";
 import { groundTexture, propsTexture, terrainAtlases, type Atlas } from "../../art/art.ts";
 import { SpritePool } from "../sprite-pool.ts";
 import { OASIS_FRONT } from "../terrain-props.ts";
+import { clusterMask } from "../decor-clusters.ts";
 import type { FeatureLayer } from "./feature-layer.ts";
 import { GroundBake } from "./ground-bake.ts";
 import { buildGroundPlan, type GroundPlan } from "./ground-plan.ts";
@@ -68,7 +69,9 @@ export class GroundLayer implements WorldLayer {
         }
     this.fertility = new Float32Array(snap.size * snap.size);
     for (let y = 0; y < snap.size; y++) for (let x = 0; x < snap.size; x++) this.fertility[y * snap.size + x] = fertilityAt(snap.terrainSeed, x, y);
-    this.plan = buildGroundPlan({ size: snap.size, terrain: this.terrain, flags: this.geoFlags, fertility: this.fertility, palette: TERRAIN_IDS.map((id) => theme.terrain[id][0]) });
+    const rocks = clusterMask(snap.terrainSeed, snap.size, "rocks");
+    const grove = clusterMask(snap.terrainSeed, snap.size, "grove");
+    this.plan = buildGroundPlan({ size: snap.size, terrain: this.terrain, flags: this.geoFlags, fertility: this.fertility, rocks, grove, palette: TERRAIN_IDS.map((id) => theme.terrain[id][0]) });
     // The features are read when a cell bakes, which is after the scene has handed them the same snapshot.
     this.bake.reset({ size: snap.size, colours: this.plan.colours, paintFeatures: (g, range) => this.features.paintInto(g, range) });
     this.propKey = "";

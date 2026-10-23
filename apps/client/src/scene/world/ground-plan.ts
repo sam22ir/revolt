@@ -10,6 +10,9 @@ export interface GroundPlanInput {
   /** GEO_* flags (with the client's OASIS_FRONT bit) per tile. */
   readonly flags: Uint8Array;
   readonly fertility: Float32Array;
+  /** Rock and grove cluster strength per tile, 0..255 (see decor-clusters.ts). */
+  readonly rocks: Uint8Array;
+  readonly grove: Uint8Array;
   /** Ground colour per terrain index. */
   readonly palette: readonly number[];
 }
@@ -24,7 +27,7 @@ export interface GroundPlan {
 
 /** Computes the ground colour and the prop plans of every tile. Costs one pass over the map. */
 export const buildGroundPlan = (input: GroundPlanInput): GroundPlan => {
-  const { size, terrain, flags, fertility, palette } = input;
+  const { size, terrain, flags, fertility, rocks, grove, palette } = input;
   const idAt = (x: number, y: number): number => (x < 0 || y < 0 || x >= size || y >= size ? -1 : (terrain[y * size + x] ?? -1));
   // Share of the eight neighbours with the same terrain; off the map counts as the same, so a region does not thin at the edge.
   const interior = (x: number, y: number): number => {
@@ -45,7 +48,7 @@ export const buildGroundPlan = (input: GroundPlanInput): GroundPlan => {
     for (let x = 0; x < size; x++) {
       const i = y * size + x;
       const terrainId = TERRAIN_IDS[terrain[i] ?? 0] ?? "plain";
-      const ctx: PropContext = { flags: flags[i] ?? 0, fertility: fertility[i] ?? 0.5 };
+      const ctx: PropContext = { flags: flags[i] ?? 0, fertility: fertility[i] ?? 0.5, rocks: (rocks[i] ?? 0) / 255, grove: (grove[i] ?? 0) / 255 };
       colours[i] = landTint(blendedGround(idAt, x, y, palette), terrainId, ctx);
       props[i] = propsFor(terrainId, x, y, interior(x, y), ctx);
     }

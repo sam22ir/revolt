@@ -13,18 +13,27 @@ const WEIGHT_SUM = 16;
 const DRIFT_CELL = 5;
 /** Peak-to-peak brightness drift: 0.12 means about plus or minus 6%. */
 const DRIFT_RANGE = 0.12;
+/** A second, broader drift over wide stretches of sand: peak-to-peak 0.08, about plus or minus 4%. */
+const WIDE_DRIFT_CELL = 16;
+const WIDE_DRIFT_RANGE = 0.08;
+/** The largest brightness shift either drift can give, as a fraction: half of each range added together. */
+export const MAX_DRIFT = DRIFT_RANGE / 2 + WIDE_DRIFT_RANGE / 2;
 
-/** Smooth value noise in [0, 1): a hashed lattice every DRIFT_CELL tiles, bilinearly blended. */
-const drift = (x: number, y: number): number => {
-  const gx = Math.floor(x / DRIFT_CELL);
-  const gy = Math.floor(y / DRIFT_CELL);
-  const fx = x / DRIFT_CELL - gx;
-  const fy = y / DRIFT_CELL - gy;
-  const v = (i: number, j: number): number => hash01(gx + i, gy + j, 91);
+/** Smooth value noise in [0, 1): a hashed lattice every `cell` tiles, bilinearly blended; `salt` picks an independent lattice. */
+const smoothNoise = (x: number, y: number, cell: number, salt: number): number => {
+  const gx = Math.floor(x / cell);
+  const gy = Math.floor(y / cell);
+  const fx = x / cell - gx;
+  const fy = y / cell - gy;
+  const v = (i: number, j: number): number => hash01(gx + i, gy + j, salt);
   const top = v(0, 0) * (1 - fx) + v(1, 0) * fx;
   const bottom = v(0, 1) * (1 - fx) + v(1, 1) * fx;
   return top * (1 - fy) + bottom * fy;
 };
+
+/** Brightness factor for a tile: the near drift plus the wide one, each centred on zero. */
+const driftAt = (x: number, y: number): number =>
+  (smoothNoise(x, y, DRIFT_CELL, 91) - 0.5) * DRIFT_RANGE + (smoothNoise(x, y, WIDE_DRIFT_CELL, 92) - 0.5) * WIDE_DRIFT_RANGE;
 
 const channel = (c: number, shift: number): number => (c >> shift) & 0xff;
 
@@ -46,7 +55,7 @@ export const blendedGround = (idAt: (x: number, y: number) => number, x: number,
       sum[2] = (sum[2] ?? 0) + w * channel(colour, 0);
     }
   }
-  const k = 1 + (drift(x, y) - 0.5) * DRIFT_RANGE;
+  const k = 1 + driftAt(x, y);
   const out = sum.map((s) => Math.max(0, Math.min(255, Math.round((s / WEIGHT_SUM) * k))));
   return ((out[0] ?? 0) << 16) | ((out[1] ?? 0) << 8) | (out[2] ?? 0);
 };

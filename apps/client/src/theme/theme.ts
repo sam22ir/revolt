@@ -26,6 +26,8 @@ export interface Theme {
     readonly held: number;
     /** Wash over a liberated region, its border, and its minimap fill. */
     readonly liberated: number;
+    /** The soft seam between two ordinary regions on the map (a faint warm band, not a crack). */
+    readonly seam: number;
   };
   readonly accent: {
     readonly gold: number;
@@ -46,7 +48,7 @@ export const theme: Theme = {
     mountain: [0x6a5846, 0x665543],
   },
   alliance: { own: 0x2f9e8f, other: 0x6a55a8 },
-  region: { border: 0x3a2a1e, held: 0x74604a, liberated: 0xe0b040 },
+  region: { border: 0x3a2a1e, held: 0x74604a, liberated: 0xe0b040, seam: 0x8a6a44 },
   accent: { gold: 0xe0b040, paper: 0xf4ead6 },
   ink: { base: 0x2b2a24 },
 };
