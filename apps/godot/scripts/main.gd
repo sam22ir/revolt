@@ -35,6 +35,7 @@ func _ready() -> void:
 	_api.base_url = Api.resolve_base_url()
 	add_child(_api)
 	_setup_sockets()
+	_setup_fps_debug()
 	add_child(_world)
 	_world.add_child(_map)
 	_world.add_child(_camera)
@@ -49,6 +50,7 @@ func _ready() -> void:
 	_start()
 
 func _start() -> void:
+	var started_ms := Time.get_ticks_msec()
 	_status.text = Loc.t("map.loading")
 	var session := await _api.ensure_session()
 	if not session["ok"]:
@@ -57,6 +59,7 @@ func _start() -> void:
 	_session.apply(session["data"])
 	# The base needs only the state, so it is ready (and the default screen) before the heavy map build.
 	_base.build()
+	_debug_time("base ready", started_ms)
 	_refit()
 	_refresh_status()
 	var reply := await _api.get_json("/v1/map")
@@ -65,7 +68,9 @@ func _start() -> void:
 		return
 	_session.apply({"now": reply["data"]["now"]})
 	_session.set_liberations(reply["data"]["liberations"], int(reply["data"]["now"]))
+	var map_started_ms := Time.get_ticks_msec()
 	await _map.build(reply["data"])
+	_debug_time("map build", map_started_ms)
 	_camera.bounds = Iso.world_bounds(_map.size)
 	var own := _map.own_base_tile()
 	if own.x >= 0:
@@ -85,6 +90,43 @@ func _debug_net() -> bool:
 	if not OS.has_feature("web"):
 		return false
 	return JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('debug')") == "net"
+
+## With `?debug=fps` on the web, prints how long a step took since `since_ms` (debug aid).
+func _debug_time(what: String, since_ms: int) -> void:
+	if _fps_timer != null:
+		_debug_log("[fps] %s ms=%d at=%d" % [what, Time.get_ticks_msec() - since_ms, Time.get_ticks_msec()])
+
+## Prints to the console and keeps the line in `window.revoltLog`, which tooling can read (debug aid).
+func _debug_log(text: String) -> void:
+	print(text)
+	JavaScriptBridge.eval("(window.revoltLog = window.revoltLog || []).push(%s)" % JSON.stringify(text))
+
+## Web only: `?debug=fps` prints frame rate, draw calls and object counts to the console every 3 s, and gives the page
+## `window.revoltShow("base" | "map")` and `window.revoltHide(layer, hidden)` to hide a map layer at runtime ("ground", "decals", "features", "wash", "detail", "seams",
+## "props", "objects"), to see what each costs (debug aid).
+var _js_hide: JavaScriptObject
+var _js_show: JavaScriptObject
+var _fps_timer: Timer
+
+func _setup_fps_debug() -> void:
+	if not OS.has_feature("web"):
+		return
+	if JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('debug')") != "fps":
+		return
+	_js_hide = JavaScriptBridge.create_callback(func(args: Array) -> void: _map.set_layer_visible(str(args[0]), not bool(args[1])))
+	JavaScriptBridge.get_interface("window").revoltHide = _js_hide
+	_js_show = JavaScriptBridge.create_callback(func(args: Array) -> void: _show_screen(str(args[0])))
+	JavaScriptBridge.get_interface("window").revoltShow = _js_show
+	_fps_timer = Timer.new()
+	_fps_timer.wait_time = 3.0
+	_fps_timer.timeout.connect(func() -> void:
+		_debug_log("[fps] screen=%s fps=%d process_ms=%.1f draw_calls=%d objects=%d primitives=%d" % [
+			_screen, Engine.get_frames_per_second(), Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0,
+			Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
+			Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
+			Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)]))
+	add_child(_fps_timer)
+	_fps_timer.start()
 
 func _setup_sockets() -> void:
 	if _debug_net():
