@@ -11,6 +11,8 @@ extends RefCounted
 signal state_changed
 ## A battle report pushed on the map socket (newest first in `reports`).
 signal report_received(report: Dictionary)
+## The list changed (a fetch or a pushed report).
+signal reports_changed
 signal auth_lost
 ## The server became unreachable or reachable again (see `online`).
 signal connection_changed(online: bool)
@@ -36,7 +38,7 @@ var ticks: Callable = func() -> int: return Time.get_ticks_msec()
 
 ## The account's background (`algeria`, `vietnam`): names and texts can be overridden per background (Loc.t).
 var background := ""
-## False after a state or intent request failed (no answer, 429 or a server error); true again at the next answer, or at
+## False after a state, intent or reports request failed (no answer, 429 or a server error); true again at the next answer, or at
 ## any well-formed socket frame. A 401 is `auth_lost`, not offline. The same rule as the Phaser store's status.
 var online := true
 var state: Dictionary = {}
@@ -150,12 +152,34 @@ func set_liberations(list: Array, now: int) -> void:
 static func _newer_than(reply_now: int, stamped: bool, last: int) -> bool:
 	return not stamped or reply_now >= last
 
-## A report from the map socket.
+## A report pushed on the map socket. Only a report not held yet is announced (a reconnect may replay one).
 func add_report(report: Dictionary) -> void:
-	reports.push_front(report)
-	if reports.size() > MAX_REPORTS:
-		reports.resize(MAX_REPORTS)
+	if not MapMessages.is_report(report) or _holds(String(report["id"])):
+		return
+	merge_reports([report])
 	report_received.emit(report)
+
+## Merges reports into the list (by id, newest first, at most MAX_REPORTS). Used by the fetch and by the socket.
+func merge_reports(incoming: Array) -> void:
+	var next := ReportsModel.merged(reports, incoming, MAX_REPORTS)
+	if next == reports:
+		return
+	reports = next
+	reports_changed.emit()
+
+## Fetches `/v1/reports` (the server's list, newest first) and merges it, so a push that arrived meanwhile is kept. Called at
+## start-up, on resume and when the Reports screen opens; a failed fetch changes nothing.
+func load_reports() -> void:
+	var result: Dictionary = await api.get_json("/v1/reports")
+	_take(result)
+	if result["ok"] and result["data"] is Dictionary and result["data"].get("reports") is Array:
+		merge_reports(result["data"]["reports"])
+
+func _holds(id: String) -> bool:
+	for r: Dictionary in reports:
+		if String(r["id"]) == id:
+			return true
+	return false
 
 ## Fetches `/v1/state`. Calls that arrive while a fetch is in flight are folded into one more fetch afterwards, so a push
 ## that lands just after the server answered is never lost and a burst costs at most two requests.

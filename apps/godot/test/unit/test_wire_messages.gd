@@ -12,7 +12,7 @@ func test_map_frames() -> void:
 	var map: Variant = MapMessages.parse(JSON.stringify({"type": "map", "snapshot": _snapshot()}))
 	assert_eq(map["type"], "map")
 	assert_eq(int(map["snapshot"]["size"]), 64)
-	var report: Variant = MapMessages.parse('{"type":"report","report":{"id":"r1","at":3,"result":"win","target":{}}}')
+	var report: Variant = MapMessages.parse('{"type":"report","report":{"id":"r1","at":3,"result":"win","target":{},"rounds":1,"sent":{},"survivors":{},"wounded":{},"lost":{},"defenders":{},"defendersKilled":{},"loot":{}}}')
 	assert_eq(report["type"], "report")
 	assert_eq(int(MapMessages.parse('{"type":"base_changed","now":9}')["now"]), 9)
 

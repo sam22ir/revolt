@@ -4,6 +4,10 @@ import { t } from "./i18n/i18n.ts";
 export const formatAmount = (lang: Language, value: number): string =>
   new Intl.NumberFormat(numberLocale(lang), { maximumFractionDigits: 0 }).format(Math.floor(value));
 
+/** A battle report's time: the short date and time (`dateStyle` and `timeStyle` short), in the device's time zone unless `timeZone` says otherwise. */
+export const formatReportTime = (lang: Language, at: number, timeZone?: string): string =>
+  new Intl.DateTimeFormat(numberLocale(lang), { dateStyle: "short", timeStyle: "short", timeZone }).format(new Date(at));
+
 /** Countdown text such as "1 h 5 min" or "42 s". Rounds up so it never shows 0 early. */
 export const formatDuration = (ms: number): string => {
   const total = Math.ceil(Math.max(0, ms) / 1000);

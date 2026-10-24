@@ -125,7 +125,7 @@ func test_reports_keep_the_newest_first_and_are_capped() -> void:
 	var s := _session(FakeApi.new())
 	watch_signals(s)
 	for i in Session.MAX_REPORTS + 5:
-		s.add_report({"id": "r%d" % i})
+		s.add_report(_report("r%d" % i, float(i)))
 	assert_eq(s.reports.size(), Session.MAX_REPORTS)
 	assert_eq(s.reports[0]["id"], "r%d" % (Session.MAX_REPORTS + 4))
 	assert_signal_emit_count(s, "report_received", Session.MAX_REPORTS + 5)
@@ -365,3 +365,48 @@ func test_a_socket_frame_while_online_fetches_nothing() -> void:
 	s.mark_reachable()
 	await wait_process_frames(3)
 	assert_eq(api.calls.size(), 0)
+
+func _report(id: String, at: float) -> Dictionary:
+	var none := {"infantry": 0, "scouts": 0, "heavy": 0, "porters": 0}
+	return {
+		"id": id, "at": at, "result": "victory", "rounds": 2,
+		"target": {"kind": "patrol", "level": 1, "x": 3, "y": 4},
+		"sent": {"infantry": 5, "scouts": 0, "heavy": 0, "porters": 0}, "survivors": none, "wounded": none, "lost": none,
+		"defenders": none, "defendersKilled": none, "loot": {"food": 10, "materiel": 0, "funds": 0, "support": 0}, "seed": null,
+	}
+
+func test_a_pushed_report_is_announced_once_and_listed_newest_first() -> void:
+	var s := _session(FakeApi.new())
+	var announced: Array = []
+	s.report_received.connect(func(r: Dictionary) -> void: announced.append(r["id"]))
+	s.add_report(_report("b", 200))
+	s.add_report(_report("a", 100))
+	s.add_report(_report("b", 200))
+	assert_eq(announced, ["b", "a"], "a replayed report is not announced again")
+	assert_eq(s.reports.map(func(r: Dictionary) -> String: return r["id"]), ["b", "a"])
+
+func test_the_fetched_list_merges_with_a_pushed_report_and_announces_nothing() -> void:
+	var api := FakeApi.new()
+	api.replies = [_ok({"reports": [_report("a", 100), _report("z", 50), "junk"], "now": 5000})]
+	var s := _session(api)
+	var announced: Array = []
+	var changes := [0]
+	s.report_received.connect(func(r: Dictionary) -> void: announced.append(r["id"]))
+	s.reports_changed.connect(func() -> void: changes[0] += 1)
+	s.add_report(_report("b", 200))
+	await s.load_reports()
+	assert_eq(s.reports.map(func(r: Dictionary) -> String: return r["id"]), ["b", "a", "z"], "the pushed report is kept, the junk dropped")
+	assert_eq(announced, ["b"], "only the pushed report was announced")
+	assert_eq(changes[0], 2, "the list changed once for the push and once for the fetch")
+	assert_eq(s.clock.now_ms(0), 5000, "the fetch syncs the clock")
+
+func test_a_refused_fetch_changes_nothing_and_a_401_reports_auth_lost() -> void:
+	var api := FakeApi.new()
+	api.replies = [{"ok": false, "status": 401, "data": null}]
+	var s := _session(api)
+	s.add_report(_report("a", 100))
+	var lost := [false]
+	s.auth_lost.connect(func() -> void: lost[0] = true)
+	await s.load_reports()
+	assert_true(lost[0])
+	assert_eq(s.reports.size(), 1)

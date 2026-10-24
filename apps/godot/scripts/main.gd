@@ -6,7 +6,9 @@ const LANGS: Array[String] = ["en", "ar", "fr"]
 const FONT_SIZE := 34
 ## Height of the bottom nav bar, in viewport px; the base screen and the building sheet keep clear of it.
 const NAV_HEIGHT := 100
-const SCREENS: Array[String] = ["base", "map"]
+const SCREENS: Array[String] = ["base", "map", "reports"]
+## Gap between the top box and the report toast, in viewport px.
+const TOAST_GAP := 8
 
 var _api := Api.new()
 var _clock := Clock.new()
@@ -25,6 +27,8 @@ var _offline_badge := PanelContainer.new()
 var _language_buttons := {}
 var _loaded := false
 var _base := BaseScreen.new()
+var _reports_screen := ReportsScreen.new()
+var _toast := ReportToast.new()
 var _nav := HBoxContainer.new()
 var _nav_buttons := {}
 var _top_box: VBoxContainer
@@ -63,6 +67,7 @@ func _start() -> void:
 	_debug_time("base ready", started_ms)
 	_refit()
 	_refresh_status()
+	_session.load_reports()
 	var reply := await _retry_start(_api.get_json.bind("/v1/map"))
 	if not reply["ok"]:
 		_show_error()
@@ -123,12 +128,14 @@ func _debug_log(text: String) -> void:
 	JavaScriptBridge.eval("(window.revoltLog = window.revoltLog || []).push(%s)" % JSON.stringify(text))
 
 ## Web only: `?debug=fps` prints frame rate, draw calls and object counts to the console every 3 s, and gives the page
-## `window.revoltShow("base" | "map")`, `window.revoltLang("en" | "ar" | "fr")`, `window.revoltRefresh()` and `window.revoltHide(layer, hidden)` to hide a map layer at runtime ("ground", "decals", "features", "wash", "detail", "seams",
-## "props", "objects"), to see what each costs (debug aid).
+## `window.revoltShow("base" | "map" | "reports")`, `window.revoltLang("en" | "ar" | "fr")`, `window.revoltRefresh()`,
+## `window.revoltReport(json)` (a battle report as the server sends it, pushed as the map socket would) and `window.revoltHide(layer, hidden)`
+## to hide a map layer at runtime ("ground", "decals", "features", "wash", "detail", "seams", "props", "objects"), to see what each costs (debug aid).
 var _js_hide: JavaScriptObject
 var _js_show: JavaScriptObject
 var _js_lang: JavaScriptObject
 var _js_refresh: JavaScriptObject
+var _js_report: JavaScriptObject
 var _fps_timer: Timer
 
 func _setup_fps_debug() -> void:
@@ -144,6 +151,8 @@ func _setup_fps_debug() -> void:
 	JavaScriptBridge.get_interface("window").revoltLang = _js_lang
 	_js_refresh = JavaScriptBridge.create_callback(func(_args: Array) -> void: _session.refresh())
 	JavaScriptBridge.get_interface("window").revoltRefresh = _js_refresh
+	_js_report = JavaScriptBridge.create_callback(func(args: Array) -> void: _inject_report(str(args[0])))
+	JavaScriptBridge.get_interface("window").revoltReport = _js_report
 	_fps_timer = Timer.new()
 	_fps_timer.wait_time = 3.0
 	_fps_timer.timeout.connect(func() -> void:
@@ -181,6 +190,12 @@ func _setup_sockets() -> void:
 		_map_socket.stop()
 		_alliance_socket.stop())
 
+## Debug aid (`?debug=fps`): one report as the server sends it, taken as if pushed on the map socket.
+func _inject_report(text: String) -> void:
+	var parser := JSON.new()
+	if parser.parse(text) == OK and parser.data is Dictionary:
+		_session.add_report(parser.data)
+
 ## The alliance feed runs only while the player is in an alliance.
 func _start_alliance_feed() -> void:
 	var mine := await _api.get_json("/v1/alliance")
@@ -210,6 +225,7 @@ func _notification(what: int) -> void:
 		# Back from the background: the state may have moved, and a socket the OS dropped is reconnected.
 		var now := Time.get_ticks_msec()
 		_session.refresh()
+		_session.load_reports()
 		_map_socket.ensure_open(now)
 		_alliance_socket.ensure_open(now)
 
@@ -249,17 +265,34 @@ func _show_screen(screen: String) -> void:
 	var on_map := screen == "map"
 	_world.visible = on_map
 	_world.process_mode = Node.PROCESS_MODE_INHERIT if on_map else Node.PROCESS_MODE_DISABLED
-	_base.set_active(not on_map)
+	_base.set_active(screen == "base")
+	_reports_screen.visible = screen == "reports"
 	for id: String in _nav_buttons:
 		_nav_buttons[id].set_pressed_no_signal(id == screen)
+	if screen == "reports":
+		# The list shows at once from what is held; the server's list (which may hold a report the socket missed) follows.
+		_session.load_reports()
 	_refresh_status()
 	_update_coords()
 
-## Fits the base between the HUD and the nav bar; called when either changes size.
+## A report pushed on the map socket: the notice, which opens the report when tapped.
+func _on_new_report(report: Dictionary) -> void:
+	_toast.show_report(report)
+
+func _open_report(id: String) -> void:
+	_show_screen("reports")
+	_reports_screen.open_report(id)
+
+## Fits the base, and the Reports screen, between the HUD and the nav bar; called when either changes size.
 func _refit() -> void:
-	if _top_box == null or not _base.is_built():
+	if _top_box == null:
 		return
 	var top := _top_box.get_global_rect().end.y
+	_reports_screen.offset_top = top
+	_reports_screen.offset_bottom = -NAV_HEIGHT
+	_toast.offset_top = top + TOAST_GAP
+	if not _base.is_built():
+		return
 	_base.refit(get_viewport().get_visible_rect().size, top, float(NAV_HEIGHT))
 
 func _build_hud() -> void:
@@ -326,7 +359,22 @@ func _build_hud() -> void:
 	_base.panel.offset_bottom = -NAV_HEIGHT
 	_hud_root.add_child(_base.panel)
 
+	# Above the screens, below the offline badge; hidden until its screen shows.
+	_reports_screen.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_reports_screen.visible = false
+	_hud_root.add_child(_reports_screen)
+	_session.reports_changed.connect(func() -> void: _reports_screen.set_reports(_session.reports))
+	_reports_screen.set_reports(_session.reports)
 	_build_offline_badge()
+
+	# Just under the top box, as the Phaser client does (`refit` moves it with the box).
+	_toast.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_toast.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_toast.grow_vertical = Control.GROW_DIRECTION_END
+	_toast.layout_direction = Control.LAYOUT_DIRECTION_LOCALE
+	_toast.opened.connect(_open_report)
+	_session.report_received.connect(_on_new_report)
+	_hud_root.add_child(_toast)
 
 	_nav.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_nav.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -382,6 +430,8 @@ func _apply_language(lang: String) -> void:
 	_refresh_names()
 	for id: String in _nav_buttons:
 		_nav_buttons[id].text = Loc.t("nav." + id)
+	_reports_screen.refresh()
+	_toast.refresh()
 	_refresh_status()
 	_update_coords()
 	# The language changes the HUD's height (button and counter texts), so the base is fitted again.

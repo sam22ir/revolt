@@ -1,7 +1,6 @@
 import { RESOURCE_IDS, TROOP_IDS, type BattleReport, type Troops } from "@revolt/rules";
-import { formatAmount } from "../format.ts";
+import { formatAmount, formatReportTime } from "../format.ts";
 import { currentLanguage, t } from "../i18n/i18n.ts";
-import { numberLocale } from "../i18n/languages.ts";
 import { el } from "./dom.ts";
 import { resourceIcon } from "./icons.ts";
 
@@ -19,8 +18,7 @@ interface ReportsDeps {
   readonly onClose: () => void;
 }
 
-const when = (at: number): string =>
-  new Intl.DateTimeFormat(numberLocale(currentLanguage()), { dateStyle: "short", timeStyle: "short" }).format(new Date(at));
+const when = (at: number): string => formatReportTime(currentLanguage(), at);
 
 const targetName = (r: BattleReport): string => (r.target.kind === null ? t("report.targetGone") : t(`npc.${r.target.kind}.name`));
 
