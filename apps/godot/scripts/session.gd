@@ -12,6 +12,8 @@ signal state_changed
 ## A battle report pushed on the map socket (newest first in `reports`).
 signal report_received(report: Dictionary)
 signal auth_lost
+## The server became unreachable or reachable again (see `online`).
+signal connection_changed(online: bool)
 ## The alliance chat changed (history or a new line).
 signal chat_changed
 ## Membership, ranks, HQ or help requests changed on the server: the alliance view should be fetched again.
@@ -21,6 +23,8 @@ const MAX_REPORTS := 20
 const MAX_CHAT := 200
 ## A running job is asked about this long after its `endsAt`, in server time, so a reply stamped just before it is rare;
 ## when the server still reports the job, it is asked again every RETRY_MS, at most MAX_COMPLETION_ASKS times in all.
+## While offline the base is asked for again this often (apps/client/src/main.ts RETRY_MS, last value).
+const OFFLINE_RETRY_MS := 10_000
 const COMPLETION_MARGIN_MS := 400
 const COMPLETION_RETRY_MS := 2000
 const MAX_COMPLETION_ASKS := 5
@@ -32,6 +36,9 @@ var ticks: Callable = func() -> int: return Time.get_ticks_msec()
 
 ## The account's background (`algeria`, `vietnam`): names and texts can be overridden per background (Loc.t).
 var background := ""
+## False after a state or intent request failed (no answer, 429 or a server error); true again at the next answer, or at
+## any well-formed socket frame. A 401 is `auth_lost`, not offline. The same rule as the Phaser store's status.
+var online := true
 var state: Dictionary = {}
 var resources: Dictionary = {}
 var levels: Dictionary = {}
@@ -43,6 +50,7 @@ var chat: Array = []
 
 var _refreshing := false
 var _refresh_again := false
+var _offline_asked_at_ms := 0
 var _watched_job := ""
 var _asked := 0
 var _asked_at_ms := 0
@@ -90,6 +98,7 @@ func queue() -> Variant:
 ## comes from the server and not from the client. If the answer still holds the job (the server's clock is a little behind),
 ## it asks again after COMPLETION_RETRY_MS, up to MAX_COMPLETION_ASKS times for that job.
 func tick() -> void:
+	_retry_when_offline()
 	var job: Variant = queue()
 	if job == null:
 		_watched_job = ""
@@ -107,6 +116,29 @@ func tick() -> void:
 	_asked += 1
 	_asked_at_ms = now_ticks
 	refresh()
+
+## A well-formed socket frame proves the server is reachable. Coming back from offline this way, the base is fetched once:
+## the request that failed may still have been applied by the server (an upgrade whose answer was lost), and nothing else
+## would correct the view.
+func mark_reachable() -> void:
+	if online:
+		return
+	_set_online(true)
+	refresh()
+
+func _set_online(value: bool) -> void:
+	if online != value:
+		online = value
+		connection_changed.emit(value)
+
+## While offline, asks again every OFFLINE_RETRY_MS (and the answer, if it comes, brings the session back online).
+func _retry_when_offline() -> void:
+	if online:
+		return
+	var now_ticks: int = ticks.call()
+	if now_ticks - _offline_asked_at_ms >= OFFLINE_RETRY_MS:
+		_offline_asked_at_ms = now_ticks
+		refresh()
 
 ## Takes the liberations of a map snapshot (`now` is the snapshot's), which can be newer than the last state reply.
 func set_liberations(list: Array, now: int) -> void:
@@ -177,8 +209,16 @@ func _trim_chat() -> void:
 		chat = chat.slice(chat.size() - MAX_CHAT)
 
 func _take(result: Dictionary) -> void:
-	if int(result["status"]) == 401:
+	var status := int(result["status"])
+	if status == 401:
 		auth_lost.emit()
+		return
+	# No answer, rate limited or a server error: offline. Other refusals (400s) say nothing about the connection.
+	if status == 0 or status == 429 or status >= 500:
+		if online:
+			_offline_asked_at_ms = ticks.call()
+		_set_online(false)
 		return
 	if result["data"] is Dictionary:
 		apply(result["data"])
+		_set_online(true)

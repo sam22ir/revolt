@@ -279,3 +279,89 @@ func test_the_background_becomes_the_active_one_for_every_text() -> void:
 	var s := _session(FakeApi.new())
 	s.apply({"account": {"background": "vietnam"}, "state": _state(1), "now": 1})
 	assert_eq(Loc.background_id, "vietnam")
+
+## Online and offline: the Phaser store's rule (a failed state or intent request goes offline, an answer comes back).
+
+func test_a_failed_request_goes_offline_and_an_answer_comes_back() -> void:
+	var api := FakeApi.new()
+	api.replies = [{"ok": false, "status": 0, "data": null}, _ok({"state": _state(5), "now": 9})]
+	var s := _session(api)
+	watch_signals(s)
+	assert_true(s.online)
+	await s.refresh()
+	assert_false(s.online)
+	assert_signal_emitted_with_parameters(s, "connection_changed", [false])
+	await s.refresh()
+	assert_true(s.online)
+	assert_signal_emit_count(s, "connection_changed", 2)
+
+func test_rate_limits_and_server_errors_are_offline_but_a_401_and_a_400_are_not() -> void:
+	for status in [429, 500, 503]:
+		var api := FakeApi.new()
+		api.replies = [{"ok": false, "status": status, "data": null}]
+		var s := _session(api)
+		await s.refresh()
+		assert_false(s.online, "status %d" % status)
+	for status in [401, 400]:
+		var api := FakeApi.new()
+		api.replies = [{"ok": false, "status": status, "data": {"error": "x"}}]
+		var s := _session(api)
+		await s.refresh()
+		assert_true(s.online, "status %d does not say the server is unreachable" % status)
+
+func test_a_socket_frame_proves_the_server_is_reachable() -> void:
+	var api := FakeApi.new()
+	var s := _session(api)
+	await s.refresh()
+	assert_false(s.online)
+	watch_signals(s)
+	s.mark_reachable()
+	assert_true(s.online)
+	assert_signal_emit_count(s, "connection_changed", 1)
+	s.mark_reachable()
+	assert_signal_emit_count(s, "connection_changed", 1, "no change, no signal")
+
+func test_while_offline_the_base_is_asked_for_again_every_ten_seconds() -> void:
+	var api := FakeApi.new()
+	var s := _session(api)
+	await s.refresh()
+	assert_false(s.online)
+	var asked := api.calls.size()
+	_ticks[0] = Session.OFFLINE_RETRY_MS - 1
+	s.tick()
+	assert_eq(api.calls.size(), asked, "not before the delay")
+	_ticks[0] = Session.OFFLINE_RETRY_MS
+	s.tick()
+	assert_eq(api.calls.size(), asked + 1)
+	await wait_process_frames(3)
+	s.tick()
+	assert_eq(api.calls.size(), asked + 1, "and not again at once")
+
+func test_an_answer_during_the_retry_brings_it_back_online() -> void:
+	var api := FakeApi.new()
+	var s := _session(api)
+	await s.refresh()
+	api.replies = [_ok({"state": _state(7), "now": 20})]
+	_ticks[0] = Session.OFFLINE_RETRY_MS
+	s.tick()
+	await wait_until(func() -> bool: return s.online, 5.0)
+	assert_eq(s.resources, {"food": 7})
+
+func test_coming_back_online_through_a_socket_frame_fetches_the_base_once() -> void:
+	var api := FakeApi.new()
+	var s := _session(api)
+	await s.refresh()  # no answer: offline
+	assert_false(s.online)
+	var asked := api.calls.size()
+	api.replies = [_ok({"state": _state(9), "now": 30})]
+	s.mark_reachable()
+	await wait_until(func() -> bool: return s.resources == {"food": 9}, 5.0)
+	assert_true(s.online)
+	assert_eq(api.calls.size(), asked + 1, "exactly one /v1/state")
+
+func test_a_socket_frame_while_online_fetches_nothing() -> void:
+	var api := FakeApi.new()
+	var s := _session(api)
+	s.mark_reachable()
+	await wait_process_frames(3)
+	assert_eq(api.calls.size(), 0)

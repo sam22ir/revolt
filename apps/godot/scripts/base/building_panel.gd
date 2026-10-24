@@ -126,6 +126,15 @@ func _rebuild() -> void:
 			_bar.show_percentage = false
 			_bar.custom_minimum_size.y = 26
 			_bar.value = 0.0
+			# Gold on a dark track; the fill starts at the layout's start side, so it runs right to left in Arabic.
+			var track := StyleBoxFlat.new()
+			track.bg_color = Color(INK, 0.35)
+			track.set_corner_radius_all(10)
+			var fill := StyleBoxFlat.new()
+			fill.bg_color = GOLD
+			fill.set_corner_radius_all(10)
+			_bar.add_theme_stylebox_override("background", track)
+			_bar.add_theme_stylebox_override("fill", fill)
 			_body.add_child(_bar)
 			_countdown = _label("", FONT, INK)
 			_body.add_child(_countdown)

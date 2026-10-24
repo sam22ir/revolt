@@ -19,8 +19,9 @@ var _camera := MapCamera.new()
 var _hud_root := Control.new()
 var _status := Label.new()
 var _coords := Label.new()
-var _counter_names := {}
-var _counter_values := {}
+var _chips := {}
+var _pill := QueuePill.new()
+var _offline_badge := PanelContainer.new()
 var _language_buttons := {}
 var _loaded := false
 var _base := BaseScreen.new()
@@ -52,7 +53,7 @@ func _ready() -> void:
 func _start() -> void:
 	var started_ms := Time.get_ticks_msec()
 	_status.text = Loc.t("map.loading")
-	var session := await _api.ensure_session()
+	var session := await _retry_start(_api.ensure_session)
 	if not session["ok"]:
 		_show_error()
 		return
@@ -62,7 +63,7 @@ func _start() -> void:
 	_debug_time("base ready", started_ms)
 	_refit()
 	_refresh_status()
-	var reply := await _api.get_json("/v1/map")
+	var reply := await _retry_start(_api.get_json.bind("/v1/map"))
 	if not reply["ok"]:
 		_show_error()
 		return
@@ -85,6 +86,26 @@ func _start() -> void:
 	_map_socket.start(Time.get_ticks_msec())
 	_start_alliance_feed()
 
+## Runs a start-up request, trying again with the client's backoff (1, 2, 5, 10 s) while the failure is transient, so a phone on
+## a flaky network recovers by itself. Only a refusal ends it. "Unreachable" shows while it waits.
+func _retry_start(request: Callable) -> Dictionary:
+	var attempt := 0
+	while true:
+		var result: Dictionary = await request.call()
+		if result["ok"]:
+			_failed = false
+			_refresh_status()
+			return result
+		if not SessionPolicy.is_transient(int(result["status"])):
+			return result
+		_failed = true
+		_refresh_status()
+		if _fps_timer != null:
+			_debug_log("[start] attempt %d failed, status=%d, retrying in %d ms" % [attempt, int(result["status"]), SessionPolicy.start_backoff_ms(attempt)])
+		await get_tree().create_timer(SessionPolicy.start_backoff_ms(attempt) / 1000.0).timeout
+		attempt += 1
+	return {}
+
 ## Web only: `?debug=net` prints the live feeds' connection changes and frame types to the browser console (debug aid).
 func _debug_net() -> bool:
 	if not OS.has_feature("web"):
@@ -102,10 +123,12 @@ func _debug_log(text: String) -> void:
 	JavaScriptBridge.eval("(window.revoltLog = window.revoltLog || []).push(%s)" % JSON.stringify(text))
 
 ## Web only: `?debug=fps` prints frame rate, draw calls and object counts to the console every 3 s, and gives the page
-## `window.revoltShow("base" | "map")` and `window.revoltHide(layer, hidden)` to hide a map layer at runtime ("ground", "decals", "features", "wash", "detail", "seams",
+## `window.revoltShow("base" | "map")`, `window.revoltLang("en" | "ar" | "fr")`, `window.revoltRefresh()` and `window.revoltHide(layer, hidden)` to hide a map layer at runtime ("ground", "decals", "features", "wash", "detail", "seams",
 ## "props", "objects"), to see what each costs (debug aid).
 var _js_hide: JavaScriptObject
 var _js_show: JavaScriptObject
+var _js_lang: JavaScriptObject
+var _js_refresh: JavaScriptObject
 var _fps_timer: Timer
 
 func _setup_fps_debug() -> void:
@@ -117,6 +140,10 @@ func _setup_fps_debug() -> void:
 	JavaScriptBridge.get_interface("window").revoltHide = _js_hide
 	_js_show = JavaScriptBridge.create_callback(func(args: Array) -> void: _show_screen(str(args[0])))
 	JavaScriptBridge.get_interface("window").revoltShow = _js_show
+	_js_lang = JavaScriptBridge.create_callback(func(args: Array) -> void: _apply_language(str(args[0])))
+	JavaScriptBridge.get_interface("window").revoltLang = _js_lang
+	_js_refresh = JavaScriptBridge.create_callback(func(_args: Array) -> void: _session.refresh())
+	JavaScriptBridge.get_interface("window").revoltRefresh = _js_refresh
 	_fps_timer = Timer.new()
 	_fps_timer.wait_time = 3.0
 	_fps_timer.timeout.connect(func() -> void:
@@ -138,6 +165,11 @@ func _setup_sockets() -> void:
 	_map_socket.token_source = func() -> String: return _api.token
 	_map_socket.parser = MapMessages.parse
 	_map_socket.message.connect(_on_map_message)
+	# A closed feed (while it should be running) is the first sign of a lost connection: ask the server once. If it answers,
+	# the quick reconnect changes nothing; if not, the session goes offline by the usual rule.
+	_map_socket.connection_changed.connect(func(open: bool) -> void:
+		if not open and _map_socket.is_running():
+			_session.refresh())
 	add_child(_map_socket)
 	_alliance_socket.url = LiveSocket.ws_url(_api.base_url, "/v1/alliance/ws")
 	_alliance_socket.token_source = func() -> String: return _api.token
@@ -157,6 +189,7 @@ func _start_alliance_feed() -> void:
 		_alliance_socket.start(Time.get_ticks_msec())
 
 func _on_map_message(msg: Dictionary) -> void:
+	_session.mark_reachable()
 	match msg["type"]:
 		"map":
 			var snap: Dictionary = msg["snapshot"]
@@ -195,8 +228,9 @@ func _show_error() -> void:
 
 ## The resource names above the counters follow the language and the account's background (Vietnam renames food).
 func _refresh_names() -> void:
-	for id: String in _counter_names:
-		_counter_names[id].text = Loc.t("resource." + id)
+	for id: String in _chips:
+		_chips[id].set_name_text(Loc.t("resource." + id))
+	_offline_badge_label().text = Loc.t("sync.offline")
 
 ## The centre text: the failure, or "Loading the map…" while the map screen waits for its build; nothing otherwise.
 func _refresh_status() -> void:
@@ -252,17 +286,12 @@ func _build_hud() -> void:
 	counters.add_theme_constant_override("h_separation", 24)
 	top.add_child(counters)
 	for id: String in Balance.data()["resourceIds"]:
-		var row := HBoxContainer.new()
-		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		counters.add_child(row)
-		var name_label := _label(FONT_SIZE)
-		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(name_label)
-		var value_label := _label(FONT_SIZE)
-		row.add_child(value_label)
-		_counter_names[id] = name_label
-		_counter_values[id] = value_label
+		var chip := ResourceChip.new()
+		chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		counters.add_child(chip)
+		_chips[id] = chip
+	# The builders' pill stays in the top box: shown on the base idle or busy, on the map only while busy (as the client's HUD).
+	top.add_child(_pill)
 
 	var languages := HBoxContainer.new()
 	languages.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -297,6 +326,8 @@ func _build_hud() -> void:
 	_base.panel.offset_bottom = -NAV_HEIGHT
 	_hud_root.add_child(_base.panel)
 
+	_build_offline_badge()
+
 	_nav.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_nav.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_nav.offset_top = -NAV_HEIGHT
@@ -317,12 +348,32 @@ func _build_hud() -> void:
 	top.resized.connect(_refit)
 	get_viewport().size_changed.connect(_refit)
 
-func _label(font_size: int) -> Label:
+## "Offline — reconnecting…", centred just above the nav bar. It is outside the top box, so it never moves the base.
+func _build_offline_badge() -> void:
+	_offline_badge.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_offline_badge.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_offline_badge.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_offline_badge.offset_bottom = -NAV_HEIGHT - 12
+	_offline_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_offline_badge.layout_direction = Control.LAYOUT_DIRECTION_LOCALE
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color8(0x8a, 0x2f, 0x24, 230)
+	box.set_corner_radius_all(18)
+	box.content_margin_left = 20
+	box.content_margin_right = 20
+	box.content_margin_top = 8
+	box.content_margin_bottom = 8
+	_offline_badge.add_theme_stylebox_override("panel", box)
 	var label := Label.new()
-	label.add_theme_font_size_override("font_size", font_size)
-	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
-	label.add_theme_constant_override("outline_size", 8)
-	return label
+	label.add_theme_font_size_override("font_size", FONT_SIZE - 2)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_offline_badge.add_child(label)
+	_offline_badge.visible = false
+	_hud_root.add_child(_offline_badge)
+	_session.connection_changed.connect(func(online: bool) -> void: _offline_badge.visible = not online)
+
+func _offline_badge_label() -> Label:
+	return _offline_badge.get_child(0) as Label
 
 func _apply_language(lang: String) -> void:
 	TranslationServer.set_locale(lang)
@@ -351,7 +402,9 @@ func _process(_delta: float) -> void:
 	var now := _clock.now_ms(Time.get_ticks_msec())
 	var amounts := ResourceDisplay.amounts(_session.resources, _session.levels, _session.last_updated, now, _session.liberations)
 	var lang := Fmt.lang()
-	for id: String in amounts:
-		_counter_values[id].text = Fmt.amount(lang, amounts[id])
+	for chip: Dictionary in HudModel.chips(amounts, int(_session.levels["hq"])):
+		_chips[chip["id"]].set_value_text(Fmt.amount(lang, chip["amount"]))
+		_chips[chip["id"]].set_fill(chip["fraction"], chip["state"])
+	_pill.update_model(HudModel.pill(_session.queue(), now, _screen), _session.background)
 	if _screen == "base":
 		_base.update(now, amounts)

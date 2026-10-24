@@ -15,3 +15,13 @@ static func after_state_check(has_token: bool, ok: bool, status: int) -> Action:
 	if status == 401:
 		return Action.CREATE_GUEST
 	return Action.UNREACHABLE
+
+## Waits before the n-th retry of a start-up request (apps/client/src/main.ts RETRY_MS); the last value repeats.
+const START_BACKOFF_MS: Array[int] = [1000, 2000, 5000, 10_000]
+
+static func start_backoff_ms(attempt: int) -> int:
+	return START_BACKOFF_MS[mini(attempt, START_BACKOFF_MS.size() - 1)]
+
+## A failure worth retrying: no answer, rate limited, or a server error. Anything else (a refusal) will not change.
+static func is_transient(status: int) -> bool:
+	return status == 0 or status == 429 or status >= 500
