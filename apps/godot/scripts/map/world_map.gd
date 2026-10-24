@@ -27,6 +27,11 @@ var _props := PropLayer.new()
 var _objects := MapOverlay.new()
 var _art: GroundArt
 var _plan: Dictionary = {}
+## True while `build` is running (it yields); a live snapshot that arrives meanwhile waits in `_pending`.
+var _building := false
+## How many full builds ran (tests use it to prove a live snapshot did not rebuild the ground).
+var build_count := 0
+var _pending: Dictionary = {}
 
 func _ready() -> void:
 	_seams.mode = MapOverlay.Mode.SEAMS
@@ -78,6 +83,8 @@ func set_view_zoom(view_zoom: float) -> void:
 
 ## Builds the map from a `GET /v1/map` reply. Yields between the heavy stages so the page stays alive.
 func build(snap: Dictionary) -> void:
+	_building = true
+	build_count += 1
 	snapshot = snap
 	size = int(snap["size"])
 	terrain_seed = int(snap["terrainSeed"])
@@ -103,6 +110,32 @@ func build(snap: Dictionary) -> void:
 	_build_seams()
 	_props.build(size, _plan["props"], _art, occupied_tiles())
 	_seams.setup(self)
+	_objects.setup(self)
+	_building = false
+	if not _pending.is_empty():
+		var next := _pending
+		_pending = {}
+		await apply_snapshot(next)
+
+## Takes a live snapshot (map socket). The ground depends only on the terrain seed, so it is never rebuilt for the same
+## seed and size: bases, NPCs, HQs and marches are swapped and redrawn, the seams are rebuilt when the liberated regions
+## changed, and the props when the occupied tiles did. During a build only the latest snapshot is kept, and applied after.
+func apply_snapshot(snap: Dictionary) -> void:
+	if _building:
+		_pending = snap
+		return
+	if int(snap["size"]) != size or int(snap["terrainSeed"]) != terrain_seed:
+		await build(snap)
+		return
+	var occupied_before := occupied_tiles()
+	snapshot = snap
+	var now_liberated := Balance.liberated_regions(snap["liberations"], int(snap["now"]))
+	if now_liberated != liberated:
+		liberated = now_liberated
+		_build_seams()
+		_seams.setup(self)
+	if occupied_tiles() != occupied_before:
+		refresh_props()
 	_objects.setup(self)
 
 ## The tile indices kept free of props: the 3x3 ring around every base, NPC and HQ (bases and targets are drawn wider than

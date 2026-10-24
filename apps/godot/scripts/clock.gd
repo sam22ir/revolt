@@ -5,6 +5,10 @@ extends RefCounted
 ## date or time cannot move counters or timers. Re-sync on every server response.
 ## Before the first sync `now_ms` returns 0; callers should not show counters until `is_synced()`.
 
+## A reply stamped slightly earlier than the current estimate is an older answer that arrived late (an HTTP reply behind a
+## socket frame): it is ignored, so counters never jump back. A larger step back is a real server clock change and is taken.
+const STALE_REPLY_MS := 30_000
+
 var _server_ms_at_sync: int = 0
 var _ticks_at_sync: int = 0
 var _synced := false
@@ -14,6 +18,10 @@ func is_synced() -> bool:
 
 ## `server_now_ms`: the `now` from a response. `ticks_ms`: Time.get_ticks_msec() when it arrived.
 func sync(server_now_ms: int, ticks_ms: int) -> void:
+	if _synced:
+		var behind := now_ms(ticks_ms) - server_now_ms
+		if behind > 0 and behind <= STALE_REPLY_MS:
+			return
 	_server_ms_at_sync = server_now_ms
 	_ticks_at_sync = ticks_ms
 	_synced = true

@@ -7,6 +7,9 @@ const FONT_SIZE := 34
 
 var _api := Api.new()
 var _clock := Clock.new()
+var _session := Session.new(_api, _clock)
+var _map_socket := LiveSocket.new()
+var _alliance_socket := LiveSocket.new()
 var _world := Node2D.new()
 var _map := WorldMap.new()
 var _camera := MapCamera.new()
@@ -16,16 +19,13 @@ var _coords := Label.new()
 var _counter_names := {}
 var _counter_values := {}
 var _language_buttons := {}
-var _resources: Dictionary = {}
-var _levels: Dictionary = {}
-var _liberations: Array = []
-var _last_ms := 0
 var _loaded := false
 
 func _ready() -> void:
 	RenderingServer.set_default_clear_color(GroundFrame.BACKGROUND)
 	_api.base_url = Api.resolve_base_url()
 	add_child(_api)
+	_setup_sockets()
 	add_child(_world)
 	_world.add_child(_map)
 	_world.add_child(_camera)
@@ -41,11 +41,13 @@ func _start() -> void:
 	if not session["ok"]:
 		_show_error()
 		return
-	_apply_state(session["data"])
+	_session.apply(session["data"])
 	var reply := await _api.get_json("/v1/map")
 	if not reply["ok"]:
 		_show_error()
 		return
+	_session.apply({"now": reply["data"]["now"]})
+	_session.set_liberations(reply["data"]["liberations"], int(reply["data"]["now"]))
 	await _map.build(reply["data"])
 	_camera.bounds = Iso.world_bounds(_map.size)
 	var own := _map.own_base_tile()
@@ -57,14 +59,67 @@ func _start() -> void:
 	_status.visible = false
 	_loaded = true
 	_update_coords()
+	# The live feeds start once the first build is done, so no snapshot arrives while the map is being built.
+	_map_socket.start(Time.get_ticks_msec())
+	_start_alliance_feed()
 
-func _apply_state(reply: Dictionary) -> void:
-	var state: Dictionary = reply["state"]
-	_clock.sync(int(reply["now"]), Time.get_ticks_msec())
-	_resources = state["resources"]
-	_levels = state["levels"]
-	_last_ms = int(state["lastUpdated"])
-	_liberations = reply.get("liberations", [])
+## Web only: `?debug=net` prints the live feeds' connection changes and frame types to the browser console (debug aid).
+func _debug_net() -> bool:
+	if not OS.has_feature("web"):
+		return false
+	return JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('debug')") == "net"
+
+func _setup_sockets() -> void:
+	if _debug_net():
+		_map_socket.connection_changed.connect(func(open: bool) -> void: print("[net] map socket open=", open))
+		_map_socket.message.connect(func(msg: Dictionary) -> void: print("[net] map frame ", msg["type"]))
+		_alliance_socket.connection_changed.connect(func(open: bool) -> void: print("[net] alliance socket open=", open))
+		_alliance_socket.message.connect(func(msg: Dictionary) -> void: print("[net] alliance frame ", msg["type"]))
+	_map_socket.url = LiveSocket.ws_url(_api.base_url, "/v1/map/ws")
+	_map_socket.token_source = func() -> String: return _api.token
+	_map_socket.parser = MapMessages.parse
+	_map_socket.message.connect(_on_map_message)
+	add_child(_map_socket)
+	_alliance_socket.url = LiveSocket.ws_url(_api.base_url, "/v1/alliance/ws")
+	_alliance_socket.token_source = func() -> String: return _api.token
+	_alliance_socket.parser = AllianceMessages.parse
+	_alliance_socket.message.connect(_on_alliance_message)
+	add_child(_alliance_socket)
+	# The server no longer knows this token: stop retrying (nothing else is done, see Session).
+	_session.auth_lost.connect(func() -> void:
+		_map_socket.stop()
+		_alliance_socket.stop())
+
+## The alliance feed runs only while the player is in an alliance.
+func _start_alliance_feed() -> void:
+	var mine := await _api.get_json("/v1/alliance")
+	if mine["ok"] and mine["data"] is Dictionary and mine["data"].get("alliance") != null:
+		_session.apply({"now": mine["data"].get("now")})
+		_alliance_socket.start(Time.get_ticks_msec())
+
+func _on_map_message(msg: Dictionary) -> void:
+	match msg["type"]:
+		"map":
+			var snap: Dictionary = msg["snapshot"]
+			_session.apply({"now": snap["now"]})
+			_session.set_liberations(snap["liberations"], int(snap["now"]))
+			await _map.apply_snapshot(snap)
+		"report":
+			_session.add_report(msg["report"])
+		"base_changed":
+			_session.refresh()
+
+func _on_alliance_message(msg: Dictionary) -> void:
+	if _session.apply_alliance_message(msg):
+		_alliance_socket.stop()
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_RESUMED and _loaded:
+		# Back from the background: the state may have moved, and a socket the OS dropped is reconnected.
+		var now := Time.get_ticks_msec()
+		_session.refresh()
+		_map_socket.ensure_open(now)
+		_alliance_socket.ensure_open(now)
 
 ## Web only: `?hide=decals,props` hides map layers, to see what each one contributes (debug aid).
 func _apply_hidden_layers() -> void:
@@ -167,9 +222,9 @@ func _update_coords() -> void:
 	_coords.visible = _loaded
 
 func _process(_delta: float) -> void:
-	if _resources.is_empty() or not _clock.is_synced():
+	if _session.resources.is_empty() or not _clock.is_synced():
 		return
 	var now := _clock.now_ms(Time.get_ticks_msec())
-	var amounts := ResourceDisplay.amounts(_resources, _levels, _last_ms, now, _liberations)
+	var amounts := ResourceDisplay.amounts(_session.resources, _session.levels, _session.last_updated, now, _session.liberations)
 	for id: String in amounts:
 		_counter_values[id].text = str(int(floor(amounts[id])))
