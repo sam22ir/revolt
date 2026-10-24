@@ -43,6 +43,32 @@ func test_pinch_scale_and_midpoints() -> void:
 	assert_eq(g["from"], Vector2(150, 100))
 	assert_eq(g["to"], Vector2(150, 100))
 
+func test_pinch_step_keeps_the_world_point_under_the_fingers() -> void:
+	var center := Vector2(900, 500)
+	var from_a := Vector2(120, 300)
+	var from_b := Vector2(220, 340)
+	var to_a := Vector2(100, 260)
+	var to_b := Vector2(260, 320)
+	var world_before := CameraMath.screen_to_world((from_a + from_b) * 0.5, center, VIEW, 1.0)
+	var step := CameraMath.pinch_step(center, VIEW, 1.0, 0.1, 5.0, from_a, from_b, to_a, to_b)
+	var world_after := CameraMath.screen_to_world((to_a + to_b) * 0.5, step["center"], VIEW, step["zoom"])
+	assert_almost_eq(world_after.x, world_before.x, 1e-3)
+	assert_almost_eq(world_after.y, world_before.y, 1e-3)
+	assert_gt(step["zoom"], 1.0, "fingers moved apart, so it zooms in")
+
+func test_pinch_step_clamps_zoom_but_still_follows_the_midpoint() -> void:
+	var center := Vector2(900, 500)
+	var from_a := Vector2(150, 400)
+	var from_b := Vector2(250, 400)
+	var to_a := Vector2(50, 420)
+	var to_b := Vector2(350, 420)
+	var world_before := CameraMath.screen_to_world((from_a + from_b) * 0.5, center, VIEW, 1.0)
+	var step := CameraMath.pinch_step(center, VIEW, 1.0, 0.1, 1.5, from_a, from_b, to_a, to_b)
+	assert_eq(step["zoom"], 1.5)
+	var world_after := CameraMath.screen_to_world((to_a + to_b) * 0.5, step["center"], VIEW, step["zoom"])
+	assert_almost_eq(world_after.x, world_before.x, 1e-3)
+	assert_almost_eq(world_after.y, world_before.y, 1e-3)
+
 func test_pinch_with_both_fingers_on_one_point_does_not_blow_up() -> void:
 	var g := CameraMath.pinch(Vector2(100, 100), Vector2(100, 100), Vector2(80, 100), Vector2(120, 100))
 	assert_eq(g["scale"], 1.0)

@@ -41,17 +41,20 @@ func post_json(path: String, body: Variant = {}) -> Dictionary:
 	return await request_json(HTTPClient.METHOD_POST, path, body)
 
 ## Reuses the device's saved guest token if the server still knows it, otherwise creates a guest account.
-## Guest creation is rate limited per IP, so the token is kept in user:// and reused. Returns the /v1/state
-## (or /v1/guest) reply, or an {"ok": false} result.
+## Guest creation is rate limited per IP, so the token is kept in user:// and reused. A saved token is only
+## replaced when the server rejects it (see SessionPolicy); a transient failure returns the failed result and
+## keeps the token. Returns the /v1/state (or /v1/guest) reply, or an {"ok": false} result.
 func ensure_session() -> Dictionary:
 	var cfg := ConfigFile.new()
 	if cfg.load(SESSION_FILE) == OK:
 		token = String(cfg.get_value("session", "token", ""))
+	var state := {"ok": false, "status": 0, "data": null}
 	if token != "":
-		var state := await get_json("/v1/state")
-		if state["ok"]:
+		state = await get_json("/v1/state")
+	match SessionPolicy.after_state_check(token != "", state["ok"], state["status"]):
+		SessionPolicy.Action.USE_STATE, SessionPolicy.Action.UNREACHABLE:
 			return state
-		token = ""
+	token = ""
 	var guest := await post_json("/v1/guest", {})
 	if guest["ok"]:
 		token = String(guest["data"]["token"])

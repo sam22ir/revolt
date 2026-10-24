@@ -5,8 +5,6 @@ extends Node2D
 ## sent. Placeholder flat colours; the real ground art and props come in a later slice.
 ## Map text is limited to short ASCII (NPC levels, HQ tags); names and menus live in the HUD controls.
 
-signal progress(fraction: float)
-
 const TERRAIN_COLORS: Array[Color] = [Color("cbb67f"), Color("b69b63"), Color("86965a"), Color("8f877a")]
 const LIBERATED_WASH := Color("e0b040")
 const LIBERATED_WASH_ALPHA := 0.24
@@ -29,6 +27,9 @@ func _ready() -> void:
 	add_child(_ground)
 	add_child(_overlay)
 
+func overlay() -> MapOverlay:
+	return _overlay
+
 func region_at_tile(x: int, y: int) -> int:
 	if x < 0 or y < 0 or x >= size or y >= size:
 		return -1
@@ -39,14 +40,13 @@ func terrain_at_tile(x: int, y: int) -> String:
 		return ""
 	return MapGrid.TERRAIN_IDS[_terrain[y * size + x]]
 
-## Builds the map from a `GET /v1/map` reply. Yields to the engine every few rows so the page stays alive.
+## Builds the map from a `GET /v1/map` reply. Waits one frame first so a loading label can be drawn.
 func build(snap: Dictionary) -> void:
 	snapshot = snap
 	size = int(snap["size"])
 	terrain_seed = int(snap["terrainSeed"])
 	liberated = Balance.liberated_regions(snap["liberations"], int(snap["now"]))
 	var region_cell := int(Balance.data()["map"]["regionCell"])
-	progress.emit(0.0)
 	# One frame so the loading text is drawn before the (short) blocking work below.
 	await get_tree().process_frame
 	var grid := MapGrid.compute(terrain_seed, size, region_cell)
@@ -55,7 +55,6 @@ func build(snap: Dictionary) -> void:
 	_build_ground()
 	_build_seams()
 	_overlay.setup(self)
-	progress.emit(1.0)
 
 func _tile_color(x: int, y: int) -> Color:
 	var color := TERRAIN_COLORS[_terrain[y * size + x]]

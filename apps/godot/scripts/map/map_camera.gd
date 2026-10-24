@@ -4,13 +4,14 @@ extends Camera2D
 ## so the same numbers mean the same framing on a phone. All maths is in CameraMath; this node only reads input.
 ## Mouse events synthesised from touches are ignored: touches are handled directly (pan with one finger, pinch with
 ## two), mouse drag and wheel are for desktop.
+## Touch press/release is tracked in `_input` (it also sees events over HUD buttons), so a finger lifted over a
+## button cannot leave a stale touch behind and turn the next one-finger drag into a pinch.
 
 signal moved
 
 const MIN_VIEW_ZOOM := 0.12
 const MAX_VIEW_ZOOM := 1.6
 const START_VIEW_ZOOM := 0.9
-const WHEEL_FACTOR := 0.0012
 
 var bounds := Rect2()
 var view_zoom := START_VIEW_ZOOM
@@ -62,19 +63,23 @@ func _pan_by(screen_delta: Vector2) -> void:
 	position = CameraMath.pan(position, screen_delta, _logical_zoom())
 	_apply()
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			_touches[event.index] = event.position
 		else:
 			_touches.erase(event.index)
-	elif event is InputEventScreenDrag:
+	elif event is InputEventMouseButton and event.device != InputEvent.DEVICE_ID_EMULATION and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+		_mouse_down = false
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventScreenDrag:
 		_on_screen_drag(event)
 	elif event is InputEventMouseButton:
 		if event.device == InputEvent.DEVICE_ID_EMULATION:
 			return
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			_mouse_down = event.pressed
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			_mouse_down = true
 		elif event.pressed and event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			_zoom_about(1.1, event.position)
 		elif event.pressed and event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
@@ -94,6 +99,8 @@ func _on_screen_drag(event: InputEventScreenDrag) -> void:
 		var before_a: Vector2 = _touches[ids[0]]
 		var before_b: Vector2 = _touches[ids[1]]
 		_touches[event.index] = event.position
-		var g := CameraMath.pinch(before_a, before_b, _touches[ids[0]], _touches[ids[1]])
-		_zoom_about(g["scale"], g["to"])
-		_pan_by(g["to"] - g["from"])
+		var css := maxf(css_per_logical(), 0.0001)
+		var step := CameraMath.pinch_step(position, get_viewport_rect().size, _logical_zoom(), MIN_VIEW_ZOOM / css, MAX_VIEW_ZOOM / css, before_a, before_b, _touches[ids[0]], _touches[ids[1]])
+		position = step["center"]
+		view_zoom = float(step["zoom"]) * css
+		_apply()

@@ -29,7 +29,6 @@ func _ready() -> void:
 	_world.add_child(_map)
 	_world.add_child(_camera)
 	_camera.moved.connect(_update_coords)
-	_map.progress.connect(_on_map_progress)
 	_build_hud()
 	_apply_language("en")
 	_start()
@@ -67,10 +66,6 @@ func _apply_state(reply: Dictionary) -> void:
 func _show_error() -> void:
 	_status.text = Loc.t("reason.unreachable")
 	_status.visible = true
-
-func _on_map_progress(fraction: float) -> void:
-	if fraction < 1.0:
-		_status.text = "%s %d%%" % [Loc.t("map.loading"), int(fraction * 100.0)]
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()

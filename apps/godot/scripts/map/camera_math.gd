@@ -34,6 +34,16 @@ static func zoom_about(center: Vector2, viewport_px: Vector2, zoom: float, new_z
 static func pan(center: Vector2, screen_delta: Vector2, zoom: float) -> Vector2:
 	return center - screen_delta / zoom
 
+## One step of a two-finger gesture, composed exactly: the world point that was under the old fingers' midpoint
+## ends up under the new midpoint at the new (clamped) zoom. `zoom` is in logical pixels per world unit.
+## Returns {"center": Vector2, "zoom": float}.
+static func pinch_step(center: Vector2, viewport_px: Vector2, zoom: float, min_zoom: float, max_zoom: float, prev_a: Vector2, prev_b: Vector2, a: Vector2, b: Vector2) -> Dictionary:
+	var g := pinch(prev_a, prev_b, a, b)
+	var new_zoom := clamp_zoom(zoom * float(g["scale"]), min_zoom, max_zoom)
+	var anchor_world := screen_to_world(g["from"], center, viewport_px, zoom)
+	var new_center: Vector2 = anchor_world - (Vector2(g["to"]) - viewport_px * 0.5) / new_zoom
+	return {"center": new_center, "zoom": new_zoom}
+
 ## Two-finger gesture: the zoom factor (distance ratio) and the screen-space midpoints before and after.
 ## Returns {"scale": float, "from": Vector2, "to": Vector2}; scale is 1.0 when the fingers started on one point.
 static func pinch(prev_a: Vector2, prev_b: Vector2, a: Vector2, b: Vector2) -> Dictionary:

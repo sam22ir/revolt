@@ -28,6 +28,8 @@ const ROUTE_OTHER := Color(0.96, 0.92, 0.84, 0.35)
 const TAG_PATTERN := "^[A-Z0-9]{2,4}$"
 
 var map: WorldMap
+## How many times the overlay has been drawn (used by tests to prove the draw code ran).
+var draw_count := 0
 var _tag_re := RegEx.create_from_string(TAG_PATTERN)
 
 func setup(m: WorldMap) -> void:
@@ -37,6 +39,7 @@ func setup(m: WorldMap) -> void:
 func _draw() -> void:
 	if map == null or map.size == 0:
 		return
+	draw_count += 1
 	_draw_seams()
 	_draw_marches()
 	var snap := map.snapshot
