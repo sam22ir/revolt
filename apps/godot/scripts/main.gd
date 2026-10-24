@@ -129,13 +129,14 @@ func _debug_log(text: String) -> void:
 
 ## Web only: `?debug=fps` prints frame rate, draw calls and object counts to the console every 3 s, and gives the page
 ## `window.revoltShow("base" | "map" | "reports")`, `window.revoltLang("en" | "ar" | "fr")`, `window.revoltRefresh()`,
-## `window.revoltReport(json)` (a battle report as the server sends it, pushed as the map socket would) and `window.revoltHide(layer, hidden)`
+## `window.revoltReport(json)` (a battle report as the server sends it, pushed as the map socket would), `window.revoltSheet(id)` (opens a building's sheet on the base) and `window.revoltHide(layer, hidden)`
 ## to hide a map layer at runtime ("ground", "decals", "features", "wash", "detail", "seams", "props", "objects"), to see what each costs (debug aid).
 var _js_hide: JavaScriptObject
 var _js_show: JavaScriptObject
 var _js_lang: JavaScriptObject
 var _js_refresh: JavaScriptObject
 var _js_report: JavaScriptObject
+var _js_sheet: JavaScriptObject
 var _fps_timer: Timer
 
 func _setup_fps_debug() -> void:
@@ -153,6 +154,8 @@ func _setup_fps_debug() -> void:
 	JavaScriptBridge.get_interface("window").revoltRefresh = _js_refresh
 	_js_report = JavaScriptBridge.create_callback(func(args: Array) -> void: _inject_report(str(args[0])))
 	JavaScriptBridge.get_interface("window").revoltReport = _js_report
+	_js_sheet = JavaScriptBridge.create_callback(func(args: Array) -> void: _base.select(str(args[0])))
+	JavaScriptBridge.get_interface("window").revoltSheet = _js_sheet
 	_fps_timer = Timer.new()
 	_fps_timer.wait_time = 3.0
 	_fps_timer.timeout.connect(func() -> void:

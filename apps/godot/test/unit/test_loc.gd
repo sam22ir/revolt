@@ -119,3 +119,19 @@ func test_report_keys_built_from_ids_exist_in_every_language() -> void:
 			if not known.has(key):
 				missing.append(key)
 		assert_eq(missing, [] as Array[String], "%s is missing report keys" % lang)
+
+## The keys the training form builds from ids or reason codes, checked against the real id lists (rule 5 for dynamic keys).
+func test_training_keys_built_from_ids_exist_in_every_language() -> void:
+	var data := Balance.data()
+	var keys: Array[String] = []
+	for id: String in data["troopIds"]:
+		keys.append("troop.%s.desc" % id)
+	for code in ["bad_count", "training_busy", "barracks_level", "insufficient"]:
+		keys.append("reason." + code)
+	for lang in ["en", "ar"]:
+		var known := _po_keys(lang)
+		var missing: Array[String] = []
+		for key in keys:
+			if not known.has(key):
+				missing.append(key)
+		assert_eq(missing, [] as Array[String], "%s is missing training keys" % lang)

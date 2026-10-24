@@ -53,9 +53,7 @@ var chat: Array = []
 var _refreshing := false
 var _refresh_again := false
 var _offline_asked_at_ms := 0
-var _watched_job := ""
-var _asked := 0
-var _asked_at_ms := 0
+var _watched := {}
 ## The server time of the reply that last set the base, and the one that last set the liberations. A reply stamped earlier
 ## than these is an older answer that arrived late (a /v1/state fetch overtaken by an intent reply) and is not applied.
 var _base_now := -1
@@ -96,27 +94,30 @@ func apply(reply: Dictionary) -> void:
 func queue() -> Variant:
 	return state.get("queue")
 
-## Call every frame. When the running upgrade is over (server time), asks the server for the base once, so the new level
-## comes from the server and not from the client. If the answer still holds the job (the server's clock is a little behind),
-## it asks again after COMPLETION_RETRY_MS, up to MAX_COMPLETION_ASKS times for that job.
+## Call every frame. When a running job (upgrade or training) is over (server time), asks the server for the base once, so
+## the new level or the new troops come from the server and not from the client. If the answer still holds the job (the
+## server's clock is a little behind), it asks again after COMPLETION_RETRY_MS, up to MAX_COMPLETION_ASKS times for that job.
 func tick() -> void:
 	_retry_when_offline()
-	var job: Variant = queue()
+	_watch_job("upgrade", queue())
+	_watch_job("training", state.get("training"))
+
+func _watch_job(kind: String, job: Variant) -> void:
 	if job == null:
-		_watched_job = ""
-		_asked = 0
+		_watched.erase(kind)
 		return
-	var key := "%s:%s:%s" % [job["building"], job["toLevel"], job["endsAt"]]
-	if key != _watched_job:
-		_watched_job = key
-		_asked = 0
+	var key := "%s:%s:%s" % [job.get("building", job.get("troop", "")), job.get("toLevel", job.get("count", 0)), job["endsAt"]]
+	var w: Dictionary = _watched.get(kind, {})
+	if w.get("key", "") != key:
+		w = {"key": key, "asked": 0, "asked_at_ms": 0}
+	_watched[kind] = w
 	var now_ticks: int = ticks.call()
-	if clock.now_ms(now_ticks) < int(job["endsAt"]) + COMPLETION_MARGIN_MS or _asked >= MAX_COMPLETION_ASKS:
+	if clock.now_ms(now_ticks) < int(job["endsAt"]) + COMPLETION_MARGIN_MS or w["asked"] >= MAX_COMPLETION_ASKS:
 		return
-	if _asked > 0 and now_ticks - _asked_at_ms < COMPLETION_RETRY_MS:
+	if w["asked"] > 0 and now_ticks - w["asked_at_ms"] < COMPLETION_RETRY_MS:
 		return
-	_asked += 1
-	_asked_at_ms = now_ticks
+	w["asked"] += 1
+	w["asked_at_ms"] = now_ticks
 	refresh()
 
 ## A well-formed socket frame proves the server is reachable. Coming back from offline this way, the base is fetched once:

@@ -7,6 +7,7 @@ extends PanelContainer
 ## in place every frame. The server decides: the button only sends the intent (`upgrade_pressed`).
 
 signal upgrade_pressed(id: String)
+signal train_pressed(troop: String, count: int)
 signal closed
 
 const FONT := 34
@@ -24,6 +25,10 @@ var _notice := ""
 var _notice_key := ""
 var _background := ""
 var _body := VBoxContainer.new()
+var _scroll := ScrollContainer.new()
+var _max_height := 0.0
+## The training form of the barracks sheet. One instance for the panel's life (see TrainingView); it is in the body only on the barracks.
+var training := TrainingView.new()
 var _countdown: Label
 var _bar: ProgressBar
 
@@ -39,8 +44,27 @@ func _ready() -> void:
 	box.set_content_margin_all(28)
 	add_theme_stylebox_override("panel", box)
 	_body.add_theme_constant_override("separation", 14)
-	add_child(_body)
+	_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	add_child(_scroll)
+	_scroll.add_child(_body)
+	training.train_pressed.connect(func(troop: String, count: int) -> void: train_pressed.emit(troop, count))
 	visible = false
+
+## The most the sheet may take (the space between the HUD and the nav bar); a longer sheet scrolls.
+func set_max_height(px: float) -> void:
+	_max_height = px
+	_fit()
+
+func _fit() -> void:
+	var want := _body.get_combined_minimum_size().y
+	_scroll.custom_minimum_size.y = minf(want, _max_height) if _max_height > 0.0 else want
+
+## Feeds the training form (only on the barracks sheet). `ctx` is TrainingView.update_context's.
+func update_training(ctx: Dictionary) -> void:
+	if visible and training.get_parent() == _body:
+		training.update_context(ctx)
+		_fit()
 
 func is_open() -> bool:
 	return visible
@@ -84,6 +108,8 @@ func update_model(model: Dictionary, background: String) -> void:
 	if key != _key:
 		_key = key
 		_rebuild()
+	# Every frame: the body's height is known one frame after a rebuild, and other buildings never feed the training form.
+	_fit()
 	if model["mode"] == "upgrading" and _countdown != null:
 		_countdown.text = Fmt.duration(float(model["job"]["remainingMs"]))
 		_bar.value = float(model["job"]["fraction"]) * 100.0
@@ -91,7 +117,8 @@ func update_model(model: Dictionary, background: String) -> void:
 func _rebuild() -> void:
 	for child in _body.get_children():
 		_body.remove_child(child)
-		child.queue_free()
+		if child != training:
+			child.queue_free()
 	_countdown = null
 	_bar = null
 	var m := _model
@@ -142,6 +169,9 @@ func _rebuild() -> void:
 			_body.add_child(_label(Loc.t("panel.maxLevel"), FONT, MUTED, true))
 		_:
 			_build_next(m["next"], lang, m["id"])
+
+	if id == "barracks":
+		_body.add_child(training)
 
 func _build_next(n: Dictionary, lang: String, id: String) -> void:
 	_body.add_child(_label(Loc.t("panel.nextLevel", {"level": Fmt.amount(lang, n["toLevel"])}), FONT + 4, INK))

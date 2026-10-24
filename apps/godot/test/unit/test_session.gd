@@ -410,3 +410,69 @@ func test_a_refused_fetch_changes_nothing_and_a_401_reports_auth_lost() -> void:
 	await s.load_reports()
 	assert_true(lost[0])
 	assert_eq(s.reports.size(), 1)
+
+func _training(ends_at: int) -> Dictionary:
+	return {"troop": "infantry", "count": 5, "startedAt": ends_at - 30_000, "endsAt": ends_at}
+
+func _with_training(api: FakeApi, ends_at: int) -> Session:
+	var s := _session(api)
+	var st := _state(10)
+	st["training"] = _training(ends_at)
+	s.apply({"state": st, "now": ends_at - 30_000})
+	return s
+
+func test_a_training_batch_is_asked_once_it_is_over() -> void:
+	var api := FakeApi.new()
+	var done := _state(10)
+	done["training"] = null
+	api.replies = [_ok({"state": done, "now": 100_500})]
+	var s := _with_training(api, 100_000)
+	_ticks[0] = 29_000
+	s.tick()
+	assert_eq(api.calls.size(), 0, "nothing is asked while the batch runs")
+	_ticks[0] = 30_000 + Session.COMPLETION_MARGIN_MS
+	s.tick()
+	await wait_until(func() -> bool: return s.state.get("training") == null, 5.0)
+	assert_eq(api.calls, ["/v1/state"])
+	s.tick()
+	assert_eq(api.calls.size(), 1, "an answer with no batch ends the watch")
+
+func test_a_running_batch_answer_is_asked_again_and_bounded() -> void:
+	var api := FakeApi.new()
+	var running := _state(10)
+	running["training"] = _training(100_000)
+	for i in 10:
+		api.replies.append(_ok({"state": running, "now": 99_990}))
+	var s := _with_training(api, 100_000)
+	var at := 30_000 + Session.COMPLETION_MARGIN_MS
+	_ticks[0] = at
+	s.tick()
+	await wait_process_frames(3)
+	_ticks[0] = at + Session.COMPLETION_RETRY_MS - 1
+	s.tick()
+	assert_eq(api.calls.size(), 1, "waits out the retry delay")
+	for i in 12:
+		_ticks[0] += Session.COMPLETION_RETRY_MS
+		s.tick()
+		await wait_process_frames(3)
+	assert_eq(api.calls.size(), Session.MAX_COMPLETION_ASKS, "it stops asking for this batch")
+
+func test_an_upgrade_and_a_batch_each_get_their_own_asks() -> void:
+	var api := FakeApi.new()
+	var st := _state(10)
+	st["queue"] = _job(100_000)
+	st["training"] = _training(200_000)
+	var upgraded := _state(10)
+	upgraded["queue"] = null
+	upgraded["training"] = _training(200_000)
+	api.replies = [_ok({"state": upgraded, "now": 99_000}), _ok({"state": upgraded, "now": 169_000})]
+	var s := _session(api)
+	s.apply({"state": st, "now": 70_000})
+	_ticks[0] = 30_000 + Session.COMPLETION_MARGIN_MS
+	s.tick()
+	await wait_until(func() -> bool: return s.queue() == null, 5.0)
+	assert_eq(api.calls.size(), 1, "the upgrade is over, the batch is not")
+	_ticks[0] = 170_000 + Session.COMPLETION_MARGIN_MS
+	s.tick()
+	await wait_process_frames(3)
+	assert_eq(api.calls.size(), 2, "the batch's own watch asks when it is over")
