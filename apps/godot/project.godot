@@ -14,7 +14,7 @@ window/stretch/aspect="expand"
 window/handheld/orientation=1
 
 [editor_plugins]
-enabled=PackedStringArray("res://addons/gut/plugin.cfg")
+enabled=PackedStringArray("res://addons/gut/plugin.cfg", "res://addons/godot_ai/plugin.cfg")
 
 [gui]
 
