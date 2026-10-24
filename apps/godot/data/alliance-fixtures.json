@@ -1,0 +1,112 @@
+{
+  "member_actions": [
+    {
+      "viewer": "leader",
+      "rank": "leader",
+      "me": false,
+      "actions": ["transfer"]
+    },
+    {
+      "viewer": "leader",
+      "rank": "leader",
+      "me": true,
+      "actions": []
+    },
+    {
+      "viewer": "leader",
+      "rank": "officer",
+      "me": false,
+      "actions": ["kick","demote","transfer"]
+    },
+    {
+      "viewer": "leader",
+      "rank": "officer",
+      "me": true,
+      "actions": []
+    },
+    {
+      "viewer": "leader",
+      "rank": "member",
+      "me": false,
+      "actions": ["kick","promote","transfer"]
+    },
+    {
+      "viewer": "leader",
+      "rank": "member",
+      "me": true,
+      "actions": []
+    },
+    {
+      "viewer": "officer",
+      "rank": "leader",
+      "me": false,
+      "actions": []
+    },
+    {
+      "viewer": "officer",
+      "rank": "leader",
+      "me": true,
+      "actions": []
+    },
+    {
+      "viewer": "officer",
+      "rank": "officer",
+      "me": false,
+      "actions": []
+    },
+    {
+      "viewer": "officer",
+      "rank": "officer",
+      "me": true,
+      "actions": []
+    },
+    {
+      "viewer": "officer",
+      "rank": "member",
+      "me": false,
+      "actions": ["kick"]
+    },
+    {
+      "viewer": "officer",
+      "rank": "member",
+      "me": true,
+      "actions": []
+    },
+    {
+      "viewer": "member",
+      "rank": "leader",
+      "me": false,
+      "actions": []
+    },
+    {
+      "viewer": "member",
+      "rank": "leader",
+      "me": true,
+      "actions": []
+    },
+    {
+      "viewer": "member",
+      "rank": "officer",
+      "me": false,
+      "actions": []
+    },
+    {
+      "viewer": "member",
+      "rank": "officer",
+      "me": true,
+      "actions": []
+    },
+    {
+      "viewer": "member",
+      "rank": "member",
+      "me": false,
+      "actions": []
+    },
+    {
+      "viewer": "member",
+      "rank": "member",
+      "me": true,
+      "actions": []
+    }
+  ]
+}

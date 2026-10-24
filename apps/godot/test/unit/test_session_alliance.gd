@@ -181,3 +181,28 @@ func test_the_frames_the_real_server_sent_are_parsed_and_counted() -> void:
 	assert_eq(s.unread(), 2, "the first history (empty) counted as seen, both lines came after it")
 	s.set_chat_open(true)
 	assert_eq(s.unread(), 0)
+
+func test_member_actions_post_the_handle_and_fetch_the_alliance() -> void:
+	var api := FakeApi.new()
+	var s := await _joined(api)
+	api.replies = [_ok({"ok": true, "now": 2}), _ok({"alliance": _view(), "help": [], "now": 2})]
+	var verdict := await s.member_action("promote", "x")
+	assert_true(verdict["ok"])
+	assert_eq(api.calls[api.calls.size() - 2], "/v1/alliance/promote")
+	assert_eq(api.posted[0], {"handle": "x"})
+	api.replies = [_ok({"ok": false, "reason": "no_permission", "now": 3})]
+	assert_eq(await s.member_action("kick", "x"), {"ok": false, "reason": "no_permission"})
+
+func test_the_kicked_frame_the_real_server_sent_clears_the_alliance() -> void:
+	var parsed := JSON.new()
+	assert_eq(parsed.parse(FileAccess.get_file_as_string("res://data/captured-chat.json")), OK)
+	var s := await _joined(FakeApi.new())
+	s.apply_alliance_message({"type": "history", "messages": [_line(1)]})
+	watch_signals(s)
+	var frames: Array = parsed.data["kicked_frames"]
+	assert_eq(frames.size(), 1)
+	var msg: Variant = AllianceMessages.parse(JSON.stringify(frames[0]))
+	assert_not_null(msg)
+	assert_true(s.apply_alliance_message(msg), "the caller stops the socket")
+	assert_null(s.alliance)
+	assert_signal_emitted_with_parameters(s, "alliance_id_changed", [""])

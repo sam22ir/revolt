@@ -26,7 +26,9 @@ var _connected := true
 var _search_seq := 0
 var _results: Variant = null
 var _searching := false
-var _confirm_key := ""
+## A confirmation waiting for an answer: {"kind": "kick"|"transfer"|"leave", "handle", "key"}; empty when none.
+var _pending := {}
+var _tab := "members"
 var _stick := true
 var _alliance_id := ""
 var _note_key := ""
@@ -51,7 +53,13 @@ var _create_button := Button.new()
 var _joined := VBoxContainer.new()
 var _header := Label.new()
 var _count := Label.new()
-var _chat_title := Label.new()
+var _tab_buttons := {}
+var _chat_badge := UnreadBadge.new()
+var _members_scroll := ScrollContainer.new()
+var _hq_line := Label.new()
+var _rows_box := VBoxContainer.new()
+var _leader_note := Label.new()
+var _chat_panel := VBoxContainer.new()
 var _status := Label.new()
 var _chat_scroll := ScrollContainer.new()
 var _chat_box := VBoxContainer.new()
@@ -100,13 +108,19 @@ func _ready() -> void:
 func _on_visibility_changed() -> void:
 	if is_visible_in_tree():
 		_view = ""
+		_stick = true
 		_render_state()
+	_sync_chat_open()
 
 ## Connects the screen to the session it shows.
 func setup(session: Session) -> void:
 	_session = session
 	session.alliance_refreshed.connect(_render_state)
-	session.chat_changed.connect(_render_chat)
+	session.chat_changed.connect(_on_chat_changed)
+
+func _on_chat_changed() -> void:
+	_update_chat_badge()
+	_render_chat()
 
 ## The alliance socket is open (or not): while it is not, the chat says it is reconnecting.
 func set_connected(open: bool) -> void:
@@ -174,31 +188,41 @@ func _build_joined() -> void:
 	_joined.add_child(_header)
 	_style(_count, SMALL, MUTED)
 	_joined.add_child(_count)
-	_style(_chat_title, FONT, GOLD)
-	_joined.add_child(_chat_title)
-	_style(_status, SMALL, NOTE_COLOR)
-	_joined.add_child(_status)
-	_chat_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_chat_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_chat_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_chat_box.add_theme_constant_override("separation", 8)
-	_chat_scroll.add_child(_chat_box)
-	_chat_scroll.get_v_scroll_bar().value_changed.connect(func(_v: float) -> void: _stick = _near_bottom())
-	_joined.add_child(_chat_scroll)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	_chat_input.max_length = AllianceModel.CHAT_MAX
-	_chat_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_chat_input.add_theme_font_size_override("font_size", FONT)
-	_chat_input.text_submitted.connect(func(_t: String) -> void: _on_send())
-	row.add_child(_chat_input)
-	_send_button.add_theme_font_size_override("font_size", FONT)
-	_send_button.pressed.connect(_on_send)
-	row.add_child(_send_button)
-	_joined.add_child(row)
+	var tabs := HBoxContainer.new()
+	tabs.add_theme_constant_override("separation", 6)
+	var group := ButtonGroup.new()
+	for id in ["members", "chat"]:
+		var button := Button.new()
+		button.toggle_mode = true
+		button.button_group = group
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.add_theme_font_size_override("font_size", FONT)
+		button.pressed.connect(select_tab.bind(id))
+		tabs.add_child(button)
+		_tab_buttons[id] = button
+	_tab_buttons["chat"].add_child(_chat_badge)
+	_joined.add_child(tabs)
+	_build_members()
+	_joined.add_child(_members_scroll)
+	_build_chat()
+	_joined.add_child(_chat_panel)
+
+func _build_members() -> void:
+	_members_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_members_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 12)
+	_members_scroll.add_child(box)
+	_style(_hq_line, SMALL, MUTED, true)
+	box.add_child(_hq_line)
+	_rows_box.add_theme_constant_override("separation", 8)
+	box.add_child(_rows_box)
 	_leave_button.add_theme_font_size_override("font_size", SMALL)
 	_leave_button.pressed.connect(_on_leave)
-	_joined.add_child(_leave_button)
+	box.add_child(_leave_button)
+	_style(_leader_note, SMALL, MUTED, true)
+	box.add_child(_leader_note)
 	_style(_confirm_label, SMALL, PAPER, true)
 	_confirm_box.add_child(_confirm_label)
 	var answers := HBoxContainer.new()
@@ -209,11 +233,57 @@ func _build_joined() -> void:
 		answers.add_child(b)
 	_yes_button.pressed.connect(_on_confirm_yes)
 	_no_button.pressed.connect(func() -> void:
-		_confirm_key = ""
+		_pending = {}
 		_render_leave())
 	_confirm_box.add_child(answers)
 	_confirm_box.visible = false
-	_joined.add_child(_confirm_box)
+	box.add_child(_confirm_box)
+
+func _build_chat() -> void:
+	_chat_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_chat_panel.add_theme_constant_override("separation", 10)
+	_style(_status, SMALL, NOTE_COLOR)
+	_chat_panel.add_child(_status)
+	_chat_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_chat_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_chat_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_chat_box.add_theme_constant_override("separation", 8)
+	_chat_scroll.add_child(_chat_box)
+	_chat_scroll.get_v_scroll_bar().value_changed.connect(func(_v: float) -> void: _stick = _near_bottom())
+	_chat_panel.add_child(_chat_scroll)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	_chat_input.max_length = AllianceModel.CHAT_MAX
+	_chat_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_chat_input.add_theme_font_size_override("font_size", FONT)
+	_chat_input.text_submitted.connect(func(_t: String) -> void: _on_send())
+	row.add_child(_chat_input)
+	_send_button.add_theme_font_size_override("font_size", FONT)
+	_send_button.pressed.connect(_on_send)
+	row.add_child(_send_button)
+	_chat_panel.add_child(row)
+
+## Shows the Members or the Chat tab. Chat counts as open (lines are seen) only while it is on screen.
+func select_tab(id: String) -> void:
+	_tab = id
+	_pending = {}
+	_stick = true
+	_apply_tab()
+
+func _apply_tab() -> void:
+	var joined := _joined.visible
+	_members_scroll.visible = _tab == "members"
+	_chat_panel.visible = _tab == "chat"
+	for t: String in _tab_buttons:
+		_tab_buttons[t].set_pressed_no_signal(t == _tab)
+	_render_leave()
+	_sync_chat_open()
+	if joined and _tab == "chat":
+		_render_chat()
+
+func _sync_chat_open() -> void:
+	if _session != null:
+		_session.set_chat_open(is_visible_in_tree() and _joined.visible and _tab == "chat")
 
 func _retranslate() -> void:
 	_loading.text = Loc.t("alliance.loading")
@@ -224,7 +294,9 @@ func _retranslate() -> void:
 	_name_label.text = Loc.t("alliance.nameLabel")
 	_tag_label.text = Loc.t("alliance.tagLabel")
 	_create_button.text = Loc.t("alliance.create")
-	_chat_title.text = Loc.t("alliance.tab.chat")
+	_tab_buttons["members"].text = Loc.t("alliance.tab.members")
+	_tab_buttons["chat"].text = Loc.t("alliance.tab.chat")
+	_chat_badge.place(Fmt.lang())
 	_status.text = Loc.t("chat.reconnecting")
 	_chat_input.placeholder_text = Loc.t("chat.placeholder")
 	_send_button.text = Loc.t("chat.send")
@@ -235,6 +307,8 @@ func _retranslate() -> void:
 		_note.text = _note_text()
 	_render_leave()
 	_render_results()
+	if _session != null and _joined.visible:
+		_render_members()
 
 func _render_state() -> void:
 	if _session == null:
@@ -251,25 +325,75 @@ func _render_state() -> void:
 	var id := AllianceModel.alliance_id(_session.alliance)
 	if id != _alliance_id:
 		_alliance_id = id
-		_confirm_key = ""
+		_pending = {}
 		_stick = true
 	if joined:
 		var a: Dictionary = _session.alliance
 		_header.text = "%s · %s" % [a["name"], a["tag"]]
 		_count.text = Loc.t("alliance.memberCount", {"count": Fmt.amount(Fmt.lang(), (a["members"] as Array).size()), "max": Fmt.amount(Fmt.lang(), int(a["maxMembers"]))})
 		_status.visible = not _connected
-		_render_leave()
-		_render_chat()
+		_render_members()
+		_apply_tab()
+		_update_chat_badge()
 	elif view == "browse" and _view != "browse" and is_visible_in_tree():
 		_run_search()
 	if joined or is_visible_in_tree():
 		_view = view
+	_sync_chat_open()
+
+func _update_chat_badge() -> void:
+	_chat_badge.set_count(_session.unread() if _session != null else 0, Fmt.lang())
 
 func _render_leave() -> void:
-	_leave_button.visible = _confirm_key == ""
-	_confirm_box.visible = _confirm_key != ""
-	if _confirm_key != "":
-		_confirm_label.text = Loc.t(_confirm_key)
+	_leave_button.visible = _pending.is_empty()
+	_confirm_box.visible = not _pending.is_empty()
+	if not _pending.is_empty():
+		var q := AllianceModel.confirm_text(_pending)
+		_confirm_label.text = Loc.t(String(q["key"]), q["vars"])
+	var a: Variant = _session.alliance if _session != null else null
+	_leader_note.visible = a is Dictionary and AllianceModel.leave_plan(a).get("kind") == "blocked"
+	_leader_note.text = Loc.t("alliance.leaderMustTransfer")
+
+func _render_members() -> void:
+	if _session == null or not _session.alliance is Dictionary:
+		return
+	var a: Dictionary = _session.alliance
+	var lang := Fmt.lang()
+	var hq: Variant = a.get("hq")
+	_hq_line.text = Loc.t("alliance.hqNone") if not hq is Dictionary else Loc.t("alliance.hqAt", {"x": Fmt.amount(lang, hq["x"]), "y": Fmt.amount(lang, hq["y"])})
+	for child in _rows_box.get_children():
+		_rows_box.remove_child(child)
+		child.queue_free()
+	for m: Dictionary in a["members"]:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		var who := VBoxContainer.new()
+		who.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var handle := _made_label(String(m["handle"]), FONT, GOLD if m.get("me", false) else PAPER)
+		who.add_child(handle)
+		var tag := Loc.t("alliance.rank." + String(m["rank"]))
+		if m.get("me", false):
+			tag += " · " + Loc.t("alliance.you")
+		who.add_child(_made_label(tag, SMALL, MUTED))
+		row.add_child(who)
+		for action: String in AllianceModel.member_actions(String(a["myRank"]), m):
+			var button := Button.new()
+			button.text = Loc.t("alliance.action." + action)
+			button.add_theme_font_size_override("font_size", SMALL)
+			button.disabled = _busy
+			button.pressed.connect(_on_member_action.bind(action, String(m["handle"])))
+			row.add_child(button)
+		_rows_box.add_child(row)
+	_render_leave()
+
+func _on_member_action(action: String, handle: String) -> void:
+	if _busy or _session == null:
+		return
+	if action == "kick" or action == "transfer":
+		_pending = {"kind": action, "handle": handle}
+		_render_leave()
+		return
+	await _act(_session.member_action.bind(action, handle))
 
 func _on_leave() -> void:
 	if _session == null or _session.alliance == null or _busy:
@@ -278,13 +402,18 @@ func _on_leave() -> void:
 	if plan["kind"] == "blocked":
 		show_note(String(plan["reason"]))
 		return
-	_confirm_key = String(plan["key"])
+	_pending = {"kind": "leave", "key": plan["key"]}
 	_render_leave()
 
 func _on_confirm_yes() -> void:
-	_confirm_key = ""
+	var pending := _pending
+	_pending = {}
 	_render_leave()
-	await _act(_session.leave_alliance)
+	match pending.get("kind"):
+		"kick", "transfer":
+			await _act(_session.member_action.bind(pending["kind"], pending["handle"]))
+		"leave":
+			await _act(_session.leave_alliance)
 
 ## Runs one alliance request with the buttons held, then shows a refusal's reason; a success changes the view by itself
 ## (the session announces the new alliance and `alliance_refreshed` redraws).
@@ -302,6 +431,8 @@ func _act(request: Callable) -> void:
 func _set_busy_look(busy: bool) -> void:
 	_create_button.disabled = busy
 	_leave_button.disabled = busy
+	for b in _rows_box.find_children("*", "Button", true, false):
+		(b as Button).disabled = busy
 	for child in _results_box.get_children():
 		for b in child.find_children("*", "Button", true, false):
 			(b as Button).disabled = busy or not b.get_meta("can_join", true)
@@ -373,7 +504,7 @@ func _on_send() -> void:
 		show_note("chat.notSent")
 
 func _render_chat() -> void:
-	if _session == null or not _joined.visible or not is_visible_in_tree():
+	if _session == null or not _joined.visible or not _chat_panel.visible or not is_visible_in_tree():
 		return
 	var stick := _stick
 	for child in _chat_box.get_children():

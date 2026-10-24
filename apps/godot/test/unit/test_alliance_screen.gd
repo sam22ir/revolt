@@ -91,6 +91,7 @@ func test_leave_asks_first_and_a_leader_with_members_is_told_to_hand_over() -> v
 func test_chat_lines_are_drawn_with_their_sender() -> void:
 	var pair := _screen(_view("member", 2))
 	await pair[1].refresh_alliance()
+	(pair[0] as AllianceScreen).select_tab("chat")
 	pair[1].apply_alliance_message({"type": "history", "messages": [{"id": 1, "at": 1792857900000, "handle": "ZED", "rank": "officer", "text": "hello <b>x</b>"}]})
 	var texts := (pair[0] as AllianceScreen)._chat_box.get_children().map(func(l: Label) -> String: return l.text)
 	assert_eq(texts.size(), 2)
@@ -109,3 +110,72 @@ func test_a_hidden_screen_does_not_search_and_one_search_runs_when_it_is_shown()
 	await get_tree().process_frame
 	await get_tree().process_frame
 	assert_eq(api.calls, ["/v1/alliance", "/v1/alliances?q="] as Array[String], "exactly one search on opening")
+
+func _line(id: int, handle := "other") -> Dictionary:
+	return {"id": id, "at": 1, "handle": handle, "rank": "member", "text": "t%d" % id}
+
+func test_chat_counts_as_open_only_when_visible_in_an_alliance_on_the_chat_tab() -> void:
+	var pair := _screen(_view("member", 2))
+	var screen: AllianceScreen = pair[0]
+	var s: Session = pair[1]
+	await s.refresh_alliance()
+	s.apply_alliance_message({"type": "history", "messages": []})
+	s.apply_alliance_message({"type": "chat", "message": _line(1)})
+	assert_eq(s.unread(), 1, "on the Members tab (the default) lines keep counting")
+	screen.select_tab("chat")
+	assert_eq(s.unread(), 0, "opening the chat marks them seen")
+	s.apply_alliance_message({"type": "chat", "message": _line(2)})
+	assert_eq(s.unread(), 0, "a line that arrives while the chat is on screen is seen")
+	screen.visible = false
+	s.apply_alliance_message({"type": "chat", "message": _line(3)})
+	assert_eq(s.unread(), 1, "a hidden screen does not read the chat")
+	screen.visible = true
+	assert_eq(s.unread(), 0, "showing it on the chat tab reads it")
+	screen.select_tab("members")
+	s.apply_alliance_message({"type": "chat", "message": _line(4)})
+	assert_eq(s.unread(), 1)
+
+func test_the_chat_tab_shows_the_unread_count() -> void:
+	var pair := _screen(_view("member", 2))
+	var screen: AllianceScreen = pair[0]
+	await pair[1].refresh_alliance()
+	pair[1].apply_alliance_message({"type": "history", "messages": []})
+	pair[1].apply_alliance_message({"type": "chat", "message": _line(1)})
+	assert_true(screen._chat_badge.is_shown())
+	assert_eq(screen._chat_badge.text(), "1")
+	screen.select_tab("chat")
+	assert_false(screen._chat_badge.is_shown())
+
+func test_members_are_listed_with_the_actions_their_rank_allows() -> void:
+	var view := _view("leader", 3)
+	view["members"][1]["rank"] = "officer"
+	var pair := _screen(view)
+	await pair[1].refresh_alliance()
+	var screen: AllianceScreen = pair[0]
+	assert_eq(screen._rows_box.get_child_count(), 3)
+	assert_eq(_buttons(screen._rows_box, Loc.t("alliance.action.demote")).size(), 1, "only the officer can be demoted")
+	assert_eq(_buttons(screen._rows_box, Loc.t("alliance.action.promote")).size(), 1, "only the plain member can be promoted")
+	assert_eq(_buttons(screen._rows_box, Loc.t("alliance.action.transfer")).size(), 2, "not on the player's own row")
+
+func test_kick_and_hand_over_ask_first_with_the_handle() -> void:
+	var view := _view("leader", 2)
+	var pair := _screen(view)
+	await pair[1].refresh_alliance()
+	var screen: AllianceScreen = pair[0]
+	screen._on_member_action("kick", "m1")
+	assert_true(screen._confirm_box.visible)
+	assert_eq(screen._confirm_label.text, Loc.t("alliance.confirmKick", {"handle": "m1"}))
+	screen._no_button.pressed.emit()
+	assert_false(screen._confirm_box.visible)
+	screen._on_member_action("transfer", "m1")
+	assert_eq(screen._confirm_label.text, Loc.t("alliance.confirmTransfer", {"handle": "m1"}))
+	screen.select_tab("chat")
+	assert_true(screen._pending.is_empty(), "changing tab drops the question")
+
+func test_a_leader_with_members_sees_the_hand_over_note_under_leave() -> void:
+	var pair := _screen(_view("leader", 3))
+	await pair[1].refresh_alliance()
+	assert_true((pair[0] as AllianceScreen)._leader_note.visible)
+	var other := _screen(_view("member", 3))
+	await other[1].refresh_alliance()
+	assert_false((other[0] as AllianceScreen)._leader_note.visible)

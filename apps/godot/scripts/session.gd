@@ -343,6 +343,10 @@ func join_alliance(id: String) -> Dictionary:
 func leave_alliance() -> Dictionary:
 	return await _alliance_post("/v1/alliance/leave", {})
 
+## Kick, promote, demote or hand over leadership (`action` is one of those four).
+func member_action(action: String, handle: String) -> Dictionary:
+	return await _alliance_post("/v1/alliance/" + action, {"handle": handle})
+
 ## A refusal is HTTP 200 with {ok: false, reason}. On success the alliance is fetched again (the reply's view lacks the help requests).
 func _alliance_post(path: String, body: Dictionary) -> Dictionary:
 	var result: Dictionary = await api.post_json(path, body)

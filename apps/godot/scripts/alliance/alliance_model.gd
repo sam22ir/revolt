@@ -69,3 +69,32 @@ static func chat_text(raw: String) -> String:
 ## The create form's values: the name trimmed, the tag trimmed and upper-cased (what the server stores). The server validates.
 static func create_values(name_raw: String, tag_raw: String) -> Dictionary:
 	return {"name": name_raw.strip_edges(), "tag": tag_raw.strip_edges().to_upper()}
+
+const RANK_ORDER := {"leader": 2, "officer": 1, "member": 0}
+
+## Which member actions the viewer's rank is offered on this member (a port of `memberActions`, golden cases in
+## data/alliance-fixtures.json): kick needs the permission and a strictly lower target rank, promote and demote are the leader's
+## and only fit a member or an officer, hand-over is the leader's. Never on the player's own row. The server checks again.
+static func member_actions(viewer: String, member: Dictionary) -> Array:
+	var out: Array = []
+	if member.get("me", false):
+		return out
+	var rank := String(member.get("rank", ""))
+	if (viewer == "leader" or viewer == "officer") and RANK_ORDER.get(viewer, 0) > RANK_ORDER.get(rank, 0):
+		out.append("kick")
+	if viewer == "leader" and rank == "member":
+		out.append("promote")
+	if viewer == "leader" and rank == "officer":
+		out.append("demote")
+	if viewer == "leader":
+		out.append("transfer")
+	return out
+
+## The question a pending confirmation asks: {"kind": "kick"|"transfer"|"leave", "handle", "key"} to its key and text vars.
+static func confirm_text(pending: Dictionary) -> Dictionary:
+	match pending.get("kind"):
+		"kick":
+			return {"key": "alliance.confirmKick", "vars": {"handle": pending["handle"]}}
+		"transfer":
+			return {"key": "alliance.confirmTransfer", "vars": {"handle": pending["handle"]}}
+	return {"key": pending.get("key", "alliance.confirmLeave"), "vars": {}}

@@ -42,3 +42,17 @@ func test_form_values_are_trimmed_and_the_tag_upper_cased() -> void:
 	assert_eq(AllianceModel.create_values("  Wolves ", " wlf "), {"name": "Wolves", "tag": "WLF"})
 	assert_eq(AllianceModel.chat_text("  hi  "), "hi")
 	assert_eq(AllianceModel.chat_text("   "), "")
+
+func test_member_actions_match_the_client_for_every_rank() -> void:
+	var parsed := JSON.new()
+	assert_eq(parsed.parse(FileAccess.get_file_as_string("res://data/alliance-fixtures.json")), OK)
+	var cases: Array = parsed.data["member_actions"]
+	assert_eq(cases.size(), 18)
+	for c: Dictionary in cases:
+		var got := AllianceModel.member_actions(c["viewer"], {"rank": c["rank"], "me": c["me"]})
+		assert_eq(got, c["actions"], "%s on %s (me=%s)" % [c["viewer"], c["rank"], c["me"]])
+
+func test_confirm_text_names_the_member_for_kick_and_hand_over() -> void:
+	assert_eq(AllianceModel.confirm_text({"kind": "kick", "handle": "Z"}), {"key": "alliance.confirmKick", "vars": {"handle": "Z"}})
+	assert_eq(AllianceModel.confirm_text({"kind": "transfer", "handle": "Z"}), {"key": "alliance.confirmTransfer", "vars": {"handle": "Z"}})
+	assert_eq(AllianceModel.confirm_text({"kind": "leave", "key": "alliance.confirmDisband"}), {"key": "alliance.confirmDisband", "vars": {}})

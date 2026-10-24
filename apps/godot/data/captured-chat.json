@@ -25,5 +25,11 @@
         "text": "second line, a bit longer so it has to wrap on a narrow phone screen"
       }
     }
-  ]
+  ],
+  "kicked_frames": [
+    {
+      "type": "kicked"
+    }
+  ],
+  "_comment_kicked": "The frame a kicked member received when the leader pressed Remove (the server then closed the socket with code 1008). Captured from the mock the same way."
 }

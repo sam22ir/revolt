@@ -29,7 +29,7 @@ var _loaded := false
 var _base := BaseScreen.new()
 var _reports_screen := ReportsScreen.new()
 var _alliance_screen := AllianceScreen.new()
-var _badge := PanelContainer.new()
+var _badge := UnreadBadge.new()
 var _toast := ReportToast.new()
 var _nav := HBoxContainer.new()
 var _nav_buttons := {}
@@ -310,7 +310,6 @@ func _show_screen(screen: String) -> void:
 	_base.set_active(screen == "base")
 	_reports_screen.visible = screen == "reports"
 	_alliance_screen.visible = screen == "alliance"
-	_session.set_chat_open(screen == "alliance")
 	for id: String in _nav_buttons:
 		_nav_buttons[id].set_pressed_no_signal(id == screen)
 	if screen == "reports":
@@ -444,45 +443,14 @@ func _build_hud() -> void:
 		button.pressed.connect(_show_screen.bind(id))
 		_nav.add_child(button)
 		_nav_buttons[id] = button
-	_build_unread_badge(_nav_buttons["alliance"])
+	_nav_buttons["alliance"].add_child(_badge)
 	_hud_root.add_child(_nav)
 
 	top.resized.connect(_refit)
 	get_viewport().size_changed.connect(_refit)
 
-## The unread chat count on the Alliance nav button. It is a child of the button, so it never changes the button's size or the row;
-## it is hidden by transparency, not by `visible`, and never takes a tap.
-func _build_unread_badge(button: Button) -> void:
-	_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color8(0xc0, 0x39, 0x2b)
-	box.set_corner_radius_all(20)
-	box.content_margin_left = 12
-	box.content_margin_right = 12
-	box.content_margin_top = 2
-	box.content_margin_bottom = 2
-	_badge.add_theme_stylebox_override("panel", box)
-	var label := Label.new()
-	label.add_theme_font_size_override("font_size", FONT_SIZE - 6)
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_badge.add_child(label)
-	_badge.modulate.a = 0.0
-	button.add_child(_badge)
-	_place_badge()
-
-## At the button's top end: its right in English and French, its left in Arabic (anchors do not follow the layout direction).
-func _place_badge() -> void:
-	var arabic := Fmt.lang() == "ar"
-	_badge.set_anchors_preset(Control.PRESET_TOP_LEFT if arabic else Control.PRESET_TOP_RIGHT)
-	_badge.grow_horizontal = Control.GROW_DIRECTION_END if arabic else Control.GROW_DIRECTION_BEGIN
-	_badge.offset_top = 6
-	_badge.offset_left = 8 if arabic else -8
-	_badge.offset_right = _badge.offset_left
-
 func _update_badge() -> void:
-	var n := _session.unread()
-	(_badge.get_child(0) as Label).text = Fmt.amount(Fmt.lang(), n)
-	_badge.modulate.a = 1.0 if n > 0 else 0.0
+	_badge.set_count(_session.unread(), Fmt.lang())
 
 ## "Offline — reconnecting…", centred just above the nav bar. It is outside the top box, so it never moves the base.
 func _build_offline_badge() -> void:
@@ -520,7 +488,7 @@ func _apply_language(lang: String) -> void:
 		_nav_buttons[id].text = Loc.t("nav." + id)
 	_reports_screen.refresh()
 	_alliance_screen.refresh()
-	_place_badge()
+	_badge.place(Fmt.lang())
 	_update_badge()
 	_toast.refresh()
 	_refresh_status()
