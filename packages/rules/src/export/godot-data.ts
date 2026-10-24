@@ -14,6 +14,19 @@ import { BUILDINGS, MAX_BUILDING_LEVEL } from "../data/buildings.ts";
 import { COSMETIC_IDS } from "../data/cosmetics.ts";
 import { EVENTS } from "../data/events.ts";
 import { HEROES } from "../data/heroes.ts";
+import {
+  HERO_DRAW_COST,
+  HERO_DRAW_MIN_HALL,
+  HERO_DRAW_ODDS,
+  HERO_LEVEL_EFFECT_STEP,
+  HERO_LEVELS_PER_HALL_LEVEL,
+  HERO_SHARDS_PER_LEVEL,
+  MAX_HERO_LEVEL,
+  PITY_DRAWS,
+  SHARDS_PER_DUPLICATE,
+} from "../data/hero-progression.ts";
+import { HEROES_BY_BACKGROUND } from "../hero-id.ts";
+import { DEFAULT_BACKGROUND } from "../background.ts";
 import { MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING, REGION_CELL } from "../data/map.ts";
 import { hash32 } from "../rng.ts";
 import { regionAt, regionSite } from "../regions.ts";
@@ -44,6 +57,19 @@ export const buildGodotBalance = (): unknown => ({
   trainingBatchPerLevel: TRAINING_BATCH_PER_LEVEL,
   battle: { counterBonus: COUNTER_BONUS, lostShare: LOST_SHARE, maxRounds: MAX_BATTLE_ROUNDS },
   heroes: HEROES,
+  heroesByBackground: HEROES_BY_BACKGROUND,
+  defaultBackground: DEFAULT_BACKGROUND,
+  heroProgression: {
+    maxLevel: MAX_HERO_LEVEL,
+    levelsPerHallLevel: HERO_LEVELS_PER_HALL_LEVEL,
+    shardsPerLevel: HERO_SHARDS_PER_LEVEL,
+    levelEffectStep: HERO_LEVEL_EFFECT_STEP,
+    shardsPerDuplicate: SHARDS_PER_DUPLICATE,
+    drawMinHall: HERO_DRAW_MIN_HALL,
+    drawCost: HERO_DRAW_COST,
+    drawOdds: HERO_DRAW_ODDS,
+    pityDraws: PITY_DRAWS,
+  },
   npcLevels: NPC_LEVELS,
   npcRespawnMs: NPC_RESPAWN_MS,
   map: {

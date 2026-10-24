@@ -68,6 +68,7 @@ var _chat_open := false
 var wallet: Dictionary = {}
 var _wallet_now := -1
 var _speedup_pending := {}
+var _hero_pending := {}
 var _refreshing := false
 var _alliance_refreshing := false
 var _alliance_again := false
@@ -283,6 +284,16 @@ func speed_up(kind: String) -> Dictionary:
 	_speedup_pending[kind] = true
 	var verdict: Dictionary = await send_intent({"type": "speedup", "job": kind, "tokens": 1})
 	_speedup_pending.erase(kind)
+	return verdict
+
+## Spends shards to raise an owned hero one level (the intent `hero_level`). Returns the server's verdict like an intent; "" as the
+## reason means nothing was sent (a level-up of this hero is already out). The base in the answer is applied, a refusal included.
+func level_up_hero(hero_id: String) -> Dictionary:
+	if _hero_pending.has(hero_id):
+		return {"ok": false, "reason": ""}
+	_hero_pending[hero_id] = true
+	var verdict: Dictionary = await send_intent({"type": "hero_level", "hero": hero_id})
+	_hero_pending.erase(hero_id)
 	return verdict
 
 func _holds(id: String) -> bool:

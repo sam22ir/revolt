@@ -1,0 +1,175 @@
+class_name HeroesScreen
+extends Control
+## The Heroes screen: the background's heroes with level, shards, skills and a Level up button. It draws what HeroesModel gives it
+## and sends the player's intent through the Session; the server decides. Opened from the hero hall's sheet and left with Close.
+## There are no portraits yet: rarity shows as the card's border and its label, the specialty as text. Fills the area between the
+## HUD and the nav bar and is hidden (no drawing, no input, no work) on the other screens.
+
+signal closed
+
+const MARGIN := 24
+const FONT := 30
+const SMALL := 26
+const PAPER := Color8(0xf4, 0xea, 0xd6)
+const INK := Color8(0x2b, 0x2a, 0x24)
+const MUTED := Color8(0x9a, 0x92, 0x7a)
+const LACKING := Color8(0xe0, 0x7a, 0x62)
+const RARITY_COLORS := {
+	"common": Color8(0x9a, 0x92, 0x7a),
+	"rare": Color8(0x6a, 0xa8, 0xe0),
+	"legendary": Color8(0xe0, 0xb0, 0x40),
+}
+
+var _session: Session
+var _scroll := ScrollContainer.new()
+var _body := VBoxContainer.new()
+var _key := ""
+## A refusal per hero, shown under the card until it is redrawn from fresh state.
+var _notes := {}
+
+func _ready() -> void:
+	var bg := ColorRect.new()
+	bg.color = INK
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(bg)
+	_scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	add_child(_scroll)
+	var margin := MarginContainer.new()
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+		margin.add_theme_constant_override(side, MARGIN)
+	_scroll.add_child(margin)
+	_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_body.add_theme_constant_override("separation", 14)
+	margin.add_child(_body)
+	visibility_changed.connect(func() -> void:
+		if is_visible_in_tree():
+			_key = ""
+			_render())
+	_render()
+
+## Connects the screen to the session it shows.
+func setup(session: Session) -> void:
+	_session = session
+	session.state_changed.connect(_render)
+
+## Draws the texts again (the language changed).
+func refresh() -> void:
+	_key = ""
+	_render()
+
+func _signature(cards: Array) -> String:
+	var parts: Array[String] = [TranslationServer.get_locale(), Loc.background_id]
+	for c: Dictionary in cards:
+		var o: Variant = c["owned"]
+		parts.append("%s:%s:%s:%d:%s:%s" % [c["id"], o["level"] if o is Dictionary else 0, o["shards"] if o is Dictionary else 0, int(c["busy"]), c["level_up"], _notes.get(c["id"], "")])
+	return "|".join(parts)
+
+func _render() -> void:
+	if _session == null or _session.state.is_empty() or not is_visible_in_tree():
+		return
+	var cards := HeroesModel.cards(_session.state, _session.background)
+	var key := _signature(cards)
+	if key == _key:
+		return
+	_key = key
+	for child in _body.get_children():
+		_body.remove_child(child)
+		child.queue_free()
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 12)
+	var title := _label(Loc.t("heroes.title"), FONT + 6, PAPER)
+	head.add_child(title)
+	var close := Button.new()
+	close.text = Loc.t("panel.close")
+	close.add_theme_font_size_override("font_size", FONT)
+	close.pressed.connect(func() -> void: closed.emit())
+	head.add_child(close)
+	_body.add_child(head)
+	_body.add_child(_label(Loc.t("heroes.intro"), SMALL, MUTED, true))
+	for c: Dictionary in cards:
+		_body.add_child(_card(c))
+
+func _card(c: Dictionary) -> Control:
+	var lang := Fmt.lang()
+	var rarity: String = c["def"]["rarity"]
+	var panel := PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(1, 1, 1, 0.06)
+	box.border_color = RARITY_COLORS[rarity]
+	box.set_border_width_all(3)
+	box.set_corner_radius_all(14)
+	box.content_margin_left = 16
+	box.content_margin_right = 16
+	box.content_margin_top = 12
+	box.content_margin_bottom = 12
+	panel.add_theme_stylebox_override("panel", box)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 6)
+	panel.add_child(v)
+	var head := HBoxContainer.new()
+	head.add_child(_label(Loc.t("hero.%s.name" % c["id"]), FONT + 2, PAPER))
+	var rarity_label := _label(Loc.t("rarity." + rarity), SMALL, RARITY_COLORS[rarity])
+	rarity_label.size_flags_horizontal = Control.SIZE_SHRINK_END
+	head.add_child(rarity_label)
+	v.add_child(head)
+	v.add_child(_label(Loc.t("hero.%s.desc" % c["id"]), SMALL, MUTED, true))
+	var owned: Variant = c["owned"]
+	var status := Loc.t("heroes.level", {"level": Fmt.amount(lang, owned["level"])}) if owned is Dictionary else Loc.t("heroes.notRecruited")
+	if c["busy"]:
+		status += " · " + Loc.t("heroes.busy")
+	v.add_child(_label(status, SMALL, PAPER))
+	var need: int = c["next_shards"]
+	if owned is Dictionary:
+		v.add_child(_label(Loc.t("heroes.shards", {"have": Fmt.amount(lang, owned["shards"]), "need": Fmt.amount(lang, need) if need > 0 else "—"}), SMALL, PAPER))
+		var bar := ProgressBar.new()
+		bar.show_percentage = false
+		bar.custom_minimum_size.y = 18
+		bar.value = (minf(1.0, float(owned["shards"]) / float(need)) if need > 0 else 1.0) * 100.0
+		v.add_child(bar)
+	v.add_child(_label("%s: %s" % [Loc.t("heroes.specialty"), Loc.t("troop.%s.name" % c["def"]["specialty"])], SMALL, MUTED))
+	for line: Dictionary in HeroesModel.skill_lines(c):
+		var effect := Loc.t("hero.skill.attack_pct", {"troop": Loc.t("troop.%s.name" % c["def"]["specialty"]), "pct": Fmt.amount(lang, line["pct"])}) if line["stat"] == "attack" else Loc.t("hero.skill.defense_pct", {"pct": Fmt.amount(lang, line["pct"])})
+		v.add_child(_label("%s · %s: %s" % [Loc.t("hero.skill." + String(line["slot"])), Loc.t("skill.%s.name" % line["id"]), effect], SMALL, PAPER, true))
+	if owned is Dictionary:
+		if need < 0:
+			v.add_child(_label(Loc.t("heroes.maxed"), SMALL, MUTED))
+		else:
+			var button := Button.new()
+			button.text = Loc.t("heroes.levelUp")
+			button.add_theme_font_size_override("font_size", FONT)
+			button.disabled = c["level_up"] != ""
+			button.pressed.connect(_on_level_up.bind(button, String(c["id"])))
+			v.add_child(button)
+			var why := String(_notes.get(c["id"], c["level_up"]))
+			if why != "":
+				v.add_child(_label(Loc.t("reason." + why, {"cap": Fmt.amount(lang, c["cap"])}), SMALL, LACKING, true))
+	return panel
+
+func _on_level_up(button: Button, id: String) -> void:
+	if _session == null:
+		return
+	button.disabled = true
+	var verdict: Dictionary = await _session.level_up_hero(id)
+	if verdict["reason"] == "" and verdict["ok"] == false:
+		return
+	if verdict["ok"]:
+		_notes.erase(id)
+	else:
+		_notes[id] = String(verdict["reason"])
+	_key = ""
+	_render()
+
+func _label(text: String, size: int, color: Color, wrap := false) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_color_override("font_color", color)
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if wrap:
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return label

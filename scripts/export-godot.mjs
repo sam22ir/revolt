@@ -87,3 +87,10 @@ execFileSync("pnpm", ["--filter", "@revolt/client", "exec", "vitest", "run", "te
   stdio: "inherit",
   env: { ...process.env, GODOT_EXPORT: "1" },
 });
+
+console.log("generating data/heroes-fixtures.json (vitest)");
+execFileSync("pnpm", ["--filter", "@revolt/client", "exec", "vitest", "run", "test/godot-heroes.test.ts"], {
+  cwd: root,
+  stdio: "inherit",
+  env: { ...process.env, GODOT_EXPORT: "1" },
+});

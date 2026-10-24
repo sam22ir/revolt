@@ -962,6 +962,31 @@
       ]
     }
   },
+  "heroesByBackground": {
+    "algeria": ["mountain_guide","dock_foreman","iron_quartermaster","hill_commander"],
+    "vietnam": ["trail_scout","field_medic","porter_chief","column_commander"]
+  },
+  "defaultBackground": "algeria",
+  "heroProgression": {
+    "maxLevel": 10,
+    "levelsPerHallLevel": 2,
+    "shardsPerLevel": [2,3,4,6,8,11,14,18,23],
+    "levelEffectStep": 0.03,
+    "shardsPerDuplicate": 4,
+    "drawMinHall": 2,
+    "drawCost": {
+      "food": 0,
+      "materiel": 0,
+      "funds": 200,
+      "support": 0
+    },
+    "drawOdds": {
+      "common": 700,
+      "rare": 220,
+      "legendary": 80
+    },
+    "pityDraws": 10
+  },
   "npcLevels": [
     {
       "level": 1,

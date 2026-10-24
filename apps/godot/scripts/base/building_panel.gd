@@ -9,6 +9,8 @@ extends PanelContainer
 signal upgrade_pressed(id: String)
 signal train_pressed(troop: String, count: int)
 signal closed
+## The hero hall sheet's link to the Heroes screen.
+signal heroes_requested
 
 const FONT := 34
 const TITLE_FONT := 42
@@ -187,6 +189,13 @@ func _rebuild() -> void:
 		_:
 			_build_next(m["next"], lang, m["id"])
 
+	if id == "hero_hall":
+		_body.add_child(_label(Loc.t("heroes.hallNote"), FONT, INK, true))
+		var heroes := Button.new()
+		heroes.text = Loc.t("heroes.open")
+		heroes.add_theme_font_size_override("font_size", FONT)
+		heroes.pressed.connect(func() -> void: heroes_requested.emit())
+		_body.add_child(heroes)
 	if id == "barracks":
 		_body.add_child(training)
 

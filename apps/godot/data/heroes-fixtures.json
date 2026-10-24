@@ -1,0 +1,2622 @@
+{
+  "skill_pcts": [
+    {
+      "hero": "mountain_guide",
+      "level": 1,
+      "command": 15,
+      "passives": [5,5]
+    },
+    {
+      "hero": "mountain_guide",
+      "level": 2,
+      "command": 15,
+      "passives": [5,5]
+    },
+    {
+      "hero": "mountain_guide",
+      "level": 3,
+      "command": 16,
+      "passives": [5,5]
+    },
+    {
+      "hero": "mountain_guide",
+      "level": 4,
+      "command": 16,
+      "passives": [5,5]
+    },
+    {
+      "hero": "mountain_guide",
+      "level": 5,
+      "command": 17,
+      "passives": [6,6]
+    },
+    {
+      "hero": "mountain_guide",
+      "level": 6,
+      "command": 17,
+      "passives": [6,6]
+    },
+    {
+      "hero": "mountain_guide",
+      "level": 7,
+      "command": 18,
+      "passives": [6,6]
+    },
+    {
+      "hero": "mountain_guide",
+      "level": 8,
+      "command": 18,
+      "passives": [6,6]
+    },
+    {
+      "hero": "mountain_guide",
+      "level": 9,
+      "command": 19,
+      "passives": [6,6]
+    },
+    {
+      "hero": "mountain_guide",
+      "level": 10,
+      "command": 19,
+      "passives": [6,6]
+    },
+    {
+      "hero": "dock_foreman",
+      "level": 1,
+      "command": 15,
+      "passives": [5,5]
+    },
+    {
+      "hero": "dock_foreman",
+      "level": 2,
+      "command": 15,
+      "passives": [5,5]
+    },
+    {
+      "hero": "dock_foreman",
+      "level": 3,
+      "command": 16,
+      "passives": [5,5]
+    },
+    {
+      "hero": "dock_foreman",
+      "level": 4,
+      "command": 16,
+      "passives": [5,5]
+    },
+    {
+      "hero": "dock_foreman",
+      "level": 5,
+      "command": 17,
+      "passives": [6,6]
+    },
+    {
+      "hero": "dock_foreman",
+      "level": 6,
+      "command": 17,
+      "passives": [6,6]
+    },
+    {
+      "hero": "dock_foreman",
+      "level": 7,
+      "command": 18,
+      "passives": [6,6]
+    },
+    {
+      "hero": "dock_foreman",
+      "level": 8,
+      "command": 18,
+      "passives": [6,6]
+    },
+    {
+      "hero": "dock_foreman",
+      "level": 9,
+      "command": 19,
+      "passives": [6,6]
+    },
+    {
+      "hero": "dock_foreman",
+      "level": 10,
+      "command": 19,
+      "passives": [6,6]
+    },
+    {
+      "hero": "iron_quartermaster",
+      "level": 1,
+      "command": 25,
+      "passives": [8,5]
+    },
+    {
+      "hero": "iron_quartermaster",
+      "level": 2,
+      "command": 26,
+      "passives": [8,5]
+    },
+    {
+      "hero": "iron_quartermaster",
+      "level": 3,
+      "command": 27,
+      "passives": [8,5]
+    },
+    {
+      "hero": "iron_quartermaster",
+      "level": 4,
+      "command": 27,
+      "passives": [9,5]
+    },
+    {
+      "hero": "iron_quartermaster",
+      "level": 5,
+      "command": 28,
+      "passives": [9,6]
+    },
+    {
+      "hero": "iron_quartermaster",
+      "level": 6,
+      "command": 29,
+      "passives": [9,6]
+    },
+    {
+      "hero": "iron_quartermaster",
+      "level": 7,
+      "command": 30,
+      "passives": [9,6]
+    },
+    {
+      "hero": "iron_quartermaster",
+      "level": 8,
+      "command": 30,
+      "passives": [10,6]
+    },
+    {
+      "hero": "iron_quartermaster",
+      "level": 9,
+      "command": 31,
+      "passives": [10,6]
+    },
+    {
+      "hero": "iron_quartermaster",
+      "level": 10,
+      "command": 32,
+      "passives": [10,6]
+    },
+    {
+      "hero": "hill_commander",
+      "level": 1,
+      "command": 35,
+      "passives": [10,10]
+    },
+    {
+      "hero": "hill_commander",
+      "level": 2,
+      "command": 36,
+      "passives": [10,10]
+    },
+    {
+      "hero": "hill_commander",
+      "level": 3,
+      "command": 37,
+      "passives": [11,11]
+    },
+    {
+      "hero": "hill_commander",
+      "level": 4,
+      "command": 38,
+      "passives": [11,11]
+    },
+    {
+      "hero": "hill_commander",
+      "level": 5,
+      "command": 39,
+      "passives": [11,11]
+    },
+    {
+      "hero": "hill_commander",
+      "level": 6,
+      "command": 40,
+      "passives": [12,12]
+    },
+    {
+      "hero": "hill_commander",
+      "level": 7,
+      "command": 41,
+      "passives": [12,12]
+    },
+    {
+      "hero": "hill_commander",
+      "level": 8,
+      "command": 42,
+      "passives": [12,12]
+    },
+    {
+      "hero": "hill_commander",
+      "level": 9,
+      "command": 43,
+      "passives": [12,12]
+    },
+    {
+      "hero": "hill_commander",
+      "level": 10,
+      "command": 44,
+      "passives": [13,13]
+    },
+    {
+      "hero": "trail_scout",
+      "level": 1,
+      "command": 15,
+      "passives": [5,5]
+    },
+    {
+      "hero": "trail_scout",
+      "level": 2,
+      "command": 15,
+      "passives": [5,5]
+    },
+    {
+      "hero": "trail_scout",
+      "level": 3,
+      "command": 16,
+      "passives": [5,5]
+    },
+    {
+      "hero": "trail_scout",
+      "level": 4,
+      "command": 16,
+      "passives": [5,5]
+    },
+    {
+      "hero": "trail_scout",
+      "level": 5,
+      "command": 17,
+      "passives": [6,6]
+    },
+    {
+      "hero": "trail_scout",
+      "level": 6,
+      "command": 17,
+      "passives": [6,6]
+    },
+    {
+      "hero": "trail_scout",
+      "level": 7,
+      "command": 18,
+      "passives": [6,6]
+    },
+    {
+      "hero": "trail_scout",
+      "level": 8,
+      "command": 18,
+      "passives": [6,6]
+    },
+    {
+      "hero": "trail_scout",
+      "level": 9,
+      "command": 19,
+      "passives": [6,6]
+    },
+    {
+      "hero": "trail_scout",
+      "level": 10,
+      "command": 19,
+      "passives": [6,6]
+    },
+    {
+      "hero": "field_medic",
+      "level": 1,
+      "command": 10,
+      "passives": [5,5]
+    },
+    {
+      "hero": "field_medic",
+      "level": 2,
+      "command": 10,
+      "passives": [5,5]
+    },
+    {
+      "hero": "field_medic",
+      "level": 3,
+      "command": 11,
+      "passives": [5,5]
+    },
+    {
+      "hero": "field_medic",
+      "level": 4,
+      "command": 11,
+      "passives": [5,5]
+    },
+    {
+      "hero": "field_medic",
+      "level": 5,
+      "command": 11,
+      "passives": [6,6]
+    },
+    {
+      "hero": "field_medic",
+      "level": 6,
+      "command": 12,
+      "passives": [6,6]
+    },
+    {
+      "hero": "field_medic",
+      "level": 7,
+      "command": 12,
+      "passives": [6,6]
+    },
+    {
+      "hero": "field_medic",
+      "level": 8,
+      "command": 12,
+      "passives": [6,6]
+    },
+    {
+      "hero": "field_medic",
+      "level": 9,
+      "command": 12,
+      "passives": [6,6]
+    },
+    {
+      "hero": "field_medic",
+      "level": 10,
+      "command": 13,
+      "passives": [6,6]
+    },
+    {
+      "hero": "porter_chief",
+      "level": 1,
+      "command": 25,
+      "passives": [8,5]
+    },
+    {
+      "hero": "porter_chief",
+      "level": 2,
+      "command": 26,
+      "passives": [8,5]
+    },
+    {
+      "hero": "porter_chief",
+      "level": 3,
+      "command": 27,
+      "passives": [8,5]
+    },
+    {
+      "hero": "porter_chief",
+      "level": 4,
+      "command": 27,
+      "passives": [9,5]
+    },
+    {
+      "hero": "porter_chief",
+      "level": 5,
+      "command": 28,
+      "passives": [9,6]
+    },
+    {
+      "hero": "porter_chief",
+      "level": 6,
+      "command": 29,
+      "passives": [9,6]
+    },
+    {
+      "hero": "porter_chief",
+      "level": 7,
+      "command": 30,
+      "passives": [9,6]
+    },
+    {
+      "hero": "porter_chief",
+      "level": 8,
+      "command": 30,
+      "passives": [10,6]
+    },
+    {
+      "hero": "porter_chief",
+      "level": 9,
+      "command": 31,
+      "passives": [10,6]
+    },
+    {
+      "hero": "porter_chief",
+      "level": 10,
+      "command": 32,
+      "passives": [10,6]
+    },
+    {
+      "hero": "column_commander",
+      "level": 1,
+      "command": 35,
+      "passives": [10,10]
+    },
+    {
+      "hero": "column_commander",
+      "level": 2,
+      "command": 36,
+      "passives": [10,10]
+    },
+    {
+      "hero": "column_commander",
+      "level": 3,
+      "command": 37,
+      "passives": [11,11]
+    },
+    {
+      "hero": "column_commander",
+      "level": 4,
+      "command": 38,
+      "passives": [11,11]
+    },
+    {
+      "hero": "column_commander",
+      "level": 5,
+      "command": 39,
+      "passives": [11,11]
+    },
+    {
+      "hero": "column_commander",
+      "level": 6,
+      "command": 40,
+      "passives": [12,12]
+    },
+    {
+      "hero": "column_commander",
+      "level": 7,
+      "command": 41,
+      "passives": [12,12]
+    },
+    {
+      "hero": "column_commander",
+      "level": 8,
+      "command": 42,
+      "passives": [12,12]
+    },
+    {
+      "hero": "column_commander",
+      "level": 9,
+      "command": 43,
+      "passives": [12,12]
+    },
+    {
+      "hero": "column_commander",
+      "level": 10,
+      "command": 44,
+      "passives": [13,13]
+    }
+  ],
+  "cases": [
+    {
+      "background": "algeria",
+      "hall": 1,
+      "scenario": "none",
+      "owned": {},
+      "marching": [],
+      "cards": [
+        {
+          "id": "mountain_guide",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "dock_foreman",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "hill_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 1,
+      "scenario": "level1_no_shards",
+      "owned": {
+        "hill_commander": {
+          "level": 1,
+          "shards": 0
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "hill_commander",
+          "owned": {
+            "level": 1,
+            "shards": 0
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 2
+        },
+        {
+          "id": "mountain_guide",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "dock_foreman",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 1,
+      "scenario": "level1_two_shards",
+      "owned": {
+        "hill_commander": {
+          "level": 1,
+          "shards": 2
+        },
+        "mountain_guide": {
+          "level": 1,
+          "shards": 1
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "mountain_guide",
+          "owned": {
+            "level": 1,
+            "shards": 1
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 2
+        },
+        {
+          "id": "hill_commander",
+          "owned": {
+            "level": 1,
+            "shards": 2
+          },
+          "busy": false,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 2
+        },
+        {
+          "id": "dock_foreman",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 1,
+      "scenario": "level2_cap_edge",
+      "owned": {
+        "dock_foreman": {
+          "level": 2,
+          "shards": 99
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "dock_foreman",
+          "owned": {
+            "level": 2,
+            "shards": 99
+          },
+          "busy": false,
+          "level_up": "hall_cap",
+          "next_shards": 3,
+          "cap": 2
+        },
+        {
+          "id": "mountain_guide",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "hill_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 1,
+      "scenario": "level4_cap_edge",
+      "owned": {
+        "iron_quartermaster": {
+          "level": 4,
+          "shards": 99
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "iron_quartermaster",
+          "owned": {
+            "level": 4,
+            "shards": 99
+          },
+          "busy": false,
+          "level_up": "hall_cap",
+          "next_shards": 6,
+          "cap": 2
+        },
+        {
+          "id": "mountain_guide",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "dock_foreman",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "hill_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 1,
+      "scenario": "level10",
+      "owned": {
+        "hill_commander": {
+          "level": 10,
+          "shards": 5
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "hill_commander",
+          "owned": {
+            "level": 10,
+            "shards": 5
+          },
+          "busy": false,
+          "level_up": "max_level",
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "mountain_guide",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "dock_foreman",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 1,
+      "scenario": "busy_lead_and_deputy",
+      "owned": {
+        "hill_commander": {
+          "level": 1,
+          "shards": 9
+        },
+        "dock_foreman": {
+          "level": 1,
+          "shards": 9
+        },
+        "mountain_guide": {
+          "level": 1,
+          "shards": 0
+        }
+      },
+      "marching": ["hill_commander","dock_foreman"],
+      "cards": [
+        {
+          "id": "mountain_guide",
+          "owned": {
+            "level": 1,
+            "shards": 0
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 2
+        },
+        {
+          "id": "dock_foreman",
+          "owned": {
+            "level": 1,
+            "shards": 9
+          },
+          "busy": true,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 2
+        },
+        {
+          "id": "hill_commander",
+          "owned": {
+            "level": 1,
+            "shards": 9
+          },
+          "busy": true,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 2
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 2,
+      "scenario": "none",
+      "owned": {},
+      "marching": [],
+      "cards": [
+        {
+          "id": "mountain_guide",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "dock_foreman",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "hill_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 2,
+      "scenario": "level1_no_shards",
+      "owned": {
+        "hill_commander": {
+          "level": 1,
+          "shards": 0
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "hill_commander",
+          "owned": {
+            "level": 1,
+            "shards": 0
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 4
+        },
+        {
+          "id": "mountain_guide",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "dock_foreman",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 2,
+      "scenario": "level1_two_shards",
+      "owned": {
+        "hill_commander": {
+          "level": 1,
+          "shards": 2
+        },
+        "mountain_guide": {
+          "level": 1,
+          "shards": 1
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "mountain_guide",
+          "owned": {
+            "level": 1,
+            "shards": 1
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 4
+        },
+        {
+          "id": "hill_commander",
+          "owned": {
+            "level": 1,
+            "shards": 2
+          },
+          "busy": false,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 4
+        },
+        {
+          "id": "dock_foreman",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 2,
+      "scenario": "level2_cap_edge",
+      "owned": {
+        "dock_foreman": {
+          "level": 2,
+          "shards": 99
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "dock_foreman",
+          "owned": {
+            "level": 2,
+            "shards": 99
+          },
+          "busy": false,
+          "level_up": null,
+          "next_shards": 3,
+          "cap": 4
+        },
+        {
+          "id": "mountain_guide",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "hill_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 2,
+      "scenario": "level4_cap_edge",
+      "owned": {
+        "iron_quartermaster": {
+          "level": 4,
+          "shards": 99
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "iron_quartermaster",
+          "owned": {
+            "level": 4,
+            "shards": 99
+          },
+          "busy": false,
+          "level_up": "hall_cap",
+          "next_shards": 6,
+          "cap": 4
+        },
+        {
+          "id": "mountain_guide",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "dock_foreman",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "hill_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 2,
+      "scenario": "level10",
+      "owned": {
+        "hill_commander": {
+          "level": 10,
+          "shards": 5
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "hill_commander",
+          "owned": {
+            "level": 10,
+            "shards": 5
+          },
+          "busy": false,
+          "level_up": "max_level",
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "mountain_guide",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "dock_foreman",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 2,
+      "scenario": "busy_lead_and_deputy",
+      "owned": {
+        "hill_commander": {
+          "level": 1,
+          "shards": 9
+        },
+        "dock_foreman": {
+          "level": 1,
+          "shards": 9
+        },
+        "mountain_guide": {
+          "level": 1,
+          "shards": 0
+        }
+      },
+      "marching": ["hill_commander","dock_foreman"],
+      "cards": [
+        {
+          "id": "mountain_guide",
+          "owned": {
+            "level": 1,
+            "shards": 0
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 4
+        },
+        {
+          "id": "dock_foreman",
+          "owned": {
+            "level": 1,
+            "shards": 9
+          },
+          "busy": true,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 4
+        },
+        {
+          "id": "hill_commander",
+          "owned": {
+            "level": 1,
+            "shards": 9
+          },
+          "busy": true,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 4
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 5,
+      "scenario": "none",
+      "owned": {},
+      "marching": [],
+      "cards": [
+        {
+          "id": "mountain_guide",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "dock_foreman",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "hill_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 5,
+      "scenario": "level1_no_shards",
+      "owned": {
+        "hill_commander": {
+          "level": 1,
+          "shards": 0
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "hill_commander",
+          "owned": {
+            "level": 1,
+            "shards": 0
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 10
+        },
+        {
+          "id": "mountain_guide",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "dock_foreman",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 5,
+      "scenario": "level1_two_shards",
+      "owned": {
+        "hill_commander": {
+          "level": 1,
+          "shards": 2
+        },
+        "mountain_guide": {
+          "level": 1,
+          "shards": 1
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "mountain_guide",
+          "owned": {
+            "level": 1,
+            "shards": 1
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 10
+        },
+        {
+          "id": "hill_commander",
+          "owned": {
+            "level": 1,
+            "shards": 2
+          },
+          "busy": false,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 10
+        },
+        {
+          "id": "dock_foreman",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 5,
+      "scenario": "level2_cap_edge",
+      "owned": {
+        "dock_foreman": {
+          "level": 2,
+          "shards": 99
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "dock_foreman",
+          "owned": {
+            "level": 2,
+            "shards": 99
+          },
+          "busy": false,
+          "level_up": null,
+          "next_shards": 3,
+          "cap": 10
+        },
+        {
+          "id": "mountain_guide",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "hill_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 5,
+      "scenario": "level4_cap_edge",
+      "owned": {
+        "iron_quartermaster": {
+          "level": 4,
+          "shards": 99
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "iron_quartermaster",
+          "owned": {
+            "level": 4,
+            "shards": 99
+          },
+          "busy": false,
+          "level_up": null,
+          "next_shards": 6,
+          "cap": 10
+        },
+        {
+          "id": "mountain_guide",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "dock_foreman",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "hill_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 5,
+      "scenario": "level10",
+      "owned": {
+        "hill_commander": {
+          "level": 10,
+          "shards": 5
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "hill_commander",
+          "owned": {
+            "level": 10,
+            "shards": 5
+          },
+          "busy": false,
+          "level_up": "max_level",
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "mountain_guide",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "dock_foreman",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        }
+      ]
+    },
+    {
+      "background": "algeria",
+      "hall": 5,
+      "scenario": "busy_lead_and_deputy",
+      "owned": {
+        "hill_commander": {
+          "level": 1,
+          "shards": 9
+        },
+        "dock_foreman": {
+          "level": 1,
+          "shards": 9
+        },
+        "mountain_guide": {
+          "level": 1,
+          "shards": 0
+        }
+      },
+      "marching": ["hill_commander","dock_foreman"],
+      "cards": [
+        {
+          "id": "mountain_guide",
+          "owned": {
+            "level": 1,
+            "shards": 0
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 10
+        },
+        {
+          "id": "dock_foreman",
+          "owned": {
+            "level": 1,
+            "shards": 9
+          },
+          "busy": true,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 10
+        },
+        {
+          "id": "hill_commander",
+          "owned": {
+            "level": 1,
+            "shards": 9
+          },
+          "busy": true,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 10
+        },
+        {
+          "id": "iron_quartermaster",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 1,
+      "scenario": "none",
+      "owned": {},
+      "marching": [],
+      "cards": [
+        {
+          "id": "trail_scout",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "field_medic",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "column_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 1,
+      "scenario": "level1_no_shards",
+      "owned": {
+        "column_commander": {
+          "level": 1,
+          "shards": 0
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "column_commander",
+          "owned": {
+            "level": 1,
+            "shards": 0
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 2
+        },
+        {
+          "id": "trail_scout",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "field_medic",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 1,
+      "scenario": "level1_two_shards",
+      "owned": {
+        "column_commander": {
+          "level": 1,
+          "shards": 2
+        },
+        "trail_scout": {
+          "level": 1,
+          "shards": 1
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "trail_scout",
+          "owned": {
+            "level": 1,
+            "shards": 1
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 2
+        },
+        {
+          "id": "column_commander",
+          "owned": {
+            "level": 1,
+            "shards": 2
+          },
+          "busy": false,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 2
+        },
+        {
+          "id": "field_medic",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 1,
+      "scenario": "level2_cap_edge",
+      "owned": {
+        "field_medic": {
+          "level": 2,
+          "shards": 99
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "field_medic",
+          "owned": {
+            "level": 2,
+            "shards": 99
+          },
+          "busy": false,
+          "level_up": "hall_cap",
+          "next_shards": 3,
+          "cap": 2
+        },
+        {
+          "id": "trail_scout",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "column_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 1,
+      "scenario": "level4_cap_edge",
+      "owned": {
+        "porter_chief": {
+          "level": 4,
+          "shards": 99
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "porter_chief",
+          "owned": {
+            "level": 4,
+            "shards": 99
+          },
+          "busy": false,
+          "level_up": "hall_cap",
+          "next_shards": 6,
+          "cap": 2
+        },
+        {
+          "id": "trail_scout",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "field_medic",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "column_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 1,
+      "scenario": "level10",
+      "owned": {
+        "column_commander": {
+          "level": 10,
+          "shards": 5
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "column_commander",
+          "owned": {
+            "level": 10,
+            "shards": 5
+          },
+          "busy": false,
+          "level_up": "max_level",
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "trail_scout",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "field_medic",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 1,
+      "scenario": "busy_lead_and_deputy",
+      "owned": {
+        "column_commander": {
+          "level": 1,
+          "shards": 9
+        },
+        "field_medic": {
+          "level": 1,
+          "shards": 9
+        },
+        "trail_scout": {
+          "level": 1,
+          "shards": 0
+        }
+      },
+      "marching": ["column_commander","field_medic"],
+      "cards": [
+        {
+          "id": "trail_scout",
+          "owned": {
+            "level": 1,
+            "shards": 0
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 2
+        },
+        {
+          "id": "field_medic",
+          "owned": {
+            "level": 1,
+            "shards": 9
+          },
+          "busy": true,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 2
+        },
+        {
+          "id": "column_commander",
+          "owned": {
+            "level": 1,
+            "shards": 9
+          },
+          "busy": true,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 2
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 2
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 2,
+      "scenario": "none",
+      "owned": {},
+      "marching": [],
+      "cards": [
+        {
+          "id": "trail_scout",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "field_medic",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "column_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 2,
+      "scenario": "level1_no_shards",
+      "owned": {
+        "column_commander": {
+          "level": 1,
+          "shards": 0
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "column_commander",
+          "owned": {
+            "level": 1,
+            "shards": 0
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 4
+        },
+        {
+          "id": "trail_scout",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "field_medic",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 2,
+      "scenario": "level1_two_shards",
+      "owned": {
+        "column_commander": {
+          "level": 1,
+          "shards": 2
+        },
+        "trail_scout": {
+          "level": 1,
+          "shards": 1
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "trail_scout",
+          "owned": {
+            "level": 1,
+            "shards": 1
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 4
+        },
+        {
+          "id": "column_commander",
+          "owned": {
+            "level": 1,
+            "shards": 2
+          },
+          "busy": false,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 4
+        },
+        {
+          "id": "field_medic",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 2,
+      "scenario": "level2_cap_edge",
+      "owned": {
+        "field_medic": {
+          "level": 2,
+          "shards": 99
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "field_medic",
+          "owned": {
+            "level": 2,
+            "shards": 99
+          },
+          "busy": false,
+          "level_up": null,
+          "next_shards": 3,
+          "cap": 4
+        },
+        {
+          "id": "trail_scout",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "column_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 2,
+      "scenario": "level4_cap_edge",
+      "owned": {
+        "porter_chief": {
+          "level": 4,
+          "shards": 99
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "porter_chief",
+          "owned": {
+            "level": 4,
+            "shards": 99
+          },
+          "busy": false,
+          "level_up": "hall_cap",
+          "next_shards": 6,
+          "cap": 4
+        },
+        {
+          "id": "trail_scout",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "field_medic",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "column_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 2,
+      "scenario": "level10",
+      "owned": {
+        "column_commander": {
+          "level": 10,
+          "shards": 5
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "column_commander",
+          "owned": {
+            "level": 10,
+            "shards": 5
+          },
+          "busy": false,
+          "level_up": "max_level",
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "trail_scout",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "field_medic",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 2,
+      "scenario": "busy_lead_and_deputy",
+      "owned": {
+        "column_commander": {
+          "level": 1,
+          "shards": 9
+        },
+        "field_medic": {
+          "level": 1,
+          "shards": 9
+        },
+        "trail_scout": {
+          "level": 1,
+          "shards": 0
+        }
+      },
+      "marching": ["column_commander","field_medic"],
+      "cards": [
+        {
+          "id": "trail_scout",
+          "owned": {
+            "level": 1,
+            "shards": 0
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 4
+        },
+        {
+          "id": "field_medic",
+          "owned": {
+            "level": 1,
+            "shards": 9
+          },
+          "busy": true,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 4
+        },
+        {
+          "id": "column_commander",
+          "owned": {
+            "level": 1,
+            "shards": 9
+          },
+          "busy": true,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 4
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 4
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 5,
+      "scenario": "none",
+      "owned": {},
+      "marching": [],
+      "cards": [
+        {
+          "id": "trail_scout",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "field_medic",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "column_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 5,
+      "scenario": "level1_no_shards",
+      "owned": {
+        "column_commander": {
+          "level": 1,
+          "shards": 0
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "column_commander",
+          "owned": {
+            "level": 1,
+            "shards": 0
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 10
+        },
+        {
+          "id": "trail_scout",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "field_medic",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 5,
+      "scenario": "level1_two_shards",
+      "owned": {
+        "column_commander": {
+          "level": 1,
+          "shards": 2
+        },
+        "trail_scout": {
+          "level": 1,
+          "shards": 1
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "trail_scout",
+          "owned": {
+            "level": 1,
+            "shards": 1
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 10
+        },
+        {
+          "id": "column_commander",
+          "owned": {
+            "level": 1,
+            "shards": 2
+          },
+          "busy": false,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 10
+        },
+        {
+          "id": "field_medic",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 5,
+      "scenario": "level2_cap_edge",
+      "owned": {
+        "field_medic": {
+          "level": 2,
+          "shards": 99
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "field_medic",
+          "owned": {
+            "level": 2,
+            "shards": 99
+          },
+          "busy": false,
+          "level_up": null,
+          "next_shards": 3,
+          "cap": 10
+        },
+        {
+          "id": "trail_scout",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "column_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 5,
+      "scenario": "level4_cap_edge",
+      "owned": {
+        "porter_chief": {
+          "level": 4,
+          "shards": 99
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "porter_chief",
+          "owned": {
+            "level": 4,
+            "shards": 99
+          },
+          "busy": false,
+          "level_up": null,
+          "next_shards": 6,
+          "cap": 10
+        },
+        {
+          "id": "trail_scout",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "field_medic",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "column_commander",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 5,
+      "scenario": "level10",
+      "owned": {
+        "column_commander": {
+          "level": 10,
+          "shards": 5
+        }
+      },
+      "marching": [],
+      "cards": [
+        {
+          "id": "column_commander",
+          "owned": {
+            "level": 10,
+            "shards": 5
+          },
+          "busy": false,
+          "level_up": "max_level",
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "trail_scout",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "field_medic",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        }
+      ]
+    },
+    {
+      "background": "vietnam",
+      "hall": 5,
+      "scenario": "busy_lead_and_deputy",
+      "owned": {
+        "column_commander": {
+          "level": 1,
+          "shards": 9
+        },
+        "field_medic": {
+          "level": 1,
+          "shards": 9
+        },
+        "trail_scout": {
+          "level": 1,
+          "shards": 0
+        }
+      },
+      "marching": ["column_commander","field_medic"],
+      "cards": [
+        {
+          "id": "trail_scout",
+          "owned": {
+            "level": 1,
+            "shards": 0
+          },
+          "busy": false,
+          "level_up": "not_enough_shards",
+          "next_shards": 2,
+          "cap": 10
+        },
+        {
+          "id": "field_medic",
+          "owned": {
+            "level": 1,
+            "shards": 9
+          },
+          "busy": true,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 10
+        },
+        {
+          "id": "column_commander",
+          "owned": {
+            "level": 1,
+            "shards": 9
+          },
+          "busy": true,
+          "level_up": null,
+          "next_shards": 2,
+          "cap": 10
+        },
+        {
+          "id": "porter_chief",
+          "owned": null,
+          "busy": false,
+          "level_up": null,
+          "next_shards": null,
+          "cap": 10
+        }
+      ]
+    }
+  ]
+}

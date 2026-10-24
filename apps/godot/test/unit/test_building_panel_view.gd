@@ -113,3 +113,14 @@ func test_leaving_the_tree_does_not_free_the_kept_children() -> void:
 	assert_true(is_instance_valid(panel.training))
 	assert_true(is_instance_valid(panel.upgrade_speedup))
 	panel.free()
+
+func test_the_hero_hall_sheet_links_to_the_heroes_screen() -> void:
+	var panel: BuildingPanel = add_child_autofree(BuildingPanel.new())
+	watch_signals(panel)
+	panel.open_for("hero_hall")
+	panel.update_model(_model("hero_hall"), "")
+	await wait_process_frames(2)
+	var link: Array = panel.find_children("*", "Button", true, false).filter(func(b: Button) -> bool: return b.text == Loc.t("heroes.open"))
+	assert_eq(link.size(), 1)
+	link[0].pressed.emit()
+	assert_signal_emitted(panel, "heroes_requested")

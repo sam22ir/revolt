@@ -4,6 +4,9 @@ extends Node
 ## in the HUD by the shell) and the upgrade request. It reads the Session and never decides anything: the button sends the
 ## intent, the server's answer replaces the state, and a refusal's reason is shown under the button.
 
+## The hero hall sheet asked for the Heroes screen.
+signal heroes_requested
+
 ## Space kept between the building sheet and the top box or nav bar, in viewport px.
 const SHEET_GAP := 16.0
 
@@ -31,6 +34,7 @@ func _ready() -> void:
 	panel.upgrade_speedup.pressed.connect(_on_speedup_pressed.bind("upgrade", panel.upgrade_speedup))
 	panel.training.speedup.pressed.connect(_on_speedup_pressed.bind("training", panel.training.speedup))
 	panel.closed.connect(deselect)
+	panel.heroes_requested.connect(func() -> void: heroes_requested.emit())
 
 ## Loads the art. Called once, when the first state is in.
 func build() -> void:

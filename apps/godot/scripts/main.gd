@@ -29,6 +29,7 @@ var _loaded := false
 var _base := BaseScreen.new()
 var _reports_screen := ReportsScreen.new()
 var _alliance_screen := AllianceScreen.new()
+var _heroes_screen := HeroesScreen.new()
 var _badge := UnreadBadge.new()
 var _toast := ReportToast.new()
 var _nav := HBoxContainer.new()
@@ -313,6 +314,7 @@ func _show_screen(screen: String) -> void:
 	_base.set_active(screen == "base")
 	_reports_screen.visible = screen == "reports"
 	_alliance_screen.visible = screen == "alliance"
+	_heroes_screen.visible = screen == "heroes"
 	for id: String in _nav_buttons:
 		_nav_buttons[id].set_pressed_no_signal(id == screen)
 	if screen == "reports":
@@ -340,6 +342,8 @@ func _refit() -> void:
 	_reports_screen.offset_bottom = -NAV_HEIGHT
 	_alliance_screen.offset_top = top
 	_alliance_screen.offset_bottom = -NAV_HEIGHT
+	_heroes_screen.offset_top = top
+	_heroes_screen.offset_bottom = -NAV_HEIGHT
 	_toast.offset_top = top + TOAST_GAP
 	if not _base.is_built():
 		return
@@ -420,6 +424,13 @@ func _build_hud() -> void:
 	_alliance_screen.setup(_session)
 	_alliance_screen.send_chat = _send_chat
 	_hud_root.add_child(_alliance_screen)
+	# Opened from the hero hall's sheet (not a nav item); Close returns to the base.
+	_heroes_screen.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_heroes_screen.visible = false
+	_heroes_screen.setup(_session)
+	_heroes_screen.closed.connect(func() -> void: _show_screen("base"))
+	_base.heroes_requested.connect(func() -> void: _show_screen("heroes"))
+	_hud_root.add_child(_heroes_screen)
 	_build_offline_badge()
 
 	# Just under the top box, as the Phaser client does (`refit` moves it with the box).
@@ -491,6 +502,7 @@ func _apply_language(lang: String) -> void:
 		_nav_buttons[id].text = Loc.t("nav." + id)
 	_reports_screen.refresh()
 	_alliance_screen.refresh()
+	_heroes_screen.refresh()
 	_badge.place(Fmt.lang())
 	_update_badge()
 	_toast.refresh()
