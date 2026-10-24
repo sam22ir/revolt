@@ -32,14 +32,24 @@ static func hash01(x: int, y: int, salt: int) -> float:
 	h ^= h >> 16
 	return float(h & MASK) / 4294967296.0
 
-## Fertility of every tile, 0 (bare sand) to 1 (olive country), as float32 like the client's Float32Array.
-static func fertility_grid(seed: int, size: int) -> PackedFloat32Array:
+## Fertility of every tile as a 64-bit double (rules `fertilityAt`). Geography compares it as a double.
+static func fertility_double(seed: int, size: int) -> PackedFloat64Array:
 	var low := MapGrid.noise_field(seed + 30, size, 7)
 	var fine := MapGrid.noise_field(seed + 31, size, 3)
-	var out := PackedFloat32Array()
+	var out := PackedFloat64Array()
 	out.resize(size * size)
 	for i in size * size:
 		out[i] = 0.7 * low[i] + 0.3 * fine[i]
+	return out
+
+## Fertility of every tile, 0 (bare sand) to 1 (olive country), as float32 like the client's Float32Array
+## (the ground plan, tint, props and decals read it in this form).
+static func fertility_grid(seed: int, size: int) -> PackedFloat32Array:
+	var exact := fertility_double(seed, size)
+	var out := PackedFloat32Array()
+	out.resize(size * size)
+	for i in size * size:
+		out[i] = exact[i]
 	return out
 
 ## Cluster strength 0..255 per tile for "rocks" or "grove" (decor-clusters.ts clusterMask).
