@@ -27,7 +27,13 @@ const ROUTE_MINE := Color(0.88, 0.69, 0.25, 0.75)
 const ROUTE_OTHER := Color(0.96, 0.92, 0.84, 0.35)
 const TAG_PATTERN := "^[A-Z0-9]{2,4}$"
 
+enum Mode { SEAMS, OBJECTS }
+
+const LIBERATED_WASH := Color(0.88, 0.69, 0.25, 0.24)
+
 var map: WorldMap
+## SEAMS draws the liberation wash and region borders (under the props); OBJECTS draws bases, NPCs, HQs and march routes (above them).
+var mode := Mode.OBJECTS
 ## How many times the overlay has been drawn (used by tests to prove the draw code ran).
 var draw_count := 0
 var _tag_re := RegEx.create_from_string(TAG_PATTERN)
@@ -40,7 +46,10 @@ func _draw() -> void:
 	if map == null or map.size == 0:
 		return
 	draw_count += 1
-	_draw_seams()
+	if mode == Mode.SEAMS:
+		_draw_wash()
+		_draw_seams()
+		return
 	_draw_marches()
 	var snap := map.snapshot
 	for b: Dictionary in snap["bases"]:
@@ -49,6 +58,10 @@ func _draw() -> void:
 		_draw_npc(n)
 	for h: Dictionary in snap["hqs"]:
 		_draw_hq(h)
+
+func _draw_wash() -> void:
+	for i in map.liberated_tiles:
+		draw_colored_polygon(Iso.footprint(i % map.size, i / map.size, 1, 1), LIBERATED_WASH)
 
 func _draw_seams() -> void:
 	for i in map.seam_liberated.size():

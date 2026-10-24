@@ -23,12 +23,14 @@ var _last_ms := 0
 var _loaded := false
 
 func _ready() -> void:
+	RenderingServer.set_default_clear_color(GroundFrame.BACKGROUND)
 	_api.base_url = Api.resolve_base_url()
 	add_child(_api)
 	add_child(_world)
 	_world.add_child(_map)
 	_world.add_child(_camera)
 	_camera.moved.connect(_update_coords)
+	_camera.moved.connect(_on_camera_moved)
 	_build_hud()
 	_apply_language("en")
 	_start()
@@ -51,6 +53,7 @@ func _start() -> void:
 		_camera.focus_world(Iso.tile_to_world(own.x + 1.0, own.y + 1.0))
 	else:
 		_camera.focus_world(Iso.tile_to_world(_map.size * 0.5, _map.size * 0.5))
+	_apply_hidden_layers()
 	_status.visible = false
 	_loaded = true
 	_update_coords()
@@ -62,6 +65,15 @@ func _apply_state(reply: Dictionary) -> void:
 	_levels = state["levels"]
 	_last_ms = int(state["lastUpdated"])
 	_liberations = reply.get("liberations", [])
+
+## Web only: `?hide=decals,props` hides map layers, to see what each one contributes (debug aid).
+func _apply_hidden_layers() -> void:
+	if not OS.has_feature("web"):
+		return
+	var q: Variant = JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('hide')")
+	if q is String and q != "":
+		for layer in (q as String).split(","):
+			_map.set_layer_visible(layer, false)
 
 func _show_error() -> void:
 	_status.text = Loc.t("reason.unreachable")
@@ -145,6 +157,9 @@ func _apply_language(lang: String) -> void:
 	if _status.visible and not _loaded:
 		_status.text = Loc.t("map.loading")
 	_update_coords()
+
+func _on_camera_moved() -> void:
+	_map.set_view_zoom(_camera.view_zoom)
 
 func _update_coords() -> void:
 	var t := Iso.world_to_tile(_camera.position)
