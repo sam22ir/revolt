@@ -55,6 +55,7 @@ func _ready() -> void:
 	# The alliance feed follows the membership, not the map build: it starts when the player is in an alliance (joined, founded or
 	# found at start-up), restarts for another one, and stops for none (left, kicked, disbanded).
 	_session.alliance_id_changed.connect(_on_alliance_id_changed)
+	_session.help_changed.connect(func() -> void: _session.refresh())
 	_session.chat_changed.connect(_update_badge)
 	_session.alliance_refreshed.connect(_update_badge)
 	_pill.help_pressed.connect(_ask_help.bind("upgrade"))
@@ -514,6 +515,8 @@ func _process(_delta: float) -> void:
 	for chip: Dictionary in HudModel.chips(amounts, int(_session.levels["hq"])):
 		_chips[chip["id"]].set_value_text(Fmt.amount(lang, chip["amount"]))
 		_chips[chip["id"]].set_fill(chip["fraction"], chip["state"])
+	if _alliance_screen.is_visible_in_tree():
+		_alliance_screen.tick(now)
 	var can_help := HelpModel.can_ask(_session.alliance, _session.help, "upgrade", now)
 	_pill.update_model(HudModel.pill(_session.queue(), now, _screen, can_help), _session.background)
 	if _screen == "base":

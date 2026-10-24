@@ -60,6 +60,12 @@ var _hq_line := Label.new()
 var _rows_box := VBoxContainer.new()
 var _leader_note := Label.new()
 var _chat_panel := VBoxContainer.new()
+var _help_scroll := ScrollContainer.new()
+var _help_rows := VBoxContainer.new()
+var _help_empty := Label.new()
+var _help_key := ""
+## request id to its countdown label, while the Help tab shows it.
+var _countdowns := {}
 var _status := Label.new()
 var _chat_scroll := ScrollContainer.new()
 var _chat_box := VBoxContainer.new()
@@ -191,7 +197,7 @@ func _build_joined() -> void:
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 6)
 	var group := ButtonGroup.new()
-	for id in ["members", "chat"]:
+	for id in ["members", "chat", "help"]:
 		var button := Button.new()
 		button.toggle_mode = true
 		button.button_group = group
@@ -206,6 +212,72 @@ func _build_joined() -> void:
 	_joined.add_child(_members_scroll)
 	_build_chat()
 	_joined.add_child(_chat_panel)
+	_build_help()
+	_joined.add_child(_help_scroll)
+
+func _build_help() -> void:
+	_help_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_help_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 12)
+	_help_scroll.add_child(box)
+	_help_rows.add_theme_constant_override("separation", 12)
+	box.add_child(_help_rows)
+	_style(_help_empty, SMALL, MUTED, true)
+	box.add_child(_help_empty)
+
+## Called every frame while the screen shows: the Help tab's rows are rebuilt only when what they show changes (the language, or
+## a request's id, kind, helps, mine, helped, or the open set), and only the countdown texts change per frame, so a Help button is
+## never replaced under a finger. `now_ms` is server time, as `endsAt`.
+func tick(now_ms: int) -> void:
+	if _session == null or not _joined.visible or _tab != "help":
+		return
+	var open := HelpModel.open_requests(_session.help, now_ms)
+	var key := Fmt.lang() + "|" + ",".join(open.map(func(r: Dictionary) -> String: return HelpModel.row_key(r)))
+	if key != _help_key:
+		_help_key = key
+		_rebuild_help(open)
+	for id: String in _countdowns:
+		for r: Dictionary in open:
+			if String(r["id"]) == id:
+				(_countdowns[id] as Label).text = Loc.t("help.timeLeft", {"time": Fmt.duration(float(r["endsAt"]) - now_ms)})
+
+func _rebuild_help(open: Array) -> void:
+	var lang := Fmt.lang()
+	for child in _help_rows.get_children():
+		_help_rows.remove_child(child)
+		child.queue_free()
+	_countdowns.clear()
+	_help_empty.visible = open.is_empty()
+	_help_empty.text = Loc.t("help.empty")
+	for r: Dictionary in open:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		var text := VBoxContainer.new()
+		text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		text.add_child(_made_label("%s · %s" % [r.get("handle", ""), Loc.t("help.kind." + String(r["kind"]))], FONT, PAPER))
+		text.add_child(_made_label(Loc.t("help.progress", {"count": Fmt.amount(lang, int(r.get("helps", 0))), "max": Fmt.amount(lang, int(r.get("maxHelps", 0)))}), SMALL, MUTED))
+		var time := _made_label("", SMALL, MUTED)
+		_countdowns[String(r["id"])] = time
+		text.add_child(time)
+		row.add_child(text)
+		if bool(r.get("mine", false)) or bool(r.get("helped", false)):
+			row.add_child(_made_label(Loc.t("help.yours" if r.get("mine", false) else "help.helped"), SMALL, GOLD))
+		var give := Button.new()
+		give.text = Loc.t("help.give")
+		give.add_theme_font_size_override("font_size", FONT)
+		give.disabled = not HelpModel.can_give(r)
+		give.pressed.connect(_on_give.bind(give, String(r["id"])))
+		row.add_child(give)
+		_help_rows.add_child(row)
+
+func _on_give(button: Button, id: String) -> void:
+	button.disabled = true
+	var verdict: Dictionary = await _session.give_help(id)
+	if not verdict["ok"] and verdict["reason"] != "":
+		show_note(String(verdict["reason"]))
+		_help_key = ""
 
 func _build_members() -> void:
 	_members_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -274,6 +346,8 @@ func _apply_tab() -> void:
 	var joined := _joined.visible
 	_members_scroll.visible = _tab == "members"
 	_chat_panel.visible = _tab == "chat"
+	_help_scroll.visible = _tab == "help"
+	_help_key = ""
 	for t: String in _tab_buttons:
 		_tab_buttons[t].set_pressed_no_signal(t == _tab)
 	_render_leave()
@@ -296,6 +370,8 @@ func _retranslate() -> void:
 	_create_button.text = Loc.t("alliance.create")
 	_tab_buttons["members"].text = Loc.t("alliance.tab.members")
 	_tab_buttons["chat"].text = Loc.t("alliance.tab.chat")
+	_tab_buttons["help"].text = Loc.t("alliance.tab.help")
+	_help_key = ""
 	_chat_badge.place(Fmt.lang())
 	_status.text = Loc.t("chat.reconnecting")
 	_chat_input.placeholder_text = Loc.t("chat.placeholder")

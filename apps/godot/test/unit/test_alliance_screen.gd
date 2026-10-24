@@ -179,3 +179,50 @@ func test_a_leader_with_members_sees_the_hand_over_note_under_leave() -> void:
 	var other := _screen(_view("member", 3))
 	await other[1].refresh_alliance()
 	assert_false((other[0] as AllianceScreen)._leader_note.visible)
+
+func _help_request(id: String, ends_at := 100_000, mine := false, helped := false, helps := 0) -> Dictionary:
+	return {"id": id, "handle": "ZED", "kind": "training", "endsAt": ends_at, "helps": helps, "maxHelps": 5, "mine": mine, "helped": helped}
+
+func _help_screen(requests: Array) -> Array:
+	var pair := _screen(_view("member", 2))
+	await pair[1].refresh_alliance()
+	pair[1].help = requests
+	pair[0].select_tab("help")
+	return pair
+
+func test_the_help_tab_lists_open_requests_and_disables_the_ones_you_cannot_give() -> void:
+	var pair := await _help_screen([_help_request("a"), _help_request("b", 100_000, true), _help_request("c", 100_000, false, true), _help_request("gone", 10)])
+	var screen: AllianceScreen = pair[0]
+	screen.tick(1000)
+	assert_eq(screen._help_rows.get_child_count(), 3, "the ended request is not listed")
+	var gives := _buttons(screen._help_rows, Loc.t("help.give"))
+	assert_eq(gives.size(), 3)
+	assert_false(gives[0].disabled)
+	assert_true(gives[1].disabled, "your own request")
+	assert_true(gives[2].disabled, "already helped")
+
+func test_an_empty_help_tab_says_so() -> void:
+	var pair := await _help_screen([])
+	pair[0].tick(1000)
+	assert_true(pair[0]._help_empty.visible)
+
+func test_the_countdown_changes_every_tick_but_the_button_is_not_replaced() -> void:
+	var pair := await _help_screen([_help_request("a")])
+	var screen: AllianceScreen = pair[0]
+	screen.tick(1000)
+	var button: Button = _buttons(screen._help_rows, Loc.t("help.give"))[0]
+	var first: String = screen._countdowns["a"].text
+	screen.tick(61_000)
+	assert_ne(screen._countdowns["a"].text, first, "the countdown moved")
+	assert_same(_buttons(screen._help_rows, Loc.t("help.give"))[0], button, "the same button, still there to be tapped")
+
+func test_rows_are_rebuilt_when_a_request_is_helped_or_ends() -> void:
+	var pair := await _help_screen([_help_request("a"), _help_request("b", 50_000)])
+	var screen: AllianceScreen = pair[0]
+	screen.tick(1000)
+	assert_eq(screen._help_rows.get_child_count(), 2)
+	screen.tick(60_000)
+	assert_eq(screen._help_rows.get_child_count(), 1, "the one that ended is gone")
+	pair[1].help = [_help_request("a", 100_000, false, true, 1)]
+	screen.tick(61_000)
+	assert_true(_buttons(screen._help_rows, Loc.t("help.give"))[0].disabled, "helped now")

@@ -52,3 +52,26 @@ func test_a_request_replaces_the_one_with_its_id_or_is_added() -> void:
 	assert_eq(out.size(), 1)
 	assert_true(bool(out[0]["mine"]))
 	assert_eq(HelpModel.with_request(help, _request("r2", "training", 600, true)).size(), 2)
+
+func _req(mine := false, helped := false, helps := 0, max_helps := 3, ends_at := 500) -> Dictionary:
+	return {"id": "r", "kind": "upgrade", "endsAt": ends_at, "mine": mine, "helps": helps, "maxHelps": max_helps, "helped": helped, "handle": "x"}
+
+func test_can_give_needs_someone_elses_open_request_not_yet_helped_or_full() -> void:
+	assert_true(HelpModel.can_give(_req()))
+	assert_false(HelpModel.can_give(_req(true)), "not your own")
+	assert_false(HelpModel.can_give(_req(false, true)), "not twice")
+	assert_false(HelpModel.can_give(_req(false, false, 3, 3)), "not a full one")
+	assert_true(HelpModel.can_give(_req(false, false, 2, 3)))
+
+func test_open_requests_drop_the_ones_that_ended() -> void:
+	var list := [_req(false, false, 0, 3, 400), _req(false, false, 0, 3, 600)]
+	assert_eq(HelpModel.open_requests(list, 500).size(), 1)
+	assert_eq(HelpModel.open_requests(list, 400).size(), 1, "a request that ends now is over")
+	assert_eq(HelpModel.open_requests(list, 100).size(), 2)
+
+func test_the_row_key_changes_with_what_a_row_shows_and_not_with_time() -> void:
+	var base := HelpModel.row_key(_req())
+	assert_ne(base, HelpModel.row_key(_req(false, false, 1)))
+	assert_ne(base, HelpModel.row_key(_req(true)))
+	assert_ne(base, HelpModel.row_key(_req(false, true)))
+	assert_eq(base, HelpModel.row_key(_req(false, false, 0, 3, 999)), "the end time is the countdown, not a rebuild")

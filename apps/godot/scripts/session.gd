@@ -22,6 +22,8 @@ signal connection_changed(online: bool)
 signal chat_changed
 ## Membership, ranks, HQ or help requests changed on the server: the alliance view should be fetched again.
 signal alliance_changed
+## A member asked for or gave help: a help may have shortened a job of the player's own, so the base is fetched again.
+signal help_changed
 ## The player is in another alliance than before (or in none): the id, "" for none. The alliance feed follows this.
 signal alliance_id_changed(id: String)
 
@@ -66,6 +68,7 @@ var _refreshing := false
 var _alliance_refreshing := false
 var _alliance_again := false
 var _help_pending := {}
+var _give_pending := {}
 var _refresh_again := false
 var _offline_asked_at_ms := 0
 var _watched := {}
@@ -237,6 +240,27 @@ func request_help(kind: String) -> Dictionary:
 		return {"ok": ok, "reason": reason}
 	return {"ok": false, "reason": "unreachable" if int(result["status"]) == 0 else "error"}
 
+## Helps another member's request. Returns {"ok", "reason"}; "" as the reason means nothing was sent (a press on this request is
+## already out). The answer's request replaces the one of the same id in `help`; a request that is gone or already helped is
+## dropped by fetching the alliance again.
+func give_help(request_id: String) -> Dictionary:
+	if _give_pending.has(request_id):
+		return {"ok": false, "reason": ""}
+	_give_pending[request_id] = true
+	var result: Dictionary = await api.post_json("/v1/help/give", {"requestId": request_id})
+	_give_pending.erase(request_id)
+	_take(result)
+	var data: Variant = result["data"]
+	if data is Dictionary and data.has("ok"):
+		var ok := bool(data["ok"])
+		var reason := String(data.get("reason", ""))
+		if ok and HelpModel.is_request(data.get("request")):
+			help = HelpModel.with_request(help, data["request"])
+		elif reason == "request_gone" or reason == "already_helped" or reason == "help_full":
+			refresh_alliance()
+		return {"ok": ok, "reason": reason}
+	return {"ok": false, "reason": "unreachable" if int(result["status"]) == 0 else "error"}
+
 func _holds(id: String) -> bool:
 	for r: Dictionary in reports:
 		if String(r["id"]) == id:
@@ -285,8 +309,11 @@ func apply_alliance_message(msg: Dictionary) -> bool:
 				if _chat_open:
 					chat_seen = AllianceModel.top_id(chat)
 				chat_changed.emit()
-		"members_changed", "help_changed":
+		"members_changed":
 			alliance_changed.emit()
+		"help_changed":
+			alliance_changed.emit()
+			help_changed.emit()
 		"kicked":
 			_set_alliance(null)
 			if not chat.is_empty():

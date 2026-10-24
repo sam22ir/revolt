@@ -54,5 +54,34 @@
       }
     ],
     "now": 1792868517234
+  },
+  "give_ok": {
+    "ok": true,
+    "request": {
+      "id": "2d362a9c-842b-4ed7-87a8-1da00b26133e",
+      "handle": "2CEM2C",
+      "kind": "upgrade",
+      "endsAt": 1792877497329,
+      "helps": 1,
+      "maxHelps": 5,
+      "mine": false,
+      "helped": true
+    },
+    "now": 1792877290151
+  },
+  "give_before": {
+    "id": "2d362a9c-842b-4ed7-87a8-1da00b26133e",
+    "handle": "2CEM2C",
+    "kind": "upgrade",
+    "endsAt": 1792877557329,
+    "helps": 0,
+    "maxHelps": 5,
+    "mine": false,
+    "helped": false
+  },
+  "give_already_helped": {
+    "ok": false,
+    "reason": "already_helped",
+    "now": 1792877290324
   }
 }

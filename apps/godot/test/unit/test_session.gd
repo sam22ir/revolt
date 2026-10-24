@@ -476,3 +476,22 @@ func test_an_upgrade_and_a_batch_each_get_their_own_asks() -> void:
 	s.tick()
 	await wait_process_frames(3)
 	assert_eq(api.calls.size(), 2, "the batch's own watch asks when it is over")
+
+func test_a_job_that_a_help_shortened_is_asked_about_at_its_new_end() -> void:
+	var api := FakeApi.new()
+	var done := _state(10)
+	done["queue"] = null
+	api.replies = [_ok({"state": done, "now": 90_500})]
+	var s := _with_job(api, 100_000)
+	# A help moved the end 10 s earlier, to 90 000; the state that says so arrives while the server clock reads 80 000.
+	var shorter := _state(10)
+	shorter["queue"] = _job(90_000)
+	s.apply({"state": shorter, "now": 80_000})
+	# 10 s of the device clock later the server clock reads 90 000: the new end, but before the old one (100 000).
+	_ticks[0] = 10_000 + Session.COMPLETION_MARGIN_MS - 1
+	s.tick()
+	assert_eq(api.calls.size(), 0, "not before the new end plus the margin")
+	_ticks[0] = 10_000 + Session.COMPLETION_MARGIN_MS
+	s.tick()
+	await wait_until(func() -> bool: return s.queue() == null, 5.0)
+	assert_eq(api.calls, ["/v1/state"], "asked at the new end, ten seconds before the old one")

@@ -39,3 +39,15 @@ static func with_request(help: Array, request: Dictionary) -> Array:
 	if not replaced:
 		out.append(request)
 	return out
+
+## Whether the player can still help this request (`canHelp` in alliance-help.ts): not their own, not helped already, not full.
+static func can_give(r: Dictionary) -> bool:
+	return not bool(r.get("mine", false)) and not bool(r.get("helped", false)) and int(r.get("helps", 0)) < int(r.get("maxHelps", 0))
+
+## The requests still open at `now_ms` (a request whose job has ended is gone), in the server's order.
+static func open_requests(help: Array, now_ms: int) -> Array:
+	return help.filter(func(r: Dictionary) -> bool: return float(r.get("endsAt", 0)) > now_ms)
+
+## What a row shows besides its countdown; the Help tab rebuilds its rows only when this changes (so a button is not replaced under a finger).
+static func row_key(r: Dictionary) -> String:
+	return "%s:%s:%d:%d:%d" % [r.get("id", ""), r.get("kind", ""), int(r.get("helps", 0)), int(bool(r.get("mine", false))), int(bool(r.get("helped", false)))]

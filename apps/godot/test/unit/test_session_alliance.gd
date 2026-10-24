@@ -206,3 +206,61 @@ func test_the_kicked_frame_the_real_server_sent_clears_the_alliance() -> void:
 	assert_true(s.apply_alliance_message(msg), "the caller stops the socket")
 	assert_null(s.alliance)
 	assert_signal_emitted_with_parameters(s, "alliance_id_changed", [""])
+
+func _help(id: String, helps := 0, helped := false) -> Dictionary:
+	return {"id": id, "handle": "x", "kind": "training", "endsAt": 9_999_999, "helps": helps, "maxHelps": 5, "mine": false, "helped": helped}
+
+func test_giving_help_replaces_the_request_with_the_answer() -> void:
+	var api := FakeApi.new()
+	var s := await _joined(api)
+	s.help = [_help("r1")]
+	api.replies = [_ok({"ok": true, "request": _help("r1", 1, true), "now": 2})]
+	var verdict := await s.give_help("r1")
+	assert_true(verdict["ok"])
+	assert_eq(api.calls[api.calls.size() - 1], "/v1/help/give")
+	assert_eq(api.posted[api.posted.size() - 1], {"requestId": "r1"})
+	assert_eq(s.help[0]["helps"], 1)
+	assert_true(s.help[0]["helped"])
+
+func test_a_gone_request_is_refused_and_the_alliance_is_fetched_again() -> void:
+	var api := FakeApi.new()
+	var s := await _joined(api)
+	s.help = [_help("r1")]
+	api.replies = [_ok({"ok": false, "reason": "request_gone", "now": 2}), _ok({"alliance": _view(), "help": [], "now": 2})]
+	var verdict := await s.give_help("r1")
+	assert_eq(verdict, {"ok": false, "reason": "request_gone"})
+	await wait_until(func() -> bool: return s.help.is_empty(), 5.0)
+
+func test_a_second_press_on_the_same_request_sends_nothing() -> void:
+	var api := FakeApi.new()
+	var s := await _joined(api)
+	api.replies = [_ok({"ok": true, "request": _help("r1", 1, true), "now": 2})]
+	s.call("give_help", "r1")
+	var second := await s.give_help("r1")
+	assert_eq(second, {"ok": false, "reason": ""})
+
+func test_the_help_changed_frame_asks_for_the_base_too() -> void:
+	var s := await _joined(FakeApi.new())
+	watch_signals(s)
+	s.apply_alliance_message({"type": "help_changed"})
+	assert_signal_emitted(s, "help_changed")
+	assert_signal_emitted(s, "alliance_changed")
+	s.apply_alliance_message({"type": "members_changed"})
+	assert_signal_emit_count(s, "help_changed", 1, "a member change does not fetch the base")
+
+func test_the_real_give_replies_are_read_by_the_session() -> void:
+	var parsed := JSON.new()
+	assert_eq(parsed.parse(FileAccess.get_file_as_string("res://data/captured-help.json")), OK)
+	var cap: Dictionary = parsed.data
+	var api := FakeApi.new()
+	var s := await _joined(api)
+	s.help = [cap["give_before"]]
+	assert_true(HelpModel.can_give(s.help[0]))
+	api.replies = [{"ok": true, "status": 200, "data": cap["give_ok"]}]
+	var verdict := await s.give_help(String(cap["give_before"]["id"]))
+	assert_true(verdict["ok"])
+	assert_eq(s.help[0]["helps"], 1)
+	assert_false(HelpModel.can_give(s.help[0]), "helped now")
+	assert_lt(float(s.help[0]["endsAt"]), float(cap["give_before"]["endsAt"]), "the server shortened the job")
+	api.replies = [{"ok": true, "status": 200, "data": cap["give_already_helped"]}, _ok({"alliance": _view(), "help": [], "now": 3})]
+	assert_eq(await s.give_help(String(cap["give_before"]["id"])), {"ok": false, "reason": "already_helped"})
