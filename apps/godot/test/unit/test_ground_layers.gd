@@ -99,3 +99,26 @@ func test_the_map_builds_every_layer_and_props_hide_when_zoomed_out() -> void:
 	assert_false(map.prop_layer().visible)
 	map.set_view_zoom(0.4)
 	assert_true(map.prop_layer().visible)
+
+func test_the_packed_props_layout_never_overlaps_and_fits_a_texture() -> void:
+	var art := GroundArt.load_art()
+	var layout := art.pack_layout()
+	var size: Vector2i = layout["size"]
+	assert_lte(size.x, 4096)
+	assert_lte(size.y, 4096)
+	var rects: Array[Rect2i] = []
+	for kind in GroundArt.PROP_KINDS:
+		var origin: Vector2i = layout[kind]
+		var extent := Vector2i(art.atlases[kind]["size"])
+		var r := Rect2i(origin, extent)
+		assert_true(Rect2i(Vector2i.ZERO, size).encloses(r), "%s fits inside the packed texture" % kind)
+		for other in rects:
+			assert_false(r.intersects(other), "%s overlaps another atlas" % kind)
+		rects.append(r)
+
+func test_packing_releases_the_per_kind_textures() -> void:
+	var art := GroundArt.load_art()
+	for kind in GroundArt.PROP_KINDS:
+		assert_null(art.atlases[kind]["texture"], "%s texture should be released after packing" % kind)
+		assert_gt(art.atlases[kind]["frames"].size(), 0)
+	assert_not_null(art.props_atlas["texture"])
