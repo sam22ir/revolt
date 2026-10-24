@@ -7,6 +7,10 @@ extends VBoxContainer
 ## field is never rewritten while it has focus.
 
 signal train_pressed(troop: String, count: int)
+signal help_pressed
+
+## How long a refusal of the help request stays under the button (Phaser's NOTE_MS in ui/training-section.ts, 4 s).
+const HELP_NOTE_S := 4.0
 
 const FONT := 32
 const PAPER := Color8(0xf4, 0xea, 0xd6)
@@ -24,6 +28,10 @@ var _blocked := false
 var _troop_ids: Array = []
 var _text_key := ""
 var _job_key := ""
+var _help_note_code := ""
+var _help_button := Button.new()
+var _help_note := _label("", FONT, LACKING, true)
+var _help_note_timer := Timer.new()
 var _notice_code := ""
 
 var _title := _label("", FONT + 4, INK)
@@ -59,6 +67,19 @@ func _ready() -> void:
 	_job_box.add_child(_job_label)
 	_job_box.add_child(_job_bar)
 	_job_box.add_child(_job_time)
+	# The help button is only in the batch's box, so it is shown while a batch runs (and the player may ask).
+	_help_button.focus_mode = Control.FOCUS_NONE
+	_help_button.add_theme_font_size_override("font_size", FONT)
+	_help_button.custom_minimum_size.y = STEP_SIZE.y * 0.75
+	_help_button.visible = false
+	_help_button.pressed.connect(func() -> void: help_pressed.emit())
+	_help_note.visible = false
+	_help_note_timer.one_shot = true
+	_help_note_timer.wait_time = HELP_NOTE_S
+	_help_note_timer.timeout.connect(func() -> void: _help_note_code = "")
+	_job_box.add_child(_help_button)
+	_job_box.add_child(_help_note)
+	_job_box.add_child(_help_note_timer)
 	add_child(_job_box)
 
 	_troop_ids = Balance.data()["troopIds"]
@@ -132,7 +153,7 @@ func update_context(ctx: Dictionary) -> void:
 		_job_key = job_key
 		_notice_code = ""
 	var m := TrainingModel.view(int(ctx["barracks"]), ctx["troops"], ctx["wounded"], ctx["training"], ctx["amounts"], int(ctx["now_ms"]),
-		_troop, _count, String(ctx["lang"]))
+		_troop, _count, String(ctx["lang"]), bool(ctx.get("can_help", false)))
 	_troop = m["troop"]
 	_count = m["count"]
 	_max = m["max"]
@@ -146,6 +167,9 @@ func update_context(ctx: Dictionary) -> void:
 	_duration.text = Loc.t("panel.duration") + ": " + Fmt.duration(float(m["duration_ms"]))
 	_update_costs(m["cost"], String(ctx["lang"]))
 	_update_job(m["job"])
+	_help_button.visible = m["help"]
+	_help_note.visible = _help_note_code != ""
+	_help_note.text = Loc.t("reason." + _help_note_code) if _help_note_code != "" else ""
 	_reason.text = Loc.t("reason." + m["reason"]) if m["reason"] != "" else (Loc.t("reason." + _notice_code) if _notice_code != "" else "")
 	_reason.visible = _reason.text != ""
 	_blocked = m["reason"] != ""
@@ -172,6 +196,12 @@ func _retranslate() -> void:
 	_plus.tooltip_text = Loc.t("panel.more")
 	_input.tooltip_text = Loc.t("train.count")
 	_submit.text = Loc.t("train.start")
+	_help_button.text = Loc.t("help.ask")
+
+## A refusal of the help request, shown under the batch for HELP_NOTE_S seconds.
+func show_help_note(code: String) -> void:
+	_help_note_code = code
+	_help_note_timer.start()
 
 func _set_count(value: float) -> void:
 	_count = TrainingModel.clamp_count(value, _max)

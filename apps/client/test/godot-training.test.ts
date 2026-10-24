@@ -9,6 +9,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import {
   checkTraining,
+  helpableJob,
   maxTrainingBatch,
   RESOURCE_IDS,
   TRAINING_BATCH_PER_LEVEL,
@@ -95,7 +96,24 @@ const buildTroopList = async (): Promise<Record<Language, string[]>> => {
   return out;
 };
 
+/** `helpableJob` (packages/rules/src/help.ts) for both kinds: nothing running, and a job before, at and after `now`. */
+const buildHelpable = (): unknown[] => {
+  const job = { startedAt: 0, endsAt: 1000, building: "farm", toLevel: 2, troop: "infantry", count: 5 };
+  const rows: unknown[] = [];
+  for (const kind of ["upgrade", "training"] as const) {
+    for (const running of [null, job]) {
+      for (const now of [999, 1000, 1001]) {
+        const state = (kind === "upgrade" ? { queue: running, training: null } : { queue: null, training: running }) as unknown as BaseState;
+        const got = helpableJob(state, kind, now);
+        rows.push({ kind, job: running, now, expected: got === null ? null : { startedAt: got.startedAt, endsAt: got.endsAt } });
+      }
+    }
+  }
+  return rows;
+};
+
 const fixtures = async () => ({
+  helpable: buildHelpable(),
   batchPerLevel: TRAINING_BATCH_PER_LEVEL,
   maxBatch: BARRACKS_LEVELS.map((b) => [b, maxTrainingBatch(b)]),
   quotes: buildQuotes(),

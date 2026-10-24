@@ -54,3 +54,19 @@ func test_the_training_form_follows_the_language() -> void:
 	training.update_context(_context("ar"))
 	assert_eq(training._title.text, Loc.t("train.title"))
 	assert_ne(training._title.text, english, "the title is translated after a language switch")
+
+func test_the_training_help_button_shows_with_a_running_batch_the_player_may_ask_about() -> void:
+	var training: TrainingView = add_child_autofree(TrainingView.new())
+	var ctx := _context("en")
+	ctx["training"] = {"troop": "infantry", "count": 5, "startedAt": 0, "endsAt": 600000}
+	ctx["now_ms"] = 1000
+	ctx["can_help"] = true
+	training.update_context(ctx)
+	assert_true(training._help_button.visible)
+	ctx["can_help"] = false
+	training.update_context(ctx)
+	assert_false(training._help_button.visible)
+	ctx["training"] = null
+	ctx["can_help"] = true
+	training.update_context(ctx)
+	assert_false(training._help_button.visible, "no batch, no button")

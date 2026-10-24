@@ -27,6 +27,7 @@ func _ready() -> void:
 	view.ground_tapped.connect(deselect)
 	panel.upgrade_pressed.connect(_on_upgrade_pressed)
 	panel.train_pressed.connect(_on_train_pressed)
+	panel.training.help_pressed.connect(_on_training_help_pressed)
 	panel.closed.connect(deselect)
 
 ## Loads the art. Called once, when the first state is in.
@@ -76,6 +77,7 @@ func update(now_ms: int, resources: Dictionary) -> void:
 			"amounts": resources,
 			"now_ms": now_ms,
 			"lang": Fmt.lang(),
+			"can_help": HelpModel.can_ask(_session.alliance, _session.help, "training", now_ms),
 		})
 
 func _on_upgrade_pressed(id: String) -> void:
@@ -98,3 +100,9 @@ func _on_train_pressed(troop: String, count: int) -> void:
 	panel.set_pending(false)
 	panel.training.set_pending(false)
 	panel.training.set_notice("" if verdict["ok"] else String(verdict["reason"]))
+
+## Asks the alliance for help with the running batch; a refusal's reason shows under the batch for a moment.
+func _on_training_help_pressed() -> void:
+	var verdict := await _session.request_help("training")
+	if not verdict["ok"] and verdict["reason"] != "":
+		panel.training.show_help_note(String(verdict["reason"]))

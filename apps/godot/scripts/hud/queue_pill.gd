@@ -4,6 +4,10 @@ extends PanelContainer
 ## its countdown from the server's end time. Its structure text changes only when the job does; the countdown ticks in place.
 
 const FONT := 32
+## How long a refusal stays on the pill (Phaser's NOTE_MS in ui/hud.ts).
+const NOTE_S := 4.0
+
+signal help_pressed
 const INK := Color8(0x2b, 0x2a, 0x24)
 const GOLD := Color8(0xe0, 0xb0, 0x40)
 
@@ -11,6 +15,9 @@ var _label := Label.new()
 var _time := Label.new()
 var _box := StyleBoxFlat.new()
 var _text_key := ""
+var _help := Button.new()
+var _note_code := ""
+var _note_timer := Timer.new()
 
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -34,9 +41,30 @@ func _init() -> void:
 	for label in [_label, _time]:
 		label.add_theme_font_size_override("font_size", FONT)
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# The help button always takes its place in the row (a button is taller than a label), and only shows when it is offered:
+	# hidden by alpha and input, not by `visible`, so the pill keeps one height and the base is never refitted when it appears.
+	_help.add_theme_font_size_override("font_size", FONT)
+	_help.focus_mode = Control.FOCUS_NONE
+	_help.pressed.connect(func() -> void: help_pressed.emit())
+	_set_help_shown(false)
+	_note_timer.one_shot = true
+	_note_timer.wait_time = NOTE_S
+	_note_timer.timeout.connect(func() -> void: _note_code = "")
+	add_child(_note_timer)
 	row.add_child(_label)
 	row.add_child(_time)
+	row.add_child(_help)
 	add_child(row)
+
+func _set_help_shown(shown: bool) -> void:
+	_help.modulate.a = 1.0 if shown else 0.0
+	_help.disabled = not shown
+	_help.mouse_filter = Control.MOUSE_FILTER_STOP if shown else Control.MOUSE_FILTER_IGNORE
+
+## A refusal of the help request, shown in place of the countdown for NOTE_S seconds (reason codes re-translate with the language).
+func show_note(code: String) -> void:
+	_note_code = code
+	_note_timer.start()
 
 ## Takes HudModel.pill's result.
 func update_model(m: Dictionary, background: String) -> void:
@@ -51,4 +79,9 @@ func update_model(m: Dictionary, background: String) -> void:
 		else:
 			_label.text = Loc.t("queue.idle")
 		_box.border_color = GOLD if m["busy"] else Color(1, 1, 1, 0.25)
-	_time.text = Fmt.duration(float(m["remainingMs"])) if m["busy"] else ""
+	_set_help_shown(m["help"])
+	_help.text = Loc.t("help.ask")
+	if _note_code != "":
+		_time.text = Loc.t("reason." + _note_code)
+	else:
+		_time.text = Fmt.duration(float(m["remainingMs"])) if m["busy"] else ""

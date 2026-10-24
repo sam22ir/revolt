@@ -57,8 +57,9 @@ static func troop_list(troops: Dictionary, lang: String) -> String:
 ## What the training form shows, as plain data (the training section of the barracks sheet). `count` is clamped to the batch
 ## limit; `cost` lists the resources the batch takes (a resource the batch does not take is left out) and which of them are
 ## short; `job` is the batch in progress ({"troop", "count", "remaining_ms", "fraction"}) or null.
+## `help` is true when the help button shows (HelpModel.can_ask for "training", and a batch that is still running).
 static func view(barracks: int, troops: Dictionary, wounded: Dictionary, training: Variant, amounts: Dictionary, now_ms: int,
-		troop: String, count: int, lang: String) -> Dictionary:
+		troop: String, count: int, lang: String, can_help := false) -> Dictionary:
 	var max_count := max_batch(barracks)
 	var clamped := clamp_count(float(count), max_count)
 	var q := quote(troop, clamped)
@@ -87,5 +88,6 @@ static func view(barracks: int, troops: Dictionary, wounded: Dictionary, trainin
 		"home": troop_list(troops, lang),
 		"wounded": troop_list(wounded, lang),
 		"job": job,
+		"help": can_help and HelpModel.helpable_job(training, now_ms) != null,
 	}
 

@@ -13,6 +13,8 @@ signal state_changed
 signal report_received(report: Dictionary)
 ## The list changed (a fetch or a pushed report).
 signal reports_changed
+## The alliance view was fetched again (see refresh_alliance); emitted once per finished fetch round.
+signal alliance_refreshed
 signal auth_lost
 ## The server became unreachable or reachable again (see `online`).
 signal connection_changed(online: bool)
@@ -47,10 +49,16 @@ var levels: Dictionary = {}
 var last_updated := 0
 var liberations: Array = []
 var reports: Array = []
+## The player's alliance (the view from GET /v1/alliance, or null) and the open help requests of its members (see HelpModel).
+var alliance: Variant = null
+var help: Array = []
 ## Alliance chat lines, oldest first (each {id, at, handle, rank, text}). Text is plain: render it as text, never as markup.
 var chat: Array = []
 
 var _refreshing := false
+var _alliance_refreshing := false
+var _alliance_again := false
+var _help_pending := {}
 var _refresh_again := false
 var _offline_asked_at_ms := 0
 var _watched := {}
@@ -176,6 +184,51 @@ func load_reports() -> void:
 	if result["ok"] and result["data"] is Dictionary and result["data"].get("reports") is Array:
 		merge_reports(result["data"]["reports"])
 
+## Fetches `GET /v1/alliance` (the alliance and the help requests). Calls during a fetch are folded into one more fetch afterwards,
+## and a caller that arrives during a fetch waits until the round is done (so a caller can rely on what the alliance is).
+func refresh_alliance() -> void:
+	if _alliance_refreshing:
+		_alliance_again = true
+		await alliance_refreshed
+		return
+	_alliance_refreshing = true
+	while true:
+		_alliance_again = false
+		var result: Dictionary = await api.get_json("/v1/alliance")
+		_take(result)
+		if result["ok"] and result["data"] is Dictionary:
+			alliance = result["data"].get("alliance")
+			help = []
+			var requests: Variant = result["data"].get("help")
+			for r: Variant in (requests if requests is Array else []):
+				if HelpModel.is_request(r):
+					help = HelpModel.with_request(help, r)
+		if not _alliance_again:
+			break
+	_alliance_refreshing = false
+	alliance_refreshed.emit()
+
+## Asks the alliance for help with the running job of `kind` ("upgrade" or "training"). Returns {"ok", "reason"} like an intent;
+## "" as the reason means nothing was sent (a request of this kind is already out). The answer's request replaces the one of the
+## same id in `help`, which is what hides the button; an `already_requested` refusal fetches the alliance again.
+func request_help(kind: String) -> Dictionary:
+	if _help_pending.has(kind):
+		return {"ok": false, "reason": ""}
+	_help_pending[kind] = true
+	var result: Dictionary = await api.post_json("/v1/help/request", {"kind": kind})
+	_help_pending.erase(kind)
+	_take(result)
+	var data: Variant = result["data"]
+	if data is Dictionary and data.has("ok"):
+		var ok := bool(data["ok"])
+		var reason := String(data.get("reason", ""))
+		if ok and HelpModel.is_request(data.get("request")):
+			help = HelpModel.with_request(help, data["request"])
+		elif reason == "already_requested":
+			refresh_alliance()
+		return {"ok": ok, "reason": reason}
+	return {"ok": false, "reason": "unreachable" if int(result["status"]) == 0 else "error"}
+
 func _holds(id: String) -> bool:
 	for r: Dictionary in reports:
 		if String(r["id"]) == id:
@@ -224,6 +277,8 @@ func apply_alliance_message(msg: Dictionary) -> bool:
 			alliance_changed.emit()
 		"kicked":
 			chat = []
+			alliance = null
+			help = []
 			chat_changed.emit()
 			alliance_changed.emit()
 			return true

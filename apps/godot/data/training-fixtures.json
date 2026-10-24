@@ -1,4 +1,126 @@
 {
+  "helpable": [
+    {
+      "kind": "upgrade",
+      "job": null,
+      "now": 999,
+      "expected": null
+    },
+    {
+      "kind": "upgrade",
+      "job": null,
+      "now": 1000,
+      "expected": null
+    },
+    {
+      "kind": "upgrade",
+      "job": null,
+      "now": 1001,
+      "expected": null
+    },
+    {
+      "kind": "upgrade",
+      "job": {
+        "startedAt": 0,
+        "endsAt": 1000,
+        "building": "farm",
+        "toLevel": 2,
+        "troop": "infantry",
+        "count": 5
+      },
+      "now": 999,
+      "expected": {
+        "startedAt": 0,
+        "endsAt": 1000
+      }
+    },
+    {
+      "kind": "upgrade",
+      "job": {
+        "startedAt": 0,
+        "endsAt": 1000,
+        "building": "farm",
+        "toLevel": 2,
+        "troop": "infantry",
+        "count": 5
+      },
+      "now": 1000,
+      "expected": null
+    },
+    {
+      "kind": "upgrade",
+      "job": {
+        "startedAt": 0,
+        "endsAt": 1000,
+        "building": "farm",
+        "toLevel": 2,
+        "troop": "infantry",
+        "count": 5
+      },
+      "now": 1001,
+      "expected": null
+    },
+    {
+      "kind": "training",
+      "job": null,
+      "now": 999,
+      "expected": null
+    },
+    {
+      "kind": "training",
+      "job": null,
+      "now": 1000,
+      "expected": null
+    },
+    {
+      "kind": "training",
+      "job": null,
+      "now": 1001,
+      "expected": null
+    },
+    {
+      "kind": "training",
+      "job": {
+        "startedAt": 0,
+        "endsAt": 1000,
+        "building": "farm",
+        "toLevel": 2,
+        "troop": "infantry",
+        "count": 5
+      },
+      "now": 999,
+      "expected": {
+        "startedAt": 0,
+        "endsAt": 1000
+      }
+    },
+    {
+      "kind": "training",
+      "job": {
+        "startedAt": 0,
+        "endsAt": 1000,
+        "building": "farm",
+        "toLevel": 2,
+        "troop": "infantry",
+        "count": 5
+      },
+      "now": 1000,
+      "expected": null
+    },
+    {
+      "kind": "training",
+      "job": {
+        "startedAt": 0,
+        "endsAt": 1000,
+        "building": "farm",
+        "toLevel": 2,
+        "troop": "infantry",
+        "count": 5
+      },
+      "now": 1001,
+      "expected": null
+    }
+  ],
   "batchPerLevel": 20,
   "maxBatch": [
     [1,20],

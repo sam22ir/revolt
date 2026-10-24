@@ -135,3 +135,18 @@ func test_training_keys_built_from_ids_exist_in_every_language() -> void:
 			if not known.has(key):
 				missing.append(key)
 		assert_eq(missing, [] as Array[String], "%s is missing training keys" % lang)
+
+## The reason codes a help request can come back with (the give path's are listed too; they cost nothing to check here).
+func test_help_reason_keys_exist_in_every_language() -> void:
+	var keys: Array[String] = []
+	for code in ["not_member", "no_job", "already_requested", "help_full", "request_gone", "own_request", "unreachable"]:
+		keys.append("reason." + code)
+	for id in ["upgrade", "training"]:
+		keys.append("help.kind." + id)
+	for lang in ["en", "ar"]:
+		var known := _po_keys(lang)
+		var missing: Array[String] = []
+		for key in keys:
+			if not known.has(key):
+				missing.append(key)
+		assert_eq(missing, [] as Array[String], "%s is missing help keys" % lang)

@@ -48,6 +48,9 @@ func _ready() -> void:
 	_camera.moved.connect(_on_camera_moved)
 	_base.setup(_session)
 	_session.state_changed.connect(_refresh_names)
+	# Members or help requests changed on the alliance socket: the view is fetched again (see Session.refresh_alliance).
+	_session.alliance_changed.connect(func() -> void: _session.refresh_alliance())
+	_pill.help_pressed.connect(_ask_help.bind("upgrade"))
 	add_child(_base)
 	_build_hud()
 	_apply_language("en")
@@ -68,6 +71,8 @@ func _start() -> void:
 	_refit()
 	_refresh_status()
 	_session.load_reports()
+	# The alliance (and the help buttons that depend on it) does not wait for the map build.
+	_session.refresh_alliance()
 	var reply := await _retry_start(_api.get_json.bind("/v1/map"))
 	if not reply["ok"]:
 		_show_error()
@@ -129,7 +134,7 @@ func _debug_log(text: String) -> void:
 
 ## Web only: `?debug=fps` prints frame rate, draw calls and object counts to the console every 3 s, and gives the page
 ## `window.revoltShow("base" | "map" | "reports")`, `window.revoltLang("en" | "ar" | "fr")`, `window.revoltRefresh()`,
-## `window.revoltReport(json)` (a battle report as the server sends it, pushed as the map socket would), `window.revoltSheet(id)` (opens a building's sheet on the base) and `window.revoltHide(layer, hidden)`
+## `window.revoltReport(json)` (a battle report as the server sends it, pushed as the map socket would), `window.revoltSheet(id)` (opens a building's sheet on the base), `window.revoltPost(path, json)` (a POST as the player, for the alliance checks) and `window.revoltHide(layer, hidden)`
 ## to hide a map layer at runtime ("ground", "decals", "features", "wash", "detail", "seams", "props", "objects"), to see what each costs (debug aid).
 var _js_hide: JavaScriptObject
 var _js_show: JavaScriptObject
@@ -137,6 +142,7 @@ var _js_lang: JavaScriptObject
 var _js_refresh: JavaScriptObject
 var _js_report: JavaScriptObject
 var _js_sheet: JavaScriptObject
+var _js_post: JavaScriptObject
 var _fps_timer: Timer
 
 func _setup_fps_debug() -> void:
@@ -156,6 +162,8 @@ func _setup_fps_debug() -> void:
 	JavaScriptBridge.get_interface("window").revoltReport = _js_report
 	_js_sheet = JavaScriptBridge.create_callback(func(args: Array) -> void: _base.select(str(args[0])))
 	JavaScriptBridge.get_interface("window").revoltSheet = _js_sheet
+	_js_post = JavaScriptBridge.create_callback(func(args: Array) -> void: _debug_post(str(args[0]), str(args[1])))
+	JavaScriptBridge.get_interface("window").revoltPost = _js_post
 	_fps_timer = Timer.new()
 	_fps_timer.wait_time = 3.0
 	_fps_timer.timeout.connect(func() -> void:
@@ -193,6 +201,16 @@ func _setup_sockets() -> void:
 		_map_socket.stop()
 		_alliance_socket.stop())
 
+## Debug aid (`?debug=fps`): a POST to the server as the player's own session (`revoltPost(path, json)`), then the alliance and the
+## base are fetched again. The token is never printed. Used to make an alliance on the pane's guest for the help check.
+func _debug_post(path: String, text: String) -> void:
+	var parser := JSON.new()
+	var body: Variant = parser.data if parser.parse(text) == OK else {}
+	var reply := await _api.post_json(path, body)
+	_debug_log("[post] %s status=%d" % [path, int(reply["status"])])
+	_session.refresh_alliance()
+	_session.refresh()
+
 ## Debug aid (`?debug=fps`): one report as the server sends it, taken as if pushed on the map socket.
 func _inject_report(text: String) -> void:
 	var parser := JSON.new()
@@ -201,9 +219,8 @@ func _inject_report(text: String) -> void:
 
 ## The alliance feed runs only while the player is in an alliance.
 func _start_alliance_feed() -> void:
-	var mine := await _api.get_json("/v1/alliance")
-	if mine["ok"] and mine["data"] is Dictionary and mine["data"].get("alliance") != null:
-		_session.apply({"now": mine["data"].get("now")})
+	await _session.refresh_alliance()
+	if _session.alliance != null:
 		_alliance_socket.start(Time.get_ticks_msec())
 
 func _on_map_message(msg: Dictionary) -> void:
@@ -219,6 +236,12 @@ func _on_map_message(msg: Dictionary) -> void:
 		"base_changed":
 			_session.refresh()
 
+## Asks the alliance for help with the running upgrade; a refusal's reason shows on the pill for a moment.
+func _ask_help(kind: String) -> void:
+	var verdict := await _session.request_help(kind)
+	if not verdict["ok"] and verdict["reason"] != "":
+		_pill.show_note(String(verdict["reason"]))
+
 func _on_alliance_message(msg: Dictionary) -> void:
 	if _session.apply_alliance_message(msg):
 		_alliance_socket.stop()
@@ -229,6 +252,7 @@ func _notification(what: int) -> void:
 		var now := Time.get_ticks_msec()
 		_session.refresh()
 		_session.load_reports()
+		_session.refresh_alliance()
 		_map_socket.ensure_open(now)
 		_alliance_socket.ensure_open(now)
 
@@ -458,6 +482,7 @@ func _process(_delta: float) -> void:
 	for chip: Dictionary in HudModel.chips(amounts, int(_session.levels["hq"])):
 		_chips[chip["id"]].set_value_text(Fmt.amount(lang, chip["amount"]))
 		_chips[chip["id"]].set_fill(chip["fraction"], chip["state"])
-	_pill.update_model(HudModel.pill(_session.queue(), now, _screen), _session.background)
+	var can_help := HelpModel.can_ask(_session.alliance, _session.help, "upgrade", now)
+	_pill.update_model(HudModel.pill(_session.queue(), now, _screen, can_help), _session.background)
 	if _screen == "base":
 		_base.update(now, amounts)

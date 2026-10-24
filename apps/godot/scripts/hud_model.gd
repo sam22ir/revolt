@@ -26,13 +26,15 @@ static func chips(amounts: Dictionary, hq_level: int) -> Array:
 
 ## {"visible", "busy", "building", "level", "remainingMs"}: idle builders are shown on the base ("tap a building") and hidden
 ## on the map; a running upgrade is shown on both. `queue` is the running upgrade or null.
-static func pill(queue: Variant, now_ms: int, screen: String) -> Dictionary:
+## `help` is true when the help button shows: a running upgrade, and the player may ask (HelpModel.can_ask for "upgrade").
+static func pill(queue: Variant, now_ms: int, screen: String, can_help := false) -> Dictionary:
 	if queue == null:
-		return {"visible": screen == "base", "busy": false, "building": "", "level": 0, "remainingMs": 0}
+		return {"visible": screen == "base", "busy": false, "building": "", "level": 0, "remainingMs": 0, "help": false}
 	return {
 		"visible": true,
 		"busy": true,
 		"building": String(queue["building"]),
 		"level": int(queue["toLevel"]),
 		"remainingMs": maxi(0, int(queue["endsAt"]) - now_ms),
+		"help": can_help and HelpModel.helpable_job(queue, now_ms) != null,
 	}
