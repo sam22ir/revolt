@@ -1,37 +1,8 @@
 {
-  "resourceIds": [
-    "food",
-    "materiel",
-    "funds",
-    "support"
-  ],
-  "buildingIds": [
-    "hq",
-    "farm",
-    "armory",
-    "treasury",
-    "barracks",
-    "hero_hall"
-  ],
-  "troopIds": [
-    "infantry",
-    "scouts",
-    "heavy",
-    "porters"
-  ],
-  "cosmeticIds": [
-    "skin_olive",
-    "skin_sand",
-    "skin_slate",
-    "banner_plain",
-    "banner_stripes",
-    "banner_dawn",
-    "march_dust",
-    "march_lantern",
-    "outfit_field",
-    "outfit_scarf",
-    "outfit_coat"
-  ],
+  "resourceIds": ["food","materiel","funds","support"],
+  "buildingIds": ["hq","farm","armory","treasury","barracks","hero_hall"],
+  "troopIds": ["infantry","scouts","heavy","porters"],
+  "cosmeticIds": ["skin_olive","skin_sand","skin_slate","banner_plain","banner_stripes","banner_dawn","march_dust","march_lantern","outfit_field","outfit_scarf","outfit_coat"],
   "maxBuildingLevel": 10,
   "liberation": {
     "bonusPerRegion": 0.01,
@@ -1067,12 +1038,7 @@
     "regionCell": 16,
     "marchRescueGraceMs": 3600000,
     "maxMarches": 2,
-    "npcCountByLevel": [
-      16,
-      10,
-      6,
-      0
-    ],
+    "npcCountByLevel": [16,10,6,0],
     "placementSpacing": 2
   },
   "story": {
@@ -1226,10 +1192,7 @@
       "anchor": 1767571200000,
       "periodMs": 604800000,
       "durationMs": 604800000,
-      "backgrounds": [
-        "algeria",
-        "vietnam"
-      ],
+      "backgrounds": ["algeria","vietnam"],
       "pointsPerLevel": 10,
       "cleanBonus": 5,
       "needsReview": false,
@@ -1273,10 +1236,7 @@
       "anchor": 1767571200000,
       "periodMs": 259200000,
       "durationMs": 172800000,
-      "backgrounds": [
-        "algeria",
-        "vietnam"
-      ],
+      "backgrounds": ["algeria","vietnam"],
       "pointsPerLevel": 15,
       "cleanBonus": 5,
       "needsReview": false,
@@ -1316,9 +1276,7 @@
       "anchor": 1767571200000,
       "periodMs": 2419200000,
       "durationMs": 1814400000,
-      "backgrounds": [
-        "algeria"
-      ],
+      "backgrounds": ["algeria"],
       "pointsPerLevel": 12,
       "cleanBonus": 6,
       "needsReview": true,
@@ -1359,9 +1317,7 @@
       "anchor": 1767571200000,
       "periodMs": 2419200000,
       "durationMs": 1814400000,
-      "backgrounds": [
-        "vietnam"
-      ],
+      "backgrounds": ["vietnam"],
       "pointsPerLevel": 12,
       "cleanBonus": 6,
       "needsReview": true,

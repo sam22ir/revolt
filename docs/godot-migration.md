@@ -41,6 +41,10 @@ Target: the state of the Phaser ground after `docs/map-ground-plan.md` steps 1a,
 4. Rim and an outside mask so decals never float past the map edge. Theme colours from `theme.ts`.
 5. Runtime detail overlay (step 1d grain): last, only if the look needs it.
 
+**Bake order and constants (from `ground-bake.ts`, read before building B):** rim (left face `0x4a3a2c`, right face `0x3a2d22`, 22 px deep, below the two near sides) -> colour field -> green wash (a 256 px seamless mottled grain, dark olive `58,70,32`, alpha-masked by `greenPixels` and drawn at `GREEN_ALPHA` 0.6; starts at fertility 0.55, slope 2.5, colour `52,64,30`) -> decals clipped to the map's top face -> features (wadis, roads, oases) -> runtime detail overlay (alpha 1 at zoom >= 0.6, 0 below 0.35) -> props (hidden below zoom 0.4; the 3x3 ring around bases, NPCs and HQs is kept clear). Region seams have a far-zoom (< 0.3) variant.
+
+**Fixture rules (advisor review):** fixtures come from the client's real pipeline (`GroundLayer.onSnapshot` inputs), not from the rules alone. Fertility is a float32 array there, and cluster strength is quantised to bytes (`round(x * 255)`), and both change threshold results, so the Godot side uses `PackedFloat32Array` and the same byte quantisation. `ground-decals.ts` cannot be imported by plain node (JSON import without an attribute), so those fixtures are written by a Vitest file (`GODOT_EXPORT=1`), which compares instead when the flag is unset. The mock server's `terrainSeed` is one of the fixture seeds.
+
 **C. Done when:** all fixtures match; en and ar screenshots at far, mid and close zoom beside the Phaser shots; map build time measured natively and in the browser (cache the geography in `user://` if it is slow); no per-frame work. A performance comparison still waits for the phone.
 
 Risks: float-exact ties in the path search (same algorithm, 64-bit floats, no Vector2); `Math.imul` wraparound (mask to 32 bits); prop and decal counts on a phone (hence MultiMesh).

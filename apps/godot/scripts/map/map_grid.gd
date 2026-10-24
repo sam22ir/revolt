@@ -25,6 +25,16 @@ static func compute(seed: int, size: int, region_cell: int) -> Dictionary:
 			terrain[y * size + x] = t
 	return {"terrain": terrain, "regions": _regions(seed, size, region_cell)}
 
+## valueNoise(noise_seed, x, y, cell) for every tile of a size x size map, row-major (index = y * size + x).
+static func noise_field(noise_seed: int, size: int, cell: int) -> PackedFloat64Array:
+	var lattice := _lattice(noise_seed, size, cell)
+	var out := PackedFloat64Array()
+	out.resize(size * size)
+	for y in size:
+		for x in size:
+			out[y * size + x] = _noise(lattice, x, y, cell, size)
+	return out
+
 ## Hashed lattice values for tiles 0..size-1: (cells + 2) points per side, indexed gy * stride + gx.
 static func _lattice(noise_seed: int, size: int, cell: int) -> PackedFloat64Array:
 	var stride := size / cell + 2
