@@ -81,6 +81,7 @@ func _start() -> void:
 	_session.load_reports()
 	# The alliance (and the help buttons that depend on it) does not wait for the map build.
 	_session.refresh_alliance()
+	_session.load_wallet()
 	var reply := await _retry_start(_api.get_json.bind("/v1/map"))
 	if not reply["ok"]:
 		_show_error()
@@ -269,6 +270,7 @@ func _notification(what: int) -> void:
 		_session.refresh()
 		_session.load_reports()
 		_session.refresh_alliance()
+		_session.load_wallet()
 		_map_socket.ensure_open(now)
 		_alliance_socket.ensure_open(now)
 

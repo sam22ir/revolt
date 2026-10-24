@@ -28,6 +28,8 @@ func _ready() -> void:
 	panel.upgrade_pressed.connect(_on_upgrade_pressed)
 	panel.train_pressed.connect(_on_train_pressed)
 	panel.training.help_pressed.connect(_on_training_help_pressed)
+	panel.upgrade_speedup.pressed.connect(_on_speedup_pressed.bind("upgrade", panel.upgrade_speedup))
+	panel.training.speedup.pressed.connect(_on_speedup_pressed.bind("training", panel.training.speedup))
 	panel.closed.connect(deselect)
 
 ## Loads the art. Called once, when the first state is in.
@@ -78,7 +80,9 @@ func update(now_ms: int, resources: Dictionary) -> void:
 			"now_ms": now_ms,
 			"lang": Fmt.lang(),
 			"can_help": HelpModel.can_ask(_session.alliance, _session.help, "training", now_ms),
+			"speedup": SpeedupModel.view("training", _session.state.get("training"), _session.wallet, now_ms),
 		})
+		panel.update_speedup(SpeedupModel.view("upgrade", queue, _session.wallet, now_ms))
 
 func _on_upgrade_pressed(id: String) -> void:
 	# A second press before the sheet is rebuilt (one frame) must not send a second intent.
@@ -106,3 +110,11 @@ func _on_training_help_pressed() -> void:
 	var verdict := await _session.request_help("training")
 	if not verdict["ok"] and verdict["reason"] != "":
 		panel.training.show_help_note(String(verdict["reason"]))
+
+## One token on the running job; the button is off until the answer is in, and a refusal's reason shows under it for a moment.
+func _on_speedup_pressed(kind: String, row: SpeedupRow) -> void:
+	row.set_pending(true)
+	var verdict := await _session.speed_up(kind)
+	row.set_pending(false)
+	if not verdict["ok"] and verdict["reason"] != "":
+		row.show_note(String(verdict["reason"]))

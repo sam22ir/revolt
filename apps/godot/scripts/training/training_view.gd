@@ -30,6 +30,8 @@ var _text_key := ""
 var _job_key := ""
 var _help_note_code := ""
 var _help_button := Button.new()
+## The training speed-up under the running batch.
+var speedup := SpeedupRow.new()
 var _help_note := _label("", FONT, LACKING, true)
 var _help_note_timer := Timer.new()
 var _notice_code := ""
@@ -79,6 +81,8 @@ func _ready() -> void:
 	_help_note_timer.timeout.connect(func() -> void: _help_note_code = "")
 	_job_box.add_child(_help_button)
 	_job_box.add_child(_help_note)
+	speedup.kind = "training"
+	_job_box.add_child(speedup)
 	_job_box.add_child(_help_note_timer)
 	add_child(_job_box)
 
@@ -167,6 +171,8 @@ func update_context(ctx: Dictionary) -> void:
 	_duration.text = Loc.t("panel.duration") + ": " + Fmt.duration(float(m["duration_ms"]))
 	_update_costs(m["cost"], String(ctx["lang"]))
 	_update_job(m["job"])
+	if ctx.has("speedup"):
+		speedup.update_view(ctx["speedup"])
 	_help_button.visible = m["help"]
 	_help_note.visible = _help_note_code != ""
 	_help_note.text = Loc.t("reason." + _help_note_code) if _help_note_code != "" else ""

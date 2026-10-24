@@ -64,6 +64,10 @@ var alliance_known := false
 var chat_seen := -1
 var _chat_open := false
 
+## The speed-up wallet ({speedupTokens, usedTodayMs, dailyCapMs, at}), or {} until the server has said (unknown is not zero tokens).
+var wallet: Dictionary = {}
+var _wallet_now := -1
+var _speedup_pending := {}
 var _refreshing := false
 var _alliance_refreshing := false
 var _alliance_again := false
@@ -96,6 +100,11 @@ func apply(reply: Dictionary) -> void:
 	if reply.has("liberations") and _newer_than(reply_now, stamped, _liberations_now):
 		liberations = reply["liberations"]
 		_liberations_now = maxi(_liberations_now, reply_now)
+		changed = true
+	if SpeedupModel.is_wallet(reply.get("wallet")) and _newer_than(reply_now, stamped, _wallet_now):
+		wallet = (reply["wallet"] as Dictionary).duplicate()
+		wallet["at"] = reply_now if stamped else clock.now_ms(ticks.call())
+		_wallet_now = maxi(_wallet_now, reply_now)
 		changed = true
 	if reply.get("state") is Dictionary and _newer_than(reply_now, stamped, _base_now):
 		var s: Dictionary = reply["state"]
@@ -260,6 +269,21 @@ func give_help(request_id: String) -> Dictionary:
 			refresh_alliance()
 		return {"ok": ok, "reason": reason}
 	return {"ok": false, "reason": "unreachable" if int(result["status"]) == 0 else "error"}
+
+## Fetches `GET /v1/store` for the wallet (the catalog in the reply is not used). Taken through `apply`, like every reply.
+func load_wallet() -> void:
+	_take(await api.get_json("/v1/store"))
+
+## Spends one token on the running job of `kind` ("upgrade" or "training"). Returns the server's verdict like an intent; "" as
+## the reason means nothing was sent (a press on this job is already out: one press spends one token). The wallet and the base
+## in the answer are applied, a refusal included.
+func speed_up(kind: String) -> Dictionary:
+	if _speedup_pending.has(kind):
+		return {"ok": false, "reason": ""}
+	_speedup_pending[kind] = true
+	var verdict: Dictionary = await send_intent({"type": "speedup", "job": kind, "tokens": 1})
+	_speedup_pending.erase(kind)
+	return verdict
 
 func _holds(id: String) -> bool:
 	for r: Dictionary in reports:

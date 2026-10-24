@@ -1,0 +1,116 @@
+{
+  "_comment": "Captured from the mock server: POST /v1/intent {type:speedup, job:training, tokens:1} on a running 60-unit batch with 5 tokens (the batch ended at once, 4 tokens left); the same intent for the upgrade with none running (refused); and the wallet part of GET /v1/store for a guest with no tokens. Not generated.",
+  "success": {
+    "ok": true,
+    "state": {
+      "resources": {
+        "food": 864.6176666666669,
+        "materiel": 842.0448055555552,
+        "funds": 879.2492861111106,
+        "support": 475.42069999999995
+      },
+      "levels": {
+        "hq": 3,
+        "farm": 3,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 3,
+        "hero_hall": 1
+      },
+      "queue": null,
+      "troops": {
+        "infantry": 16,
+        "scouts": 0,
+        "heavy": 0,
+        "porters": 0
+      },
+      "wounded": {
+        "infantry": 0,
+        "scouts": 0,
+        "heavy": 0,
+        "porters": 0
+      },
+      "training": {
+        "troop": "infantry",
+        "count": 60,
+        "startedAt": 1792879996737,
+        "endsAt": 1792880173748
+      },
+      "heroes": {
+        "owned": {},
+        "pity": 0
+      },
+      "story": {
+        "chapter": 0,
+        "victories": 0
+      },
+      "marches": [],
+      "lastUpdated": 1792880173748
+    },
+    "wallet": {
+      "speedupTokens": 4,
+      "usedTodayMs": 182989,
+      "dailyCapMs": 14400000
+    },
+    "now": 1792880173748
+  },
+  "refused_no_job": {
+    "ok": false,
+    "reason": "no_speedup_job",
+    "state": {
+      "resources": {
+        "food": 866.4225722222225,
+        "materiel": 842.7389999999996,
+        "funds": 880.0128999999995,
+        "support": 475.69837777777775
+      },
+      "levels": {
+        "hq": 3,
+        "farm": 3,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 3,
+        "hero_hall": 1
+      },
+      "queue": null,
+      "troops": {
+        "infantry": 76,
+        "scouts": 0,
+        "heavy": 0,
+        "porters": 0
+      },
+      "wounded": {
+        "infantry": 0,
+        "scouts": 0,
+        "heavy": 0,
+        "porters": 0
+      },
+      "training": null,
+      "heroes": {
+        "owned": {},
+        "pity": 0
+      },
+      "story": {
+        "chapter": 0,
+        "victories": 0
+      },
+      "marches": [],
+      "lastUpdated": 1792880198739
+    },
+    "wallet": {
+      "speedupTokens": 4,
+      "usedTodayMs": 182989,
+      "dailyCapMs": 14400000
+    },
+    "now": 1792880198739
+  },
+  "store_wallet_fresh": {
+    "wallet": {
+      "speedupTokens": 0,
+      "usedTodayMs": 0,
+      "dailyCapMs": 14400000
+    },
+    "canRedeem": true,
+    "now": 1792880062974
+  }
+}

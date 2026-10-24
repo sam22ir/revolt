@@ -29,6 +29,8 @@ var _scroll := ScrollContainer.new()
 var _max_height := 0.0
 ## The training form of the barracks sheet. One instance for the panel's life (see TrainingView); it is in the body only on the barracks.
 var training := TrainingView.new()
+## The upgrade speed-up under the running upgrade's countdown (one instance, kept across rebuilds like the training form).
+var upgrade_speedup := SpeedupRow.new()
 var _countdown: Label
 var _bar: ProgressBar
 
@@ -52,6 +54,14 @@ func _ready() -> void:
 	visible = false
 
 ## The most the sheet may take (the space between the HUD and the nav bar); a longer sheet scrolls.
+## The form and the speed-up row are kept across rebuilds and are children of the body only while shown; one that is not in a tree
+## when the panel itself is deleted is freed with it (not on leaving the tree: the base screen still holds them then).
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		for n: Node in [training, upgrade_speedup]:
+			if is_instance_valid(n) and n.get_parent() == null:
+				n.free()
+
 func set_max_height(px: float) -> void:
 	_max_height = px
 	_fit()
@@ -64,6 +74,12 @@ func _fit() -> void:
 func update_training(ctx: Dictionary) -> void:
 	if visible and training.get_parent() == _body:
 		training.update_context(ctx)
+		_fit()
+
+## Feeds the upgrade's speed-up row (shown only while the upgrading building's sheet is open).
+func update_speedup(view: Dictionary) -> void:
+	if visible and upgrade_speedup.get_parent() == _body:
+		upgrade_speedup.update_view(view)
 		_fit()
 
 func is_open() -> bool:
@@ -117,7 +133,7 @@ func update_model(model: Dictionary, background: String) -> void:
 func _rebuild() -> void:
 	for child in _body.get_children():
 		_body.remove_child(child)
-		if child != training:
+		if child != training and child != upgrade_speedup:
 			child.queue_free()
 	_countdown = null
 	_bar = null
@@ -165,6 +181,7 @@ func _rebuild() -> void:
 			_body.add_child(_bar)
 			_countdown = _label("", FONT, INK)
 			_body.add_child(_countdown)
+			_body.add_child(upgrade_speedup)
 		"max":
 			_body.add_child(_label(Loc.t("panel.maxLevel"), FONT, MUTED, true))
 		_:

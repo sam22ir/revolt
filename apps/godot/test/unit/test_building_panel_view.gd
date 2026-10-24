@@ -70,3 +70,46 @@ func test_the_training_help_button_shows_with_a_running_batch_the_player_may_ask
 	ctx["can_help"] = true
 	training.update_context(ctx)
 	assert_false(training._help_button.visible, "no batch, no button")
+
+func _upgrading_model(id: String) -> Dictionary:
+	var queue := {"building": id, "toLevel": 2, "startedAt": 0, "endsAt": 600_000}
+	return BuildingPanelModel.build(id, _levels(), _rich(), queue, 100_000)
+
+func _speedup_view(reason := "") -> Dictionary:
+	return {"visible": true, "reason": reason, "tokens": 3, "left_ms": 3_600_000.0}
+
+func test_the_upgrading_sheet_holds_the_speed_up_row_and_keeps_it_across_a_rebuild() -> void:
+	var panel: BuildingPanel = add_child_autofree(BuildingPanel.new())
+	panel.open_for("armory")
+	panel.update_model(_upgrading_model("armory"), "")
+	panel.update_speedup(_speedup_view())
+	await wait_process_frames(2)
+	assert_true(panel.is_ancestor_of(panel.upgrade_speedup))
+	assert_true(panel.upgrade_speedup.visible)
+	# A language change rebuilds the sheet: the same row is still in it, and still alive.
+	TranslationServer.set_locale("ar")
+	panel.update_model(_upgrading_model("armory"), "")
+	panel.update_speedup(_speedup_view())
+	await wait_process_frames(2)
+	assert_true(is_instance_valid(panel.upgrade_speedup))
+	assert_true(panel.is_ancestor_of(panel.upgrade_speedup), "the row survived the rebuild")
+	assert_eq(panel.upgrade_speedup.button().text, Loc.t("live.store.useOn.upgrade"))
+
+func test_a_sheet_that_is_not_upgrading_has_no_speed_up_row() -> void:
+	var panel: BuildingPanel = add_child_autofree(BuildingPanel.new())
+	panel.open_for("farm")
+	panel.update_model(_model("farm"), "")
+	panel.update_speedup(_speedup_view())
+	await wait_process_frames(2)
+	assert_false(panel.is_ancestor_of(panel.upgrade_speedup))
+	assert_true(is_instance_valid(panel.upgrade_speedup))
+
+func test_leaving_the_tree_does_not_free_the_kept_children() -> void:
+	var panel := BuildingPanel.new()
+	add_child(panel)
+	panel.open_for("farm")
+	panel.update_model(_model("farm"), "")
+	remove_child(panel)
+	assert_true(is_instance_valid(panel.training))
+	assert_true(is_instance_valid(panel.upgrade_speedup))
+	panel.free()
