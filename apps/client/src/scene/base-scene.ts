@@ -6,16 +6,7 @@ import { hex, theme } from "../theme/theme.ts";
 import { artKeyFor, artUrl, spriteInfo, textureKey } from "../art/art.ts";
 import { artPack } from "../art/pack.ts";
 import { activeBackground } from "../state/background.ts";
-import {
-  isoToWorld,
-  mapCenter,
-  MAP_WORLD_HEIGHT,
-  MAP_WORLD_WIDTH,
-  PLOTS,
-  plotCenter,
-  TILE_W,
-  type Vec,
-} from "./iso-layout.ts";
+import { baseSpan, fitBase, isoToWorld, PLOTS, placeGround, placeSprite, plotCenter, type Placement, type Vec } from "./iso-layout.ts";
 
 interface BuildingView {
   readonly sprite: Phaser.GameObjects.Image;
@@ -25,15 +16,6 @@ interface BuildingView {
   readonly label: Phaser.GameObjects.Text;
   readonly progress: Phaser.GameObjects.Graphics;
   drawnKey: string;
-}
-
-/** Placement of a building sprite: where it sits in world px and how tall it stands above its plot's front corner. */
-interface Placement {
-  readonly x: number;
-  readonly y: number;
-  readonly scale: number;
-  /** Height of the sprite above the plot's centre line, in world px. */
-  readonly height: number;
 }
 
 const ground = (): string => artKeyFor(activeBackground(), "buildings/ground_tile");
@@ -132,22 +114,12 @@ export class BaseScene extends Phaser.Scene {
     const room = this.insets.get();
     this.fitted = { top: room.top, nav: room.nav };
     const px = this.scale.displayScale.y;
-    const hudTop = room.top * px;
-    const hudBottom = room.nav * px;
-    const usableH = Math.max(100 * px, height - hudTop - hudBottom);
     // Fit the buildings and the whole ground diamond: a cropped slab reads as a cut-off edge, so its corners stay on screen.
-    const xs = BUILDING_IDS.flatMap((id) => {
-      const place = this.placement(id);
-      return [place.x, place.x + spriteInfo(artPack.buildings[id]).w * place.scale];
-    });
-    xs.push(-MAP_WORLD_WIDTH / 2, MAP_WORLD_WIDTH / 2);
-    const span = Math.max(...xs) - Math.min(...xs);
-    const zoom = Math.min((width - 16 * px) / span, usableH / (MAP_WORLD_HEIGHT + 80));
-    cam.setZoom(zoom);
-    const center = mapCenter();
-    // Shift the view so the map sits between the HUD and the bottom edge.
-    const offset = (hudTop - hudBottom) / 2 / zoom;
-    this.viewCenter = { x: center.x, y: center.y - 30 - offset };
+    const span = baseSpan(BUILDING_IDS.map((id) => ({ x: this.placement(id).x, width: spriteInfo(artPack.buildings[id]).w * this.placement(id).scale })));
+    const fit = fitBase(width, height, px, room, span);
+    cam.setZoom(fit.zoom);
+    const zoom = fit.zoom;
+    this.viewCenter = fit.center;
     cam.centerOn(this.viewCenter.x, this.viewCenter.y);
     // Rasterize level numbers at the on-screen scale so they stay crisp when zoomed in.
     const textResolution = Math.max(1, Math.ceil(zoom));
@@ -157,26 +129,14 @@ export class BaseScene extends Phaser.Scene {
   /** The painted ground slab, stretched over the whole grid diamond (its rim shows below the near edges). */
   private drawGround(): void {
     const info = spriteInfo(ground());
-    const rim = 26 / 571; // fraction of the sprite's height that is slab thickness
-    const sx = MAP_WORLD_WIDTH / info.w;
-    const sy = MAP_WORLD_HEIGHT / (info.h * (1 - rim));
-    this.add
-      .image(-MAP_WORLD_WIDTH / 2, 0, textureKey(ground()))
-      .setOrigin(0, 0)
-      .setScale(sx, sy)
-      .setDepth(0);
+    const g = placeGround(info);
+    this.add.image(g.x, g.y, textureKey(ground())).setOrigin(0, 0).setScale(g.sx, g.sy).setDepth(0);
   }
 
-  /** Scale so the sprite's plot diamond is as wide as the plot, and place its diamond centre on the plot centre. */
   private placement(id: BuildingId): Placement {
     const cached = this.placements.get(id);
     if (cached !== undefined) return cached;
-    const info = spriteInfo(artPack.buildings[id]);
-    const scale = (PLOTS[id].size * TILE_W) / (info.right.x - info.left.x);
-    const cx = (info.left.x + info.right.x) / 2;
-    const cy = (info.left.y + info.right.y) / 2;
-    const c = plotCenter(PLOTS[id]);
-    const p: Placement = { x: c.x - cx * scale, y: c.y - cy * scale, scale, height: cy * scale };
+    const p = placeSprite(PLOTS[id], spriteInfo(artPack.buildings[id]));
     this.placements.set(id, p);
     return p;
   }

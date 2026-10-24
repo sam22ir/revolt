@@ -1,0 +1,4081 @@
+{
+  "cases": [
+    {
+      "name": "hq L1 hq1 none",
+      "building": "hq",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 2,
+        "cost": {
+          "food": 200,
+          "materiel": 200,
+          "funds": 300,
+          "support": 0
+        },
+        "durationMs": 60000
+      }
+    },
+    {
+      "name": "hq L1 hq1 rich",
+      "building": "hq",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 2,
+        "cost": {
+          "food": 200,
+          "materiel": 200,
+          "funds": 300,
+          "support": 0
+        },
+        "durationMs": 60000
+      }
+    },
+    {
+      "name": "hq L1 hq10 none",
+      "building": "hq",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 2,
+        "cost": {
+          "food": 200,
+          "materiel": 200,
+          "funds": 300,
+          "support": 0
+        },
+        "durationMs": 60000
+      }
+    },
+    {
+      "name": "hq L1 hq10 rich",
+      "building": "hq",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 2,
+        "cost": {
+          "food": 200,
+          "materiel": 200,
+          "funds": 300,
+          "support": 0
+        },
+        "durationMs": 60000
+      }
+    },
+    {
+      "name": "hq L2 hq1 none",
+      "building": "hq",
+      "levels": {
+        "hq": 2,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 3,
+        "cost": {
+          "food": 500,
+          "materiel": 500,
+          "funds": 700,
+          "support": 50
+        },
+        "durationMs": 600000
+      }
+    },
+    {
+      "name": "hq L2 hq1 rich",
+      "building": "hq",
+      "levels": {
+        "hq": 2,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 3,
+        "cost": {
+          "food": 500,
+          "materiel": 500,
+          "funds": 700,
+          "support": 50
+        },
+        "durationMs": 600000
+      }
+    },
+    {
+      "name": "hq L2 hq10 none",
+      "building": "hq",
+      "levels": {
+        "hq": 2,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 3,
+        "cost": {
+          "food": 500,
+          "materiel": 500,
+          "funds": 700,
+          "support": 50
+        },
+        "durationMs": 600000
+      }
+    },
+    {
+      "name": "hq L2 hq10 rich",
+      "building": "hq",
+      "levels": {
+        "hq": 2,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 3,
+        "cost": {
+          "food": 500,
+          "materiel": 500,
+          "funds": 700,
+          "support": 50
+        },
+        "durationMs": 600000
+      }
+    },
+    {
+      "name": "hq L9 hq1 none",
+      "building": "hq",
+      "levels": {
+        "hq": 9,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 10,
+        "cost": {
+          "food": 20000,
+          "materiel": 20000,
+          "funds": 26000,
+          "support": 1200
+        },
+        "durationMs": 86400000
+      }
+    },
+    {
+      "name": "hq L9 hq1 rich",
+      "building": "hq",
+      "levels": {
+        "hq": 9,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 10,
+        "cost": {
+          "food": 20000,
+          "materiel": 20000,
+          "funds": 26000,
+          "support": 1200
+        },
+        "durationMs": 86400000
+      }
+    },
+    {
+      "name": "hq L9 hq10 none",
+      "building": "hq",
+      "levels": {
+        "hq": 9,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 10,
+        "cost": {
+          "food": 20000,
+          "materiel": 20000,
+          "funds": 26000,
+          "support": 1200
+        },
+        "durationMs": 86400000
+      }
+    },
+    {
+      "name": "hq L9 hq10 rich",
+      "building": "hq",
+      "levels": {
+        "hq": 9,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 10,
+        "cost": {
+          "food": 20000,
+          "materiel": 20000,
+          "funds": 26000,
+          "support": 1200
+        },
+        "durationMs": 86400000
+      }
+    },
+    {
+      "name": "hq L10 hq1 none",
+      "building": "hq",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "hq L10 hq1 rich",
+      "building": "hq",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "hq L10 hq10 none",
+      "building": "hq",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "hq L10 hq10 rich",
+      "building": "hq",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "farm L1 hq1 none",
+      "building": "farm",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 2,
+        "cost": {
+          "food": 60,
+          "materiel": 40,
+          "funds": 80,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "farm L1 hq1 rich",
+      "building": "farm",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 2,
+        "cost": {
+          "food": 60,
+          "materiel": 40,
+          "funds": 80,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "farm L1 hq10 none",
+      "building": "farm",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 2,
+        "cost": {
+          "food": 60,
+          "materiel": 40,
+          "funds": 80,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "farm L1 hq10 rich",
+      "building": "farm",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 2,
+        "cost": {
+          "food": 60,
+          "materiel": 40,
+          "funds": 80,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "farm L2 hq1 none",
+      "building": "farm",
+      "levels": {
+        "hq": 1,
+        "farm": 2,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 3,
+        "cost": {
+          "food": 120,
+          "materiel": 90,
+          "funds": 160,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "farm L2 hq1 rich",
+      "building": "farm",
+      "levels": {
+        "hq": 1,
+        "farm": 2,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 3,
+        "cost": {
+          "food": 120,
+          "materiel": 90,
+          "funds": 160,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "farm L2 hq10 none",
+      "building": "farm",
+      "levels": {
+        "hq": 10,
+        "farm": 2,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 3,
+        "cost": {
+          "food": 120,
+          "materiel": 90,
+          "funds": 160,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "farm L2 hq10 rich",
+      "building": "farm",
+      "levels": {
+        "hq": 10,
+        "farm": 2,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 3,
+        "cost": {
+          "food": 120,
+          "materiel": 90,
+          "funds": 160,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "farm L9 hq1 none",
+      "building": "farm",
+      "levels": {
+        "hq": 1,
+        "farm": 9,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 10,
+        "cost": {
+          "food": 8000,
+          "materiel": 6400,
+          "funds": 11000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "farm L9 hq1 rich",
+      "building": "farm",
+      "levels": {
+        "hq": 1,
+        "farm": 9,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 10,
+        "cost": {
+          "food": 8000,
+          "materiel": 6400,
+          "funds": 11000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "farm L9 hq10 none",
+      "building": "farm",
+      "levels": {
+        "hq": 10,
+        "farm": 9,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 10,
+        "cost": {
+          "food": 8000,
+          "materiel": 6400,
+          "funds": 11000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "farm L9 hq10 rich",
+      "building": "farm",
+      "levels": {
+        "hq": 10,
+        "farm": 9,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 10,
+        "cost": {
+          "food": 8000,
+          "materiel": 6400,
+          "funds": 11000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "farm L10 hq1 none",
+      "building": "farm",
+      "levels": {
+        "hq": 1,
+        "farm": 10,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "farm L10 hq1 rich",
+      "building": "farm",
+      "levels": {
+        "hq": 1,
+        "farm": 10,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "farm L10 hq10 none",
+      "building": "farm",
+      "levels": {
+        "hq": 10,
+        "farm": 10,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "farm L10 hq10 rich",
+      "building": "farm",
+      "levels": {
+        "hq": 10,
+        "farm": 10,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "armory L1 hq1 none",
+      "building": "armory",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 2,
+        "cost": {
+          "food": 70,
+          "materiel": 30,
+          "funds": 90,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "armory L1 hq1 rich",
+      "building": "armory",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 2,
+        "cost": {
+          "food": 70,
+          "materiel": 30,
+          "funds": 90,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "armory L1 hq10 none",
+      "building": "armory",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 2,
+        "cost": {
+          "food": 70,
+          "materiel": 30,
+          "funds": 90,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "armory L1 hq10 rich",
+      "building": "armory",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 2,
+        "cost": {
+          "food": 70,
+          "materiel": 30,
+          "funds": 90,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "armory L2 hq1 none",
+      "building": "armory",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 2,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 3,
+        "cost": {
+          "food": 150,
+          "materiel": 70,
+          "funds": 180,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "armory L2 hq1 rich",
+      "building": "armory",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 2,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 3,
+        "cost": {
+          "food": 150,
+          "materiel": 70,
+          "funds": 180,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "armory L2 hq10 none",
+      "building": "armory",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 2,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 3,
+        "cost": {
+          "food": 150,
+          "materiel": 70,
+          "funds": 180,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "armory L2 hq10 rich",
+      "building": "armory",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 2,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 3,
+        "cost": {
+          "food": 150,
+          "materiel": 70,
+          "funds": 180,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "armory L9 hq1 none",
+      "building": "armory",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 9,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 10,
+        "cost": {
+          "food": 9600,
+          "materiel": 5000,
+          "funds": 12000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "armory L9 hq1 rich",
+      "building": "armory",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 9,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 10,
+        "cost": {
+          "food": 9600,
+          "materiel": 5000,
+          "funds": 12000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "armory L9 hq10 none",
+      "building": "armory",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 9,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 10,
+        "cost": {
+          "food": 9600,
+          "materiel": 5000,
+          "funds": 12000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "armory L9 hq10 rich",
+      "building": "armory",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 9,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 10,
+        "cost": {
+          "food": 9600,
+          "materiel": 5000,
+          "funds": 12000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "armory L10 hq1 none",
+      "building": "armory",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 10,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "armory L10 hq1 rich",
+      "building": "armory",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 10,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "armory L10 hq10 none",
+      "building": "armory",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 10,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "armory L10 hq10 rich",
+      "building": "armory",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 10,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "treasury L1 hq1 none",
+      "building": "treasury",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 2,
+        "cost": {
+          "food": 70,
+          "materiel": 60,
+          "funds": 40,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "treasury L1 hq1 rich",
+      "building": "treasury",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 2,
+        "cost": {
+          "food": 70,
+          "materiel": 60,
+          "funds": 40,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "treasury L1 hq10 none",
+      "building": "treasury",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 2,
+        "cost": {
+          "food": 70,
+          "materiel": 60,
+          "funds": 40,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "treasury L1 hq10 rich",
+      "building": "treasury",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 2,
+        "cost": {
+          "food": 70,
+          "materiel": 60,
+          "funds": 40,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "treasury L2 hq1 none",
+      "building": "treasury",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 2,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 3,
+        "cost": {
+          "food": 150,
+          "materiel": 130,
+          "funds": 90,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "treasury L2 hq1 rich",
+      "building": "treasury",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 2,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 3,
+        "cost": {
+          "food": 150,
+          "materiel": 130,
+          "funds": 90,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "treasury L2 hq10 none",
+      "building": "treasury",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 2,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 3,
+        "cost": {
+          "food": 150,
+          "materiel": 130,
+          "funds": 90,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "treasury L2 hq10 rich",
+      "building": "treasury",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 2,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 3,
+        "cost": {
+          "food": 150,
+          "materiel": 130,
+          "funds": 90,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "treasury L9 hq1 none",
+      "building": "treasury",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 9,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 10,
+        "cost": {
+          "food": 10000,
+          "materiel": 8700,
+          "funds": 6400,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "treasury L9 hq1 rich",
+      "building": "treasury",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 9,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 10,
+        "cost": {
+          "food": 10000,
+          "materiel": 8700,
+          "funds": 6400,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "treasury L9 hq10 none",
+      "building": "treasury",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 9,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 10,
+        "cost": {
+          "food": 10000,
+          "materiel": 8700,
+          "funds": 6400,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "treasury L9 hq10 rich",
+      "building": "treasury",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 9,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 10,
+        "cost": {
+          "food": 10000,
+          "materiel": 8700,
+          "funds": 6400,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "treasury L10 hq1 none",
+      "building": "treasury",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 10,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "treasury L10 hq1 rich",
+      "building": "treasury",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 10,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "treasury L10 hq10 none",
+      "building": "treasury",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 10,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "treasury L10 hq10 rich",
+      "building": "treasury",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 10,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "barracks L1 hq1 none",
+      "building": "barracks",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 2,
+        "cost": {
+          "food": 80,
+          "materiel": 80,
+          "funds": 60,
+          "support": 0
+        },
+        "durationMs": 60000
+      }
+    },
+    {
+      "name": "barracks L1 hq1 rich",
+      "building": "barracks",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 2,
+        "cost": {
+          "food": 80,
+          "materiel": 80,
+          "funds": 60,
+          "support": 0
+        },
+        "durationMs": 60000
+      }
+    },
+    {
+      "name": "barracks L1 hq10 none",
+      "building": "barracks",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 2,
+        "cost": {
+          "food": 80,
+          "materiel": 80,
+          "funds": 60,
+          "support": 0
+        },
+        "durationMs": 60000
+      }
+    },
+    {
+      "name": "barracks L1 hq10 rich",
+      "building": "barracks",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 2,
+        "cost": {
+          "food": 80,
+          "materiel": 80,
+          "funds": 60,
+          "support": 0
+        },
+        "durationMs": 60000
+      }
+    },
+    {
+      "name": "barracks L2 hq1 none",
+      "building": "barracks",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 2,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 3,
+        "cost": {
+          "food": 160,
+          "materiel": 160,
+          "funds": 120,
+          "support": 0
+        },
+        "durationMs": 300000
+      }
+    },
+    {
+      "name": "barracks L2 hq1 rich",
+      "building": "barracks",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 2,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 3,
+        "cost": {
+          "food": 160,
+          "materiel": 160,
+          "funds": 120,
+          "support": 0
+        },
+        "durationMs": 300000
+      }
+    },
+    {
+      "name": "barracks L2 hq10 none",
+      "building": "barracks",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 2,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 3,
+        "cost": {
+          "food": 160,
+          "materiel": 160,
+          "funds": 120,
+          "support": 0
+        },
+        "durationMs": 300000
+      }
+    },
+    {
+      "name": "barracks L2 hq10 rich",
+      "building": "barracks",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 2,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 3,
+        "cost": {
+          "food": 160,
+          "materiel": 160,
+          "funds": 120,
+          "support": 0
+        },
+        "durationMs": 300000
+      }
+    },
+    {
+      "name": "barracks L9 hq1 none",
+      "building": "barracks",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 9,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 10,
+        "cost": {
+          "food": 10000,
+          "materiel": 10000,
+          "funds": 7500,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "barracks L9 hq1 rich",
+      "building": "barracks",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 9,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 10,
+        "cost": {
+          "food": 10000,
+          "materiel": 10000,
+          "funds": 7500,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "barracks L9 hq10 none",
+      "building": "barracks",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 9,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 10,
+        "cost": {
+          "food": 10000,
+          "materiel": 10000,
+          "funds": 7500,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "barracks L9 hq10 rich",
+      "building": "barracks",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 9,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 10,
+        "cost": {
+          "food": 10000,
+          "materiel": 10000,
+          "funds": 7500,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "barracks L10 hq1 none",
+      "building": "barracks",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 10,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "barracks L10 hq1 rich",
+      "building": "barracks",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 10,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "barracks L10 hq10 none",
+      "building": "barracks",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 10,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "barracks L10 hq10 rich",
+      "building": "barracks",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 10,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "hero_hall L1 hq1 none",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 2,
+        "cost": {
+          "food": 100,
+          "materiel": 60,
+          "funds": 150,
+          "support": 0
+        },
+        "durationMs": 90000
+      }
+    },
+    {
+      "name": "hero_hall L1 hq1 rich",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 2,
+        "cost": {
+          "food": 100,
+          "materiel": 60,
+          "funds": 150,
+          "support": 0
+        },
+        "durationMs": 90000
+      }
+    },
+    {
+      "name": "hero_hall L1 hq10 none",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 2,
+        "cost": {
+          "food": 100,
+          "materiel": 60,
+          "funds": 150,
+          "support": 0
+        },
+        "durationMs": 90000
+      }
+    },
+    {
+      "name": "hero_hall L1 hq10 rich",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 2,
+        "cost": {
+          "food": 100,
+          "materiel": 60,
+          "funds": 150,
+          "support": 0
+        },
+        "durationMs": 90000
+      }
+    },
+    {
+      "name": "hero_hall L2 hq1 none",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 2
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 3,
+        "cost": {
+          "food": 240,
+          "materiel": 150,
+          "funds": 340,
+          "support": 0
+        },
+        "durationMs": 420000
+      }
+    },
+    {
+      "name": "hero_hall L2 hq1 rich",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 2
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 3,
+        "cost": {
+          "food": 240,
+          "materiel": 150,
+          "funds": 340,
+          "support": 0
+        },
+        "durationMs": 420000
+      }
+    },
+    {
+      "name": "hero_hall L2 hq10 none",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 2
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 3,
+        "cost": {
+          "food": 240,
+          "materiel": 150,
+          "funds": 340,
+          "support": 0
+        },
+        "durationMs": 420000
+      }
+    },
+    {
+      "name": "hero_hall L2 hq10 rich",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 2
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 3,
+        "cost": {
+          "food": 240,
+          "materiel": 150,
+          "funds": 340,
+          "support": 0
+        },
+        "durationMs": 420000
+      }
+    },
+    {
+      "name": "hero_hall L9 hq1 none",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 9
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 10,
+        "cost": {
+          "food": 10500,
+          "materiel": 7100,
+          "funds": 15000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "hero_hall L9 hq1 rich",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 9
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 10,
+        "cost": {
+          "food": 10500,
+          "materiel": 7100,
+          "funds": 15000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "hero_hall L9 hq10 none",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 9
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 10,
+        "cost": {
+          "food": 10500,
+          "materiel": 7100,
+          "funds": 15000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "hero_hall L9 hq10 rich",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 9
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 10,
+        "cost": {
+          "food": 10500,
+          "materiel": 7100,
+          "funds": 15000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "hero_hall L10 hq1 none",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 10
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "hero_hall L10 hq1 rich",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 10
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "hero_hall L10 hq10 none",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 10
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "hero_hall L10 hq10 rich",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 10
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "hq L1 exact",
+      "building": "hq",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 200,
+        "materiel": 200,
+        "funds": 300,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 2,
+        "cost": {
+          "food": 200,
+          "materiel": 200,
+          "funds": 300,
+          "support": 0
+        },
+        "durationMs": 60000
+      }
+    },
+    {
+      "name": "hq L1 short by one",
+      "building": "hq",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 199,
+        "materiel": 200,
+        "funds": 300,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 2,
+        "cost": {
+          "food": 200,
+          "materiel": 200,
+          "funds": 300,
+          "support": 0
+        },
+        "durationMs": 60000
+      }
+    },
+    {
+      "name": "hq L2 exact",
+      "building": "hq",
+      "levels": {
+        "hq": 2,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 500,
+        "materiel": 500,
+        "funds": 700,
+        "support": 50
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 3,
+        "cost": {
+          "food": 500,
+          "materiel": 500,
+          "funds": 700,
+          "support": 50
+        },
+        "durationMs": 600000
+      }
+    },
+    {
+      "name": "hq L2 short by one",
+      "building": "hq",
+      "levels": {
+        "hq": 2,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 499,
+        "materiel": 500,
+        "funds": 700,
+        "support": 50
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 3,
+        "cost": {
+          "food": 500,
+          "materiel": 500,
+          "funds": 700,
+          "support": 50
+        },
+        "durationMs": 600000
+      }
+    },
+    {
+      "name": "hq L9 exact",
+      "building": "hq",
+      "levels": {
+        "hq": 9,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 20000,
+        "materiel": 20000,
+        "funds": 26000,
+        "support": 1200
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 10,
+        "cost": {
+          "food": 20000,
+          "materiel": 20000,
+          "funds": 26000,
+          "support": 1200
+        },
+        "durationMs": 86400000
+      }
+    },
+    {
+      "name": "hq L9 short by one",
+      "building": "hq",
+      "levels": {
+        "hq": 9,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 19999,
+        "materiel": 20000,
+        "funds": 26000,
+        "support": 1200
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 10,
+        "cost": {
+          "food": 20000,
+          "materiel": 20000,
+          "funds": 26000,
+          "support": 1200
+        },
+        "durationMs": 86400000
+      }
+    },
+    {
+      "name": "farm L1 exact",
+      "building": "farm",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 60,
+        "materiel": 40,
+        "funds": 80,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 2,
+        "cost": {
+          "food": 60,
+          "materiel": 40,
+          "funds": 80,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "farm L1 short by one",
+      "building": "farm",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 59,
+        "materiel": 40,
+        "funds": 80,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 2,
+        "cost": {
+          "food": 60,
+          "materiel": 40,
+          "funds": 80,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "farm L2 exact",
+      "building": "farm",
+      "levels": {
+        "hq": 10,
+        "farm": 2,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 120,
+        "materiel": 90,
+        "funds": 160,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 3,
+        "cost": {
+          "food": 120,
+          "materiel": 90,
+          "funds": 160,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "farm L2 short by one",
+      "building": "farm",
+      "levels": {
+        "hq": 10,
+        "farm": 2,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 119,
+        "materiel": 90,
+        "funds": 160,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 3,
+        "cost": {
+          "food": 120,
+          "materiel": 90,
+          "funds": 160,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "farm L9 exact",
+      "building": "farm",
+      "levels": {
+        "hq": 10,
+        "farm": 9,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 8000,
+        "materiel": 6400,
+        "funds": 11000,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 10,
+        "cost": {
+          "food": 8000,
+          "materiel": 6400,
+          "funds": 11000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "farm L9 short by one",
+      "building": "farm",
+      "levels": {
+        "hq": 10,
+        "farm": 9,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 7999,
+        "materiel": 6400,
+        "funds": 11000,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 10,
+        "cost": {
+          "food": 8000,
+          "materiel": 6400,
+          "funds": 11000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "armory L1 exact",
+      "building": "armory",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 70,
+        "materiel": 30,
+        "funds": 90,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 2,
+        "cost": {
+          "food": 70,
+          "materiel": 30,
+          "funds": 90,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "armory L1 short by one",
+      "building": "armory",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 69,
+        "materiel": 30,
+        "funds": 90,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 2,
+        "cost": {
+          "food": 70,
+          "materiel": 30,
+          "funds": 90,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "armory L2 exact",
+      "building": "armory",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 2,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 150,
+        "materiel": 70,
+        "funds": 180,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 3,
+        "cost": {
+          "food": 150,
+          "materiel": 70,
+          "funds": 180,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "armory L2 short by one",
+      "building": "armory",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 2,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 149,
+        "materiel": 70,
+        "funds": 180,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 3,
+        "cost": {
+          "food": 150,
+          "materiel": 70,
+          "funds": 180,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "armory L9 exact",
+      "building": "armory",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 9,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 9600,
+        "materiel": 5000,
+        "funds": 12000,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 10,
+        "cost": {
+          "food": 9600,
+          "materiel": 5000,
+          "funds": 12000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "armory L9 short by one",
+      "building": "armory",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 9,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 9599,
+        "materiel": 5000,
+        "funds": 12000,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 10,
+        "cost": {
+          "food": 9600,
+          "materiel": 5000,
+          "funds": 12000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "treasury L1 exact",
+      "building": "treasury",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 70,
+        "materiel": 60,
+        "funds": 40,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 2,
+        "cost": {
+          "food": 70,
+          "materiel": 60,
+          "funds": 40,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "treasury L1 short by one",
+      "building": "treasury",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 69,
+        "materiel": 60,
+        "funds": 40,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 2,
+        "cost": {
+          "food": 70,
+          "materiel": 60,
+          "funds": 40,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "treasury L2 exact",
+      "building": "treasury",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 2,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 150,
+        "materiel": 130,
+        "funds": 90,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 3,
+        "cost": {
+          "food": 150,
+          "materiel": 130,
+          "funds": 90,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "treasury L2 short by one",
+      "building": "treasury",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 2,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 149,
+        "materiel": 130,
+        "funds": 90,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 3,
+        "cost": {
+          "food": 150,
+          "materiel": 130,
+          "funds": 90,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "treasury L9 exact",
+      "building": "treasury",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 9,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 10000,
+        "materiel": 8700,
+        "funds": 6400,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 10,
+        "cost": {
+          "food": 10000,
+          "materiel": 8700,
+          "funds": 6400,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "treasury L9 short by one",
+      "building": "treasury",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 9,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 9999,
+        "materiel": 8700,
+        "funds": 6400,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 10,
+        "cost": {
+          "food": 10000,
+          "materiel": 8700,
+          "funds": 6400,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "barracks L1 exact",
+      "building": "barracks",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 80,
+        "materiel": 80,
+        "funds": 60,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 2,
+        "cost": {
+          "food": 80,
+          "materiel": 80,
+          "funds": 60,
+          "support": 0
+        },
+        "durationMs": 60000
+      }
+    },
+    {
+      "name": "barracks L1 short by one",
+      "building": "barracks",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 79,
+        "materiel": 80,
+        "funds": 60,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 2,
+        "cost": {
+          "food": 80,
+          "materiel": 80,
+          "funds": 60,
+          "support": 0
+        },
+        "durationMs": 60000
+      }
+    },
+    {
+      "name": "barracks L2 exact",
+      "building": "barracks",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 2,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 160,
+        "materiel": 160,
+        "funds": 120,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 3,
+        "cost": {
+          "food": 160,
+          "materiel": 160,
+          "funds": 120,
+          "support": 0
+        },
+        "durationMs": 300000
+      }
+    },
+    {
+      "name": "barracks L2 short by one",
+      "building": "barracks",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 2,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 159,
+        "materiel": 160,
+        "funds": 120,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 3,
+        "cost": {
+          "food": 160,
+          "materiel": 160,
+          "funds": 120,
+          "support": 0
+        },
+        "durationMs": 300000
+      }
+    },
+    {
+      "name": "barracks L9 exact",
+      "building": "barracks",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 9,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 10000,
+        "materiel": 10000,
+        "funds": 7500,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 10,
+        "cost": {
+          "food": 10000,
+          "materiel": 10000,
+          "funds": 7500,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "barracks L9 short by one",
+      "building": "barracks",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 9,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 9999,
+        "materiel": 10000,
+        "funds": 7500,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 10,
+        "cost": {
+          "food": 10000,
+          "materiel": 10000,
+          "funds": 7500,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "hero_hall L1 exact",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 100,
+        "materiel": 60,
+        "funds": 150,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 2,
+        "cost": {
+          "food": 100,
+          "materiel": 60,
+          "funds": 150,
+          "support": 0
+        },
+        "durationMs": 90000
+      }
+    },
+    {
+      "name": "hero_hall L1 short by one",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 99,
+        "materiel": 60,
+        "funds": 150,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 2,
+        "cost": {
+          "food": 100,
+          "materiel": 60,
+          "funds": 150,
+          "support": 0
+        },
+        "durationMs": 90000
+      }
+    },
+    {
+      "name": "hero_hall L2 exact",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 2
+      },
+      "resources": {
+        "food": 240,
+        "materiel": 150,
+        "funds": 340,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 3,
+        "cost": {
+          "food": 240,
+          "materiel": 150,
+          "funds": 340,
+          "support": 0
+        },
+        "durationMs": 420000
+      }
+    },
+    {
+      "name": "hero_hall L2 short by one",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 2
+      },
+      "resources": {
+        "food": 239,
+        "materiel": 150,
+        "funds": 340,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 3,
+        "cost": {
+          "food": 240,
+          "materiel": 150,
+          "funds": 340,
+          "support": 0
+        },
+        "durationMs": 420000
+      }
+    },
+    {
+      "name": "hero_hall L9 exact",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 9
+      },
+      "resources": {
+        "food": 10500,
+        "materiel": 7100,
+        "funds": 15000,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 10,
+        "cost": {
+          "food": 10500,
+          "materiel": 7100,
+          "funds": 15000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "hero_hall L9 short by one",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 9
+      },
+      "resources": {
+        "food": 10499,
+        "materiel": 7100,
+        "funds": 15000,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 10,
+        "cost": {
+          "food": 10500,
+          "materiel": 7100,
+          "funds": 15000,
+          "support": 0
+        },
+        "durationMs": 57600000
+      }
+    },
+    {
+      "name": "hq while the queue is busy",
+      "building": "hq",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": {
+        "building": "farm",
+        "toLevel": 2,
+        "startedAt": 1000,
+        "endsAt": 31000
+      },
+      "expected": {
+        "ok": false,
+        "reason": "queue_busy",
+        "toLevel": 2,
+        "cost": {
+          "food": 200,
+          "materiel": 200,
+          "funds": 300,
+          "support": 0
+        },
+        "durationMs": 60000
+      }
+    },
+    {
+      "name": "farm while the queue is busy",
+      "building": "farm",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": {
+        "building": "armory",
+        "toLevel": 2,
+        "startedAt": 1000,
+        "endsAt": 31000
+      },
+      "expected": {
+        "ok": false,
+        "reason": "queue_busy",
+        "toLevel": 2,
+        "cost": {
+          "food": 60,
+          "materiel": 40,
+          "funds": 80,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "armory while the queue is busy",
+      "building": "armory",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": {
+        "building": "farm",
+        "toLevel": 2,
+        "startedAt": 1000,
+        "endsAt": 31000
+      },
+      "expected": {
+        "ok": false,
+        "reason": "queue_busy",
+        "toLevel": 2,
+        "cost": {
+          "food": 70,
+          "materiel": 30,
+          "funds": 90,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "treasury while the queue is busy",
+      "building": "treasury",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": {
+        "building": "farm",
+        "toLevel": 2,
+        "startedAt": 1000,
+        "endsAt": 31000
+      },
+      "expected": {
+        "ok": false,
+        "reason": "queue_busy",
+        "toLevel": 2,
+        "cost": {
+          "food": 70,
+          "materiel": 60,
+          "funds": 40,
+          "support": 0
+        },
+        "durationMs": 30000
+      }
+    },
+    {
+      "name": "barracks while the queue is busy",
+      "building": "barracks",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": {
+        "building": "farm",
+        "toLevel": 2,
+        "startedAt": 1000,
+        "endsAt": 31000
+      },
+      "expected": {
+        "ok": false,
+        "reason": "queue_busy",
+        "toLevel": 2,
+        "cost": {
+          "food": 80,
+          "materiel": 80,
+          "funds": 60,
+          "support": 0
+        },
+        "durationMs": 60000
+      }
+    },
+    {
+      "name": "hero_hall while the queue is busy",
+      "building": "hero_hall",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": {
+        "building": "farm",
+        "toLevel": 2,
+        "startedAt": 1000,
+        "endsAt": 31000
+      },
+      "expected": {
+        "ok": false,
+        "reason": "queue_busy",
+        "toLevel": 2,
+        "cost": {
+          "food": 100,
+          "materiel": 60,
+          "funds": 150,
+          "support": 0
+        },
+        "durationMs": 90000
+      }
+    }
+  ]
+}

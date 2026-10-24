@@ -8,6 +8,7 @@ import { LIBERATION_BONUS_CAP, LIBERATION_BONUS_PER_REGION } from "../data/liber
 import { liberatedCount, productionMultiplier, type Liberation, type World } from "../liberation.ts";
 import type { BaseState } from "../base-state.ts";
 import { createBaseState } from "../base-state.ts";
+import { checkUpgrade, nextLevelQuote } from "../upgrade.ts";
 import { BUILDING_IDS, type BuildingId } from "../building-id.ts";
 import { BUILDINGS, MAX_BUILDING_LEVEL } from "../data/buildings.ts";
 import { COSMETIC_IDS } from "../data/cosmetics.ts";
@@ -152,6 +153,57 @@ export const buildGodotDisplayFixtures = (): unknown => ({
       multiplierAtLastUpdated: productionMultiplier(world, c.state.lastUpdated),
       expected: accrue(base, c.now, world).resources,
     };
+  }),
+});
+
+interface UpgradeCase {
+  readonly name: string;
+  readonly building: BuildingId;
+  readonly levels: Record<BuildingId, number>;
+  readonly resources: Resources;
+  readonly queue: BaseState["queue"];
+}
+
+const resourcesOf = (v: number): Resources => ({ food: v, materiel: v, funds: v, support: v });
+
+/** Upgrade checks over every building, level, HQ level and wallet that matters: the GDScript display check must match `checkUpgrade`. */
+const upgradeCases = (): UpgradeCase[] => {
+  const out: UpgradeCase[] = [];
+  const at = (building: BuildingId, level: number, hq: number): Record<BuildingId, number> => ({ ...START_LEVELS, hq, [building]: level });
+  for (const building of BUILDING_IDS)
+    for (const level of [1, 2, 9, MAX_BUILDING_LEVEL])
+      for (const hq of [1, MAX_BUILDING_LEVEL])
+        for (const [wallet, resources] of [["none", resourcesOf(0)], ["rich", resourcesOf(1_000_000)]] as const)
+          out.push({ name: `${building} L${level} hq${hq} ${wallet}`, building, levels: at(building, level, hq), resources, queue: null });
+  // The wallet exactly at the price, and one short on the first priced resource.
+  for (const building of BUILDING_IDS)
+    for (const level of [1, 2, 9]) {
+      const levels = at(building, level, MAX_BUILDING_LEVEL);
+      const quote = nextLevelQuote(building, levels[building]);
+      if (quote === null) continue;
+      out.push({ name: `${building} L${level} exact`, building, levels, resources: { ...quote.cost }, queue: null });
+      const short = { ...quote.cost };
+      const first = RESOURCE_IDS.find((r) => short[r] > 0);
+      if (first !== undefined) short[first] -= 1;
+      out.push({ name: `${building} L${level} short by one`, building, levels, resources: short, queue: null });
+    }
+  // Another upgrade running (the queue holds one job).
+  for (const building of BUILDING_IDS)
+    out.push({
+      name: `${building} while the queue is busy`,
+      building,
+      levels: at(building, 1, MAX_BUILDING_LEVEL),
+      resources: resourcesOf(1_000_000),
+      queue: { building: building === "farm" ? "armory" : "farm", toLevel: 2, startedAt: 1000, endsAt: 31_000 },
+    });
+  return out;
+};
+
+/** Golden cases for `UpgradeView.check` (GDScript): inputs are an already-advanced base, expected is the real `checkUpgrade`. */
+export const buildGodotUpgradeFixtures = (): unknown => ({
+  cases: upgradeCases().map((c) => {
+    const state: BaseState = { ...createBaseState(0), levels: c.levels, resources: c.resources, queue: c.queue };
+    return { name: c.name, building: c.building, levels: c.levels, resources: c.resources, queue: c.queue, expected: checkUpgrade(state, c.building) };
   }),
 });
 

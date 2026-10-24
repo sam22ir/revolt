@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
-import { buildGodotBalance, buildGodotDisplayFixtures, buildGodotMapFixtures } from "../src/export/godot-data.ts";
+import { buildGodotBalance, buildGodotDisplayFixtures, buildGodotMapFixtures, buildGodotUpgradeFixtures } from "../src/export/godot-data.ts";
 
 const committed = (name: string): unknown =>
   JSON.parse(readFileSync(new URL(`../../../apps/godot/data/${name}`, import.meta.url), "utf8"));
@@ -23,6 +23,10 @@ describe("Godot export", () => {
     expect(committed("display-fixtures.json")).toEqual(roundTrip(buildGodotDisplayFixtures()));
   });
 
+  test("upgrade-fixtures.json is up to date (run `pnpm godot:export`)", () => {
+    expect(committed("upgrade-fixtures.json")).toEqual(roundTrip(buildGodotUpgradeFixtures()));
+  });
+
   test("map-fixtures.json is up to date (run `pnpm godot:export`)", () => {
     expect(committed("map-fixtures.json")).toEqual(roundTrip(buildGodotMapFixtures()));
   });
@@ -31,5 +35,6 @@ describe("Godot export", () => {
     expect(nonFinite(buildGodotBalance())).toEqual([]);
     expect(nonFinite(buildGodotDisplayFixtures())).toEqual([]);
     expect(nonFinite(buildGodotMapFixtures())).toEqual([]);
+    expect(nonFinite(buildGodotUpgradeFixtures())).toEqual([]);
   });
 });
