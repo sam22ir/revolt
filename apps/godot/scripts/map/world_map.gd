@@ -74,6 +74,7 @@ func set_layer_visible(layer: String, visible_now: bool) -> void:
 ## Props show from PROP_ZOOM up. Called when the camera zoom changes.
 func set_view_zoom(view_zoom: float) -> void:
 	_props.visible = view_zoom >= PROP_ZOOM
+	_ground.set_view_zoom(view_zoom)
 
 ## Builds the map from a `GET /v1/map` reply. Yields between the heavy stages so the page stays alive.
 func build(snap: Dictionary) -> void:
