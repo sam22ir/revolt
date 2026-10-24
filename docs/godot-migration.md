@@ -23,6 +23,28 @@ Out of scope for slice 1: live WebSocket updates, tapping tiles, march animation
 
 Housekeeping: `project.godot` currently enables the user's `godot_ai` plugin on disk only; commits stage `project.godot` without that line and never use `git add -A apps/godot`. Whether the plugin should be committed is the user's call.
 
+## Slice 1b plan: the Phaser ground look
+
+Target: the state of the Phaser ground after `docs/map-ground-plan.md` steps 1a, 1c, 1d (dunes and fields from step 1b were never built in Phaser and are out of scope). Compare against `map-shots/` (Phaser, same mock seed) at far, mid and close zoom.
+
+**A. Pure data, ported with golden fixtures** (same method as slice 1; fixtures from the real TypeScript, 4 seeds including the 32-bit edges; Vitest stale checks; GUT parity tests):
+1. `hash01` (Math.imul based, seed-independent), `fertilityAt`, cluster masks (`decor-clusters.ts`).
+2. `geographyOf`: wadis, roads (cheapest path with a binary heap, Kruskal over regions), oases, GEO flags, plus the client's `OASIS_FRONT` bit. Uses the whole-map terrain grid and cached noise fields so it stays fast.
+3. Ground plan: `blendedGround` and `landTint` (colour per tile), interior share, `propsFor` (prop plans per tile), `decalsFor` (decal list).
+4. Feature shaping from `feature-layer.ts`: `centres`, Chaikin `smooth`, `trimEnds` (polylines for wadis and roads).
+5. Art data: `terrain-manifest.json` (frame rectangles, anchors, decal kinds) copied by `pnpm godot:export` with a stale check; the WebP atlases (decals, trees, rocks, peaks, scrub: copied from `apps/client/public/art/terrain/`, no download; `ground-*.webp` and `terraces` are never drawn in Phaser, so not copied).
+
+**B. Rendering in Godot** (placeholder flat tiles are replaced):
+1. Smooth colour field: one 64x64 texture with linear filtering on a single iso quad (pixel centres land on tile centres, as in `ground-field.ts`), plus the green wash (alpha from fertility).
+2. Decals and props as `MultiMesh` instances (one draw call per atlas, per-instance frame rectangle through a small shader, instances sorted by x + y for painter's order), not thousands of nodes.
+3. Roads, wadis, oases drawn in code from the shaped polylines (colours and widths from `feature-layer.ts`).
+4. Rim and an outside mask so decals never float past the map edge. Theme colours from `theme.ts`.
+5. Runtime detail overlay (step 1d grain): last, only if the look needs it.
+
+**C. Done when:** all fixtures match; en and ar screenshots at far, mid and close zoom beside the Phaser shots; map build time measured natively and in the browser (cache the geography in `user://` if it is slow); no per-frame work. A performance comparison still waits for the phone.
+
+Risks: float-exact ties in the path search (same algorithm, 64-bit floats, no Vector2); `Math.imul` wraparound (mask to 32 bits); prop and decal counts on a phone (hence MultiMesh).
+
 # Original plan (draft)
 
 Decision (user): replace the Phaser + DOM + Capacitor client with a Godot client. Language: **GDScript**. Rules: **server-driven thin client** (no GDScript port of `packages/rules`).
