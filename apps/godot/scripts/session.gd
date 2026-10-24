@@ -19,12 +19,19 @@ signal alliance_changed
 
 const MAX_REPORTS := 20
 const MAX_CHAT := 200
+## A running job is asked about this long after its `endsAt`, in server time, so a reply stamped just before it is rare;
+## when the server still reports the job, it is asked again every RETRY_MS, at most MAX_COMPLETION_ASKS times in all.
+const COMPLETION_MARGIN_MS := 400
+const COMPLETION_RETRY_MS := 2000
+const MAX_COMPLETION_ASKS := 5
 
 var api: Object
 var clock: Clock
 ## Monotonic milliseconds; tests replace it.
 var ticks: Callable = func() -> int: return Time.get_ticks_msec()
 
+## The account's background (`algeria`, `vietnam`): names and texts can be overridden per background (Loc.t).
+var background := ""
 var state: Dictionary = {}
 var resources: Dictionary = {}
 var levels: Dictionary = {}
@@ -36,6 +43,9 @@ var chat: Array = []
 
 var _refreshing := false
 var _refresh_again := false
+var _watched_job := ""
+var _asked := 0
+var _asked_at_ms := 0
 ## The server time of the reply that last set the base, and the one that last set the liberations. A reply stamped earlier
 ## than these is an older answer that arrived late (a /v1/state fetch overtaken by an intent reply) and is not applied.
 var _base_now := -1
@@ -54,6 +64,9 @@ func apply(reply: Dictionary) -> void:
 	if stamped:
 		clock.sync(reply_now, ticks.call())
 	var changed := false
+	if reply.get("account") is Dictionary and reply["account"].get("background") is String:
+		background = reply["account"]["background"]
+		Loc.background_id = background
 	if reply.has("liberations") and _newer_than(reply_now, stamped, _liberations_now):
 		liberations = reply["liberations"]
 		_liberations_now = maxi(_liberations_now, reply_now)
@@ -68,6 +81,32 @@ func apply(reply: Dictionary) -> void:
 		changed = true
 	if changed:
 		state_changed.emit()
+
+## The running upgrade ({building, toLevel, startedAt, endsAt}) or null.
+func queue() -> Variant:
+	return state.get("queue")
+
+## Call every frame. When the running upgrade is over (server time), asks the server for the base once, so the new level
+## comes from the server and not from the client. If the answer still holds the job (the server's clock is a little behind),
+## it asks again after COMPLETION_RETRY_MS, up to MAX_COMPLETION_ASKS times for that job.
+func tick() -> void:
+	var job: Variant = queue()
+	if job == null:
+		_watched_job = ""
+		_asked = 0
+		return
+	var key := "%s:%s:%s" % [job["building"], job["toLevel"], job["endsAt"]]
+	if key != _watched_job:
+		_watched_job = key
+		_asked = 0
+	var now_ticks: int = ticks.call()
+	if clock.now_ms(now_ticks) < int(job["endsAt"]) + COMPLETION_MARGIN_MS or _asked >= MAX_COMPLETION_ASKS:
+		return
+	if _asked > 0 and now_ticks - _asked_at_ms < COMPLETION_RETRY_MS:
+		return
+	_asked += 1
+	_asked_at_ms = now_ticks
+	refresh()
 
 ## Takes the liberations of a map snapshot (`now` is the snapshot's), which can be newer than the last state reply.
 func set_liberations(list: Array, now: int) -> void:

@@ -22,6 +22,9 @@ class FakeApi:
 
 var _ticks := [0]
 
+func after_each() -> void:
+	Loc.background_id = ""
+
 func _session(api: FakeApi) -> Session:
 	var s := Session.new(api, Clock.new())
 	_ticks = [0]
@@ -196,3 +199,83 @@ func test_snapshot_liberations_follow_the_same_rule() -> void:
 	assert_eq(s.liberations, [{"region": 1}], "an older snapshot does not win")
 	s.set_liberations([{"region": 3}], 3000)
 	assert_eq(s.liberations, [{"region": 3}])
+
+## The running upgrade: the client asks the server when it is over; it never completes it by itself.
+
+func _job(ends_at: int) -> Dictionary:
+	return {"building": "farm", "toLevel": 2, "startedAt": ends_at - 30_000, "endsAt": ends_at}
+
+func _with_job(api: FakeApi, ends_at: int) -> Session:
+	var s := _session(api)
+	var st := _state(10)
+	st["queue"] = _job(ends_at)
+	s.apply({"state": st, "now": ends_at - 30_000})
+	return s
+
+func test_the_background_comes_from_the_account() -> void:
+	var s := _session(FakeApi.new())
+	s.apply({"account": {"background": "algeria"}, "state": _state(1), "now": 1})
+	assert_eq(s.background, "algeria")
+
+func test_nothing_is_asked_while_the_job_runs() -> void:
+	var api := FakeApi.new()
+	var s := _with_job(api, 100_000)
+	_ticks[0] = 29_000
+	s.tick()
+	assert_eq(api.calls.size(), 0)
+	_ticks[0] = 30_000 + Session.COMPLETION_MARGIN_MS - 1
+	s.tick()
+	assert_eq(api.calls.size(), 0, "not before the margin")
+
+func test_the_server_is_asked_once_the_job_is_over() -> void:
+	var api := FakeApi.new()
+	var done := _state(10)
+	done["queue"] = null
+	api.replies = [_ok({"state": done, "now": 100_500})]
+	var s := _with_job(api, 100_000)
+	_ticks[0] = 30_000 + Session.COMPLETION_MARGIN_MS
+	s.tick()
+	await wait_until(func() -> bool: return s.queue() == null, 5.0)
+	assert_eq(api.calls, ["/v1/state"])
+	s.tick()
+	s.tick()
+	assert_eq(api.calls.size(), 1, "an answer with no job ends the watch")
+
+func test_a_still_running_answer_is_asked_again_later_and_the_asking_is_bounded() -> void:
+	var api := FakeApi.new()
+	var running := _state(10)
+	running["queue"] = _job(100_000)
+	for i in 10:
+		api.replies.append(_ok({"state": running, "now": 99_990}))
+	var s := _with_job(api, 100_000)
+	var ticks_at := 30_000 + Session.COMPLETION_MARGIN_MS
+	_ticks[0] = ticks_at
+	s.tick()
+	await wait_process_frames(3)
+	assert_eq(api.calls.size(), 1)
+	_ticks[0] = ticks_at + Session.COMPLETION_RETRY_MS - 1
+	s.tick()
+	assert_eq(api.calls.size(), 1, "waits out the retry delay")
+	for i in 12:
+		_ticks[0] += Session.COMPLETION_RETRY_MS
+		s.tick()
+		await wait_process_frames(3)
+	assert_eq(api.calls.size(), Session.MAX_COMPLETION_ASKS, "it stops asking for this job")
+
+func test_a_new_job_gets_its_own_asks() -> void:
+	var api := FakeApi.new()
+	var s := _with_job(api, 100_000)
+	_ticks[0] = 30_000 + Session.COMPLETION_MARGIN_MS
+	s.tick()
+	await wait_process_frames(3)
+	var next := _state(10)
+	next["queue"] = _job(500_000)
+	s.apply({"state": next, "now": 470_000})
+	_ticks[0] += 1_000  # a second after that sync, the new job (ends at 500_000) has a long way to go
+	s.tick()
+	assert_eq(api.calls.size(), 1, "the new job is not over yet, so nothing more is asked")
+
+func test_the_background_becomes_the_active_one_for_every_text() -> void:
+	var s := _session(FakeApi.new())
+	s.apply({"account": {"background": "vietnam"}, "state": _state(1), "now": 1})
+	assert_eq(Loc.background_id, "vietnam")

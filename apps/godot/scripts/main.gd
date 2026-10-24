@@ -1,9 +1,12 @@
 extends Node
-## Entry scene for the world-map slice: guest session, map fetch, camera and a small HUD.
+## The shell: guest session, the two screens (the base, and the world map with its camera), a small HUD and a bottom nav bar.
 ## The map (a Node2D tree) is never mirrored in Arabic; only the HUD controls follow the locale direction.
 
 const LANGS: Array[String] = ["en", "ar", "fr"]
 const FONT_SIZE := 34
+## Height of the bottom nav bar, in viewport px; the base screen and the building sheet keep clear of it.
+const NAV_HEIGHT := 100
+const SCREENS: Array[String] = ["base", "map"]
 
 var _api := Api.new()
 var _clock := Clock.new()
@@ -20,6 +23,12 @@ var _counter_names := {}
 var _counter_values := {}
 var _language_buttons := {}
 var _loaded := false
+var _base := BaseScreen.new()
+var _nav := HBoxContainer.new()
+var _nav_buttons := {}
+var _top_box: VBoxContainer
+var _screen := "base"
+var _failed := false
 
 func _ready() -> void:
 	RenderingServer.set_default_clear_color(GroundFrame.BACKGROUND)
@@ -31,8 +40,12 @@ func _ready() -> void:
 	_world.add_child(_camera)
 	_camera.moved.connect(_update_coords)
 	_camera.moved.connect(_on_camera_moved)
+	_base.setup(_session)
+	_session.state_changed.connect(_refresh_names)
+	add_child(_base)
 	_build_hud()
 	_apply_language("en")
+	_show_screen("base")
 	_start()
 
 func _start() -> void:
@@ -42,6 +55,10 @@ func _start() -> void:
 		_show_error()
 		return
 	_session.apply(session["data"])
+	# The base needs only the state, so it is ready (and the default screen) before the heavy map build.
+	_base.build()
+	_refit()
+	_refresh_status()
 	var reply := await _api.get_json("/v1/map")
 	if not reply["ok"]:
 		_show_error()
@@ -56,8 +73,8 @@ func _start() -> void:
 	else:
 		_camera.focus_world(Iso.tile_to_world(_map.size * 0.5, _map.size * 0.5))
 	_apply_hidden_layers()
-	_status.visible = false
 	_loaded = true
+	_refresh_status()
 	_update_coords()
 	# The live feeds start once the first build is done, so no snapshot arrives while the map is being built.
 	_map_socket.start(Time.get_ticks_msec())
@@ -131,8 +148,43 @@ func _apply_hidden_layers() -> void:
 			_map.set_layer_visible(layer, false)
 
 func _show_error() -> void:
-	_status.text = Loc.t("reason.unreachable")
-	_status.visible = true
+	_failed = true
+	_refresh_status()
+
+## The resource names above the counters follow the language and the account's background (Vietnam renames food).
+func _refresh_names() -> void:
+	for id: String in _counter_names:
+		_counter_names[id].text = Loc.t("resource." + id)
+
+## The centre text: the failure, or "Loading the map…" while the map screen waits for its build; nothing otherwise.
+func _refresh_status() -> void:
+	if _failed:
+		_status.text = Loc.t("reason.unreachable")
+		_status.visible = true
+	elif _screen == "map" and not _loaded:
+		_status.text = Loc.t("map.loading")
+		_status.visible = true
+	else:
+		_status.visible = false
+
+## Shows "base" or "map". The hidden screen is neither drawn nor given input.
+func _show_screen(screen: String) -> void:
+	_screen = screen
+	var on_map := screen == "map"
+	_world.visible = on_map
+	_world.process_mode = Node.PROCESS_MODE_INHERIT if on_map else Node.PROCESS_MODE_DISABLED
+	_base.set_active(not on_map)
+	for id: String in _nav_buttons:
+		_nav_buttons[id].set_pressed_no_signal(id == screen)
+	_refresh_status()
+	_update_coords()
+
+## Fits the base between the HUD and the nav bar; called when either changes size.
+func _refit() -> void:
+	if _top_box == null or not _base.is_built():
+		return
+	var top := _top_box.get_global_rect().end.y
+	_base.refit(get_viewport().get_visible_rect().size, top, float(NAV_HEIGHT))
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()
@@ -143,6 +195,7 @@ func _build_hud() -> void:
 	layer.add_child(_hud_root)
 
 	var top := VBoxContainer.new()
+	_top_box = top
 	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	top.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	top.offset_left = 24
@@ -191,10 +244,36 @@ func _build_hud() -> void:
 	_coords.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_coords.offset_left = 24
 	_coords.offset_right = -24
-	_coords.offset_bottom = -24
-	_coords.offset_top = -24 - FONT_SIZE * 1.6
+	_coords.offset_bottom = -24 - NAV_HEIGHT
+	_coords.offset_top = -24 - NAV_HEIGHT - FONT_SIZE * 1.6
 	_coords.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hud_root.add_child(_coords)
+
+	# The building sheet sits right above the nav bar, below the counters; it grows upward from there.
+	_base.panel.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	_base.panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_base.panel.offset_bottom = -NAV_HEIGHT
+	_hud_root.add_child(_base.panel)
+
+	_nav.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	_nav.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_nav.offset_top = -NAV_HEIGHT
+	_nav.custom_minimum_size.y = NAV_HEIGHT
+	_nav.add_theme_constant_override("separation", 6)
+	var group := ButtonGroup.new()
+	for id in SCREENS:
+		var button := Button.new()
+		button.toggle_mode = true
+		button.button_group = group
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.add_theme_font_size_override("font_size", FONT_SIZE + 2)
+		button.pressed.connect(_show_screen.bind(id))
+		_nav.add_child(button)
+		_nav_buttons[id] = button
+	_hud_root.add_child(_nav)
+
+	top.resized.connect(_refit)
+	get_viewport().size_changed.connect(_refit)
 
 func _label(font_size: int) -> Label:
 	var label := Label.new()
@@ -207,11 +286,13 @@ func _apply_language(lang: String) -> void:
 	TranslationServer.set_locale(lang)
 	for l: String in _language_buttons:
 		_language_buttons[l].text = Loc.t("language." + l)
-	for id: String in _counter_names:
-		_counter_names[id].text = Loc.t("resource." + id)
-	if _status.visible and not _loaded:
-		_status.text = Loc.t("map.loading")
+	_refresh_names()
+	for id: String in _nav_buttons:
+		_nav_buttons[id].text = Loc.t("nav." + id)
+	_refresh_status()
 	_update_coords()
+	# The language changes the HUD's height (button and counter texts), so the base is fitted again.
+	_refit.call_deferred()
 
 func _on_camera_moved() -> void:
 	_map.set_view_zoom(_camera.view_zoom)
@@ -219,12 +300,16 @@ func _on_camera_moved() -> void:
 func _update_coords() -> void:
 	var t := Iso.world_to_tile(_camera.position)
 	_coords.text = Loc.t("map.coords", {"x": clampi(int(floor(t.x)), 0, maxi(_map.size - 1, 0)), "y": clampi(int(floor(t.y)), 0, maxi(_map.size - 1, 0))})
-	_coords.visible = _loaded
+	_coords.visible = _loaded and _screen == "map"
 
 func _process(_delta: float) -> void:
 	if _session.resources.is_empty() or not _clock.is_synced():
 		return
+	_session.tick()
 	var now := _clock.now_ms(Time.get_ticks_msec())
 	var amounts := ResourceDisplay.amounts(_session.resources, _session.levels, _session.last_updated, now, _session.liberations)
+	var lang := Fmt.lang()
 	for id: String in amounts:
-		_counter_values[id].text = str(int(floor(amounts[id])))
+		_counter_values[id].text = Fmt.amount(lang, amounts[id])
+	if _screen == "base":
+		_base.update(now, amounts)

@@ -87,3 +87,13 @@ func _gd_files(dir: String) -> Array[String]:
 	for d in DirAccess.get_directories_at(dir):
 		out.append_array(_gd_files("%s/%s" % [dir, d]))
 	return out
+
+func test_the_active_background_applies_to_every_lookup() -> void:
+	TranslationServer.set_locale("en")
+	var shared := Loc.t("resource.food")
+	Loc.background_id = "vietnam"
+	assert_eq(Loc.t("resource.food"), "Rice", "Vietnam renames food")
+	assert_eq(Loc.t("resource.funds"), Loc.t("resource.funds", {}, "algeria"), "a key with no override keeps the shared text")
+	assert_eq(Loc.t("resource.food", {}, "algeria"), shared, "a call can still name another background")
+	Loc.background_id = ""
+	assert_eq(Loc.t("resource.food"), shared)
