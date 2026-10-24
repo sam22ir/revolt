@@ -45,3 +45,8 @@ func test_bad_entries_in_a_history_are_dropped_one_by_one() -> void:
 	var msg: Variant = AllianceMessages.parse(JSON.stringify({"type": "history", "messages": [_line(1), odd, "x", _line(2)]}))
 	assert_eq(msg["messages"].size(), 2)
 	assert_eq(int(msg["messages"][1]["id"]), 2)
+
+func test_the_chat_frame_is_the_one_the_server_reads() -> void:
+	var parsed := JSON.new()
+	assert_eq(parsed.parse(AllianceMessages.chat_frame('hi "there"')), OK)
+	assert_eq(parsed.data, {"type": "chat", "text": 'hi "there"'})

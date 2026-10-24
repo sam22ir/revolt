@@ -31,3 +31,17 @@ static func format(lang: String, at_ms: int, offset_min: int) -> String:
 			return "%02d/%02d/%d %02d:%02d" % [day, month, year, h24, minute]
 	var marker := "PM" if h24 >= 12 else "AM"
 	return "%d/%d/%02d, %d:%02d%s%s" % [month, day, year % 100, h12, minute, SPACE, marker]
+
+## The time of day on a chat line as clockTime (apps/client/src/ui/alliance-rows.ts) writes it: two-digit hours, 12-hour with the
+## language's AM/PM marker in `en` and `ar`, 24-hour in `fr` (not fixtured). Golden cases are the `clock` list of the same fixtures.
+static func clock(lang: String, at_ms: int, offset_min: int) -> String:
+	var local := Time.get_datetime_dict_from_unix_time(int(floor((at_ms + offset_min * 60000) / 1000.0)))
+	var h24: int = local["hour"]
+	var minute: int = local["minute"]
+	var h12 := 12 if h24 % 12 == 0 else h24 % 12
+	match lang:
+		"ar":
+			return "%02d:%02d %s" % [h12, minute, "م" if h24 >= 12 else "ص"]
+		"fr":
+			return "%02d:%02d" % [h24, minute]
+	return "%02d:%02d%s%s" % [h12, minute, SPACE, "PM" if h24 >= 12 else "AM"]

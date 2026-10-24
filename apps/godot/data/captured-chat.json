@@ -1,0 +1,29 @@
+{
+  "_comment": "Captured from the mock server's alliance socket (GET /v1/alliance/ws) by a second guest who joined the alliance and said two lines: the frames the first member received, in order. Not generated.",
+  "frames": [
+    {
+      "type": "history",
+      "messages": []
+    },
+    {
+      "type": "chat",
+      "message": {
+        "id": 1,
+        "at": 1792870493507,
+        "handle": "LFET7E",
+        "rank": "member",
+        "text": "hello from the second guest"
+      }
+    },
+    {
+      "type": "chat",
+      "message": {
+        "id": 2,
+        "at": 1792870510538,
+        "handle": "LFET7E",
+        "rank": "member",
+        "text": "second line, a bit longer so it has to wrap on a narrow phone screen"
+      }
+    }
+  ]
+}

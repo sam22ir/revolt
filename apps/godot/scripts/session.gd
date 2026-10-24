@@ -22,6 +22,8 @@ signal connection_changed(online: bool)
 signal chat_changed
 ## Membership, ranks, HQ or help requests changed on the server: the alliance view should be fetched again.
 signal alliance_changed
+## The player is in another alliance than before (or in none): the id, "" for none. The alliance feed follows this.
+signal alliance_id_changed(id: String)
 
 const MAX_REPORTS := 20
 const MAX_CHAT := 200
@@ -54,6 +56,11 @@ var alliance: Variant = null
 var help: Array = []
 ## Alliance chat lines, oldest first (each {id, at, handle, rank, text}). Text is plain: render it as text, never as markup.
 var chat: Array = []
+## False until the first alliance answer, so the screen can say "loading" instead of "you are not in an alliance".
+var alliance_known := false
+## The highest chat line id the player has seen (-1 before the first history of a room: that one counts as seen, as the Phaser store).
+var chat_seen := -1
+var _chat_open := false
 
 var _refreshing := false
 var _alliance_refreshing := false
@@ -197,7 +204,8 @@ func refresh_alliance() -> void:
 		var result: Dictionary = await api.get_json("/v1/alliance")
 		_take(result)
 		if result["ok"] and result["data"] is Dictionary:
-			alliance = result["data"].get("alliance")
+			alliance_known = true
+			_set_alliance(result["data"].get("alliance"))
 			help = []
 			var requests: Variant = result["data"].get("help")
 			for r: Variant in (requests if requests is Array else []):
@@ -266,23 +274,86 @@ func apply_alliance_message(msg: Dictionary) -> bool:
 		"history":
 			chat = (msg["messages"] as Array).duplicate()
 			_trim_chat()
+			if chat_seen < 0 or _chat_open:
+				chat_seen = AllianceModel.top_id(chat)
 			chat_changed.emit()
 		"chat":
 			var line: Dictionary = msg["message"]
 			if chat.is_empty() or int(line["id"]) > int(chat[chat.size() - 1]["id"]):
 				chat.append(line)
 				_trim_chat()
+				if _chat_open:
+					chat_seen = AllianceModel.top_id(chat)
 				chat_changed.emit()
 		"members_changed", "help_changed":
 			alliance_changed.emit()
 		"kicked":
-			chat = []
-			alliance = null
+			_set_alliance(null)
+			if not chat.is_empty():
+				chat = []
+				chat_seen = -1
+				chat_changed.emit()
 			help = []
-			chat_changed.emit()
 			alliance_changed.emit()
 			return true
 	return false
+
+## Takes a new alliance view. When the alliance is another one (or none), the chat and what was seen of it start over and
+## `alliance_id_changed` is emitted; the same alliance keeps its chat. Idempotent, so a leave reply and a `kicked` frame can come in either order.
+func _set_alliance(view: Variant) -> void:
+	var before := AllianceModel.alliance_id(alliance)
+	alliance = view if view is Dictionary else null
+	var after := AllianceModel.alliance_id(alliance)
+	if before == after:
+		return
+	chat = []
+	chat_seen = -1
+	chat_changed.emit()
+	alliance_id_changed.emit(after)
+
+## The chat is on screen (or not). Opening it marks everything seen.
+func set_chat_open(open: bool) -> void:
+	_chat_open = open
+	if open and chat_seen != AllianceModel.top_id(chat):
+		chat_seen = AllianceModel.top_id(chat)
+		chat_changed.emit()
+
+## Chat lines from others that the player has not seen.
+func unread() -> int:
+	if chat_seen < 0:
+		return 0
+	return AllianceModel.unread(chat, chat_seen, AllianceModel.my_handle(alliance))
+
+## `GET /v1/alliances?q=`: the matching alliances (up to 20), or null when the request failed.
+func search_alliances(query: String) -> Variant:
+	var result: Dictionary = await api.get_json("/v1/alliances?q=" + query.uri_encode())
+	_take(result)
+	if result["ok"] and result["data"] is Dictionary and result["data"].get("alliances") is Array:
+		return result["data"]["alliances"]
+	return null
+
+## Founds an alliance. Returns {"ok", "reason"} like an intent; the reason "unreachable" means no answer arrived.
+func create_alliance(alliance_name: String, tag: String) -> Dictionary:
+	return await _alliance_post("/v1/alliance", {"name": alliance_name, "tag": tag})
+
+func join_alliance(id: String) -> Dictionary:
+	return await _alliance_post("/v1/alliance/join", {"id": id})
+
+## Leaves (the last member disbands). A leader with other members is refused with `leader_must_transfer`.
+func leave_alliance() -> Dictionary:
+	return await _alliance_post("/v1/alliance/leave", {})
+
+## A refusal is HTTP 200 with {ok: false, reason}. On success the alliance is fetched again (the reply's view lacks the help requests).
+func _alliance_post(path: String, body: Dictionary) -> Dictionary:
+	var result: Dictionary = await api.post_json(path, body)
+	_take(result)
+	var data: Variant = result["data"]
+	if data is Dictionary and data.has("ok"):
+		var ok := bool(data["ok"])
+		if ok:
+			await refresh_alliance()
+		return {"ok": ok, "reason": String(data.get("reason", ""))}
+	return {"ok": false, "reason": "unreachable" if int(result["status"]) == 0 else "error"}
 
 func _trim_chat() -> void:
 	if chat.size() > MAX_CHAT:

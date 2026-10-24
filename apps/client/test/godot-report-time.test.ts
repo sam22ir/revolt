@@ -9,6 +9,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import { compactJson } from "../../../packages/rules/src/export/compact-json.ts";
 import { formatReportTime } from "../src/format.ts";
+import { clockTime } from "../src/ui/alliance-rows.ts";
 import type { Language } from "../src/i18n/languages.ts";
 
 const godot = (rel: string): URL => new URL(`../../godot/${rel}`, import.meta.url);
@@ -23,7 +24,22 @@ const INSTANTS = [
 ];
 const LANGS: Language[] = ["en", "ar"];
 
+/** `clockTime` (the time on a chat line) shares the instants; its zone is the process zone, so the test pins it to UTC below. */
+const clockCases = (): unknown[] => {
+  const zone = process.env.TZ;
+  process.env.TZ = "UTC";
+  try {
+    return LANGS.flatMap((lang) =>
+      INSTANTS.map((at) => ({ lang, at, text: clockTime(at, lang).replaceAll("\u202f", " ") })),
+    );
+  } finally {
+    if (zone === undefined) delete process.env.TZ;
+    else process.env.TZ = zone;
+  }
+};
+
 const buildFixtures = (): unknown => ({
+  clock: clockCases(),
   cases: LANGS.flatMap((lang) =>
     INSTANTS.map((at) => ({ lang, at, text: formatReportTime(lang, at, "UTC").replaceAll("\u202f", " ") })),
   ),

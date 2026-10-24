@@ -6,7 +6,7 @@ const LANGS: Array[String] = ["en", "ar", "fr"]
 const FONT_SIZE := 34
 ## Height of the bottom nav bar, in viewport px; the base screen and the building sheet keep clear of it.
 const NAV_HEIGHT := 100
-const SCREENS: Array[String] = ["base", "map", "reports"]
+const SCREENS: Array[String] = ["base", "map", "reports", "alliance"]
 ## Gap between the top box and the report toast, in viewport px.
 const TOAST_GAP := 8
 
@@ -28,6 +28,8 @@ var _language_buttons := {}
 var _loaded := false
 var _base := BaseScreen.new()
 var _reports_screen := ReportsScreen.new()
+var _alliance_screen := AllianceScreen.new()
+var _badge := PanelContainer.new()
 var _toast := ReportToast.new()
 var _nav := HBoxContainer.new()
 var _nav_buttons := {}
@@ -50,6 +52,11 @@ func _ready() -> void:
 	_session.state_changed.connect(_refresh_names)
 	# Members or help requests changed on the alliance socket: the view is fetched again (see Session.refresh_alliance).
 	_session.alliance_changed.connect(func() -> void: _session.refresh_alliance())
+	# The alliance feed follows the membership, not the map build: it starts when the player is in an alliance (joined, founded or
+	# found at start-up), restarts for another one, and stops for none (left, kicked, disbanded).
+	_session.alliance_id_changed.connect(_on_alliance_id_changed)
+	_session.chat_changed.connect(_update_badge)
+	_session.alliance_refreshed.connect(_update_badge)
 	_pill.help_pressed.connect(_ask_help.bind("upgrade"))
 	add_child(_base)
 	_build_hud()
@@ -94,7 +101,6 @@ func _start() -> void:
 	_update_coords()
 	# The live feeds start once the first build is done, so no snapshot arrives while the map is being built.
 	_map_socket.start(Time.get_ticks_msec())
-	_start_alliance_feed()
 
 ## Runs a start-up request, trying again with the client's backoff (1, 2, 5, 10 s) while the failure is transient, so a phone on
 ## a flaky network recovers by itself. Only a refusal ends it. "Unreachable" shows while it waits.
@@ -195,6 +201,7 @@ func _setup_sockets() -> void:
 	_alliance_socket.token_source = func() -> String: return _api.token
 	_alliance_socket.parser = AllianceMessages.parse
 	_alliance_socket.message.connect(_on_alliance_message)
+	_alliance_socket.connection_changed.connect(func(open: bool) -> void: _alliance_screen.set_connected(open))
 	add_child(_alliance_socket)
 	# The server no longer knows this token: stop retrying (nothing else is done, see Session).
 	_session.auth_lost.connect(func() -> void:
@@ -217,11 +224,16 @@ func _inject_report(text: String) -> void:
 	if parser.parse(text) == OK and parser.data is Dictionary:
 		_session.add_report(parser.data)
 
-## The alliance feed runs only while the player is in an alliance.
-func _start_alliance_feed() -> void:
-	await _session.refresh_alliance()
-	if _session.alliance != null:
+## The alliance feed runs only while the player is in an alliance (the server checks the membership when it connects, so another
+## alliance means a new connection).
+func _on_alliance_id_changed(id: String) -> void:
+	_alliance_socket.stop()
+	if id != "":
 		_alliance_socket.start(Time.get_ticks_msec())
+
+## One chat line from the player, as a frame on the alliance socket; false when the socket is not open.
+func _send_chat(text: String) -> bool:
+	return _alliance_socket.send_text(AllianceMessages.chat_frame(text))
 
 func _on_map_message(msg: Dictionary) -> void:
 	_session.mark_reachable()
@@ -243,7 +255,10 @@ func _ask_help(kind: String) -> void:
 		_pill.show_note(String(verdict["reason"]))
 
 func _on_alliance_message(msg: Dictionary) -> void:
-	if _session.apply_alliance_message(msg):
+	_session.mark_reachable()
+	if msg["type"] == "error":
+		_alliance_screen.show_note(String(msg["reason"]))
+	elif _session.apply_alliance_message(msg):
 		_alliance_socket.stop()
 
 func _notification(what: int) -> void:
@@ -294,11 +309,15 @@ func _show_screen(screen: String) -> void:
 	_world.process_mode = Node.PROCESS_MODE_INHERIT if on_map else Node.PROCESS_MODE_DISABLED
 	_base.set_active(screen == "base")
 	_reports_screen.visible = screen == "reports"
+	_alliance_screen.visible = screen == "alliance"
+	_session.set_chat_open(screen == "alliance")
 	for id: String in _nav_buttons:
 		_nav_buttons[id].set_pressed_no_signal(id == screen)
 	if screen == "reports":
 		# The list shows at once from what is held; the server's list (which may hold a report the socket missed) follows.
 		_session.load_reports()
+	elif screen == "alliance":
+		_session.refresh_alliance()
 	_refresh_status()
 	_update_coords()
 
@@ -317,6 +336,8 @@ func _refit() -> void:
 	var top := _top_box.get_global_rect().end.y
 	_reports_screen.offset_top = top
 	_reports_screen.offset_bottom = -NAV_HEIGHT
+	_alliance_screen.offset_top = top
+	_alliance_screen.offset_bottom = -NAV_HEIGHT
 	_toast.offset_top = top + TOAST_GAP
 	if not _base.is_built():
 		return
@@ -392,6 +413,11 @@ func _build_hud() -> void:
 	_hud_root.add_child(_reports_screen)
 	_session.reports_changed.connect(func() -> void: _reports_screen.set_reports(_session.reports))
 	_reports_screen.set_reports(_session.reports)
+	_alliance_screen.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_alliance_screen.visible = false
+	_alliance_screen.setup(_session)
+	_alliance_screen.send_chat = _send_chat
+	_hud_root.add_child(_alliance_screen)
 	_build_offline_badge()
 
 	# Just under the top box, as the Phaser client does (`refit` moves it with the box).
@@ -418,10 +444,45 @@ func _build_hud() -> void:
 		button.pressed.connect(_show_screen.bind(id))
 		_nav.add_child(button)
 		_nav_buttons[id] = button
+	_build_unread_badge(_nav_buttons["alliance"])
 	_hud_root.add_child(_nav)
 
 	top.resized.connect(_refit)
 	get_viewport().size_changed.connect(_refit)
+
+## The unread chat count on the Alliance nav button. It is a child of the button, so it never changes the button's size or the row;
+## it is hidden by transparency, not by `visible`, and never takes a tap.
+func _build_unread_badge(button: Button) -> void:
+	_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color8(0xc0, 0x39, 0x2b)
+	box.set_corner_radius_all(20)
+	box.content_margin_left = 12
+	box.content_margin_right = 12
+	box.content_margin_top = 2
+	box.content_margin_bottom = 2
+	_badge.add_theme_stylebox_override("panel", box)
+	var label := Label.new()
+	label.add_theme_font_size_override("font_size", FONT_SIZE - 6)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_badge.add_child(label)
+	_badge.modulate.a = 0.0
+	button.add_child(_badge)
+	_place_badge()
+
+## At the button's top end: its right in English and French, its left in Arabic (anchors do not follow the layout direction).
+func _place_badge() -> void:
+	var arabic := Fmt.lang() == "ar"
+	_badge.set_anchors_preset(Control.PRESET_TOP_LEFT if arabic else Control.PRESET_TOP_RIGHT)
+	_badge.grow_horizontal = Control.GROW_DIRECTION_END if arabic else Control.GROW_DIRECTION_BEGIN
+	_badge.offset_top = 6
+	_badge.offset_left = 8 if arabic else -8
+	_badge.offset_right = _badge.offset_left
+
+func _update_badge() -> void:
+	var n := _session.unread()
+	(_badge.get_child(0) as Label).text = Fmt.amount(Fmt.lang(), n)
+	_badge.modulate.a = 1.0 if n > 0 else 0.0
 
 ## "Offline — reconnecting…", centred just above the nav bar. It is outside the top box, so it never moves the base.
 func _build_offline_badge() -> void:
@@ -458,6 +519,9 @@ func _apply_language(lang: String) -> void:
 	for id: String in _nav_buttons:
 		_nav_buttons[id].text = Loc.t("nav." + id)
 	_reports_screen.refresh()
+	_alliance_screen.refresh()
+	_place_badge()
+	_update_badge()
 	_toast.refresh()
 	_refresh_status()
 	_update_coords()

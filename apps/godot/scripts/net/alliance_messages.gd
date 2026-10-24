@@ -27,3 +27,7 @@ static func parse(text: String) -> Variant:
 static func is_chat_message(v: Variant) -> bool:
 	return v is Dictionary and WireCheck.is_num(v.get("id")) and WireCheck.is_num(v.get("at")) \
 		and WireCheck.is_str(v.get("handle")) and WireCheck.RANKS.has(v.get("rank")) and WireCheck.is_str(v.get("text"))
+
+## The one frame the client sends: a chat line (alliance-socket.ts send). The server checks the text.
+static func chat_frame(text: String) -> String:
+	return JSON.stringify({"type": "chat", "text": text})

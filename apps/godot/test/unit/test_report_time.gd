@@ -33,3 +33,15 @@ func test_arabic_uses_latin_digits_and_the_arabic_markers() -> void:
 func test_device_offset_is_minutes_east_of_utc() -> void:
 	var bias := ReportTime.device_offset_min()
 	assert_true(bias >= -720 and bias <= 840, "a real zone offset, got %d" % bias)
+
+func test_chat_clock_matches_the_client_text() -> void:
+	var parsed := JSON.new()
+	assert_eq(parsed.parse(FileAccess.get_file_as_string(FIXTURES)), OK)
+	var cases: Array = parsed.data["clock"]
+	assert_gt(cases.size(), 0)
+	for c: Dictionary in cases:
+		assert_eq(ReportTime.clock(c["lang"], int(c["at"]), 0), c["text"], "%s at %d" % [c["lang"], int(c["at"])])
+
+func test_chat_clock_adds_the_device_offset() -> void:
+	assert_eq(ReportTime.clock("en", 1792857900000, 60), "05:05 PM")
+	assert_eq(ReportTime.clock("fr", 1792857900000, 60), "17:05")
