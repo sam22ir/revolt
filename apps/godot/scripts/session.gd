@@ -70,6 +70,7 @@ var _wallet_now := -1
 var _speedup_pending := {}
 var _hero_pending := {}
 var _recruit_pending := false
+var _march_pending := false
 var _refreshing := false
 var _alliance_refreshing := false
 var _alliance_again := false
@@ -305,6 +306,17 @@ func recruit() -> Dictionary:
 	_recruit_pending = true
 	var verdict: Dictionary = await send_intent({"type": "recruit"})
 	_recruit_pending = false
+	return verdict
+
+## Sends a march at an NPC target (the intent `march`): `troops` are counts per troop id, `loadout` is {lead, deputies} or null. Returns
+## the verdict like an intent; "" as the reason means nothing was sent (a march is already out). The base in the answer is applied, a
+## refusal included, so the troops at home and the marches list are the server's.
+func march(npc_id: String, troops: Dictionary, loadout: Variant) -> Dictionary:
+	if _march_pending:
+		return {"ok": false, "reason": ""}
+	_march_pending = true
+	var verdict: Dictionary = await send_intent({"type": "march", "target": npc_id, "troops": troops, "heroes": loadout})
+	_march_pending = false
 	return verdict
 
 func _holds(id: String) -> bool:

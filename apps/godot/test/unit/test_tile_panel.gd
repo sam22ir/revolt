@@ -47,13 +47,40 @@ func test_it_redraws_only_when_what_it_shows_changes() -> void:
 func test_the_close_button_announces_closed() -> void:
 	var panel: TilePanel = add_child_autofree(TilePanel.new())
 	watch_signals(panel)
-	panel.show_tile(Vector2i(8, 8))
+	panel.show_tile(Vector2i(2, 2))
 	panel.update_view(_snap(), "plain", "")
 	var close: Array = panel.find_children("*", "Button", true, false)
-	assert_eq(close.size(), 1)
+	assert_eq(close.size(), 1, "your own camp has only the close button")
 	close[0].pressed.emit()
 	assert_signal_emitted(panel, "closed")
 
 func test_the_panel_stops_input() -> void:
 	var panel: TilePanel = add_child_autofree(TilePanel.new())
 	assert_eq(panel.mouse_filter, Control.MOUSE_FILTER_STOP, "a press on the sheet never reaches the map")
+
+func _buttons(panel: TilePanel) -> Array:
+	return panel.find_children("*", "Button", true, false).map(func(b: Button) -> String: return b.text)
+
+func test_a_target_has_a_send_march_button_that_asks_for_the_sheet() -> void:
+	var panel: TilePanel = add_child_autofree(TilePanel.new())
+	var asked: Array = []
+	panel.march_requested.connect(func(npc: Dictionary) -> void: asked.append(npc))
+	panel.show_tile(Vector2i(8, 8))
+	panel.update_view(_snap(), "plain", "")
+	assert_true(_buttons(panel).has(Loc.t("map.sendMarch")))
+	for b: Button in panel.find_children("*", "Button", true, false):
+		if b.text == Loc.t("map.sendMarch"):
+			b.pressed.emit()
+	assert_eq(asked.size(), 1)
+	assert_eq(asked[0]["id"], "n1")
+
+func test_a_rally_only_target_and_other_tiles_have_no_send_march_button() -> void:
+	var panel: TilePanel = add_child_autofree(TilePanel.new())
+	var snap := _snap()
+	snap["npcs"].append({"id": "n4", "kind": "fortified_line", "level": 4, "x": 11, "y": 8, "region": 1})
+	panel.show_tile(Vector2i(11, 8))
+	panel.update_view(snap, "plain", "")
+	assert_false(_buttons(panel).has(Loc.t("map.sendMarch")))
+	panel.show_tile(Vector2i(2, 2))
+	panel.update_view(snap, "plain", "")
+	assert_false(_buttons(panel).has(Loc.t("map.sendMarch")))

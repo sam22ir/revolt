@@ -5,6 +5,8 @@ extends PanelContainer
 ## with their own chunks). It takes input, so a press on it never reaches the map, and it redraws only when what it shows changes.
 
 signal closed
+## The Send march button on a target: the snapshot's entry for it ({id, kind, level, x, y, region}).
+signal march_requested(npc: Dictionary)
 
 const FONT := 30
 const SMALL := 26
@@ -95,6 +97,12 @@ func _render(info: Dictionary, own_alliance_name: String) -> void:
 		_body.add_child(_label("%s: %s" % [Loc.t("map.defenders"), TrainingModel.troop_list(v["defenders"], Fmt.lang())], SMALL, INK, true))
 	if v["rally_only"]:
 		_body.add_child(_label(Loc.t("rally.needed"), SMALL, LACKING, true))
+	if v["can_march"]:
+		var send := Button.new()
+		send.text = Loc.t("map.sendMarch")
+		send.add_theme_font_size_override("font_size", FONT)
+		send.pressed.connect(func() -> void: march_requested.emit(info["npc"]))
+		_body.add_child(send)
 
 func _label(text: String, size: int, color: Color, wrap := false) -> Label:
 	var label := Label.new()

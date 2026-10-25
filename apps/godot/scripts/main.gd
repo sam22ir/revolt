@@ -31,6 +31,7 @@ var _reports_screen := ReportsScreen.new()
 var _alliance_screen := AllianceScreen.new()
 var _heroes_screen := HeroesScreen.new()
 var _tile_panel := TilePanel.new()
+var _march_sheet := MarchSheet.new()
 var _badge := UnreadBadge.new()
 var _toast := ReportToast.new()
 var _nav := HBoxContainer.new()
@@ -154,6 +155,7 @@ var _js_refresh: JavaScriptObject
 var _js_report: JavaScriptObject
 var _js_sheet: JavaScriptObject
 var _js_post: JavaScriptObject
+var _js_tile: JavaScriptObject
 var _fps_timer: Timer
 
 func _setup_fps_debug() -> void:
@@ -173,6 +175,8 @@ func _setup_fps_debug() -> void:
 	JavaScriptBridge.get_interface("window").revoltReport = _js_report
 	_js_sheet = JavaScriptBridge.create_callback(func(args: Array) -> void: _base.select(str(args[0])))
 	JavaScriptBridge.get_interface("window").revoltSheet = _js_sheet
+	_js_tile = JavaScriptBridge.create_callback(func(args: Array) -> void: _select_tile(Vector2i(int(args[0]), int(args[1]))))
+	JavaScriptBridge.get_interface("window").revoltTile = _js_tile
 	_js_post = JavaScriptBridge.create_callback(func(args: Array) -> void: _debug_post(str(args[0]), str(args[1])))
 	JavaScriptBridge.get_interface("window").revoltPost = _js_post
 	_fps_timer = Timer.new()
@@ -247,6 +251,13 @@ func _select_tile(tile: Vector2i) -> void:
 	_map.overlay().set_selected(tile)
 	_tile_panel.show_tile(tile)
 	_update_coords()
+
+## Opens the march sheet for a target the tile sheet showed, from the player's own camp.
+func _open_march_sheet(npc: Dictionary) -> void:
+	var from := _map.own_base_tile()
+	if from.x < 0 or _session.state.is_empty():
+		return
+	_march_sheet.open(npc, from)
 
 ## One chat line from the player, as a frame on the alliance socket; false when the socket is not open.
 func _send_chat(text: String) -> bool:
@@ -331,6 +342,7 @@ func _show_screen(screen: String) -> void:
 	_heroes_screen.visible = screen == "heroes"
 	if screen != "map":
 		_select_tile(Vector2i(-1, -1))
+		_march_sheet.close()
 	for id: String in _nav_buttons:
 		_nav_buttons[id].set_pressed_no_signal(id == screen)
 	if screen == "reports":
@@ -360,6 +372,8 @@ func _refit() -> void:
 	_alliance_screen.offset_bottom = -NAV_HEIGHT
 	_heroes_screen.offset_top = top
 	_heroes_screen.offset_bottom = -NAV_HEIGHT
+	_march_sheet.offset_top = top
+	_march_sheet.offset_bottom = -NAV_HEIGHT
 	_toast.offset_top = top + TOAST_GAP
 	if not _base.is_built():
 		return
@@ -455,6 +469,12 @@ func _build_hud() -> void:
 	_tile_panel.offset_bottom = -NAV_HEIGHT - 12
 	_tile_panel.closed.connect(func() -> void: _select_tile(Vector2i(-1, -1)))
 	_hud_root.add_child(_tile_panel)
+	# Send march on a target opens the sheet over the map; a march that left clears the selection with it.
+	_march_sheet.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_march_sheet.setup(_session)
+	_march_sheet.sent.connect(func() -> void: _select_tile(Vector2i(-1, -1)))
+	_tile_panel.march_requested.connect(_open_march_sheet)
+	_hud_root.add_child(_march_sheet)
 	_build_offline_badge()
 
 	# Just under the top box, as the Phaser client does (`refit` moves it with the box).
@@ -528,6 +548,7 @@ func _apply_language(lang: String) -> void:
 	_alliance_screen.refresh()
 	_heroes_screen.refresh()
 	_tile_panel.refresh()
+	_march_sheet.refresh_language()
 	_badge.place(Fmt.lang())
 	_update_badge()
 	_toast.refresh()

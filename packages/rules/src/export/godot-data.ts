@@ -20,12 +20,14 @@ import {
   HERO_DRAW_ODDS,
   HERO_LEVEL_EFFECT_STEP,
   HERO_LEVELS_PER_HALL_LEVEL,
+  HERO_MIN_DAMAGE_TAKEN,
   HERO_SHARDS_PER_LEVEL,
   MAX_HERO_LEVEL,
   PITY_DRAWS,
   SHARDS_PER_DUPLICATE,
 } from "../data/hero-progression.ts";
 import { HEROES_BY_BACKGROUND } from "../hero-id.ts";
+import { MAX_DEPUTIES } from "../hero-loadout.ts";
 import { DEFAULT_BACKGROUND } from "../background.ts";
 import { MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING, REGION_CELL } from "../data/map.ts";
 import { hash32 } from "../rng.ts";
@@ -39,7 +41,7 @@ import { PRODUCTS } from "../data/store.ts";
 import { STORY } from "../data/story.ts";
 import { COUNTER_BONUS, LOST_SHARE, MAX_BATTLE_ROUNDS, TRAINING_BATCH_PER_LEVEL, TROOPS } from "../data/troops.ts";
 import { RESOURCE_IDS } from "../resource-id.ts";
-import { TROOP_IDS } from "../troop-id.ts";
+import { COMBAT_TROOP_IDS, TROOP_IDS } from "../troop-id.ts";
 import type { Resources } from "../resources.ts";
 
 /** Everything the client displays from balance tables. Keyed by mechanical id. */
@@ -47,6 +49,7 @@ export const buildGodotBalance = (): unknown => ({
   resourceIds: [...RESOURCE_IDS],
   buildingIds: [...BUILDING_IDS],
   troopIds: [...TROOP_IDS],
+  combatTroopIds: [...COMBAT_TROOP_IDS],
   cosmeticIds: [...COSMETIC_IDS],
   maxBuildingLevel: MAX_BUILDING_LEVEL,
   liberation: { bonusPerRegion: LIBERATION_BONUS_PER_REGION, bonusCap: LIBERATION_BONUS_CAP },
@@ -64,6 +67,8 @@ export const buildGodotBalance = (): unknown => ({
     levelsPerHallLevel: HERO_LEVELS_PER_HALL_LEVEL,
     shardsPerLevel: HERO_SHARDS_PER_LEVEL,
     levelEffectStep: HERO_LEVEL_EFFECT_STEP,
+    minDamageTaken: HERO_MIN_DAMAGE_TAKEN,
+    maxDeputies: MAX_DEPUTIES,
     shardsPerDuplicate: SHARDS_PER_DUPLICATE,
     drawMinHall: HERO_DRAW_MIN_HALL,
     drawCost: HERO_DRAW_COST,

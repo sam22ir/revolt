@@ -2,6 +2,7 @@
   "resourceIds": ["food","materiel","funds","support"],
   "buildingIds": ["hq","farm","armory","treasury","barracks","hero_hall"],
   "troopIds": ["infantry","scouts","heavy","porters"],
+  "combatTroopIds": ["infantry","scouts","heavy"],
   "cosmeticIds": ["skin_olive","skin_sand","skin_slate","banner_plain","banner_stripes","banner_dawn","march_dust","march_lantern","outfit_field","outfit_scarf","outfit_coat"],
   "maxBuildingLevel": 10,
   "liberation": {
@@ -972,6 +973,8 @@
     "levelsPerHallLevel": 2,
     "shardsPerLevel": [2,3,4,6,8,11,14,18,23],
     "levelEffectStep": 0.03,
+    "minDamageTaken": 0.5,
+    "maxDeputies": 2,
     "shardsPerDuplicate": 4,
     "drawMinHall": 2,
     "drawCost": {

@@ -68,3 +68,11 @@ func test_a_camp_without_an_alliance_uses_the_plain_title() -> void:
 func test_the_coordinates_use_the_language_digits() -> void:
 	var v := TileModel.view({"kind": "empty", "terrain": "plain"}, 1234, 5, "")
 	assert_eq(v["coords"], Loc.t("map.coords", {"x": Fmt.amount("en", 1234), "y": "5"}))
+
+func test_only_a_target_that_is_not_rally_only_can_be_marched_on() -> void:
+	var snap: Dictionary = _fixtures()["snapshot"]
+	assert_true(TileModel.view(TileModel.info(snap, 8, 8, "plain"), 8, 8, "")["can_march"], "a patrol")
+	assert_false(TileModel.view(TileModel.info(snap, 11, 8, "plain"), 11, 8, "")["can_march"], "the fortified line needs a rally")
+	assert_true(TileModel.view(TileModel.info(snap, 10, 10, "plain"), 10, 10, "")["can_march"], "a level the table does not know: the server decides, as in the Phaser panel")
+	assert_false(TileModel.view(TileModel.info(snap, 2, 2, "plain"), 2, 2, "")["can_march"], "your own camp")
+	assert_false(TileModel.view(TileModel.info(snap, 0, 0, "hills"), 0, 0, "")["can_march"], "empty land")

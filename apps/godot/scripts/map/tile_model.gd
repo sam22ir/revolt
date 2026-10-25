@@ -26,13 +26,13 @@ static func npc_def(level: int) -> Variant:
 	return null
 
 ## What the panel draws for `info` at (x, y): {"title": String, "level": int (-1 for none), "coords": String, "desc": String,
-## "defenders": Dictionary or null, "rally_only": bool, "alliance_name": String}. `alliance_name` is the player's own alliance's name
+## "defenders": Dictionary or null, "rally_only": bool, "can_march": bool (a target that is not rally-only; one whose level the table does not know can be sent at, as in the Phaser panel), "alliance_name": String}. `alliance_name` is the player's own alliance's name
 ## for their own HQ, else "". Player text (an alliance's name) never goes through a translation template: it is appended after.
 static func view(info: Dictionary, x: int, y: int, own_alliance_name: String) -> Dictionary:
 	var lang := Fmt.lang()
 	var out := {
 		"title": "", "level": -1, "coords": Loc.t("map.coords", {"x": Fmt.amount(lang, x), "y": Fmt.amount(lang, y)}),
-		"desc": "", "defenders": null, "rally_only": false, "alliance_name": "",
+		"desc": "", "defenders": null, "rally_only": false, "can_march": false, "alliance_name": "",
 	}
 	match info["kind"]:
 		"own":
@@ -56,6 +56,7 @@ static func view(info: Dictionary, x: int, y: int, own_alliance_name: String) ->
 			if info["def"] != null:
 				out["defenders"] = info["def"]["defenders"]
 				out["rally_only"] = bool(info["def"]["rallyOnly"])
+			out["can_march"] = not out["rally_only"]
 		_:
 			out["title"] = Loc.t("terrain." + String(info["terrain"]))
 			out["desc"] = Loc.t("map.nothingHere")
