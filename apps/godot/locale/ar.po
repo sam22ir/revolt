@@ -1237,6 +1237,72 @@ msgstr "مشاركة إحصاءات الاستخدام وتقارير الأعط
 msgid "settings.analyticsNote"
 msgstr "متوقف افتراضيًا. تُرسل أسماء الأحداث وتقارير الأخطاء فقط: لا اسمك ولا اسم لاعبك ولا أي شيء كتبته."
 
+msgid "settings.title"
+msgstr "الإعدادات"
+
+msgid "settings.account"
+msgstr "الحساب"
+
+msgid "settings.guestId"
+msgstr "ضيف {id}"
+
+msgid "settings.guestNote"
+msgstr "قاعدتك محفوظة على هذا الجهاز."
+
+msgid "settings.linkGoogle"
+msgstr "ربط حساب Google"
+
+msgid "settings.later"
+msgstr "لاحقًا"
+
+msgid "settings.sound"
+msgstr "الصوت"
+
+msgid "settings.music"
+msgstr "الموسيقى"
+
+msgid "settings.effects"
+msgstr "المؤثرات"
+
+msgid "settings.on"
+msgstr "تشغيل"
+
+msgid "settings.off"
+msgstr "إيقاف"
+
+msgid "settings.about"
+msgstr "حول اللعبة"
+
+msgid "settings.help"
+msgstr "المساعدة"
+
+msgid "settings.privacy"
+msgstr "الخصوصية"
+
+msgid "settings.version"
+msgstr "الإصدار {version}"
+
+msgid "settings.back"
+msgstr "رجوع"
+
+msgid "hud.full"
+msgstr "ممتلئ"
+
+msgid "hud.rate"
+msgstr "+{amount}/سا"
+
+msgid "hud.level"
+msgstr "م {level}"
+
+msgid "hud.power"
+msgstr "القوة {amount}"
+
+msgid "hud.marches"
+msgstr "{count} حملات في الطريق"
+
+msgid "hud.marchesNone"
+msgstr "لا حملات"
+
 msgid "account.button"
 msgstr "الحساب"
 

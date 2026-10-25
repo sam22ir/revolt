@@ -38,3 +38,27 @@ static func pill(queue: Variant, now_ms: int, screen: String, can_help := false)
 		"remainingMs": maxi(0, int(queue["endsAt"]) - now_ms),
 		"help": can_help and HelpModel.helpable_job(queue, now_ms) != null,
 	}
+
+## The `+rate/h` of each resource at `now_ms` (the base's production with the server-wide liberation bonus).
+static func rates(levels: Dictionary, liberations: Array, now_ms: int) -> Dictionary:
+	return Balance.production_per_hour(levels, Balance.production_multiplier(liberations, now_ms))
+
+## The player chip's power. The server has no power number yet, so the look test shows the troops at home (a stand-in).
+static func power(troops: Variant) -> int:
+	var total := 0
+	if troops is Dictionary:
+		for id: String in troops:
+			total += maxi(0, int(troops[id]))
+	return total
+
+## Where the Base/Map switch goes from `screen`: the map from anywhere but the map, the base from the map.
+static func switch_target(screen: String) -> String:
+	return "base" if screen == "map" else "map"
+
+## The one-dot attention mark on the Alliance button: unread chat, or a help request the player could answer.
+static func alliance_dot(unread: int, open_help: int) -> bool:
+	return unread > 0 or open_help > 0
+
+## A short guest tag from the device's session token, so the token itself is never shown ("#A3F9C2"; "" without a token).
+static func guest_tag(token: String) -> String:
+	return "" if token == "" else "#" + token.sha256_text().substr(0, 6).to_upper()

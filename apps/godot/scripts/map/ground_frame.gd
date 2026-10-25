@@ -18,15 +18,34 @@ func setup(size: int) -> void:
 func _draw() -> void:
 	if _size == 0:
 		return
+	var look := GroundStyle.params()
+	var background: Color = BACKGROUND if look.is_empty() else look["background"]
+	var rim_top: Color = RIM_TOP if look.is_empty() else background.darkened(0.2)
+	var rim_side: Color = RIM_SIDE if look.is_empty() else background.darkened(0.32)
 	var top := Iso.tile_to_world(0, 0)
 	var right := Iso.tile_to_world(_size, 0)
 	var bottom := Iso.tile_to_world(_size, _size)
 	var left := Iso.tile_to_world(0, _size)
 	# The four pieces of the outside of the diamond, out to a far rectangle.
-	draw_colored_polygon(PackedVector2Array([Vector2(-FAR, -FAR), Vector2(top.x, -FAR), top, left, Vector2(-FAR, left.y)]), BACKGROUND)
-	draw_colored_polygon(PackedVector2Array([Vector2(top.x, -FAR), Vector2(FAR, -FAR), Vector2(FAR, right.y), right, top]), BACKGROUND)
-	draw_colored_polygon(PackedVector2Array([Vector2(-FAR, left.y), left, bottom, Vector2(bottom.x, FAR), Vector2(-FAR, FAR)]), BACKGROUND)
-	draw_colored_polygon(PackedVector2Array([right, Vector2(FAR, right.y), Vector2(FAR, FAR), Vector2(bottom.x, FAR), bottom]), BACKGROUND)
+	draw_colored_polygon(PackedVector2Array([Vector2(-FAR, -FAR), Vector2(top.x, -FAR), top, left, Vector2(-FAR, left.y)]), background)
+	draw_colored_polygon(PackedVector2Array([Vector2(top.x, -FAR), Vector2(FAR, -FAR), Vector2(FAR, right.y), right, top]), background)
+	draw_colored_polygon(PackedVector2Array([Vector2(-FAR, left.y), left, bottom, Vector2(bottom.x, FAR), Vector2(-FAR, FAR)]), background)
+	draw_colored_polygon(PackedVector2Array([right, Vector2(FAR, right.y), Vector2(FAR, FAR), Vector2(bottom.x, FAR), bottom]), background)
+	if not look.is_empty():
+		_draw_fade(background, [top, right, bottom, left], float(look["fade"]))
 	# The rim goes on top of the mask: it hangs below the near edges.
-	draw_colored_polygon(PackedVector2Array([left, bottom, bottom + Vector2(0, RIM), left + Vector2(0, RIM)]), RIM_TOP)
-	draw_colored_polygon(PackedVector2Array([bottom, right, right + Vector2(0, RIM), bottom + Vector2(0, RIM)]), RIM_SIDE)
+	draw_colored_polygon(PackedVector2Array([left, bottom, bottom + Vector2(0, RIM), left + Vector2(0, RIM)]), rim_top)
+	draw_colored_polygon(PackedVector2Array([bottom, right, right + Vector2(0, RIM), bottom + Vector2(0, RIM)]), rim_side)
+
+## The map edge fades out: along each of the four edges a band of `tiles` tiles runs from the background colour at the edge to
+## clear inside, so the ground melts into the surround instead of ending on a hard line.
+func _draw_fade(colour: Color, corners: Array, tiles: float) -> void:
+	var centre := Iso.tile_to_world(_size * 0.5, _size * 0.5)
+	var clear := Color(colour, 0.0)
+	for i in 4:
+		var a: Vector2 = corners[i]
+		var b: Vector2 = corners[(i + 1) % 4]
+		var depth := tiles / (_size * 0.5)
+		var a_in := a.lerp(centre, depth)
+		var b_in := b.lerp(centre, depth)
+		draw_polygon(PackedVector2Array([a, b, b_in, a_in]), PackedColorArray([colour, colour, clear, clear]))

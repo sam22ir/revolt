@@ -1237,6 +1237,72 @@ msgstr "Share anonymous usage and crash reports"
 msgid "settings.analyticsNote"
 msgstr "Off by default. Only event names and error reports are sent: never your name, your player name or anything you typed."
 
+msgid "settings.title"
+msgstr "Settings"
+
+msgid "settings.account"
+msgstr "Account"
+
+msgid "settings.guestId"
+msgstr "Guest {id}"
+
+msgid "settings.guestNote"
+msgstr "Your base is saved on this device."
+
+msgid "settings.linkGoogle"
+msgstr "Link Google"
+
+msgid "settings.later"
+msgstr "Later"
+
+msgid "settings.sound"
+msgstr "Sound"
+
+msgid "settings.music"
+msgstr "Music"
+
+msgid "settings.effects"
+msgstr "Effects"
+
+msgid "settings.on"
+msgstr "On"
+
+msgid "settings.off"
+msgstr "Off"
+
+msgid "settings.about"
+msgstr "About"
+
+msgid "settings.help"
+msgstr "Help"
+
+msgid "settings.privacy"
+msgstr "Privacy"
+
+msgid "settings.version"
+msgstr "Version {version}"
+
+msgid "settings.back"
+msgstr "Back"
+
+msgid "hud.full"
+msgstr "Full"
+
+msgid "hud.rate"
+msgstr "+{amount}/h"
+
+msgid "hud.level"
+msgstr "Lv {level}"
+
+msgid "hud.power"
+msgstr "Power {amount}"
+
+msgid "hud.marches"
+msgstr "{count} marches in flight"
+
+msgid "hud.marchesNone"
+msgstr "No marches"
+
 msgid "account.button"
 msgstr "Account"
 

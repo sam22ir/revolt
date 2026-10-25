@@ -65,7 +65,12 @@ func _draw_wash() -> void:
 		draw_colored_polygon(Iso.footprint(i % map.size, i / map.size, 1, 1), LIBERATED_WASH)
 
 func _draw_seams() -> void:
+	var look := GroundStyle.params()
 	for i in map.seam_liberated.size():
+		if not look.is_empty() and not map.seam_liberated[i]:
+			# The look-test ground: a faint light dashed line instead of the dark grey one.
+			draw_dashed_line(map.seam_points[i * 2], map.seam_points[i * 2 + 1], look["seam"], look["seam_width"], look["dash"])
+			continue
 		var color := SEAM_LIBERATED_COLOR if map.seam_liberated[i] else SEAM_COLOR
 		draw_line(map.seam_points[i * 2], map.seam_points[i * 2 + 1], color, SEAM_WIDTH)
 

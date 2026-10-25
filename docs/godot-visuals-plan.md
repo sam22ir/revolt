@@ -1,5 +1,7 @@
 # Godot visuals plan (draft for agreement)
 
+**Status (26 Oct 2026): chunk V1 (look test) is built on `godot-client`; waiting for the user to pick a ground variant.** See "V1 status" at the end.
+
 Written 25 Oct 2026, branch `godot-client`, after marches chunk M5. Migration slices 5 to 7 (Google link, Android export, removing Phaser) are on hold; this comes first.
 
 The art direction (`docs/art-direction-v2.md`) stays: Algerian palette, quiet ground, loud objects, calm HUD, Arabic first. What changes is the execution of the **ground** and the **HUD**. The base (buildings and slab) is fine and stays.
@@ -90,3 +92,25 @@ The look test (V1) includes the bottom bar, the resource bar, and one page (Sett
 
 - Phone fill rate on the map (noted in slice 1b).
 - The built-in browser pane runs Godot at about 1 fps: good for look and language, not for performance.
+
+## V1 status (26 Oct 2026)
+
+**Built, behind constants, nothing merged:**
+
+- **HUD in code.** `HudTheme` (the approved mockup's values, written in mockup px and scaled by 1080/375), `HudIcon` plus flat white SVG icons in `apps/godot/art/icons/` tinted in code, `ResourceCell` (gold "Full" instead of a bar), `PlayerChip` (avatar, level, power), `MarchesStrip` and the restyled `QueuePill` as the context strip, `RoundButton` and `HudBottom` (Heroes, Alliance, Reports and the 66 px Base/Map switch in the end corner, showing the destination), `SettingsPage` (account with guest tag and "Link Google · Later", language as three segments, sound toggles, help, privacy, version). Only the new pieces carry the Theme; the older sheets keep their own styling until V2/V5.
+- **Strings.** New keys `settings.*` and `hud.*` in `ar`, `fr`, `en` (client locales, `.po` regenerated).
+- **Ground variants.** `?ground=a|b|c` (default `classic`, unchanged), numbers in `GroundStyle.STYLES`, applied on top of the unchanged plan (the golden tests are untouched). A: calmest (one sand, faint tints, lightest decals at half alpha, a third of the props, no wash or detail overlay). B: more texture (mid decals, half the props, detail overlay kept). C: warmer and greener (stronger olive, 40% of the props, wash kept). All three: light dashed region borders, props lighter and closer in size, edge fade and a lighter surround.
+- **Decals confirmed as the source of the dark blotches:** `?hide=decals` on the classic ground leaves a clean light sand with no dark patches.
+
+**What the user still has to choose:** the ground variant (A, B or C, or a mix of numbers), and whether Reports, Alliance and Heroes should lose the resource bar now (V1 keeps it on those old pages; the plan says Base and Map only, to be done with the page restyle in V2).
+
+**Known gaps in V1:**
+
+- Power on the player chip is the troops at home (the server has no power number yet).
+- Sound toggles keep only their own state (no audio yet); Help and Privacy rows do nothing yet.
+- Variant B keeps visible dark mottling (the multiply detail overlay and mid decals); it is there to show what the texture costs.
+- The map edge fade was not looked at at far zoom (the pane runs about 1 fps); only the near rim was seen.
+- The old nav bar, the language buttons on the HUD and the cap bars are gone from Base and Map; `ResourceChip` and `UnreadBadge` are no longer used by the shell and can be removed in V2.
+- The bottom row reserves 252 viewport px, so the base and the sheets sit higher than before.
+
+Screenshots (375x812, en and ar): `/home/saadi/.config/Claude/side-session-notes/local_50afc22b-a6bc-4333-8102-c720980c7ddf/v1-look-test/`.

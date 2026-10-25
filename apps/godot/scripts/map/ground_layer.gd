@@ -15,7 +15,9 @@ func _ready() -> void:
 
 ## `plan` is GroundPlan.build()'s result; `wadi_paths` and `road_paths` come from FeatureShape; `oases` are Vector2i tiles.
 func build(size: int, plan: Dictionary, fertility: PackedFloat32Array, wadi_paths: Array, road_paths: Array, oases: Array, art: GroundArt) -> void:
-	_base.setup(size, plan["colours"], fertility)
+	var look := GroundStyle.params()
+	var colours: PackedInt32Array = plan["colours"] if look.is_empty() else GroundStyle.restyle(plan["colours"], size, fertility, look)
+	_base.setup(size, colours, fertility)
 	if _decals != null:
 		_decals.queue_free()
 	_decals = SpriteBatch.new(art.atlases["decals"])
@@ -23,13 +25,15 @@ func build(size: int, plan: Dictionary, fertility: PackedFloat32Array, wadi_path
 	var decal_frames: Array = art.atlases["decals"]["frames"]
 	var sprites: Array = []
 	for d: Dictionary in plan["decals"]:
+		if not look.is_empty() and not GroundStyle.decal_allowed(int(d["frame"]), look):
+			continue
 		var frame_w := float(decal_frames[int(d["frame"])]["w"])
 		sprites.append({
 			"frame": d["frame"],
 			"pos": Iso.tile_to_world(float(d["x"]), float(d["y"])),
 			"scale": float(d["scale"]) * Iso.TILE_W / frame_w,
 			"flip": d["flip"],
-			"alpha": float(d["alpha"]),
+			"alpha": float(d["alpha"]) * (1.0 if look.is_empty() else float(look["decal_alpha"])),
 			"center": true,
 		})
 	_decals.set_sprites(sprites)
@@ -40,6 +44,9 @@ func build(size: int, plan: Dictionary, fertility: PackedFloat32Array, wadi_path
 	_features.setup(wadi_paths, road_paths, oases)
 	_frame.setup(size)
 	_detail.setup(size)
+	if not look.is_empty():
+		_base.wash_visible = look["wash"]
+		_detail.set_part_visible(look["detail"])
 
 ## Fades the detail overlay with the camera zoom (see GroundDetail.alpha_at).
 func set_view_zoom(view_zoom: float) -> void:

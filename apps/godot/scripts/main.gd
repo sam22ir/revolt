@@ -2,11 +2,11 @@ extends Node
 ## The shell: guest session, the two screens (the base, and the world map with its camera), a small HUD and a bottom nav bar.
 ## The map (a Node2D tree) is never mirrored in Arabic; only the HUD controls follow the locale direction.
 
-const LANGS: Array[String] = ["en", "ar", "fr"]
 const FONT_SIZE := 34
-## Height of the bottom nav bar, in viewport px; the base screen and the building sheet keep clear of it.
-const NAV_HEIGHT := 100
-const SCREENS: Array[String] = ["base", "map", "reports", "alliance"]
+## Room kept free at the bottom for the round buttons and the Base/Map switch, in viewport px; the base screen and the sheets keep clear of it.
+const NAV_HEIGHT := HudBottom.HEIGHT
+## The screens that are pages opened from the bottom row (or Settings from the player chip); Base and Map are the two homes.
+const PAGES: Array[String] = ["heroes", "alliance", "reports", "settings"]
 ## Gap between the top box and the report toast, in viewport px.
 const TOAST_GAP := 8
 ## The marches list sits below the report notice, which takes the strip right under the top box.
@@ -23,10 +23,10 @@ var _camera := MapCamera.new()
 var _hud_root := Control.new()
 var _status := Label.new()
 var _coords := Label.new()
-var _chips := {}
-var _pill := QueuePill.new()
+var _top := HudTop.new()
+var _bottom := HudBottom.new()
+var _settings := SettingsPage.new()
 var _offline_badge := PanelContainer.new()
-var _language_buttons := {}
 var _loaded := false
 var _base := BaseScreen.new()
 var _reports_screen := ReportsScreen.new()
@@ -35,15 +35,17 @@ var _heroes_screen := HeroesScreen.new()
 var _tile_panel := TilePanel.new()
 var _march_sheet := MarchSheet.new()
 var _marches_list := MarchesList.new()
-var _badge := UnreadBadge.new()
 var _toast := ReportToast.new()
-var _nav := HBoxContainer.new()
-var _nav_buttons := {}
-var _top_box: VBoxContainer
+var _top_box: Control
 var _screen := "base"
+## The last of Base and Map: where a page's back button and a second tap on its bottom button return.
+var _home := "base"
+## A report arrived while the Reports page was not open: the one-dot mark on its button.
+var _reports_unseen := false
 var _failed := false
 
 func _ready() -> void:
+	GroundStyle.set_active(UrlParam.value("ground"))
 	RenderingServer.set_default_clear_color(GroundFrame.BACKGROUND)
 	_api.base_url = Api.resolve_base_url()
 	add_child(_api)
@@ -63,9 +65,10 @@ func _ready() -> void:
 	# found at start-up), restarts for another one, and stops for none (left, kicked, disbanded).
 	_session.alliance_id_changed.connect(_on_alliance_id_changed)
 	_session.help_changed.connect(func() -> void: _session.refresh())
-	_session.chat_changed.connect(_update_badge)
-	_session.alliance_refreshed.connect(_update_badge)
-	_pill.help_pressed.connect(_ask_help.bind("upgrade"))
+	_session.chat_changed.connect(_update_dots)
+	_session.alliance_refreshed.connect(_update_dots)
+	_session.help_changed.connect(_update_dots)
+	_top.pill.help_pressed.connect(_ask_help.bind("upgrade"))
 	add_child(_base)
 	_build_hud()
 	_apply_language("en")
@@ -80,6 +83,7 @@ func _start() -> void:
 		_show_error()
 		return
 	_session.apply(session["data"])
+	_settings.set_guest_tag(HudModel.guest_tag(_api.token))
 	# The base needs only the state, so it is ready (and the default screen) before the heavy map build.
 	_base.build()
 	_debug_time("base ready", started_ms)
@@ -293,7 +297,7 @@ func _on_map_message(msg: Dictionary) -> void:
 func _ask_help(kind: String) -> void:
 	var verdict := await _session.request_help(kind)
 	if not verdict["ok"] and verdict["reason"] != "":
-		_pill.show_note(String(verdict["reason"]))
+		_top.pill.show_note(String(verdict["reason"]))
 
 func _on_alliance_message(msg: Dictionary) -> void:
 	_session.mark_reachable()
@@ -326,10 +330,8 @@ func _show_error() -> void:
 	_failed = true
 	_refresh_status()
 
-## The resource names above the counters follow the language and the account's background (Vietnam renames food).
+## The offline badge text follows the language.
 func _refresh_names() -> void:
-	for id: String in _chips:
-		_chips[id].set_name_text(Loc.t("resource." + id))
 	_offline_badge_label().text = Loc.t("sync.offline")
 
 ## The centre text: the failure, or "Loading the map…" while the map screen waits for its build; nothing otherwise.
@@ -343,9 +345,11 @@ func _refresh_status() -> void:
 	else:
 		_status.visible = false
 
-## Shows "base" or "map". The hidden screen is neither drawn nor given input.
+## Shows "base" or "map", or a page. The hidden screen is neither drawn nor given input.
 func _show_screen(screen: String) -> void:
 	_screen = screen
+	if screen == "base" or screen == "map":
+		_home = screen
 	var on_map := screen == "map"
 	_world.visible = on_map
 	_world.process_mode = Node.PROCESS_MODE_INHERIT if on_map else Node.PROCESS_MODE_DISABLED
@@ -353,11 +357,18 @@ func _show_screen(screen: String) -> void:
 	_reports_screen.visible = screen == "reports"
 	_alliance_screen.visible = screen == "alliance"
 	_heroes_screen.visible = screen == "heroes"
+	_settings.visible = screen == "settings"
+	# The resource bar and the bottom row show on Base and Map and on the pages not yet restyled; Settings has neither.
+	_top.visible = screen != "settings"
+	_bottom.visible = screen != "settings"
+	_top.show_context(screen)
+	_bottom.set_screen(screen)
+	if screen == "reports":
+		_reports_unseen = false
+		_update_dots()
 	_march_sheet.close()
 	if screen != "map":
 		_select_tile(Vector2i(-1, -1))
-	for id: String in _nav_buttons:
-		_nav_buttons[id].set_pressed_no_signal(id == screen)
 	if screen == "reports":
 		# The list shows at once from what is held; the server's list (which may hold a report the socket missed) follows.
 		_session.load_reports()
@@ -369,6 +380,9 @@ func _show_screen(screen: String) -> void:
 ## A report pushed on the map socket: the notice, which opens the report when tapped.
 func _on_new_report(report: Dictionary) -> void:
 	_toast.show_report(report)
+	if _screen != "reports":
+		_reports_unseen = true
+		_update_dots()
 
 func _open_report(id: String) -> void:
 	_show_screen("reports")
@@ -401,39 +415,17 @@ func _build_hud() -> void:
 	_hud_root.layout_direction = Control.LAYOUT_DIRECTION_LOCALE
 	layer.add_child(_hud_root)
 
-	var top := VBoxContainer.new()
-	_top_box = top
-	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	top.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	top.offset_left = 24
-	top.offset_right = -24
-	top.offset_top = 24
-	top.add_theme_constant_override("separation", 10)
-	_hud_root.add_child(top)
-
-	var counters := GridContainer.new()
-	counters.columns = 2
-	counters.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	counters.add_theme_constant_override("h_separation", 24)
-	top.add_child(counters)
-	for id: String in Balance.data()["resourceIds"]:
-		var chip := ResourceChip.new()
-		chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		counters.add_child(chip)
-		_chips[id] = chip
-	# The builders' pill stays in the top box: shown on the base idle or busy, on the map only while busy (as the client's HUD).
-	top.add_child(_pill)
-
-	var languages := HBoxContainer.new()
-	languages.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	languages.add_theme_constant_override("separation", 10)
-	top.add_child(languages)
-	for lang in LANGS:
-		var button := Button.new()
-		button.add_theme_font_size_override("font_size", FONT_SIZE)
-		button.pressed.connect(_apply_language.bind(lang))
-		languages.add_child(button)
-		_language_buttons[lang] = button
+	# The top (resource bar, player chip, context strip) and the bottom (round buttons, Base/Map switch) are drawn in code with the
+	# HUD theme; the other sheets keep their own styling until they are restyled.
+	var theme := HudTheme.build()
+	_top_box = _top
+	_top.theme = theme
+	_top.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_top.offset_left = HudTheme.px(8)
+	_top.offset_right = -HudTheme.px(8)
+	_top.offset_top = HudTheme.px(8)
+	_top.chip_pressed.connect(_show_screen.bind("settings"))
+	_hud_root.add_child(_top)
 
 	_status.add_theme_font_size_override("font_size", FONT_SIZE + 6)
 	_status.set_anchors_preset(Control.PRESET_CENTER)
@@ -509,29 +501,35 @@ func _build_hud() -> void:
 	_session.report_received.connect(_on_new_report)
 	_hud_root.add_child(_toast)
 
-	_nav.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	_nav.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_nav.offset_top = -NAV_HEIGHT
-	_nav.custom_minimum_size.y = NAV_HEIGHT
-	_nav.add_theme_constant_override("separation", 6)
-	var group := ButtonGroup.new()
-	for id in SCREENS:
-		var button := Button.new()
-		button.toggle_mode = true
-		button.button_group = group
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.add_theme_font_size_override("font_size", FONT_SIZE + 2)
-		button.pressed.connect(_show_screen.bind(id))
-		_nav.add_child(button)
-		_nav_buttons[id] = button
-	_nav_buttons["alliance"].add_child(_badge)
-	_hud_root.add_child(_nav)
+	_bottom.theme = theme
+	_bottom.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	_bottom.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_bottom.offset_left = HudTheme.px(10)
+	_bottom.offset_right = -HudTheme.px(10)
+	_bottom.offset_top = -NAV_HEIGHT
+	_bottom.offset_bottom = -HudTheme.px(8)
+	_bottom.page_requested.connect(_on_page_requested)
+	_bottom.switch_requested.connect(_show_screen)
+	_hud_root.add_child(_bottom)
 
-	top.resized.connect(_refit)
+	# Settings: a full page above everything but the offline badge's row; Back returns to Base or Map.
+	_settings.theme = theme
+	_settings.back_pressed.connect(func() -> void: _show_screen(_home))
+	_settings.language_selected.connect(_apply_language)
+	_hud_root.add_child(_settings)
+
+	_top.resized.connect(_refit)
 	get_viewport().size_changed.connect(_refit)
 
-func _update_badge() -> void:
-	_badge.set_count(_session.unread(), Fmt.lang())
+## A bottom button for a page opens it; tapping the open page's button again goes back to Base or Map.
+func _on_page_requested(page: String) -> void:
+	_show_screen(_home if _screen == page else page)
+
+## The one-dot marks: unread chat or an open help request on Alliance, a report not yet opened on Reports.
+func _update_dots() -> void:
+	var now := _clock.now_ms(Time.get_ticks_msec())
+	_bottom.buttons["alliance"].set_dot(HudModel.alliance_dot(_session.unread(), HelpModel.open_requests(_session.help, now).size()))
+	_bottom.buttons["reports"].set_dot(_reports_unseen)
 
 ## "Offline — reconnecting…", centred just above the nav bar. It is outside the top box, so it never moves the base.
 func _build_offline_badge() -> void:
@@ -562,19 +560,18 @@ func _offline_badge_label() -> Label:
 
 func _apply_language(lang: String) -> void:
 	TranslationServer.set_locale(lang)
-	for l: String in _language_buttons:
-		_language_buttons[l].text = Loc.t("language." + l)
 	_refresh_names()
-	for id: String in _nav_buttons:
-		_nav_buttons[id].text = Loc.t("nav." + id)
+	_bottom.refresh_language()
+	_bottom.set_screen(_screen)
+	_settings.set_language(lang)
+	_top.marches.refresh()
 	_reports_screen.refresh()
 	_alliance_screen.refresh()
 	_heroes_screen.refresh()
 	_tile_panel.refresh()
 	_march_sheet.refresh_language()
 	_marches_list.refresh()
-	_badge.place(Fmt.lang())
-	_update_badge()
+	_update_dots()
 	_toast.refresh()
 	_refresh_status()
 	_update_coords()
@@ -596,9 +593,9 @@ func _process(_delta: float) -> void:
 	var now := _clock.now_ms(Time.get_ticks_msec())
 	var amounts := ResourceDisplay.amounts(_session.resources, _session.levels, _session.last_updated, now, _session.liberations)
 	var lang := Fmt.lang()
-	for chip: Dictionary in HudModel.chips(amounts, int(_session.levels["hq"])):
-		_chips[chip["id"]].set_value_text(Fmt.amount(lang, chip["amount"]))
-		_chips[chip["id"]].set_fill(chip["fraction"], chip["state"])
+	_top.set_resources(HudModel.chips(amounts, int(_session.levels["hq"])), HudModel.rates(_session.levels, _session.liberations, now))
+	_top.chip.set_values(int(_session.levels["hq"]), HudModel.power(_session.state.get("troops", {})))
+	_top.marches.set_count(_session.state.get("marches", []).size())
 	if _alliance_screen.is_visible_in_tree():
 		_alliance_screen.tick(now, _map.snapshot.get("rallies", []))
 	if _heroes_screen.is_visible_in_tree():
@@ -612,6 +609,6 @@ func _process(_delta: float) -> void:
 	else:
 		_marches_list.visible = false
 	var can_help := HelpModel.can_ask(_session.alliance, _session.help, "upgrade", now)
-	_pill.update_model(HudModel.pill(_session.queue(), now, _screen, can_help), _session.background)
+	_top.pill.update_model(HudModel.pill(_session.queue(), now, _screen, can_help), _session.background)
 	if _screen == "base":
 		_base.update(now, amounts)

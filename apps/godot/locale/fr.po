@@ -1237,6 +1237,72 @@ msgstr "Partager des statistiques d’usage et des rapports de plantage anonymes
 msgid "settings.analyticsNote"
 msgstr "Désactivé par défaut. Seuls des noms d’événements et des rapports d’erreur sont envoyés : jamais votre nom, votre nom de joueur ni rien de ce que vous avez saisi."
 
+msgid "settings.title"
+msgstr "Réglages"
+
+msgid "settings.account"
+msgstr "Compte"
+
+msgid "settings.guestId"
+msgstr "Invité {id}"
+
+msgid "settings.guestNote"
+msgstr "Votre base est enregistrée sur cet appareil."
+
+msgid "settings.linkGoogle"
+msgstr "Lier Google"
+
+msgid "settings.later"
+msgstr "Plus tard"
+
+msgid "settings.sound"
+msgstr "Son"
+
+msgid "settings.music"
+msgstr "Musique"
+
+msgid "settings.effects"
+msgstr "Effets"
+
+msgid "settings.on"
+msgstr "Activé"
+
+msgid "settings.off"
+msgstr "Désactivé"
+
+msgid "settings.about"
+msgstr "À propos"
+
+msgid "settings.help"
+msgstr "Aide"
+
+msgid "settings.privacy"
+msgstr "Confidentialité"
+
+msgid "settings.version"
+msgstr "Version {version}"
+
+msgid "settings.back"
+msgstr "Retour"
+
+msgid "hud.full"
+msgstr "Plein"
+
+msgid "hud.rate"
+msgstr "+{amount}/h"
+
+msgid "hud.level"
+msgstr "Niv {level}"
+
+msgid "hud.power"
+msgstr "Puissance {amount}"
+
+msgid "hud.marches"
+msgstr "{count} marches en cours"
+
+msgid "hud.marchesNone"
+msgstr "Aucune marche"
+
 msgid "account.button"
 msgstr "Compte"
 
