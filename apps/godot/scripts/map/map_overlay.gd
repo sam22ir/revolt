@@ -25,6 +25,7 @@ const HQ_OWN := Color("2f9e8f")
 const HQ_OTHER := Color("6a55a8")
 const ROUTE_MINE := Color(0.88, 0.69, 0.25, 0.75)
 const ROUTE_OTHER := Color(0.96, 0.92, 0.84, 0.35)
+const SELECTION_COLOR := Color(1.0, 0.97, 0.78)
 const TAG_PATTERN := "^[A-Z0-9]{2,4}$"
 
 enum Mode { SEAMS, OBJECTS }
@@ -36,6 +37,8 @@ var map: WorldMap
 var mode := Mode.OBJECTS
 ## How many times the overlay has been drawn (used by tests to prove the draw code ran).
 var draw_count := 0
+## The selected target or tile (x, y), or (-1, -1): outlined above everything else.
+var selected := Vector2i(-1, -1)
 var _tag_re := RegEx.create_from_string(TAG_PATTERN)
 
 func setup(m: WorldMap) -> void:
@@ -58,6 +61,7 @@ func _draw() -> void:
 		_draw_npc(n)
 	for h: Dictionary in snap["hqs"]:
 		_draw_hq(h)
+	_draw_selection(snap)
 
 func _draw_wash() -> void:
 	for i in map.liberated_tiles:
@@ -99,6 +103,24 @@ func _draw_hq(h: Dictionary) -> void:
 	var tag := String(h["tag"])
 	if _tag_re.search(tag) != null:
 		_draw_text(tag, c + Vector2(0, -r - 6), 16, Color("fff8e6"))
+
+## Outlines the selected tile, or the whole square when it is a camp's tile.
+func _draw_selection(snap: Dictionary) -> void:
+	if selected.x < 0:
+		return
+	var span := 1
+	for b: Dictionary in snap["bases"]:
+		if int(b["x"]) == selected.x and int(b["y"]) == selected.y:
+			span = BASE_SPAN
+	var corners := Iso.footprint(selected.x, selected.y, span, span)
+	var closed := corners.duplicate()
+	closed.append(corners[0])
+	draw_polyline(closed, SELECTION_COLOR, 4.0)
+
+## Selects a tile (or clears with (-1, -1)) and redraws.
+func set_selected(tile: Vector2i) -> void:
+	selected = tile
+	queue_redraw()
 
 func _draw_marches() -> void:
 	for m: Dictionary in map.snapshot["marches"]:

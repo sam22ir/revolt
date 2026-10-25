@@ -30,6 +30,7 @@ var _base := BaseScreen.new()
 var _reports_screen := ReportsScreen.new()
 var _alliance_screen := AllianceScreen.new()
 var _heroes_screen := HeroesScreen.new()
+var _tile_panel := TilePanel.new()
 var _badge := UnreadBadge.new()
 var _toast := ReportToast.new()
 var _nav := HBoxContainer.new()
@@ -48,6 +49,7 @@ func _ready() -> void:
 	_world.add_child(_map)
 	_world.add_child(_camera)
 	_camera.moved.connect(_update_coords)
+	_camera.tapped.connect(_on_map_tapped)
 	_camera.moved.connect(_on_camera_moved)
 	_base.setup(_session)
 	_session.state_changed.connect(_refresh_names)
@@ -234,6 +236,18 @@ func _on_alliance_id_changed(id: String) -> void:
 	if id != "":
 		_alliance_socket.start(Time.get_ticks_msec())
 
+## A tap on the map (the camera says it was a real tap, not a drag, and no HUD control took it): selects the tile or target under it.
+func _on_map_tapped(screen: Vector2) -> void:
+	if _screen != "map" or not _loaded or _map.snapshot.is_empty():
+		return
+	_select_tile(MapPicker.pick(_map.snapshot, _map.size, _camera.world_at(screen)))
+
+## Selects a tile (the outline on the map and the sheet), or clears the selection with (-1, -1).
+func _select_tile(tile: Vector2i) -> void:
+	_map.overlay().set_selected(tile)
+	_tile_panel.show_tile(tile)
+	_update_coords()
+
 ## One chat line from the player, as a frame on the alliance socket; false when the socket is not open.
 func _send_chat(text: String) -> bool:
 	return _alliance_socket.send_text(AllianceMessages.chat_frame(text))
@@ -315,6 +329,8 @@ func _show_screen(screen: String) -> void:
 	_reports_screen.visible = screen == "reports"
 	_alliance_screen.visible = screen == "alliance"
 	_heroes_screen.visible = screen == "heroes"
+	if screen != "map":
+		_select_tile(Vector2i(-1, -1))
 	for id: String in _nav_buttons:
 		_nav_buttons[id].set_pressed_no_signal(id == screen)
 	if screen == "reports":
@@ -431,6 +447,14 @@ func _build_hud() -> void:
 	_heroes_screen.closed.connect(func() -> void: _show_screen("base"))
 	_base.heroes_requested.connect(func() -> void: _show_screen("heroes"))
 	_hud_root.add_child(_heroes_screen)
+	# The tapped tile's sheet sits above the nav bar, under the offline badge; the coordinates label hides while it shows.
+	_tile_panel.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	_tile_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_tile_panel.offset_left = 16
+	_tile_panel.offset_right = -16
+	_tile_panel.offset_bottom = -NAV_HEIGHT - 12
+	_tile_panel.closed.connect(func() -> void: _select_tile(Vector2i(-1, -1)))
+	_hud_root.add_child(_tile_panel)
 	_build_offline_badge()
 
 	# Just under the top box, as the Phaser client does (`refit` moves it with the box).
@@ -503,6 +527,7 @@ func _apply_language(lang: String) -> void:
 	_reports_screen.refresh()
 	_alliance_screen.refresh()
 	_heroes_screen.refresh()
+	_tile_panel.refresh()
 	_badge.place(Fmt.lang())
 	_update_badge()
 	_toast.refresh()
@@ -517,7 +542,7 @@ func _on_camera_moved() -> void:
 func _update_coords() -> void:
 	var t := Iso.world_to_tile(_camera.position)
 	_coords.text = Loc.t("map.coords", {"x": clampi(int(floor(t.x)), 0, maxi(_map.size - 1, 0)), "y": clampi(int(floor(t.y)), 0, maxi(_map.size - 1, 0))})
-	_coords.visible = _loaded and _screen == "map"
+	_coords.visible = _loaded and _screen == "map" and not _tile_panel.visible
 
 func _process(_delta: float) -> void:
 	if _session.resources.is_empty() or not _clock.is_synced():
@@ -533,6 +558,9 @@ func _process(_delta: float) -> void:
 		_alliance_screen.tick(now)
 	if _heroes_screen.is_visible_in_tree():
 		_heroes_screen.tick(amounts)
+	if _tile_panel.visible and not _map.snapshot.is_empty():
+		var tile := _tile_panel.tile()
+		_tile_panel.update_view(_map.snapshot, _map.terrain_at_tile(tile.x, tile.y), String(_session.alliance["name"]) if _session.alliance is Dictionary else "")
 	var can_help := HelpModel.can_ask(_session.alliance, _session.help, "upgrade", now)
 	_pill.update_model(HudModel.pill(_session.queue(), now, _screen, can_help), _session.background)
 	if _screen == "base":
