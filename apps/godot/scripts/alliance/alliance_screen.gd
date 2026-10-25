@@ -1,8 +1,8 @@
 class_name AllianceScreen
 extends Control
 ## The Alliance screen. Without an alliance: search and join, or found one. In one: its chat and Leave. It draws what the Session
-## holds and sends the player's intents through it; the server decides (names, tags, texts, who may leave). Members, rallies and
-## help tabs come later. Fills the area between the HUD and the nav bar and is hidden on the other screens.
+## holds and sends the player's intents through it; the server decides (names, tags, texts, who may leave). Four tabs: Members,
+## Chat, Help and Rallies. Fills the area between the HUD and the nav bar and is hidden on the other screens.
 
 const MARGIN := 24
 const FONT := 30
@@ -15,6 +15,9 @@ const NOTE_COLOR := Color8(0xe0, 0x7a, 0x62)
 const NOTE_SECONDS := 4.0
 ## Within this many px of the bottom the chat follows a new line.
 const STICK_SLOP := 48.0
+
+## Join on a rally row: the rally ({id, leader, target, gatherUntil, ...}); the shell that owns the map opens the troop sheet.
+signal rally_join_requested(rally: Dictionary)
 
 ## Sends a chat line on the alliance socket; false when it is not open (set by the shell).
 var send_chat: Callable = func(_text: String) -> bool: return false
@@ -61,6 +64,12 @@ var _rows_box := VBoxContainer.new()
 var _leader_note := Label.new()
 var _chat_panel := VBoxContainer.new()
 var _help_scroll := ScrollContainer.new()
+var _rallies_scroll := ScrollContainer.new()
+var _rallies_rows := VBoxContainer.new()
+var _rallies_empty := Label.new()
+var _rallies_key := ""
+## rally id to its countdown label, while the Rallies tab shows it.
+var _rally_timers := {}
 var _help_rows := VBoxContainer.new()
 var _help_empty := Label.new()
 var _help_key := ""
@@ -197,7 +206,7 @@ func _build_joined() -> void:
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 6)
 	var group := ButtonGroup.new()
-	for id in ["members", "chat", "help"]:
+	for id in ["members", "chat", "help", "rallies"]:
 		var button := Button.new()
 		button.toggle_mode = true
 		button.button_group = group
@@ -214,6 +223,8 @@ func _build_joined() -> void:
 	_joined.add_child(_chat_panel)
 	_build_help()
 	_joined.add_child(_help_scroll)
+	_build_rallies()
+	_joined.add_child(_rallies_scroll)
 
 func _build_help() -> void:
 	_help_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -230,8 +241,12 @@ func _build_help() -> void:
 ## Called every frame while the screen shows: the Help tab's rows are rebuilt only when what they show changes (the language, or
 ## a request's id, kind, helps, mine, helped, or the open set), and only the countdown texts change per frame, so a Help button is
 ## never replaced under a finger. `now_ms` is server time, as `endsAt`.
-func tick(now_ms: int) -> void:
-	if _session == null or not _joined.visible or _tab != "help":
+func tick(now_ms: int, rallies := []) -> void:
+	if _session == null or not _joined.visible:
+		return
+	if _tab == "rallies":
+		_tick_rallies(rallies, now_ms)
+	if _tab != "help":
 		return
 	var open := HelpModel.open_requests(_session.help, now_ms)
 	var key := Fmt.lang() + "|" + ",".join(open.map(func(r: Dictionary) -> String: return HelpModel.row_key(r)))
@@ -271,6 +286,63 @@ func _rebuild_help(open: Array) -> void:
 		give.pressed.connect(_on_give.bind(give, String(r["id"])))
 		row.add_child(give)
 		_help_rows.add_child(row)
+
+func _build_rallies() -> void:
+	_rallies_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_rallies_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 12)
+	_rallies_scroll.add_child(box)
+	_rallies_rows.add_theme_constant_override("separation", 12)
+	box.add_child(_rallies_rows)
+	_style(_rallies_empty, SMALL, MUTED, true)
+	box.add_child(_rallies_empty)
+
+## The Rallies tab: the alliance's rallies from the map snapshot, rebuilt only when what a row shows changes (the language, a rally's
+## id, whether it is joined, its participants or whether it still gathers), with the gathering countdown set in place every frame, so a
+## Join button is never replaced under a finger and is gone the moment the gathering ends.
+func _tick_rallies(rallies: Array, now_ms: float) -> void:
+	var key := Fmt.lang() + "|" + ",".join(rallies.map(func(r: Dictionary) -> String: return RallyModel.row_key(r, now_ms)))
+	if key != _rallies_key:
+		_rallies_key = key
+		_rebuild_rallies(rallies, now_ms)
+	for r: Dictionary in rallies:
+		if _rally_timers.has(r["id"]):
+			(_rally_timers[r["id"]] as Label).text = Loc.t("rally.gathering", {"time": Fmt.duration(float(r["gatherUntil"]) - now_ms)}) if now_ms < float(r["gatherUntil"]) else Loc.t("rally.marching")
+
+func _rebuild_rallies(rallies: Array, now_ms: float) -> void:
+	var lang := Fmt.lang()
+	for child in _rallies_rows.get_children():
+		_rallies_rows.remove_child(child)
+		child.queue_free()
+	_rally_timers.clear()
+	_rallies_empty.visible = rallies.is_empty()
+	_rallies_empty.text = Loc.t("rally.empty")
+	for r: Dictionary in rallies:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		var text := VBoxContainer.new()
+		text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		text.add_child(_made_label(Loc.t("march.entry", {"name": Loc.t("npc.%s.name" % r["target"]["kind"]), "level": Fmt.amount(lang, int(r["target"]["level"]))}), FONT, PAPER))
+		# The leader's handle is player text: it goes after the translated label, never through a template.
+		text.add_child(_made_label("%s %s" % [Loc.t("rally.led"), String(r["leader"])], SMALL, MUTED))
+		var time := _made_label("", SMALL, MUTED)
+		_rally_timers[r["id"]] = time
+		text.add_child(time)
+		text.add_child(_made_label(Loc.t("rally.participants", {"count": Fmt.amount(lang, int(r["participants"])), "max": Fmt.amount(lang, int(r["maxParticipants"]))}), SMALL, MUTED))
+		row.add_child(text)
+		if bool(r["joined"]):
+			var joined := _made_label(Loc.t("rally.joined"), SMALL, GOLD)
+			joined.size_flags_horizontal = Control.SIZE_SHRINK_END
+			row.add_child(joined)
+		elif RallyModel.can_join(r, now_ms):
+			var join := Button.new()
+			join.text = Loc.t("rally.join")
+			join.add_theme_font_size_override("font_size", FONT)
+			join.pressed.connect(func() -> void: rally_join_requested.emit(r))
+			row.add_child(join)
+		_rallies_rows.add_child(row)
 
 func _on_give(button: Button, id: String) -> void:
 	button.disabled = true
@@ -347,6 +419,8 @@ func _apply_tab() -> void:
 	_members_scroll.visible = _tab == "members"
 	_chat_panel.visible = _tab == "chat"
 	_help_scroll.visible = _tab == "help"
+	_rallies_scroll.visible = _tab == "rallies"
+	_rallies_key = ""
 	_help_key = ""
 	for t: String in _tab_buttons:
 		_tab_buttons[t].set_pressed_no_signal(t == _tab)
@@ -371,6 +445,8 @@ func _retranslate() -> void:
 	_tab_buttons["members"].text = Loc.t("alliance.tab.members")
 	_tab_buttons["chat"].text = Loc.t("alliance.tab.chat")
 	_tab_buttons["help"].text = Loc.t("alliance.tab.help")
+	_tab_buttons["rallies"].text = Loc.t("alliance.tab.rallies")
+	_rallies_key = ""
 	_help_key = ""
 	_chat_badge.place(Fmt.lang())
 	_status.text = Loc.t("chat.reconnecting")

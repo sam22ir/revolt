@@ -71,6 +71,7 @@ var _speedup_pending := {}
 var _hero_pending := {}
 var _recruit_pending := false
 var _march_pending := false
+var _rally_pending := false
 var _refreshing := false
 var _alliance_refreshing := false
 var _alliance_again := false
@@ -317,6 +318,23 @@ func march(npc_id: String, troops: Dictionary, loadout: Variant) -> Dictionary:
 	_march_pending = true
 	var verdict: Dictionary = await send_intent({"type": "march", "target": npc_id, "troops": troops, "heroes": loadout})
 	_march_pending = false
+	return verdict
+
+## Starts an alliance rally at an NPC target (the intent `rally_start`): the troops leave home now and gather for `gather_ms` (one of the
+## published options, sent as a whole number). Returns the verdict like an intent; "" as the reason means a rally intent is already out.
+func rally_start(npc_id: String, troops: Dictionary, gather_ms: int) -> Dictionary:
+	return await _rally_intent({"type": "rally_start", "target": npc_id, "troops": troops, "gather": gather_ms})
+
+## Joins a gathering rally of the player's alliance with these troops (the intent `rally_join`). Same verdict as `rally_start`.
+func rally_join(rally_id: String, troops: Dictionary) -> Dictionary:
+	return await _rally_intent({"type": "rally_join", "rally": rally_id, "troops": troops})
+
+func _rally_intent(intent: Dictionary) -> Dictionary:
+	if _rally_pending:
+		return {"ok": false, "reason": ""}
+	_rally_pending = true
+	var verdict: Dictionary = await send_intent(intent)
+	_rally_pending = false
 	return verdict
 
 func _holds(id: String) -> bool:

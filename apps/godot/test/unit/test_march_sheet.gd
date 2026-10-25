@@ -183,3 +183,63 @@ func test_a_number_typed_past_what_is_at_home_reads_as_the_most_at_once() -> voi
 	assert_eq(sheet._counts["infantry"], 10)
 	sheet._typed("infantry", field, "3")
 	assert_eq(sheet._counts["infantry"], 3)
+
+func _rally_sheet(mode: String, api := FakeApi.new()) -> Array:
+	var session := Session.new(api, Clock.new())
+	session.apply({"state": _state(), "now": 5})
+	var sheet: MarchSheet = add_child_autofree(MarchSheet.new())
+	sheet.setup(session)
+	var rally := {"id": "r1", "leader": "L", "target": {"npcId": "n1", "kind": "patrol", "level": 1, "x": 13, "y": 14}, "gatherUntil": 60000.0,
+		"arriveAt": 90000.0, "returnAt": 120000.0, "participants": 1, "maxParticipants": 5, "joined": false}
+	sheet.open(NPC, Vector2i(10, 10), mode, rally if mode == "rally_join" else {})
+	return [sheet, session, api]
+
+func test_a_rally_sheet_has_no_heroes_and_names_its_own_title_and_button() -> void:
+	var sheet: MarchSheet = _rally_sheet("rally_start")[0]
+	assert_eq(sheet._pickers.size(), 0)
+	assert_false(_texts(sheet).has(Loc.t("march.heroes")))
+	assert_true(_texts(sheet).has(Loc.t("rally.startTitle")))
+	assert_true(_texts(sheet).has(Loc.t("rally.gatherTime")))
+	assert_not_null(_button(sheet, Loc.t("rally.start")))
+	var join: MarchSheet = _rally_sheet("rally_join")[0]
+	assert_true(_texts(join).has(Loc.t("rally.joinTitle")))
+	assert_not_null(_button(join, Loc.t("rally.join")))
+	assert_false(_texts(join).has(Loc.t("rally.gatherTime")))
+
+func test_starting_a_rally_shows_the_fixed_speed_leg_from_your_camp() -> void:
+	var sheet: MarchSheet = _rally_sheet("rally_start")[0]
+	sheet._set_count("scouts", 1)
+	assert_true(_texts(sheet).has(Fmt.duration(float(RallyModel.leg_ms(10, 10, 13, 14)))), "5 tiles at the rally's 2 a minute, whatever the troops")
+	sheet._set_count("scouts", 0)
+	sheet._set_count("infantry", 3)
+	assert_true(_texts(sheet).has(Fmt.duration(float(RallyModel.leg_ms(10, 10, 13, 14)))))
+
+func test_joining_shows_the_rallys_own_leg() -> void:
+	var sheet: MarchSheet = _rally_sheet("rally_join")[0]
+	sheet._set_count("infantry", 2)
+	assert_true(_texts(sheet).has(Fmt.duration(30000.0)), "the rally leaves at 60 s and arrives at 90 s")
+
+func test_start_rally_sends_the_target_troops_and_the_gathering_time() -> void:
+	var api := FakeApi.new()
+	api.replies = [{"ok": true, "status": 200, "data": {"ok": true, "state": _state([{}]), "now": 9}}]
+	var sheet: MarchSheet = _rally_sheet("rally_start", api)[0]
+	sheet._gather_picker.select(1)
+	sheet._gather_picker.item_selected.emit(1)
+	sheet._set_count("infantry", 4)
+	sheet._on_send()
+	await wait_until(func() -> bool: return not sheet.is_open(), 5.0)
+	var body: Dictionary = api.posted[0]
+	assert_eq([body["type"], body["target"], int(body["troops"]["infantry"]), body["gather"]], ["rally_start", "n1", 4, 300000])
+	assert_true(body["gather"] is int, "a whole number, as the server compares it exactly")
+	assert_false(body.has("heroes"))
+
+func test_join_rally_sends_the_rally_and_the_troops_and_a_refusal_names_its_reason() -> void:
+	var api := FakeApi.new()
+	api.replies = [{"ok": true, "status": 200, "data": {"ok": false, "reason": "rally_closed", "state": _state(), "now": 9}}]
+	var sheet: MarchSheet = _rally_sheet("rally_join", api)[0]
+	sheet._set_count("infantry", 2)
+	sheet._on_send()
+	await wait_until(func() -> bool: return _texts(sheet).has(Loc.t("reason.rally_closed")), 5.0)
+	var body: Dictionary = api.posted[0]
+	assert_eq([body["type"], body["rally"], int(body["troops"]["infantry"])], ["rally_join", "r1", 2])
+	assert_true(sheet.is_open())

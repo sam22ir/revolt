@@ -3,7 +3,8 @@ extends Control
 ## The send-march sheet for an NPC target: how many of each troop to send, up to three heroes (a lead and two deputies), the one-way
 ## travel time, what the force can carry and why Send is off. MarchModel works the numbers out from the base the session holds; the
 ## server decides, and its refusal shows under the buttons. Fills the area between the HUD and the nav bar and is hidden (no drawing,
-## no input) when closed. Rallies take their own sheet later; this one is for a solo march.
+## no input) when closed. It serves three kinds of send: a solo march (with heroes), starting an alliance rally (a gathering time, no
+## heroes) and joining one that gathers (no heroes; it leaves and arrives on the rally's own times, whatever the troops).
 
 signal closed
 ## A march left: the sheet has closed itself.
@@ -22,6 +23,11 @@ var _session: Session
 var _scroll := ScrollContainer.new()
 var _body := VBoxContainer.new()
 var _npc: Dictionary = {}
+## "march", "rally_start" or "rally_join".
+var _mode := "march"
+var _rally: Dictionary = {}
+var _gather := 0
+var _gather_picker: OptionButton
 var _from := Vector2i(-1, -1)
 var _counts: Dictionary = {}
 ## Lead first, then two deputies; "" is an empty slot.
@@ -66,9 +72,12 @@ func is_open() -> bool:
 
 ## Opens the sheet for `npc` (the snapshot's entry for the target) from the player's camp tile. The base is asked for again, so a march
 ## that has just come home does not still count against the slots.
-func open(npc: Dictionary, from: Vector2i) -> void:
+func open(npc: Dictionary, from: Vector2i, mode := "march", rally := {}) -> void:
 	_npc = npc
 	_from = from
+	_mode = mode
+	_rally = rally
+	_gather = int(RallyModel.gather_options()[0])
 	_counts = {}
 	for id: String in Balance.data()["troopIds"]:
 		_counts[id] = 0
@@ -101,7 +110,7 @@ func _build() -> void:
 	var lang := Fmt.lang()
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 12)
-	head.add_child(_label(Loc.t("march.title"), FONT + 6, PAPER))
+	head.add_child(_label(Loc.t({"march": "march.title", "rally_start": "rally.startTitle", "rally_join": "rally.joinTitle"}[_mode]), FONT + 6, PAPER))
 	var x := Button.new()
 	x.text = Loc.t("panel.close")
 	x.add_theme_font_size_override("font_size", FONT)
@@ -112,11 +121,14 @@ func _build() -> void:
 	var def: Variant = TileModel.npc_def(int(_npc["level"]))
 	if def != null:
 		_body.add_child(_label("%s: %s" % [Loc.t("map.defenders"), TrainingModel.troop_list(def["defenders"], lang)], SMALL, MUTED, true))
+	if _mode == "rally_start":
+		_body.add_child(_gather_row())
 	for id: String in Balance.data()["troopIds"]:
 		_body.add_child(_troop_row(id))
-	_body.add_child(_label(Loc.t("march.heroes"), FONT, PAPER))
-	for slot in 3:
-		_body.add_child(_picker_row(slot))
+	if _mode == "march":
+		_body.add_child(_label(Loc.t("march.heroes"), FONT, PAPER))
+		for slot in 3:
+			_body.add_child(_picker_row(slot))
 	_bonus = _label("", SMALL, PAPER, true)
 	_body.add_child(_bonus)
 	_travel = _label("", SMALL, PAPER)
@@ -137,6 +149,31 @@ func _build() -> void:
 	cancel.pressed.connect(close)
 	_body.add_child(cancel)
 	_refresh()
+
+func _gather_row() -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	row.custom_minimum_size.y = ROW_HEIGHT
+	row.add_child(_label(Loc.t("rally.gatherTime"), SMALL, PAPER))
+	_gather_picker = OptionButton.new()
+	_gather_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_gather_picker.add_theme_font_size_override("font_size", SMALL)
+	var popup := _gather_picker.get_popup()
+	popup.add_theme_font_size_override("font_size", SMALL)
+	popup.add_theme_constant_override("v_separation", 22)
+	var selected := 0
+	for ms: Variant in RallyModel.gather_options():
+		_gather_picker.add_item(Fmt.duration(float(ms)))
+		_gather_picker.set_item_metadata(_gather_picker.item_count - 1, int(ms))
+		if int(ms) == _gather:
+			selected = _gather_picker.item_count - 1
+	_gather_picker.select(selected)
+	_gather_picker.item_selected.connect(func(index: int) -> void:
+		_gather = int(_gather_picker.get_item_metadata(index))
+		_server_reason = ""
+		_refresh())
+	row.add_child(_gather_picker)
+	return row
 
 func _troop_row(id: String) -> Control:
 	var row := HBoxContainer.new()
@@ -231,7 +268,7 @@ func _on_pick(slot: int, index: int) -> void:
 	_refresh()
 
 func _loadout() -> Variant:
-	return MarchModel.loadout_from_picks(_picks)
+	return MarchModel.loadout_from_picks(_picks) if _mode == "march" else null
 
 ## Updates the numbers and buttons from the base the session holds; the pickers are filled again only when their choices change.
 func _refresh() -> void:
@@ -257,6 +294,8 @@ func _refresh() -> void:
 	_fill_pickers(state, free)
 	var loadout: Variant = _loadout()
 	var p := MarchModel.preview(state, _from, Vector2i(int(_npc["x"]), int(_npc["y"])), _counts, loadout)
+	if _mode != "march" and int(p["travel_ms"]) >= 0:
+		p["travel_ms"] = _rally_leg()
 	var bonus := MarchModel.hero_bonus(state, loadout)
 	_bonus.visible = loadout != null
 	_bonus.text = Loc.t("march.heroBonus", {"attack": Fmt.amount(lang, bonus["attack"]), "defense": Fmt.amount(lang, bonus["defense"])})
@@ -264,8 +303,15 @@ func _refresh() -> void:
 	_carry.text = Fmt.amount(lang, p["carry"])
 	var why := _server_reason if _server_reason != "" else String(p["reason"])
 	_reason.text = Loc.t("reason." + why) if why != "" else ""
-	_submit.text = Loc.t("march.sending" if _sending else "march.send")
+	_submit.text = Loc.t("march.sending" if _sending else {"march": "march.send", "rally_start": "rally.start", "rally_join": "rally.join"}[_mode])
 	_submit.disabled = _sending or p["reason"] != ""
+
+## The one-way leg a rally shows: from your camp at the fixed rally speed when you start it; the rally's own when you join (the server
+## gives a joiner the rally's times, which were worked out from its leader's camp, not yours).
+func _rally_leg() -> int:
+	if _mode == "rally_join":
+		return int(float(_rally["arriveAt"]) - float(_rally["gatherUntil"]))
+	return RallyModel.leg_ms(_from.x, _from.y, float(_npc["x"]), float(_npc["y"]))
 
 func _fill_pickers(state: Dictionary, free: Array) -> void:
 	var key := "%s|%s|%s" % [TranslationServer.get_locale(), ",".join(PackedStringArray(free)), ",".join(PackedStringArray(_picks))]
@@ -295,7 +341,14 @@ func _on_send() -> void:
 		return
 	_sending = true
 	_refresh()
-	var verdict: Dictionary = await _session.march(String(_npc["id"]), _counts, _loadout())
+	var verdict: Dictionary
+	match _mode:
+		"rally_start":
+			verdict = await _session.rally_start(String(_npc["id"]), _counts, _gather)
+		"rally_join":
+			verdict = await _session.rally_join(String(_rally["id"]), _counts)
+		_:
+			verdict = await _session.march(String(_npc["id"]), _counts, _loadout())
 	_sending = false
 	if verdict["reason"] == "" and not verdict["ok"]:
 		_refresh()

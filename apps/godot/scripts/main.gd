@@ -256,11 +256,11 @@ func _select_tile(tile: Vector2i) -> void:
 	_update_coords()
 
 ## Opens the march sheet for a target the tile sheet showed, from the player's own camp.
-func _open_march_sheet(npc: Dictionary) -> void:
+func _open_march_sheet(npc: Dictionary, mode := "march", rally := {}) -> void:
 	var from := _map.own_base_tile()
 	if from.x < 0 or _session.state.is_empty():
 		return
-	_march_sheet.open(npc, from)
+	_march_sheet.open(npc, from, mode, rally)
 
 ## One chat line from the player, as a frame on the alliance socket; false when the socket is not open.
 func _send_chat(text: String) -> bool:
@@ -343,9 +343,9 @@ func _show_screen(screen: String) -> void:
 	_reports_screen.visible = screen == "reports"
 	_alliance_screen.visible = screen == "alliance"
 	_heroes_screen.visible = screen == "heroes"
+	_march_sheet.close()
 	if screen != "map":
 		_select_tile(Vector2i(-1, -1))
-		_march_sheet.close()
 	for id: String in _nav_buttons:
 		_nav_buttons[id].set_pressed_no_signal(id == screen)
 	if screen == "reports":
@@ -478,6 +478,9 @@ func _build_hud() -> void:
 	_march_sheet.setup(_session)
 	_march_sheet.sent.connect(func() -> void: _select_tile(Vector2i(-1, -1)))
 	_tile_panel.march_requested.connect(_open_march_sheet)
+	_tile_panel.rally_start_requested.connect(func(npc: Dictionary) -> void: _open_march_sheet(npc, "rally_start"))
+	_tile_panel.rally_join_requested.connect(func(npc: Dictionary, rally: Dictionary) -> void: _open_march_sheet(npc, "rally_join", rally))
+	_alliance_screen.rally_join_requested.connect(func(rally: Dictionary) -> void: _open_march_sheet(RallyModel.npc_of(rally), "rally_join", rally))
 	_hud_root.add_child(_march_sheet)
 	# The player's marches float under the top box on the map only, so the base is never refitted when one starts or ends.
 	_marches_list.set_anchors_preset(Control.PRESET_TOP_WIDE)
@@ -586,12 +589,12 @@ func _process(_delta: float) -> void:
 		_chips[chip["id"]].set_value_text(Fmt.amount(lang, chip["amount"]))
 		_chips[chip["id"]].set_fill(chip["fraction"], chip["state"])
 	if _alliance_screen.is_visible_in_tree():
-		_alliance_screen.tick(now)
+		_alliance_screen.tick(now, _map.snapshot.get("rallies", []))
 	if _heroes_screen.is_visible_in_tree():
 		_heroes_screen.tick(amounts)
 	if _tile_panel.visible and not _map.snapshot.is_empty():
 		var tile := _tile_panel.tile()
-		_tile_panel.update_view(_map.snapshot, _map.terrain_at_tile(tile.x, tile.y), String(_session.alliance["name"]) if _session.alliance is Dictionary else "")
+		_tile_panel.update_view(_map.snapshot, _map.terrain_at_tile(tile.x, tile.y), String(_session.alliance["name"]) if _session.alliance is Dictionary else "", String(_session.alliance["myRank"]) if _session.alliance is Dictionary else "", now)
 	if _screen == "map" and _loaded:
 		_map.markers().tick(now, _camera.view_zoom)
 		_marches_list.update_view(_session.state.get("marches", []), now, _march_sheet.is_open())

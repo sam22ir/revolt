@@ -84,3 +84,52 @@ func test_a_rally_only_target_and_other_tiles_have_no_send_march_button() -> voi
 	panel.show_tile(Vector2i(2, 2))
 	panel.update_view(snap, "plain", "")
 	assert_false(_buttons(panel).has(Loc.t("map.sendMarch")))
+
+func _snap_with_rallies(rallies: Array) -> Dictionary:
+	var snap := _snap()
+	snap["rallies"] = rallies
+	snap["npcs"].append({"id": "n4", "kind": "fortified_line", "level": 4, "x": 11, "y": 8, "region": 1})
+	return snap
+
+func _rally(id: String, npc: String, extra := {}) -> Dictionary:
+	var r := {"id": id, "leader": "L", "target": {"npcId": npc, "kind": "patrol", "level": 1, "x": 8, "y": 8}, "gatherUntil": 10000.0, "arriveAt": 20000.0,
+		"returnAt": 30000.0, "participants": 1, "maxParticipants": 5, "joined": false}
+	r.merge(extra, true)
+	return r
+
+func test_start_rally_is_for_every_target_but_only_for_ranks_that_may_start_one() -> void:
+	var panel: TilePanel = add_child_autofree(TilePanel.new())
+	var snap := _snap_with_rallies([])
+	for rank in ["leader", "officer"]:
+		for tile in [Vector2i(8, 8), Vector2i(11, 8)]:
+			panel.show_tile(tile)
+			panel.update_view(snap, "plain", "Wolves", rank, 0.0)
+			assert_true(_buttons(panel).has(Loc.t("rally.start")), "%s at %s" % [rank, tile])
+	panel.show_tile(Vector2i(11, 8))
+	panel.update_view(snap, "plain", "Wolves", "member", 0.0)
+	assert_false(_buttons(panel).has(Loc.t("rally.start")))
+	assert_true(_buttons(panel).size() == 1, "a member at a rally-only target has only the close button")
+	panel.show_tile(Vector2i(2, 2))
+	panel.update_view(snap, "plain", "Wolves", "leader", 0.0)
+	assert_false(_buttons(panel).has(Loc.t("rally.start")), "not on your own camp")
+
+func test_a_join_button_per_open_rally_and_it_asks_for_that_rally() -> void:
+	var panel: TilePanel = add_child_autofree(TilePanel.new())
+	var asked: Array = []
+	panel.rally_join_requested.connect(func(_npc: Dictionary, r: Dictionary) -> void: asked.append(r["id"]))
+	var snap := _snap_with_rallies([_rally("a", "n1"), _rally("b", "n1", {"joined": true}), _rally("c", "n1", {"gatherUntil": 100.0}), _rally("d", "n4")])
+	panel.show_tile(Vector2i(8, 8))
+	panel.update_view(snap, "plain", "Wolves", "member", 500.0)
+	var joins: Array = panel.find_children("*", "Button", true, false).filter(func(b: Button) -> bool: return b.text == Loc.t("rally.join"))
+	assert_eq(joins.size(), 1, "only the rally still gathering that you are not in")
+	joins[0].pressed.emit()
+	assert_eq(asked, ["a"])
+
+func test_the_join_button_goes_when_the_gathering_ends_without_a_new_snapshot() -> void:
+	var panel: TilePanel = add_child_autofree(TilePanel.new())
+	var snap := _snap_with_rallies([_rally("a", "n1")])
+	panel.show_tile(Vector2i(8, 8))
+	panel.update_view(snap, "plain", "", "member", 9999.0)
+	assert_true(_buttons(panel).has(Loc.t("rally.join")))
+	panel.update_view(snap, "plain", "", "member", 10000.0)
+	assert_false(_buttons(panel).has(Loc.t("rally.join")))

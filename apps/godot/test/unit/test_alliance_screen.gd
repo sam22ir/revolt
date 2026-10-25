@@ -226,3 +226,59 @@ func test_rows_are_rebuilt_when_a_request_is_helped_or_ends() -> void:
 	pair[1].help = [_help_request("a", 100_000, false, true, 1)]
 	screen.tick(61_000)
 	assert_true(_buttons(screen._help_rows, Loc.t("help.give"))[0].disabled, "helped now")
+
+func _rally(id: String, extra := {}) -> Dictionary:
+	var r := {"id": id, "leader": "Ali <b>{x}</b>", "target": {"npcId": "n1", "kind": "patrol", "level": 1, "x": 5, "y": 6}, "gatherUntil": 10000.0,
+		"arriveAt": 20000.0, "returnAt": 30000.0, "participants": 2, "maxParticipants": 5, "joined": false}
+	r.merge(extra, true)
+	return r
+
+func _texts(root: Node) -> Array:
+	return root.find_children("*", "Label", true, false).map(func(l: Label) -> String: return l.text)
+
+func test_the_rallies_tab_lists_each_rally_with_its_leader_countdown_and_join() -> void:
+	var pair := _screen(_view("member", 2))
+	await pair[1].refresh_alliance()
+	var screen: AllianceScreen = pair[0]
+	screen.select_tab("rallies")
+	assert_true(screen._rallies_scroll.visible)
+	var asked: Array = []
+	screen.rally_join_requested.connect(func(r: Dictionary) -> void: asked.append(r["id"]))
+	screen.tick(4000, [_rally("r1")])
+	var texts := _texts(screen._rallies_rows)
+	assert_true(texts.has(Loc.t("march.entry", {"name": Loc.t("npc.patrol.name"), "level": "1"})))
+	assert_true(texts.has("%s %s" % [Loc.t("rally.led"), "Ali <b>{x}</b>"]), "the leader's handle stays literal")
+	assert_true(texts.has(Loc.t("rally.gathering", {"time": Fmt.duration(6000.0)})))
+	assert_true(texts.has(Loc.t("rally.participants", {"count": "2", "max": "5"})))
+	var joins := _buttons(screen._rallies_rows, Loc.t("rally.join"))
+	assert_eq(joins.size(), 1)
+	joins[0].pressed.emit()
+	assert_eq(asked, ["r1"])
+
+func test_a_join_button_is_gone_when_the_gathering_ends_and_a_joined_rally_says_so() -> void:
+	var pair := _screen(_view("member", 2))
+	await pair[1].refresh_alliance()
+	var screen: AllianceScreen = pair[0]
+	screen.select_tab("rallies")
+	screen.tick(4000, [_rally("r1"), _rally("r2", {"joined": true})])
+	assert_eq(_buttons(screen._rallies_rows, Loc.t("rally.join")).size(), 1)
+	assert_true(_texts(screen._rallies_rows).has(Loc.t("rally.joined")))
+	var joined: Label = screen._rallies_rows.find_children("*", "Label", true, false).filter(func(l: Label) -> bool: return l.text == Loc.t("rally.joined"))[0]
+	assert_eq(joined.size_flags_horizontal, Control.SIZE_SHRINK_END, "it sits at the row's end, not mid-row")
+	screen.tick(10000, [_rally("r1"), _rally("r2", {"joined": true})])
+	assert_eq(_buttons(screen._rallies_rows, Loc.t("rally.join")).size(), 0, "the gathering ended")
+	assert_true(_texts(screen._rallies_rows).has(Loc.t("rally.marching")))
+
+func test_no_rallies_says_so_and_the_countdown_ticks_without_a_rebuild() -> void:
+	var pair := _screen(_view("member", 2))
+	await pair[1].refresh_alliance()
+	var screen: AllianceScreen = pair[0]
+	screen.select_tab("rallies")
+	screen.tick(0, [])
+	assert_true(screen._rallies_empty.visible)
+	assert_eq(screen._rallies_empty.text, Loc.t("rally.empty"))
+	screen.tick(1000, [_rally("r1")])
+	var first: Node = screen._rallies_rows.get_child(0)
+	screen.tick(2000, [_rally("r1")])
+	assert_same(screen._rallies_rows.get_child(0), first)
+	assert_true(_texts(screen._rallies_rows).has(Loc.t("rally.gathering", {"time": Fmt.duration(8000.0)})))

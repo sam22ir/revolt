@@ -28,6 +28,8 @@ import {
 } from "../data/hero-progression.ts";
 import { HEROES_BY_BACKGROUND } from "../hero-id.ts";
 import { MAX_DEPUTIES } from "../hero-loadout.ts";
+import { ALLIANCE_RANKS, canPerform } from "../alliance.ts";
+import { RALLY_GATHER_OPTIONS_MS, RALLY_SPEED } from "../data/alliance.ts";
 import { DEFAULT_BACKGROUND } from "../background.ts";
 import { MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING, REGION_CELL } from "../data/map.ts";
 import { hash32 } from "../rng.ts";
@@ -75,6 +77,7 @@ export const buildGodotBalance = (): unknown => ({
     drawOdds: HERO_DRAW_ODDS,
     pityDraws: PITY_DRAWS,
   },
+  rally: { gatherOptionsMs: [...RALLY_GATHER_OPTIONS_MS], speed: RALLY_SPEED, startRanks: ALLIANCE_RANKS.filter((r) => canPerform(r, "start_rally")) },
   npcLevels: NPC_LEVELS,
   npcRespawnMs: NPC_RESPAWN_MS,
   map: {

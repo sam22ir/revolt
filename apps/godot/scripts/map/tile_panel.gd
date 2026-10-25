@@ -1,12 +1,15 @@
 class_name TilePanel
 extends PanelContainer
 ## The sheet over the map for the tapped tile: your camp, another camp, an alliance HQ, a target (name, level, defenders, the
-## rally-only note) or just land (its terrain). It draws TileModel.view and sends nothing yet (marches, rallies and the HQ come
-## with their own chunks). It takes input, so a press on it never reaches the map, and it redraws only when what it shows changes.
+## rally-only note, the Send march, Start rally and Join rally buttons) or just land (its terrain). It draws TileModel.view and sends
+## nothing itself: the buttons ask the screen to open the march sheet (the HQ comes with its own chunk). It takes input, so a press on it never reaches the map, and it redraws only when what it shows changes.
 
 signal closed
 ## The Send march button on a target: the snapshot's entry for it ({id, kind, level, x, y, region}).
 signal march_requested(npc: Dictionary)
+## Start rally on a target (leader or officer) and Join rally on a rally gathering at it (any member).
+signal rally_start_requested(npc: Dictionary)
+signal rally_join_requested(npc: Dictionary, rally: Dictionary)
 
 const FONT := 30
 const SMALL := 26
@@ -18,6 +21,9 @@ const LACKING := Color8(0xb0, 0x3a, 0x2a)
 
 var _tile := Vector2i(-1, -1)
 var _key := ""
+var _rallies: Array = []
+var _rank := ""
+var _now := 0.0
 var _body := VBoxContainer.new()
 
 func _init() -> void:
@@ -49,10 +55,14 @@ func hide_tile() -> void:
 func tile() -> Vector2i:
 	return _tile
 
-## Call every frame while a tile is selected: the snapshot, the terrain under the tile and the player's own alliance name (or "").
-func update_view(snapshot: Dictionary, terrain: String, own_alliance_name: String) -> void:
+## Call every frame while a tile is selected: the snapshot, the terrain under the tile, the player's own alliance name (or ""), their rank in
+## it ("" for none) and the synced server time in ms (a rally stops being joinable when its gathering ends).
+func update_view(snapshot: Dictionary, terrain: String, own_alliance_name: String, rank := "", now_ms := 0.0) -> void:
 	if not visible:
 		return
+	_rank = rank
+	_now = now_ms
+	_rallies = snapshot.get("rallies", [])
 	var info := TileModel.info(snapshot, _tile.x, _tile.y, terrain)
 	var key := _signature(info, own_alliance_name)
 	if key == _key:
@@ -68,6 +78,10 @@ func _signature(info: Dictionary, alliance_name: String) -> String:
 	for k in ["base", "hq", "npc"]:
 		if info.has(k):
 			what.append(JSON.stringify(info[k]))
+	if info["kind"] == "npc":
+		what.append(str(RallyModel.can_start(_rank)))
+		for r: Dictionary in RallyModel.open_at(_rallies, String(info["npc"]["id"]), _now):
+			what.append(RallyModel.row_key(r, _now))
 	return "%s|%s|%s|%s|%s" % [TranslationServer.get_locale(), Loc.background_id, str(_tile), alliance_name, "|".join(what.map(func(v: Variant) -> String: return str(v)))]
 
 func _render(info: Dictionary, own_alliance_name: String) -> void:
@@ -103,6 +117,20 @@ func _render(info: Dictionary, own_alliance_name: String) -> void:
 		send.add_theme_font_size_override("font_size", FONT)
 		send.pressed.connect(func() -> void: march_requested.emit(info["npc"]))
 		_body.add_child(send)
+	if info["kind"] == "npc":
+		# Starting a rally is for every target (it is the only way at a rally-only one); joining, for each rally still gathering at it.
+		if RallyModel.can_start(_rank):
+			var start := Button.new()
+			start.text = Loc.t("rally.start")
+			start.add_theme_font_size_override("font_size", FONT)
+			start.pressed.connect(func() -> void: rally_start_requested.emit(info["npc"]))
+			_body.add_child(start)
+		for r: Dictionary in RallyModel.open_at(_rallies, String(info["npc"]["id"]), _now):
+			var join := Button.new()
+			join.text = Loc.t("rally.join")
+			join.add_theme_font_size_override("font_size", FONT)
+			join.pressed.connect(func() -> void: rally_join_requested.emit(info["npc"], r))
+			_body.add_child(join)
 
 func _label(text: String, size: int, color: Color, wrap := false) -> Label:
 	var label := Label.new()

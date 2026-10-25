@@ -990,6 +990,11 @@
     },
     "pityDraws": 10
   },
+  "rally": {
+    "gatherOptionsMs": [60000,300000,900000],
+    "speed": 2,
+    "startRanks": ["leader","officer"]
+  },
   "npcLevels": [
     {
       "level": 1,
