@@ -991,6 +991,12 @@ msgstr "Ouvrir les héros"
 msgid "heroes.hallNote"
 msgstr "Recrutez et formez les héros ici."
 
+msgid "heroes.odds"
+msgstr "Probabilités par tirage : commun {common} %, rare {rare} %, légendaire {legendary} %."
+
+msgid "heroes.pity"
+msgstr "Un héros rare ou mieux est garanti en {count} tirages au plus. Tirages restants, y compris le tirage garanti : {left}."
+
 msgid "story.title"
 msgstr "Histoire"
 

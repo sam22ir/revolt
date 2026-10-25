@@ -5,10 +5,10 @@
  * committed file is compared, so a stale file fails the tests.
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { createBaseState, HEROES, heroesFor, MAX_HERO_LEVEL, type BackgroundId, type BaseState, type HeroEntry, type HeroId } from "@revolt/rules";
+import { createBaseState, drawHero, HEROES, heroesFor, MAX_HERO_LEVEL, type BackgroundId, type BaseState, type HeroEntry, type HeroId } from "@revolt/rules";
 import { describe, expect, test } from "vitest";
 import { compactJson } from "../../../packages/rules/src/export/compact-json.ts";
-import { heroCards, skillPct } from "../src/state/hero-view.ts";
+import { heroCards, recruitBlock, skillPct } from "../src/state/hero-view.ts";
 
 const godot = (rel: string): URL => new URL(`../../godot/${rel}`, import.meta.url);
 
@@ -58,7 +58,23 @@ const skillPcts = (): unknown[] =>
     })),
   );
 
+/** Whether the draw after `pity` draws without a rare or better is the forced one, from the real `drawHero` (an rng that lands on common). */
+const pityCases = (): unknown[] =>
+  Array.from({ length: 15 }, (_, pity) => ({ pity, forced: drawHero({ owned: {}, pity }, () => 0.1).forced }));
+
+/** `recruitBlock` for hall levels 1, 2 and 5 with funds one short of the cost, exactly the cost and plenty. */
+const recruitBlocks = (): unknown[] =>
+  [1, 2, 5].flatMap((hall) =>
+    [0, 199, 200, 5000].map((funds) => {
+      const base = createBaseState(0);
+      const state = { ...base, levels: { ...base.levels, hero_hall: hall }, resources: { ...base.resources, funds } } as BaseState;
+      return { hall, funds, reason: recruitBlock(state) };
+    }),
+  );
+
 const buildFixtures = (): unknown => ({
+  pity_cases: pityCases(),
+  recruit_blocks: recruitBlocks(),
   skill_pcts: skillPcts(),
   cases: BACKGROUNDS.flatMap((background) =>
     HALLS.flatMap((hall) =>

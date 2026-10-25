@@ -318,6 +318,8 @@ export const fr: LocaleShape = {
     maxed: "Niveau maximal",
     open: "Ouvrir les héros",
     hallNote: "Recrutez et formez les héros ici.",
+    odds: "Probabilités par tirage : commun {{common}} %, rare {{rare}} %, légendaire {{legendary}} %.",
+    pity: "Un héros rare ou mieux est garanti en {{count}} tirages au plus. Tirages restants, y compris le tirage garanti : {{left}}.",
   },
   story: {
     title: "Histoire",

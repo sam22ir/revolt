@@ -1,4 +1,128 @@
 {
+  "pity_cases": [
+    {
+      "pity": 0,
+      "forced": false
+    },
+    {
+      "pity": 1,
+      "forced": false
+    },
+    {
+      "pity": 2,
+      "forced": false
+    },
+    {
+      "pity": 3,
+      "forced": false
+    },
+    {
+      "pity": 4,
+      "forced": false
+    },
+    {
+      "pity": 5,
+      "forced": false
+    },
+    {
+      "pity": 6,
+      "forced": false
+    },
+    {
+      "pity": 7,
+      "forced": false
+    },
+    {
+      "pity": 8,
+      "forced": false
+    },
+    {
+      "pity": 9,
+      "forced": true
+    },
+    {
+      "pity": 10,
+      "forced": true
+    },
+    {
+      "pity": 11,
+      "forced": true
+    },
+    {
+      "pity": 12,
+      "forced": true
+    },
+    {
+      "pity": 13,
+      "forced": true
+    },
+    {
+      "pity": 14,
+      "forced": true
+    }
+  ],
+  "recruit_blocks": [
+    {
+      "hall": 1,
+      "funds": 0,
+      "reason": "hero_hall_level"
+    },
+    {
+      "hall": 1,
+      "funds": 199,
+      "reason": "hero_hall_level"
+    },
+    {
+      "hall": 1,
+      "funds": 200,
+      "reason": "hero_hall_level"
+    },
+    {
+      "hall": 1,
+      "funds": 5000,
+      "reason": "hero_hall_level"
+    },
+    {
+      "hall": 2,
+      "funds": 0,
+      "reason": "insufficient"
+    },
+    {
+      "hall": 2,
+      "funds": 199,
+      "reason": "insufficient"
+    },
+    {
+      "hall": 2,
+      "funds": 200,
+      "reason": null
+    },
+    {
+      "hall": 2,
+      "funds": 5000,
+      "reason": null
+    },
+    {
+      "hall": 5,
+      "funds": 0,
+      "reason": "insufficient"
+    },
+    {
+      "hall": 5,
+      "funds": 199,
+      "reason": "insufficient"
+    },
+    {
+      "hall": 5,
+      "funds": 200,
+      "reason": null
+    },
+    {
+      "hall": 5,
+      "funds": 5000,
+      "reason": null
+    }
+  ],
   "skill_pcts": [
     {
       "hero": "mountain_guide",

@@ -531,6 +531,8 @@ func _process(_delta: float) -> void:
 		_chips[chip["id"]].set_fill(chip["fraction"], chip["state"])
 	if _alliance_screen.is_visible_in_tree():
 		_alliance_screen.tick(now)
+	if _heroes_screen.is_visible_in_tree():
+		_heroes_screen.tick(amounts)
 	var can_help := HelpModel.can_ask(_session.alliance, _session.help, "upgrade", now)
 	_pill.update_model(HudModel.pill(_session.queue(), now, _screen, can_help), _session.background)
 	if _screen == "base":

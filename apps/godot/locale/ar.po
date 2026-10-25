@@ -991,6 +991,12 @@ msgstr "فتح الأبطال"
 msgid "heroes.hallNote"
 msgstr "جنّد الأبطال ودرّبهم هنا."
 
+msgid "heroes.odds"
+msgstr "احتمالات كل سحبة: عادي {common}٪، نادر {rare}٪، أسطوري {legendary}٪."
+
+msgid "heroes.pity"
+msgstr "يُضمن الحصول على بطل نادر أو أفضل خلال {count} عمليات سحب. عدد السحبات المتبقية، بما فيها السحبة المضمونة: {left}."
+
 msgid "story.title"
 msgstr "القصة"
 

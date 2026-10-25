@@ -313,6 +313,8 @@ export const en = {
     maxed: "Top level",
     open: "Open heroes",
     hallNote: "Recruit and train heroes here.",
+    odds: "Odds per draw: common {{common}}%, rare {{rare}}%, legendary {{legendary}}%.",
+    pity: "A rare or better hero is guaranteed within {{count}} draws. Draws left, the guaranteed one included: {{left}}.",
   },
   story: {
     title: "Story",

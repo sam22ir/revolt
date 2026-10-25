@@ -69,6 +69,7 @@ var wallet: Dictionary = {}
 var _wallet_now := -1
 var _speedup_pending := {}
 var _hero_pending := {}
+var _recruit_pending := false
 var _refreshing := false
 var _alliance_refreshing := false
 var _alliance_again := false
@@ -296,6 +297,16 @@ func level_up_hero(hero_id: String) -> Dictionary:
 	_hero_pending.erase(hero_id)
 	return verdict
 
+## One recruit draw (the intent `recruit`; the server picks the seed, the client cannot predict the result). Returns the verdict like an
+## intent, with `draw` ({heroId, rarity, duplicate, forced}) on success; "" as the reason means nothing was sent (a draw is already out).
+func recruit() -> Dictionary:
+	if _recruit_pending:
+		return {"ok": false, "reason": ""}
+	_recruit_pending = true
+	var verdict: Dictionary = await send_intent({"type": "recruit"})
+	_recruit_pending = false
+	return verdict
+
 func _holds(id: String) -> bool:
 	for r: Dictionary in reports:
 		if String(r["id"]) == id:
@@ -323,7 +334,10 @@ func send_intent(intent: Dictionary) -> Dictionary:
 	_take(result)
 	var data: Variant = result["data"]
 	if data is Dictionary and data.has("ok"):
-		return {"ok": bool(data["ok"]), "reason": String(data.get("reason", ""))}
+		var verdict := {"ok": bool(data["ok"]), "reason": String(data.get("reason", ""))}
+		if data.get("draw") is Dictionary:
+			verdict["draw"] = data["draw"]
+		return verdict
 	return {"ok": false, "reason": "unreachable" if int(result["status"]) == 0 else "error"}
 
 ## Takes one parsed alliance socket frame (AllianceMessages.parse). Returns true for "kicked", after which the caller

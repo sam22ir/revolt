@@ -79,3 +79,40 @@ static func skill_lines(card: Dictionary) -> Array:
 	for p: Dictionary in def["passives"]:
 		out.append({"slot": "passive", "id": p["id"], "stat": p["stat"], "pct": skill_pct(float(p["value"]), level)})
 	return out
+
+## "" when a recruit draw may be made, else the reason (`recruitBlock`, golden cases in data/heroes-fixtures.json): hero_hall_level, then
+## insufficient. `amounts` are the resources accrued to now, as the counters show them.
+static func recruit_block(state: Dictionary, amounts: Dictionary) -> String:
+	var p := progression()
+	if int(state.get("levels", {}).get("hero_hall", 1)) < int(p["drawMinHall"]):
+		return "hero_hall_level"
+	for id: String in p["drawCost"]:
+		if float(amounts.get(id, 0.0)) < float(p["drawCost"][id]):
+			return "insufficient"
+	return ""
+
+## The draw's cost as [{id, amount, lacking}] for the resources it takes.
+static func recruit_cost(amounts: Dictionary) -> Array:
+	var out: Array = []
+	var cost: Dictionary = progression()["drawCost"]
+	for id: String in cost:
+		if float(cost[id]) > 0.0:
+			out.append({"id": id, "amount": int(cost[id]), "lacking": float(amounts.get(id, 0.0)) < float(cost[id])})
+	return out
+
+## The published odds in whole percent per rarity, from the weights ({common, rare, legendary}). They sum to 100 for the current data.
+static func odds_percent() -> Dictionary:
+	var weights: Dictionary = progression()["drawOdds"]
+	var total := 0.0
+	for r: String in weights:
+		total += float(weights[r])
+	var out := {}
+	for r: String in weights:
+		out[r] = roundi(float(weights[r]) * 100.0 / total)
+	return out
+
+## Draws until the guarantee: the draw after `pity` draws in a row without a rare or better is the forced one when the counter has
+## reached the run's length minus one, so a fresh counter has the full run to go and the next draw is the guarantee at 1
+## (checked against the real `drawHero` in data/heroes-fixtures.json). `pity` is `state.heroes.pity`.
+static func pity_left(pity: int) -> int:
+	return maxi(1, int(progression()["pityDraws"]) - pity)

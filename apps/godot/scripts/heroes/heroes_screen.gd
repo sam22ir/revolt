@@ -26,6 +26,10 @@ var _body := VBoxContainer.new()
 var _key := ""
 ## A refusal per hero, shown under the card until it is redrawn from fresh state.
 var _notes := {}
+## The resources accrued to now (fed every frame by the shell while the screen shows), for the draw's affordability.
+var _amounts := {}
+## What the last draw gave ({"kind": "drawn", ...draw}) or why it was refused ({"kind": "refused", "reason"}), until the next draw.
+var _recruit_note: Variant = null
 
 func _ready() -> void:
 	var bg := ColorRect.new()
@@ -55,6 +59,11 @@ func setup(session: Session) -> void:
 	_session = session
 	session.state_changed.connect(_render)
 
+## Call every frame while the screen shows: the draw's button follows what can be afforded as the resources grow.
+func tick(amounts: Dictionary) -> void:
+	_amounts = amounts
+	_render()
+
 ## Draws the texts again (the language changed).
 func refresh() -> void:
 	_key = ""
@@ -65,6 +74,9 @@ func _signature(cards: Array) -> String:
 	for c: Dictionary in cards:
 		var o: Variant = c["owned"]
 		parts.append("%s:%s:%s:%d:%s:%s" % [c["id"], o["level"] if o is Dictionary else 0, o["shards"] if o is Dictionary else 0, int(c["busy"]), c["level_up"], _notes.get(c["id"], "")])
+	parts.append(HeroesModel.recruit_block(_session.state, _amounts))
+	parts.append(str(_session.state.get("heroes", {}).get("pity", 0)))
+	parts.append(JSON.stringify(_recruit_note))
 	return "|".join(parts)
 
 func _render() -> void:
@@ -89,8 +101,56 @@ func _render() -> void:
 	head.add_child(close)
 	_body.add_child(head)
 	_body.add_child(_label(Loc.t("heroes.intro"), SMALL, MUTED, true))
+	_body.add_child(_label(Loc.t("heroes.hallCap", {"cap": Fmt.amount(Fmt.lang(), cards[0]["cap"])}), SMALL, MUTED, true))
+	_body.add_child(_recruit_box())
 	for c: Dictionary in cards:
 		_body.add_child(_card(c))
+
+## The draw: its cost, the button, why it is off or what the last draw gave, and the published odds with the pity rule.
+func _recruit_box() -> Control:
+	var lang := Fmt.lang()
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 8)
+	var costs := HFlowContainer.new()
+	for item: Dictionary in HeroesModel.recruit_cost(_amounts):
+		costs.add_child(_label("%s %s" % [Loc.t("resource." + String(item["id"])), Fmt.amount(lang, item["amount"])], FONT, LACKING if item["lacking"] else PAPER))
+	v.add_child(costs)
+	var block := HeroesModel.recruit_block(_session.state, _amounts)
+	var button := Button.new()
+	button.text = Loc.t("heroes.recruit")
+	button.add_theme_font_size_override("font_size", FONT)
+	button.disabled = block != ""
+	button.pressed.connect(_on_recruit.bind(button))
+	v.add_child(button)
+	var why := block
+	if _recruit_note is Dictionary and _recruit_note["kind"] == "refused":
+		why = String(_recruit_note["reason"])
+	if why != "":
+		v.add_child(_label(Loc.t("reason." + why, {"level": Fmt.amount(lang, HeroesModel.progression()["drawMinHall"])}), SMALL, LACKING, true))
+	if _recruit_note is Dictionary and _recruit_note["kind"] == "drawn":
+		var key := "heroes.drawnDuplicate" if _recruit_note["duplicate"] else "heroes.drawn"
+		v.add_child(_label(Loc.t(key, {"name": Loc.t("hero.%s.name" % _recruit_note["heroId"])}), SMALL, PAPER, true))
+	var odds := HeroesModel.odds_percent()
+	v.add_child(_label(Loc.t("heroes.odds", {"common": Fmt.amount(lang, odds["common"]), "rare": Fmt.amount(lang, odds["rare"]), "legendary": Fmt.amount(lang, odds["legendary"])}), SMALL, MUTED, true))
+	var pity := int(_session.state.get("heroes", {}).get("pity", 0))
+	v.add_child(_label(Loc.t("heroes.pity", {"count": Fmt.amount(lang, HeroesModel.progression()["pityDraws"]), "left": Fmt.amount(lang, HeroesModel.pity_left(pity))}), SMALL, MUTED, true))
+	return v
+
+func _on_recruit(button: Button) -> void:
+	if _session == null:
+		return
+	button.disabled = true
+	var verdict: Dictionary = await _session.recruit()
+	if verdict["reason"] == "" and not verdict["ok"]:
+		return
+	if verdict["ok"] and verdict.get("draw") is Dictionary:
+		_recruit_note = {"kind": "drawn", "heroId": verdict["draw"]["heroId"], "duplicate": verdict["draw"]["duplicate"]}
+	elif verdict["ok"]:
+		_recruit_note = null
+	else:
+		_recruit_note = {"kind": "refused", "reason": String(verdict["reason"])}
+	_key = ""
+	_render()
 
 func _card(c: Dictionary) -> Control:
 	var lang := Fmt.lang()

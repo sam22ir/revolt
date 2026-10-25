@@ -69,7 +69,7 @@ func test_a_double_press_spends_one_token() -> void:
 	s.call("speed_up", "training")
 	var second := await s.speed_up("training")
 	assert_eq(second, {"ok": false, "reason": ""})
-	await wait_frames(3)
+	await wait_until(func() -> bool: return s.wallet.has("speedupTokens"), 5.0)
 	assert_eq(api.posted.size(), 1, "one request for two presses")
 
 func test_the_real_server_replies_to_a_speed_up() -> void:

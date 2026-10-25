@@ -991,6 +991,12 @@ msgstr "Open heroes"
 msgid "heroes.hallNote"
 msgstr "Recruit and train heroes here."
 
+msgid "heroes.odds"
+msgstr "Odds per draw: common {common}%, rare {rare}%, legendary {legendary}%."
+
+msgid "heroes.pity"
+msgstr "A rare or better hero is guaranteed within {count} draws. Draws left, the guaranteed one included: {left}."
+
 msgid "story.title"
 msgstr "Story"
 

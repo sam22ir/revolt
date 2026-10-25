@@ -48,3 +48,30 @@ func test_the_cap_and_the_steps() -> void:
 	assert_eq(HeroesModel.level_cap(9), 10, "never above the top level")
 	assert_eq(HeroesModel.shards_to_next(1), 2)
 	assert_eq(HeroesModel.shards_to_next(10), -1)
+
+func test_recruit_block_matches_the_client() -> void:
+	var rows: Array = _fixtures()["recruit_blocks"]
+	assert_eq(rows.size(), 12)
+	for r: Dictionary in rows:
+		var state := {"levels": {"hero_hall": r["hall"]}}
+		var got := HeroesModel.recruit_block(state, {"funds": float(r["funds"])})
+		assert_eq(got, r["reason"] if r["reason"] != null else "", "hall %s funds %s" % [r["hall"], r["funds"]])
+
+func test_the_guarantee_comes_when_the_real_draw_is_forced() -> void:
+	var rows: Array = _fixtures()["pity_cases"]
+	assert_eq(rows.size(), 15)
+	for r: Dictionary in rows:
+		assert_eq(HeroesModel.pity_left(int(r["pity"])) == 1, bool(r["forced"]), "pity %s" % r["pity"])
+	assert_eq(HeroesModel.pity_left(0), 10, "a fresh counter has the whole run to go")
+	assert_eq(HeroesModel.pity_left(14), 1, "never below the next draw")
+
+func test_the_published_odds_sum_to_a_hundred_with_the_current_data() -> void:
+	var odds := HeroesModel.odds_percent()
+	assert_eq(odds["common"] + odds["rare"] + odds["legendary"], 100)
+	assert_eq(odds, {"common": 70, "rare": 22, "legendary": 8})
+
+func test_the_draw_cost_marks_what_is_lacking() -> void:
+	var cost := HeroesModel.recruit_cost({"funds": 100.0})
+	assert_eq(cost.size(), 1, "only the resources the draw takes")
+	assert_eq(cost[0], {"id": "funds", "amount": 200, "lacking": true})
+	assert_false(HeroesModel.recruit_cost({"funds": 200.0})[0]["lacking"])
