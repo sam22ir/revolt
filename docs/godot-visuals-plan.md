@@ -79,7 +79,7 @@ Suggested on top (not decided):
 - [x] Start with the look test (V1) before building: yes (25 Oct).
 - [x] Language switcher: in the Settings page (25 Oct).
 - [x] HUD drawn in code (flat panels, brass hairline) instead of painted frames: the mockup shown on 26 Oct (base, map, settings, Arabic base) was approved as is. Its values are the starting point for the look test: panel `rgba(38,29,22,0.9)`, brass border `#b08d57`, radius 10 px, text `#e8d5b0`, secondary text `#bfa77c`, terracotta `#b5532f` with a `#e2c07a` ring for the Base/Map switch (66 px), round buttons 44 px with labels, alert dot `#d9462b`, "full" in gold `#f0c060`, olive `#6b7a3a` for on and ready, map ground `#dcc69c` with soft ochre and olive patches and a dashed light region border.
-- [ ] Resource icons: the painted ones or simple flat icons (the mockup used flat ones)? Decide in the look test.
+- [x] Resource icons: simple flat icons, as in the mockup (26 Oct). One flat set for resources, nav and troops, drawn as SVG.
 - [x] Ground: lighter and calmer, allowed to depart from the Phaser ground (26 Oct).
 - [x] Settings opens from the player chip (26 Oct).
 - [x] Base/Map switch: a round button in a bottom corner (25 Oct, from the reference).
