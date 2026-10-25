@@ -8,6 +8,8 @@ signal closed
 ## The Send march button on a target: the snapshot's entry for it ({id, kind, level, x, y, region}).
 signal march_requested(npc: Dictionary)
 ## Start rally on a target (leader or officer) and Join rally on a rally gathering at it (any member).
+## Place or move the alliance HQ on the shown land tile (the leader only).
+signal hq_requested(tile: Vector2i)
 signal rally_start_requested(npc: Dictionary)
 signal rally_join_requested(npc: Dictionary, rally: Dictionary)
 
@@ -24,6 +26,9 @@ var _key := ""
 var _rallies: Array = []
 var _rank := ""
 var _now := 0.0
+var _snapshot: Dictionary = {}
+## Why the last HQ placement here was refused (a reason code), shown under the button until another tile is shown.
+var _notice := ""
 var _body := VBoxContainer.new()
 
 func _init() -> void:
@@ -46,6 +51,7 @@ func _init() -> void:
 ## Shows the panel for a tile (and forgets what was drawn).
 func show_tile(tile: Vector2i) -> void:
 	_tile = tile
+	_notice = ""
 	_key = ""
 	visible = tile.x >= 0
 
@@ -63,12 +69,18 @@ func update_view(snapshot: Dictionary, terrain: String, own_alliance_name: Strin
 	_rank = rank
 	_now = now_ms
 	_rallies = snapshot.get("rallies", [])
+	_snapshot = snapshot
 	var info := TileModel.info(snapshot, _tile.x, _tile.y, terrain)
 	var key := _signature(info, own_alliance_name)
 	if key == _key:
 		return
 	_key = key
 	_render(info, own_alliance_name)
+
+## Says why placing the HQ here was refused.
+func show_notice(reason: String) -> void:
+	_notice = reason
+	_key = ""
 
 func refresh() -> void:
 	_key = ""
@@ -78,6 +90,8 @@ func _signature(info: Dictionary, alliance_name: String) -> String:
 	for k in ["base", "hq", "npc"]:
 		if info.has(k):
 			what.append(JSON.stringify(info[k]))
+	if info["kind"] == "empty":
+		what.append("%s|%s|%s" % [TileModel.can_place_hq(_rank), TileModel.hq_button_key(_snapshot), _notice])
 	if info["kind"] == "npc":
 		what.append(str(RallyModel.can_start(_rank)))
 		for r: Dictionary in RallyModel.open_at(_rallies, String(info["npc"]["id"]), _now):
@@ -117,6 +131,17 @@ func _render(info: Dictionary, own_alliance_name: String) -> void:
 		send.add_theme_font_size_override("font_size", FONT)
 		send.pressed.connect(func() -> void: march_requested.emit(info["npc"]))
 		_body.add_child(send)
+	if info["kind"] == "empty" and TileModel.can_place_hq(_rank):
+		var place := Button.new()
+		place.text = Loc.t(TileModel.hq_button_key(_snapshot))
+		place.add_theme_font_size_override("font_size", FONT)
+		place.pressed.connect(func() -> void:
+			place.disabled = true
+			_notice = ""
+			hq_requested.emit(_tile))
+		_body.add_child(place)
+		if _notice != "":
+			_body.add_child(_label(Loc.t("reason." + _notice), SMALL, LACKING, true))
 	if info["kind"] == "npc":
 		# Starting a rally is for every target (it is the only way at a rally-only one); joining, for each rally still gathering at it.
 		if RallyModel.can_start(_rank):

@@ -264,3 +264,13 @@ func test_the_real_give_replies_are_read_by_the_session() -> void:
 	assert_lt(float(s.help[0]["endsAt"]), float(cap["give_before"]["endsAt"]), "the server shortened the job")
 	api.replies = [{"ok": true, "status": 200, "data": cap["give_already_helped"]}, _ok({"alliance": _view(), "help": [], "now": 3})]
 	assert_eq(await s.give_help(String(cap["give_before"]["id"])), {"ok": false, "reason": "already_helped"})
+
+func test_place_hq_posts_the_tile_once_and_takes_the_verdict() -> void:
+	var api := FakeApi.new()
+	api.replies = [{"ok": true, "status": 200, "data": {"ok": false, "reason": "hq_cooldown"}}]
+	var s := Session.new(api, Clock.new())
+	s.call("place_hq", 20, 21)
+	assert_eq(await s.place_hq(20, 21), {"ok": false, "reason": ""}, "a second press while one is out sends nothing")
+	await wait_until(func() -> bool: return api.posted.size() == 1, 5.0)
+	assert_eq(api.posted[0], {"x": 20, "y": 21})
+	assert_eq(api.calls[0], "/v1/alliance/hq")

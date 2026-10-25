@@ -990,6 +990,7 @@
     },
     "pityDraws": 10
   },
+  "hqRanks": ["leader"],
   "rally": {
     "gatherOptionsMs": [60000,300000,900000],
     "speed": 2,

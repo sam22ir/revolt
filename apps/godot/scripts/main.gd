@@ -255,6 +255,16 @@ func _select_tile(tile: Vector2i) -> void:
 	_tile_panel.show_tile(tile)
 	_update_coords()
 
+## The leader's Place or Move HQ on the shown tile: the server decides; a refusal's reason shows under the button, and on success the map
+## socket turns the tile into the HQ.
+func _place_hq(tile: Vector2i) -> void:
+	var verdict: Dictionary = await _session.place_hq(tile.x, tile.y)
+	if verdict["ok"] or verdict["reason"] == "":
+		return
+	if _tile_panel.tile() != tile:
+		return
+	_tile_panel.show_notice("unreachable" if verdict["reason"] == "error" else String(verdict["reason"]))
+
 ## Opens the march sheet for a target the tile sheet showed, from the player's own camp.
 func _open_march_sheet(npc: Dictionary, mode := "march", rally := {}) -> void:
 	var from := _map.own_base_tile()
@@ -478,6 +488,7 @@ func _build_hud() -> void:
 	_march_sheet.setup(_session)
 	_march_sheet.sent.connect(func() -> void: _select_tile(Vector2i(-1, -1)))
 	_tile_panel.march_requested.connect(_open_march_sheet)
+	_tile_panel.hq_requested.connect(_place_hq)
 	_tile_panel.rally_start_requested.connect(func(npc: Dictionary) -> void: _open_march_sheet(npc, "rally_start"))
 	_tile_panel.rally_join_requested.connect(func(npc: Dictionary, rally: Dictionary) -> void: _open_march_sheet(npc, "rally_join", rally))
 	_alliance_screen.rally_join_requested.connect(func(rally: Dictionary) -> void: _open_march_sheet(RallyModel.npc_of(rally), "rally_join", rally))

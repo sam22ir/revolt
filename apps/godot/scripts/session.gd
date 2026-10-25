@@ -72,6 +72,7 @@ var _hero_pending := {}
 var _recruit_pending := false
 var _march_pending := false
 var _rally_pending := false
+var _hq_pending := false
 var _refreshing := false
 var _alliance_refreshing := false
 var _alliance_again := false
@@ -335,6 +336,16 @@ func _rally_intent(intent: Dictionary) -> Dictionary:
 	_rally_pending = true
 	var verdict: Dictionary = await send_intent(intent)
 	_rally_pending = false
+	return verdict
+
+## Asks the server to put the alliance HQ on a tile (the leader only; the first placement is free, a move waits out a cooldown). Returns
+## {"ok", "reason"} like an alliance action; "" as the reason means a placement is already out. The map socket brings the new HQ.
+func place_hq(x: int, y: int) -> Dictionary:
+	if _hq_pending:
+		return {"ok": false, "reason": ""}
+	_hq_pending = true
+	var verdict: Dictionary = await _alliance_post("/v1/alliance/hq", {"x": x, "y": y})
+	_hq_pending = false
 	return verdict
 
 func _holds(id: String) -> bool:

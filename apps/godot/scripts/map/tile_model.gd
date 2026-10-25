@@ -69,3 +69,14 @@ static func _camp_title(tag: String, alliance: Variant) -> String:
 		return Loc.t("map.camp", {"tag": tag})
 	var template := Loc.t("map.campAlliance", {"tag": "\u0001T\u0001", "alliance": "\u0001A\u0001"})
 	return template.replace("\u0001T\u0001", tag).replace("\u0001A\u0001", String(alliance))
+
+## Whether a member of `rank` may place or move the alliance HQ (`canPerform(rank, "set_hq")`; "" for no alliance: no).
+static func can_place_hq(rank: String) -> bool:
+	return (Balance.data()["hqRanks"] as Array).has(rank)
+
+## The button's text key on empty land: "map.moveHq" once the alliance has an HQ (the snapshot lists it with mine), else "map.placeHq".
+static func hq_button_key(snapshot: Dictionary) -> String:
+	for h: Dictionary in snapshot.get("hqs", []):
+		if h["mine"]:
+			return "map.moveHq"
+	return "map.placeHq"

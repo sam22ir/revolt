@@ -76,3 +76,14 @@ func test_only_a_target_that_is_not_rally_only_can_be_marched_on() -> void:
 	assert_true(TileModel.view(TileModel.info(snap, 10, 10, "plain"), 10, 10, "")["can_march"], "a level the table does not know: the server decides, as in the Phaser panel")
 	assert_false(TileModel.view(TileModel.info(snap, 2, 2, "plain"), 2, 2, "")["can_march"], "your own camp")
 	assert_false(TileModel.view(TileModel.info(snap, 0, 0, "hills"), 0, 0, "")["can_march"], "empty land")
+
+func test_only_the_ranks_the_rules_name_may_place_the_hq() -> void:
+	assert_true(TileModel.can_place_hq("leader"))
+	assert_false(TileModel.can_place_hq("officer"))
+	assert_false(TileModel.can_place_hq("member"))
+	assert_false(TileModel.can_place_hq(""))
+
+func test_the_hq_button_says_move_once_the_alliance_has_one() -> void:
+	assert_eq(TileModel.hq_button_key({"hqs": []}), "map.placeHq")
+	assert_eq(TileModel.hq_button_key({"hqs": [{"mine": false, "x": 1, "y": 1}]}), "map.placeHq", "another alliance's HQ is not yours")
+	assert_eq(TileModel.hq_button_key({"hqs": [{"mine": true, "x": 1, "y": 1}]}), "map.moveHq")

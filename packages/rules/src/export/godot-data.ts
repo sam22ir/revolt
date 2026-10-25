@@ -77,6 +77,7 @@ export const buildGodotBalance = (): unknown => ({
     drawOdds: HERO_DRAW_ODDS,
     pityDraws: PITY_DRAWS,
   },
+  hqRanks: ALLIANCE_RANKS.filter((r) => canPerform(r, "set_hq")),
   rally: { gatherOptionsMs: [...RALLY_GATHER_OPTIONS_MS], speed: RALLY_SPEED, startRanks: ALLIANCE_RANKS.filter((r) => canPerform(r, "start_rally")) },
   npcLevels: NPC_LEVELS,
   npcRespawnMs: NPC_RESPAWN_MS,

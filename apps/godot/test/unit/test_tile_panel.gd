@@ -133,3 +133,55 @@ func test_the_join_button_goes_when_the_gathering_ends_without_a_new_snapshot() 
 	assert_true(_buttons(panel).has(Loc.t("rally.join")))
 	panel.update_view(snap, "plain", "", "member", 10000.0)
 	assert_false(_buttons(panel).has(Loc.t("rally.join")))
+
+func test_the_leader_sees_place_hq_on_land_and_move_hq_once_it_stands() -> void:
+	var panel: TilePanel = add_child_autofree(TilePanel.new())
+	var asked: Array = []
+	panel.hq_requested.connect(func(t: Vector2i) -> void: asked.append(t))
+	var snap := _snap()
+	snap["hqs"] = []
+	panel.show_tile(Vector2i(20, 20))
+	panel.update_view(snap, "plain", "Wolves", "leader", 0.0)
+	assert_true(_buttons(panel).has(Loc.t("map.placeHq")))
+	for b: Button in panel.find_children("*", "Button", true, false):
+		if b.text == Loc.t("map.placeHq"):
+			b.pressed.emit()
+	assert_eq(asked, [Vector2i(20, 20)])
+	snap["hqs"] = [{"tag": "WLF", "x": 4, "y": 4, "mine": true}]
+	panel.update_view(snap, "plain", "Wolves", "leader", 0.0)
+	assert_true(_buttons(panel).has(Loc.t("map.moveHq")))
+	assert_false(_buttons(panel).has(Loc.t("map.placeHq")))
+
+func test_no_hq_button_for_other_ranks_and_not_off_land() -> void:
+	var panel: TilePanel = add_child_autofree(TilePanel.new())
+	var snap := _snap()
+	snap["hqs"] = []
+	for rank in ["officer", "member", ""]:
+		panel.show_tile(Vector2i(20, 20))
+		panel.update_view(snap, "plain", "", rank, 0.0)
+		assert_false(_buttons(panel).has(Loc.t("map.placeHq")), rank)
+	panel.show_tile(Vector2i(8, 8))
+	panel.update_view(snap, "plain", "Wolves", "leader", 0.0)
+	assert_false(_buttons(panel).has(Loc.t("map.placeHq")), "not on a target")
+	panel.show_tile(Vector2i(2, 2))
+	panel.update_view(snap, "plain", "Wolves", "leader", 0.0)
+	assert_false(_buttons(panel).has(Loc.t("map.placeHq")), "not on your own camp")
+	snap["hqs"] = [{"tag": "WLF", "x": 4, "y": 4, "mine": true}]
+	panel.show_tile(Vector2i(4, 4))
+	panel.update_view(snap, "plain", "Wolves", "leader", 0.0)
+	assert_false(_buttons(panel).has(Loc.t("map.placeHq")) or _buttons(panel).has(Loc.t("map.moveHq")), "not on the HQ itself")
+
+func test_a_refusal_shows_under_the_button_and_goes_with_the_next_tile() -> void:
+	var panel: TilePanel = add_child_autofree(TilePanel.new())
+	var snap := _snap()
+	snap["hqs"] = []
+	panel.show_tile(Vector2i(20, 20))
+	panel.update_view(snap, "plain", "Wolves", "leader", 0.0)
+	panel.show_notice("tile_taken")
+	panel.update_view(snap, "plain", "Wolves", "leader", 0.0)
+	var texts: Array = panel.find_children("*", "Label", true, false).map(func(l: Label) -> String: return l.text)
+	assert_true(texts.has(Loc.t("reason.tile_taken")))
+	panel.show_tile(Vector2i(21, 20))
+	panel.update_view(snap, "plain", "Wolves", "leader", 0.0)
+	texts = panel.find_children("*", "Label", true, false).map(func(l: Label) -> String: return l.text)
+	assert_false(texts.has(Loc.t("reason.tile_taken")))
