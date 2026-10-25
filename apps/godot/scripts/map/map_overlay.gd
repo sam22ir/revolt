@@ -1,6 +1,6 @@
 class_name MapOverlay
 extends Node2D
-## Region seams, bases, NPC targets, alliance HQs and march routes, drawn above the ground mesh.
+## Region seams, bases, NPC targets and alliance HQs, drawn above the ground mesh (the marching columns are MarchMarkers).
 ## Placeholder shapes; sizes and colours follow the Phaser map (BASE_SPAN 2 tiles, NPC 1.45 tiles, HQ ring
 ## 0.62 * 48). Canvas text is limited to NPC level numbers and 2-4 character ASCII HQ tags (rule 6).
 
@@ -23,8 +23,6 @@ const BADGE_RING := Color("c8964a")
 const BADGE_RING_FORTIFIED := Color("d0573a")
 const HQ_OWN := Color("2f9e8f")
 const HQ_OTHER := Color("6a55a8")
-const ROUTE_MINE := Color(0.88, 0.69, 0.25, 0.75)
-const ROUTE_OTHER := Color(0.96, 0.92, 0.84, 0.35)
 const SELECTION_COLOR := Color(1.0, 0.97, 0.78)
 const TAG_PATTERN := "^[A-Z0-9]{2,4}$"
 
@@ -33,7 +31,7 @@ enum Mode { SEAMS, OBJECTS }
 const LIBERATED_WASH := Color(0.88, 0.69, 0.25, 0.24)
 
 var map: WorldMap
-## SEAMS draws the liberation wash and region borders (under the props); OBJECTS draws bases, NPCs, HQs and march routes (above them).
+## SEAMS draws the liberation wash and region borders (under the props); OBJECTS draws bases, NPCs and HQs (above them).
 var mode := Mode.OBJECTS
 ## How many times the overlay has been drawn (used by tests to prove the draw code ran).
 var draw_count := 0
@@ -53,7 +51,6 @@ func _draw() -> void:
 		_draw_wash()
 		_draw_seams()
 		return
-	_draw_marches()
 	var snap := map.snapshot
 	for b: Dictionary in snap["bases"]:
 		_draw_base(b)
@@ -121,12 +118,6 @@ func _draw_selection(snap: Dictionary) -> void:
 func set_selected(tile: Vector2i) -> void:
 	selected = tile
 	queue_redraw()
-
-func _draw_marches() -> void:
-	for m: Dictionary in map.snapshot["marches"]:
-		var from := Iso.tile_center(int(m["from"]["x"]), int(m["from"]["y"]))
-		var to := Iso.tile_center(int(m["to"]["x"]), int(m["to"]["y"]))
-		draw_line(from, to, ROUTE_MINE if m["mine"] else ROUTE_OTHER, 3.0)
 
 func _draw_text(text: String, at: Vector2, font_size: int, color: Color) -> void:
 	var font := ThemeDB.fallback_font

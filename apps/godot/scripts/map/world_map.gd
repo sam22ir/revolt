@@ -25,6 +25,7 @@ var _ground := GroundLayer.new()
 var _seams := MapOverlay.new()
 var _props := PropLayer.new()
 var _objects := MapOverlay.new()
+var _markers := MarchMarkers.new()
 var _art: GroundArt
 var _plan: Dictionary = {}
 ## True while `build` is running (it yields); a live snapshot that arrives meanwhile waits in `_pending`.
@@ -40,10 +41,16 @@ func _ready() -> void:
 	add_child(_seams)
 	add_child(_props)
 	add_child(_objects)
+	_markers.setup(self)
+	add_child(_markers)
 
 ## The overlay that draws bases, NPCs, HQs and marches.
 func overlay() -> MapOverlay:
 	return _objects
+
+## The marching columns, drawn above the objects.
+func markers() -> MarchMarkers:
+	return _markers
 
 func prop_layer() -> PropLayer:
 	return _props
@@ -73,6 +80,7 @@ func set_layer_visible(layer: String, visible_now: bool) -> void:
 			_props.visible = visible_now
 		"objects":
 			_objects.visible = visible_now
+			_markers.visible = visible_now
 		_:
 			_ground.set_part_visible(layer, visible_now)
 

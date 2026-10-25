@@ -28,8 +28,8 @@ func _snapshot() -> Dictionary:
 			{"x": 5, "y": 50, "tag": "bad tag!", "mine": false},
 		],
 		"marches": [
-			{"id": "m1", "mine": true, "from": {"x": 10, "y": 10}, "to": {"x": 20, "y": 20}},
-			{"id": "m2", "mine": false, "from": {"x": 30, "y": 12}, "to": {"x": 40, "y": 40}},
+			{"id": "m1", "mine": true, "from": {"x": 10, "y": 10}, "to": {"x": 20, "y": 20}, "departAt": NOW - 1000, "arriveAt": NOW + 1000, "returnAt": NOW + 3000},
+			{"id": "m2", "mine": false, "from": {"x": 30, "y": 12}, "to": {"x": 40, "y": 40}, "departAt": NOW - 1000, "arriveAt": NOW + 1000, "returnAt": NOW + 3000},
 		],
 		"rallies": [],
 		"liberations": [

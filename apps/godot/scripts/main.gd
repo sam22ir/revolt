@@ -9,6 +9,8 @@ const NAV_HEIGHT := 100
 const SCREENS: Array[String] = ["base", "map", "reports", "alliance"]
 ## Gap between the top box and the report toast, in viewport px.
 const TOAST_GAP := 8
+## The marches list sits below the report notice, which takes the strip right under the top box.
+const MARCHES_GAP := 110
 
 var _api := Api.new()
 var _clock := Clock.new()
@@ -32,6 +34,7 @@ var _alliance_screen := AllianceScreen.new()
 var _heroes_screen := HeroesScreen.new()
 var _tile_panel := TilePanel.new()
 var _march_sheet := MarchSheet.new()
+var _marches_list := MarchesList.new()
 var _badge := UnreadBadge.new()
 var _toast := ReportToast.new()
 var _nav := HBoxContainer.new()
@@ -373,6 +376,7 @@ func _refit() -> void:
 	_heroes_screen.offset_top = top
 	_heroes_screen.offset_bottom = -NAV_HEIGHT
 	_march_sheet.offset_top = top
+	_marches_list.offset_top = top + MARCHES_GAP
 	_march_sheet.offset_bottom = -NAV_HEIGHT
 	_toast.offset_top = top + TOAST_GAP
 	if not _base.is_built():
@@ -475,6 +479,11 @@ func _build_hud() -> void:
 	_march_sheet.sent.connect(func() -> void: _select_tile(Vector2i(-1, -1)))
 	_tile_panel.march_requested.connect(_open_march_sheet)
 	_hud_root.add_child(_march_sheet)
+	# The player's marches float under the top box on the map only, so the base is never refitted when one starts or ends.
+	_marches_list.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_marches_list.offset_left = 24
+	_marches_list.offset_right = -24
+	_hud_root.add_child(_marches_list)
 	_build_offline_badge()
 
 	# Just under the top box, as the Phaser client does (`refit` moves it with the box).
@@ -549,6 +558,7 @@ func _apply_language(lang: String) -> void:
 	_heroes_screen.refresh()
 	_tile_panel.refresh()
 	_march_sheet.refresh_language()
+	_marches_list.refresh()
 	_badge.place(Fmt.lang())
 	_update_badge()
 	_toast.refresh()
@@ -582,6 +592,11 @@ func _process(_delta: float) -> void:
 	if _tile_panel.visible and not _map.snapshot.is_empty():
 		var tile := _tile_panel.tile()
 		_tile_panel.update_view(_map.snapshot, _map.terrain_at_tile(tile.x, tile.y), String(_session.alliance["name"]) if _session.alliance is Dictionary else "")
+	if _screen == "map" and _loaded:
+		_map.markers().tick(now, _camera.view_zoom)
+		_marches_list.update_view(_session.state.get("marches", []), now, _march_sheet.is_open())
+	else:
+		_marches_list.visible = false
 	var can_help := HelpModel.can_ask(_session.alliance, _session.help, "upgrade", now)
 	_pill.update_model(HudModel.pill(_session.queue(), now, _screen, can_help), _session.background)
 	if _screen == "base":

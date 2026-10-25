@@ -95,6 +95,13 @@ execFileSync("pnpm", ["--filter", "@revolt/client", "exec", "vitest", "run", "te
   env: { ...process.env, GODOT_EXPORT: "1" },
 });
 
+console.log("generating data/marches-fixtures.json (vitest)");
+execFileSync("pnpm", ["--filter", "@revolt/client", "exec", "vitest", "run", "test/godot-marches.test.ts"], {
+  cwd: root,
+  stdio: "inherit",
+  env: { ...process.env, GODOT_EXPORT: "1" },
+});
+
 console.log("generating data/march-fixtures.json (vitest)");
 execFileSync("pnpm", ["--filter", "@revolt/client", "exec", "vitest", "run", "test/godot-march.test.ts"], {
   cwd: root,
