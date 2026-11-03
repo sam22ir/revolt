@@ -1,8 +1,8 @@
 class_name HudBottom
 extends HBoxContainer
-## The bottom of the Base and the Map (look test): Heroes, Alliance and Reports as round buttons with labels from the start edge,
-## and the Base/Map switch as a big round button in the corner at the end edge (bottom right in English, bottom left in Arabic,
-## because the row follows the layout direction). The switch shows where it goes, not where you are.
+## The bottom of the Base and the Map: a full-width bronze band with Heroes, Alliance and Reports as round buttons with labels from
+## the start edge, and the Base/Map switch as a big round button in the corner at the end edge (bottom right in English, bottom left
+## in Arabic, because the row follows the layout direction). The switch shows where it goes, not where you are.
 
 signal page_requested(page: String)
 signal switch_requested(target: String)
@@ -11,10 +11,14 @@ const PAGES: Array[String] = ["heroes", "alliance", "reports"]
 const PAGE_ICONS := {"heroes": "heroes", "alliance": "alliance", "reports": "reports"}
 ## Room the bar needs above the screen's bottom edge, in viewport px: the switch, its label and the margin under it.
 const HEIGHT := 252
+## How far the shell insets this row from the screen's sides and bottom, in mockup px; the band reaches past it to the edges.
+const INSET_SIDE := 10.0
+const INSET_BOTTOM := 8.0
 
 var buttons := {}
 var switch := RoundButton.new("map", HudTheme.SWITCH, true)
 var _target := "map"
+var _band := HudTheme.band()
 
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -34,6 +38,14 @@ func _init() -> void:
 	switch.size_flags_vertical = Control.SIZE_SHRINK_END
 	switch.pressed.connect(func() -> void: switch_requested.emit(_target))
 	add_child(switch)
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		queue_redraw()
+
+func _draw() -> void:
+	var side := HudTheme.px(INSET_SIDE)
+	draw_style_box(_band, Rect2(-side, 0.0, size.x + side * 2.0, size.y + HudTheme.px(INSET_BOTTOM)))
 
 ## Shows where the switch goes from `screen` ("base", "map" or a page).
 func set_screen(screen: String) -> void:

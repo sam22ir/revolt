@@ -55,11 +55,10 @@ func test_the_dot_is_hidden_by_alpha_and_never_changes_the_height() -> void:
 
 func test_the_open_page_button_is_marked_active() -> void:
 	var bottom: HudBottom = add_child_autofree(HudBottom.new())
-	var plain: StyleBoxFlat = bottom.buttons["reports"].button().get_theme_stylebox("normal")
+	assert_eq(bottom.buttons["reports"].button().self_modulate, Color.WHITE)
 	bottom.set_screen("reports")
-	var active: StyleBoxFlat = bottom.buttons["reports"].button().get_theme_stylebox("normal")
-	assert_eq(active.border_color, HudTheme.RING)
-	assert_ne(plain.border_color, active.border_color)
+	assert_eq(bottom.buttons["reports"].button().self_modulate, RoundButton.ACTIVE_TINT)
+	assert_eq(bottom.buttons["heroes"].button().self_modulate, Color.WHITE)
 
 func test_the_player_chip_shows_level_and_power_and_is_tappable() -> void:
 	var chip: PlayerChip = add_child_autofree(PlayerChip.new())

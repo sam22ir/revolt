@@ -72,6 +72,7 @@ func update(now_ms: int, resources: Dictionary) -> void:
 	if not _built or _session.levels.is_empty():
 		return
 	var queue: Variant = _session.queue()
+	view.background = _session.background
 	view.set_state(_session.levels, queue, now_ms)
 	if panel.is_open():
 		panel.update_model(BuildingPanelModel.build(panel.shown_id(), _session.levels, resources, queue, now_ms), _session.background)

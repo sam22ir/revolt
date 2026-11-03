@@ -1,5 +1,5 @@
 extends GutTest
-## The base picture and its sheet: hit testing on the painted pixels, the tint and fit, the panel's rebuild rule, and the
+## The base picture and its sheet: hit testing on the traced outlines, the shade, fit and pan, the panel's rebuild rule, and the
 ## upgrade request with a fake API.
 
 class FakeApi:
@@ -44,18 +44,22 @@ func test_a_point_on_each_building_hits_that_building_and_empty_ground_hits_noth
 	assert_eq(view.hit_building(Vector2(0, -300)), "", "above the base")
 	assert_eq(view.hit_building(Vector2(-900, 100)), "", "far to the side")
 
-func test_where_sprites_overlap_the_nearer_building_wins() -> void:
-	var view := _view()
-	# Whatever building a point belongs to, it is the last one in draw order that is opaque there.
-	var checked := 0
-	for x in range(-300, 300, 20):
-		for y in range(0, 400, 20):
-			var id := view.hit_building(Vector2(x, y))
-			if id == "":
-				continue
-			checked += 1
-			assert_true(Balance.data()["buildingIds"].has(id))
-	assert_gt(checked, 20, "the sprites cover a good part of the slab")
+func test_every_building_has_one_outline_and_no_two_overlap() -> void:
+	var ids: Array = Balance.data()["buildingIds"]
+	assert_eq(CampLayout.REGIONS.size(), ids.size())
+	for id: String in ids:
+		assert_true(CampLayout.REGIONS.has(id), id)
+		assert_true(Geometry2D.is_point_in_polygon(CampLayout.REGIONS[id]["point"], CampLayout.outline(id)), id + " point is inside")
+	for i in ids.size():
+		for j in range(i + 1, ids.size()):
+			assert_eq(Geometry2D.intersect_polygons(CampLayout.outline(ids[i]), CampLayout.outline(ids[j])).size(), 0, "%s and %s" % [ids[i], ids[j]])
+
+func test_outlines_and_names_are_on_the_painting() -> void:
+	var world := Rect2(Vector2.ZERO, CampLayout.WORLD)
+	for id: String in CampLayout.REGIONS:
+		assert_true(world.has_point(CampLayout.REGIONS[id]["label"]), id)
+		for at: Vector2 in CampLayout.outline(id):
+			assert_true(world.has_point(at), id)
 
 func test_taps_are_reported_in_world_coordinates() -> void:
 	var view := _view()
@@ -97,26 +101,107 @@ func test_a_drag_is_not_a_tap() -> void:
 	view._unhandled_input(release)
 	assert_eq(tapped, [])
 
-func test_the_building_under_construction_is_dimmed() -> void:
+func _press_at(view: BaseView, at: Vector2, pressed: bool) -> void:
+	var e := InputEventMouseButton.new()
+	e.button_index = MOUSE_BUTTON_LEFT
+	e.pressed = pressed
+	e.position = at
+	view._unhandled_input(e)
+
+func _drag_by(view: BaseView, from: Vector2, by: Vector2) -> void:
+	var e := InputEventMouseMotion.new()
+	e.position = from + by
+	e.relative = by
+	view._unhandled_input(e)
+
+func test_the_building_under_construction_is_shaded() -> void:
 	var view := _view()
 	view.set_state(_levels(), {"building": "farm", "toLevel": 2, "startedAt": NOW - 1000, "endsAt": NOW + 9000}, NOW)
-	assert_eq(view._sprites["farm"].modulate, BaseView.UPGRADING_TINT)
-	assert_eq(view._sprites["hq"].modulate, Color.WHITE)
+	assert_true(view.is_shaded("farm"))
+	assert_false(view.is_shaded("hq"))
 	view.set_state(_levels(), null, NOW)
-	assert_eq(view._sprites["farm"].modulate, Color.WHITE)
+	assert_false(view.is_shaded("farm"))
 
-func test_the_fit_keeps_the_base_between_the_hud_and_the_nav_bar() -> void:
+func test_each_building_shows_its_name_and_level_in_the_language() -> void:
 	var view := _view()
-	view.apply_fit(Vector2(1080, 1920), 300.0, 100.0)
-	var z := view.layer.scale.x
-	assert_gt(z, 0.0)
-	# The slab's top corner (world 0, 0) and bottom corner (0, WORLD_HEIGHT) must both land between the HUD and the nav bar.
-	var top_y := view.layer.offset.y + 0.0 * z
-	var bottom_y := view.layer.offset.y + BaseLayout.WORLD_HEIGHT * z
-	assert_gte(top_y, 300.0 - 1.0, "below the HUD")
-	assert_lte(bottom_y, 1920.0 - 100.0 + 1.0, "above the nav bar")
-	# The width fits too, with the sprites.
-	assert_lte(view.span() * z, 1080.0 - 16.0 + 0.5)
+	view.set_state(_levels({"hq": 7}), null, NOW)
+	var en: String = view._labels["hq"].text
+	assert_string_contains(en, Loc.t("building.hq.name"))
+	assert_string_contains(en, Fmt.amount("en", 7))
+	TranslationServer.set_locale("ar")
+	view.set_state(_levels({"hq": 7}), null, NOW)
+	assert_ne(view._labels["hq"].text, en)
+
+## A building's bounds on screen at the layer's current fit.
+func _screen_bounds(view: BaseView, id: String) -> Rect2:
+	var shape := CampLayout.outline(id)
+	var box := Rect2(shape[0], Vector2.ZERO)
+	for at in shape:
+		box = box.expand(at)
+	return Rect2(view.layer.offset + box.position * view.layer.scale, box.size * view.layer.scale)
+
+## HUD sizes close to the real ones: the top box and HudBottom.HEIGHT.
+const HUD_TOP := 300.0
+const HUD_NAV := 252.0
+
+func test_the_painting_always_covers_the_space_between_the_hud_and_the_nav_bar() -> void:
+	for view_size: Vector2 in [Vector2(1080, 1920), Vector2(1080, 2340), Vector2(1080, 2400), Vector2(1080, 2640), Vector2(1080, 1440)]:
+		var f := CampLayout.fit(view_size, HUD_TOP, HUD_NAV)
+		var size := CampLayout.WORLD * float(f["zoom"])
+		for offset: Vector2 in [f["start"], f["low"], f["high"]]:
+			assert_lte(offset.x, 0.001, "left edge at %s" % view_size)
+			assert_gte(offset.x + size.x, view_size.x - 0.001, "right edge at %s" % view_size)
+			assert_lte(offset.y, HUD_TOP + 0.001, "under the HUD at %s" % view_size)
+			assert_gte(offset.y + size.y, view_size.y - HUD_NAV - 0.001, "behind the nav bar at %s" % view_size)
+
+func test_on_tall_phones_every_building_opens_clear_of_the_hud() -> void:
+	for view_size: Vector2 in [Vector2(1080, 2340), Vector2(1080, 2400)]:
+		var view := _view()
+		view.apply_fit(view_size, HUD_TOP, HUD_NAV)
+		for id: String in CampLayout.REGIONS:
+			var box := _screen_bounds(view, id)
+			assert_gte(box.position.y, HUD_TOP, "%s under the top at %s" % [id, view_size])
+			assert_lte(box.end.y, view_size.y - HUD_NAV, "%s above the nav at %s" % [id, view_size])
+			assert_gte(box.position.x, 0.0, "%s on screen at %s" % [id, view_size])
+			assert_lte(box.end.x, view_size.x, "%s on screen at %s" % [id, view_size])
+
+func test_on_a_16_by_9_phone_the_camp_opens_on_the_command_post_and_panning_reaches_the_farm() -> void:
+	var view_size := Vector2(1080, 1920)
+	var view := _view()
+	view.apply_fit(view_size, HUD_TOP, HUD_NAV)
+	assert_gte(_screen_bounds(view, "hq").position.y, HUD_TOP, "the command post is clear of the top")
+	var at := Vector2(500, 900)
+	_press_at(view, at, true)
+	_drag_by(view, at, Vector2(0, -2000))
+	_press_at(view, at + Vector2(0, -2000), false)
+	assert_lte(_screen_bounds(view, "farm").end.y, view_size.y - HUD_NAV, "the farm comes clear of the nav bar")
+
+func test_panning_stops_at_the_edges_and_a_refit_keeps_the_place() -> void:
+	var view := _view()
+	view.apply_fit(Vector2(1080, 1920), HUD_TOP, HUD_NAV)
+	var start := view.layer.offset
+	_press_at(view, Vector2(500, 900), true)
+	_drag_by(view, Vector2(500, 900), Vector2(0, 5000))
+	assert_eq(view.layer.offset, start, "already at the top of the painting")
+	_drag_by(view, Vector2(500, 900), Vector2(0, -100))
+	_press_at(view, Vector2(500, 800), false)
+	var panned := view.layer.offset
+	assert_lt(panned.y, start.y)
+	view.apply_fit(Vector2(1080, 1920), HUD_TOP, HUD_NAV)
+	assert_eq(view.layer.offset, panned)
+
+func test_a_drag_with_motion_that_returns_to_its_start_is_not_a_tap() -> void:
+	var view := _view()
+	view.apply_fit(Vector2(1080, 1920), HUD_TOP, HUD_NAV)
+	var tapped := []
+	view.building_tapped.connect(func(id: String) -> void: tapped.append(id))
+	view.ground_tapped.connect(func() -> void: tapped.append("ground"))
+	var at := view.get_global_transform_with_canvas() * view.building_point("hq")
+	_press_at(view, at, true)
+	_drag_by(view, at, Vector2(0, -60))
+	_drag_by(view, at + Vector2(0, -60), Vector2(0, 60))
+	_press_at(view, at, false)
+	assert_eq(tapped, [])
 
 func _panel() -> BuildingPanel:
 	var panel := BuildingPanel.new()

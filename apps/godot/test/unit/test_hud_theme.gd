@@ -1,9 +1,9 @@
 extends GutTest
-## The code-drawn HUD keeps the approved mockup's exact values (docs/godot-visuals-plan.md), scaled from mockup px to the viewport.
+## The bronze HUD's values (docs/godot-visuals-plan.md), scaled from mockup px to the viewport.
 
-func test_the_colours_are_the_approved_mockups() -> void:
-	assert_eq(HudTheme.PANEL, Color(38.0 / 255.0, 29.0 / 255.0, 22.0 / 255.0, 0.9))
-	assert_eq(HudTheme.BRASS, Color("b08d57"))
+func test_the_palette() -> void:
+	assert_eq(HudTheme.PANEL, Color(40.0 / 255.0, 39.0 / 255.0, 35.0 / 255.0, 0.92))
+	assert_eq(HudTheme.BRASS, Color("a8834f"))
 	assert_eq(HudTheme.TEXT, Color("e8d5b0"))
 	assert_eq(HudTheme.TEXT_SECOND, Color("bfa77c"))
 	assert_eq(HudTheme.TERRACOTTA, Color("b5532f"))
@@ -28,6 +28,13 @@ func test_the_switch_is_terracotta_with_a_sand_ring() -> void:
 	assert_eq(box.bg_color, HudTheme.TERRACOTTA)
 	assert_eq(box.border_color, HudTheme.RING)
 	assert_eq(box.corner_radius_top_left, roundi(HudTheme.px(HudTheme.SWITCH) * 0.5), "a circle")
+
+func test_every_painted_piece_loads_and_its_nine_slice_fits_it() -> void:
+	for box: StyleBoxTexture in [HudTheme.band(), HudTheme.round_face(), HudTheme.round_face(true), HudTheme.build().get_stylebox("normal", "Button")]:
+		assert_not_null(box.texture)
+		var size := box.texture.get_size()
+		assert_lt(box.texture_margin_left + box.texture_margin_right, size.x)
+		assert_lt(box.texture_margin_top + box.texture_margin_bottom, size.y)
 
 func test_the_theme_styles_panels_and_buttons() -> void:
 	var theme := HudTheme.build()

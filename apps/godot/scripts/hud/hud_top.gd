@@ -1,8 +1,8 @@
 class_name HudTop
 extends VBoxContainer
-## The top of the Base and the Map (look test): the resource bar (four cells), then the player chip at the start edge with the
-## context strip beside it (builders on the base, marches on the map). The chip opens Settings. Nothing here is shown on the
-## other pages.
+## The top of the Base and the Map: a full-width bronze header holding the four resource cells, then the player chip at the start
+## edge with the context strip beside it (builders on the base, marches on the map). The chip opens Settings. Nothing here is shown
+## on the other pages.
 
 signal chip_pressed
 
@@ -14,19 +14,22 @@ var marches := MarchesStrip.new()
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layout_direction = Control.LAYOUT_DIRECTION_LOCALE
-	add_theme_constant_override("separation", roundi(HudTheme.px(6)))
-	var bar := PanelContainer.new()
-	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bar.add_theme_stylebox_override("panel", HudTheme.panel(HudTheme.RADIUS, 8.0, 6.0))
+	var header := PanelContainer.new()
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	header.add_theme_stylebox_override("panel", HudTheme.band())
+	add_child(header)
+	var rows := VBoxContainer.new()
+	rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rows.add_theme_constant_override("separation", roundi(HudTheme.px(5)))
+	header.add_child(rows)
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_theme_constant_override("separation", roundi(HudTheme.px(6)))
-	bar.add_child(row)
+	rows.add_child(row)
 	for id: String in Balance.data()["resourceIds"]:
 		var cell := ResourceCell.new(id)
 		row.add_child(cell)
 		cells[id] = cell
-	add_child(bar)
 	var strip := HBoxContainer.new()
 	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	strip.add_theme_constant_override("separation", roundi(HudTheme.px(8)))
@@ -40,7 +43,7 @@ func _init() -> void:
 	context.add_child(pill)
 	context.add_child(marches)
 	strip.add_child(context)
-	add_child(strip)
+	rows.add_child(strip)
 
 ## Fills the cells from the amounts accrued to now, `rates` (HudModel.rates) and the chips' states (HudModel.chips).
 func set_resources(chips: Array, rates: Dictionary) -> void:

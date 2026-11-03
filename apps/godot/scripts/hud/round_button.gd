@@ -1,10 +1,13 @@
 class_name RoundButton
 extends VBoxContainer
-## A round HUD button with its label under it (look test): the bottom row's Heroes, Alliance and Reports (44 mockup px) and the
-## Base/Map switch (66 px, terracotta with a sand ring). A one-dot badge sits at the top end of the button; it hides by alpha,
+## A round HUD button with its label under it: the bottom row's Heroes, Alliance and Reports (44 mockup px) and the Base/Map
+## switch (66 px), on the painted bronze ring. A one-dot badge sits at the top end of the button; it hides by alpha,
 ## never by `visible`, so the row keeps its height. The label sits on a soft shadow so it reads on the light ground too.
 
 signal pressed
+
+## The ring of the open page's button glows.
+const ACTIVE_TINT := Color(1.45, 1.3, 1.0)
 
 var _button := Button.new()
 var _icon: HudIcon
@@ -47,12 +50,10 @@ func _init(icon_name := "", diameter := 44.0, big := false) -> void:
 	place_dot("en")
 
 func _apply_style() -> void:
-	var fill := HudTheme.TERRACOTTA if _big else HudTheme.PANEL
-	var ring := HudTheme.RING if (_big or _active) else HudTheme.BRASS
-	var width := 2.5 if _big else (2.0 if _active else HudTheme.BORDER)
-	var box := HudTheme.round_style(fill, ring, _diameter, width)
+	var box := HudTheme.round_face(_big)
 	for state in ["normal", "hover", "pressed", "focus"]:
 		_button.add_theme_stylebox_override(state, box)
+	_button.self_modulate = ACTIVE_TINT if _active else Color.WHITE
 
 func set_label(text: String) -> void:
 	_label.text = text
@@ -61,6 +62,7 @@ func set_icon(icon_name: String) -> void:
 	_icon.set_icon(icon_name)
 
 ## Marks the button of the page that is open (a brighter ring).
+## It tints the button only, so the icon on it stays as it is.
 func set_active(active: bool) -> void:
 	_active = active
 	_apply_style()

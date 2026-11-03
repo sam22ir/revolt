@@ -415,15 +415,15 @@ func _build_hud() -> void:
 	_hud_root.layout_direction = Control.LAYOUT_DIRECTION_LOCALE
 	layer.add_child(_hud_root)
 
-	# The top (resource bar, player chip, context strip) and the bottom (round buttons, Base/Map switch) are drawn in code with the
-	# HUD theme; the other sheets keep their own styling until they are restyled.
+	# The top (resource bar, player chip, context strip) and the bottom (round buttons, Base/Map switch) use the bronze HUD theme;
+	# the other sheets keep their own styling until they are restyled.
 	var theme := HudTheme.build()
 	_top_box = _top
 	_top.theme = theme
 	_top.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	_top.offset_left = HudTheme.px(8)
-	_top.offset_right = -HudTheme.px(8)
-	_top.offset_top = HudTheme.px(8)
+	_top.offset_left = 0.0
+	_top.offset_right = 0.0
+	_top.offset_top = 0.0
 	_top.chip_pressed.connect(_show_screen.bind("settings"))
 	_hud_root.add_child(_top)
 
@@ -504,10 +504,10 @@ func _build_hud() -> void:
 	_bottom.theme = theme
 	_bottom.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_bottom.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_bottom.offset_left = HudTheme.px(10)
-	_bottom.offset_right = -HudTheme.px(10)
+	_bottom.offset_left = HudTheme.px(HudBottom.INSET_SIDE)
+	_bottom.offset_right = -HudTheme.px(HudBottom.INSET_SIDE)
 	_bottom.offset_top = -NAV_HEIGHT
-	_bottom.offset_bottom = -HudTheme.px(8)
+	_bottom.offset_bottom = -HudTheme.px(HudBottom.INSET_BOTTOM)
 	_bottom.page_requested.connect(_on_page_requested)
 	_bottom.switch_requested.connect(_show_screen)
 	_hud_root.add_child(_bottom)
