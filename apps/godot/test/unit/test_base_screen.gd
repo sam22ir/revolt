@@ -122,6 +122,14 @@ func test_the_building_under_construction_is_shaded() -> void:
 	view.set_state(_levels(), null, NOW)
 	assert_false(view.is_shaded("farm"))
 
+func test_a_name_plate_taps_as_its_building() -> void:
+	var view := _view()
+	view.set_state(_levels(), null, NOW)
+	for id: String in CampLayout.REGIONS:
+		var label: Label = view._labels[id]
+		var centre: Vector2 = label.position + label.size * BaseView.LABEL_SCALE * 0.5
+		assert_eq(view.hit_building(centre), id)
+
 func test_each_building_shows_its_name_and_level_in_the_language() -> void:
 	var view := _view()
 	view.set_state(_levels({"hq": 7}), null, NOW)

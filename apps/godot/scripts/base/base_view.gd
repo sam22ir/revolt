@@ -114,8 +114,12 @@ func _refresh_labels() -> void:
 		var width := label.size.x * LABEL_SCALE
 		label.position = Vector2(clampf(at.x - width * 0.5, LABEL_MARGIN, CampLayout.WORLD.x - width - LABEL_MARGIN), at.y)
 
-## The id of the building at `world` (this node's coordinates), or "" for empty ground.
+## The id of the building at `world` (this node's coordinates), or "" for empty ground. A name plate counts as its building.
 func hit_building(world: Vector2) -> String:
+	for id: String in _labels:
+		var label: Label = _labels[id]
+		if Rect2(label.position, label.size * LABEL_SCALE).has_point(world):
+			return id
 	return CampLayout.building_at(world)
 
 ## A point on the building's walls (for tests and tooling).
