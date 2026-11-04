@@ -43,7 +43,24 @@ func test_a_sheet_taller_than_its_maximum_scrolls_instead_of_growing() -> void:
 	panel.update_training(_context("en"))
 	panel.set_max_height(300.0)
 	await wait_process_frames(3)
-	assert_lte(panel.get_combined_minimum_size().y, 300.0 + 80.0, "the sheet is capped near its maximum, the margins included")
+	assert_lte(panel.get_combined_minimum_size().y, 300.0, "the sheet is capped at its maximum, the margins included")
+
+func test_a_shorter_sheet_does_not_keep_the_last_ones_height() -> void:
+	var panel: BuildingPanel = add_child_autofree(BuildingPanel.new())
+	panel.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	panel.open_for("barracks")
+	for i in 3:
+		panel.update_model(_model("barracks"), "")
+		panel.update_training(_context("en"))
+		await wait_process_frames(1)
+	var tall := panel.size.y
+	panel.open_for("hq")
+	for i in 3:
+		panel.update_model(_model("hq"), "")
+		await wait_process_frames(1)
+	assert_lt(panel.size.y, tall, "the sheet shrank to its content")
+	assert_eq(panel.size.y, panel.get_combined_minimum_size().y)
 
 func test_the_training_form_follows_the_language() -> void:
 	var training: TrainingView = add_child_autofree(TrainingView.new())

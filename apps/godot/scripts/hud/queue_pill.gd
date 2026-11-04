@@ -71,7 +71,8 @@ func update_model(m: Dictionary, background: String) -> void:
 			_label.text = Loc.t("queue.idle")
 		_box.border_color = HudTheme.RING if m["busy"] else HudTheme.BRASS
 	_set_help_shown(m["help"])
-	_help.text = Loc.t("help.ask")
+	# A lone space keeps the row's height (an empty button is shorter) but gives its width to the text beside it.
+	_help.text = Loc.t("help.ask") if m["help"] else " "
 	if _note_code != "":
 		_time.text = Loc.t("reason." + _note_code)
 	else:

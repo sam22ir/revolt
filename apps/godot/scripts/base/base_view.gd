@@ -16,9 +16,12 @@ const INK := Color8(0x2b, 0x2a, 0x24)
 const GOLD := Color8(0xe0, 0xb0, 0x40)
 const OUTLINE := Color8(0xff, 0xf1, 0xb8)
 const UPGRADING_SHADE := Color(0.17, 0.12, 0.07, 0.3)
-## Text is laid out at twice its world size and drawn at half, so it stays sharp under the layer's zoom.
-const LABEL_FONT := 40
+## Text is laid out at twice its world size and drawn at half, so it stays sharp under the layer's zoom. 26 world units come
+## out at 12 CSS px or more on a phone (the layer's zoom is at least 360 / 768).
+const LABEL_FONT := 52
 const LABEL_SCALE := 0.5
+## How close a name plate may come to the painting's sides, in world units.
+const LABEL_MARGIN := 6.0
 const BAR_WIDTH := 70.0
 ## A press and release closer than this (viewport px) is a tap.
 const TAP_SLOP := 16.0
@@ -71,10 +74,17 @@ func _make_label() -> Label:
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", LABEL_FONT)
-	label.add_theme_constant_override("line_spacing", -6)
-	label.add_theme_color_override("font_color", Color8(0xff, 0xf8, 0xe6))
-	label.add_theme_color_override("font_outline_color", Color(INK, 0.95))
-	label.add_theme_constant_override("outline_size", 8)
+	label.add_theme_color_override("font_color", HudTheme.TEXT)
+	var plate := StyleBoxFlat.new()
+	plate.bg_color = Color(HudTheme.PANEL, 0.9)
+	plate.border_color = HudTheme.BRASS
+	plate.set_border_width_all(3)
+	plate.set_corner_radius_all(18)
+	plate.content_margin_left = 18.0
+	plate.content_margin_right = 18.0
+	plate.content_margin_top = 4.0
+	plate.content_margin_bottom = 4.0
+	label.add_theme_stylebox_override("normal", plate)
 	return label
 
 ## Takes what the screen shows: building levels, the running upgrade (or null) and server time.
@@ -98,10 +108,11 @@ func _refresh_labels() -> void:
 	var lang := Fmt.lang()
 	for id: String in _labels:
 		var label: Label = _labels[id]
-		label.text = "%s\n%s" % [Loc.t("building.%s.name" % id, {}, background), Loc.t("panel.level", {"level": Fmt.amount(lang, int(_levels.get(id, 0)))})]
+		label.text = "%s · %s" % [Fmt.amount(lang, int(_levels.get(id, 0))), Loc.t("building.%s.name" % id, {}, background)]
 		label.reset_size()
 		var at: Vector2 = CampLayout.REGIONS[id]["label"]
-		label.position = at - Vector2(label.size.x * LABEL_SCALE * 0.5, 0.0)
+		var width := label.size.x * LABEL_SCALE
+		label.position = Vector2(clampf(at.x - width * 0.5, LABEL_MARGIN, CampLayout.WORLD.x - width - LABEL_MARGIN), at.y)
 
 ## The id of the building at `world` (this node's coordinates), or "" for empty ground.
 func hit_building(world: Vector2) -> String:

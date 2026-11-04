@@ -8,8 +8,8 @@ signal pressed
 
 const FONT := 28
 const NOTE_S := 4.0
-const MUTED := Color8(0x6b, 0x65, 0x52)
-const LACKING := Color8(0xb0, 0x3a, 0x2a)
+const MUTED := HudTheme.TEXT_SECOND
+const LACKING := HudTheme.LACKING
 
 ## "upgrade" or "training": picks the button's text.
 var kind := "upgrade"

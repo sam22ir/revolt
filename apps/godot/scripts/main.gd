@@ -416,8 +416,9 @@ func _build_hud() -> void:
 	layer.add_child(_hud_root)
 
 	# The top (resource bar, player chip, context strip) and the bottom (round buttons, Base/Map switch) use the bronze HUD theme;
-	# the other sheets keep their own styling until they are restyled.
+	# so does the building sheet. The other sheets keep their own styling until they are restyled.
 	var theme := HudTheme.build()
+	_base.panel.theme = theme
 	_top_box = _top
 	_top.theme = theme
 	_top.set_anchors_preset(Control.PRESET_TOP_WIDE)

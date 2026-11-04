@@ -13,11 +13,9 @@ signal help_pressed
 const HELP_NOTE_S := 4.0
 
 const FONT := 32
-const PAPER := Color8(0xf4, 0xea, 0xd6)
-const INK := Color8(0x2b, 0x2a, 0x24)
-const GOLD := Color8(0xe0, 0xb0, 0x40)
-const LACKING := Color8(0xb2, 0x3a, 0x2a)
-const MUTED := Color8(0x6b, 0x64, 0x52)
+const INK := HudTheme.TEXT
+const LACKING := HudTheme.LACKING
+const MUTED := HudTheme.TEXT_SECOND
 const STEP_SIZE := Vector2(96, 96)
 
 var _troop := "infantry"
@@ -93,6 +91,9 @@ func _ready() -> void:
 		_troop = _troop_ids[index]
 		_notice_code = "")
 	_select.add_theme_font_size_override("font_size", FONT)
+	_select.custom_minimum_size.y = STEP_SIZE.y
+	for state in ["normal", "hover", "pressed", "focus"]:
+		_select.add_theme_stylebox_override(state, HudTheme.flat(Color(0, 0, 0, 0.45), 6.0, HudTheme.BRASS, HudTheme.BORDER))
 	add_child(_select)
 	add_child(_role)
 
@@ -137,6 +138,7 @@ func _ready() -> void:
 
 	_submit.add_theme_font_size_override("font_size", FONT)
 	_submit.custom_minimum_size.y = STEP_SIZE.y
+	HudTheme.make_primary(_submit)
 	_submit.pressed.connect(_on_submit)
 	add_child(_submit)
 	add_child(_reason)

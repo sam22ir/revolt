@@ -14,11 +14,12 @@ signal heroes_requested
 
 const FONT := 34
 const TITLE_FONT := 42
-const PAPER := Color8(0xf4, 0xea, 0xd6)
-const INK := Color8(0x2b, 0x2a, 0x24)
-const GOLD := Color8(0xe0, 0xb0, 0x40)
-const LACKING := Color8(0xb2, 0x3a, 0x2a)
-const MUTED := Color8(0x6b, 0x64, 0x52)
+const INK := HudTheme.TEXT
+const GOLD := HudTheme.GOLD
+const LACKING := HudTheme.LACKING
+const MUTED := HudTheme.TEXT_SECOND
+## The close button is a round bronze face, a comfortable target (38 mockup px).
+const CLOSE_SIZE := 110.0
 
 var _model: Dictionary = {}
 var _key := ""
@@ -39,14 +40,7 @@ var _bar: ProgressBar
 func _ready() -> void:
 	layout_direction = Control.LAYOUT_DIRECTION_LOCALE
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	var box := StyleBoxFlat.new()
-	box.bg_color = PAPER
-	box.border_color = GOLD
-	box.set_border_width_all(4)
-	box.corner_radius_top_left = 28
-	box.corner_radius_top_right = 28
-	box.set_content_margin_all(28)
-	add_theme_stylebox_override("panel", box)
+	add_theme_stylebox_override("panel", HudTheme.sheet())
 	_body.add_theme_constant_override("separation", 14)
 	_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -70,7 +64,12 @@ func set_max_height(px: float) -> void:
 
 func _fit() -> void:
 	var want := _body.get_combined_minimum_size().y
-	_scroll.custom_minimum_size.y = minf(want, _max_height) if _max_height > 0.0 else want
+	# The cap is on the whole sheet, so the frame's margins come off what the scroll area may take.
+	var room := _max_height - get_theme_stylebox("panel").get_minimum_size().y
+	_scroll.custom_minimum_size.y = minf(want, room) if _max_height > 0.0 else want
+	# Anchored to the bottom, it grows upward; a Control never shrinks by itself, so a shorter sheet would keep the last one's height.
+	if anchor_top == 1.0:
+		offset_top = offset_bottom - get_combined_minimum_size().y
 
 ## Feeds the training form (only on the barracks sheet). `ctx` is TrainingView.update_context's.
 func update_training(ctx: Dictionary) -> void:
@@ -152,6 +151,10 @@ func _rebuild() -> void:
 	close_button.text = "×"
 	close_button.add_theme_font_size_override("font_size", TITLE_FONT)
 	close_button.tooltip_text = Loc.t("panel.close")
+	close_button.custom_minimum_size = Vector2.ONE * CLOSE_SIZE
+	close_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	for state in ["normal", "hover", "pressed", "focus"]:
+		close_button.add_theme_stylebox_override(state, HudTheme.round_face())
 	close_button.pressed.connect(func() -> void:
 		close()
 		closed.emit())
@@ -173,7 +176,7 @@ func _rebuild() -> void:
 			_bar.value = 0.0
 			# Gold on a dark track; the fill starts at the layout's start side, so it runs right to left in Arabic.
 			var track := StyleBoxFlat.new()
-			track.bg_color = Color(INK, 0.35)
+			track.bg_color = Color(0, 0, 0, 0.45)
 			track.set_corner_radius_all(10)
 			var fill := StyleBoxFlat.new()
 			fill.bg_color = GOLD
@@ -215,12 +218,7 @@ func _build_next(n: Dictionary, lang: String, id: String) -> void:
 	button.add_theme_font_size_override("font_size", FONT + 2)
 	button.custom_minimum_size.y = 96
 	button.disabled = not n["ok"] or _pending
-	button.add_theme_stylebox_override("normal", _button_box(GOLD))
-	button.add_theme_stylebox_override("hover", _button_box(GOLD.lightened(0.15)))
-	button.add_theme_stylebox_override("pressed", _button_box(GOLD.darkened(0.15)))
-	button.add_theme_stylebox_override("disabled", _button_box(Color8(0xd8, 0xcf, 0xb8)))
-	button.add_theme_color_override("font_color", INK)
-	button.add_theme_color_override("font_disabled_color", MUTED)
+	HudTheme.make_primary(button)
 	button.pressed.connect(func() -> void: upgrade_pressed.emit(id))
 	_body.add_child(button)
 	# The check's own reason, or the one the server just gave (it can know better: a stale view, a queue started elsewhere).
@@ -249,10 +247,3 @@ func _label(text: String, size: int, color: Color, wrap := false) -> Label:
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return label
-
-func _button_box(color: Color) -> StyleBoxFlat:
-	var box := StyleBoxFlat.new()
-	box.bg_color = color
-	box.set_corner_radius_all(18)
-	box.set_content_margin_all(12)
-	return box

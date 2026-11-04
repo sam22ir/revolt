@@ -17,6 +17,10 @@ const RING := Color("e2c07a")
 const ALERT := Color("d9462b")
 const GOLD := Color("f0c060")
 const OLIVE := Color("6b7a3a")
+## Text on the gold button, and a lacking cost on the dark sheet (ALERT is too dim there).
+const ON_GOLD := Color("2b2a24")
+const LACKING := Color("f0795c")
+const DISABLED := Color("4a4538")
 const SHADOW := Color(0, 0, 0, 0.35)
 
 const RADIUS := 10.0
@@ -55,6 +59,21 @@ static func band(margin_x := 9.0, margin_y := 8.0) -> StyleBoxTexture:
 ## A round button's face, keeping the painted ring whole.
 static func round_face(big := false) -> StyleBoxTexture:
 	return frame("bronze_round_big" if big else "bronze_round", 0.0, 0.0, 0.0)
+
+## The building sheet: the painted bronze panel, its corners unstretched.
+static func sheet() -> StyleBoxTexture:
+	return frame("bronze_panel", 48.0, 13.0, 13.0)
+
+## The screen's one main action (upgrade, train): gold with dark text, so it stands out from the bronze buttons.
+static func make_primary(button: Button) -> void:
+	button.add_theme_stylebox_override("normal", flat(GOLD, 6.0))
+	button.add_theme_stylebox_override("hover", flat(GOLD.lightened(0.15), 6.0))
+	button.add_theme_stylebox_override("focus", flat(GOLD, 6.0))
+	button.add_theme_stylebox_override("pressed", flat(GOLD.darkened(0.15), 6.0))
+	button.add_theme_stylebox_override("disabled", flat(DISABLED, 6.0))
+	for colour_name in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		button.add_theme_color_override(colour_name, ON_GOLD)
+	button.add_theme_color_override("font_disabled_color", TEXT_SECOND)
 
 ## The shared dark panel: translucent gunmetal, bronze hairline, rounded corners, a soft shadow.
 static func panel(radius := RADIUS, margin_x := 10.0, margin_y := 6.0) -> StyleBoxFlat:

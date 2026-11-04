@@ -13,32 +13,32 @@ const REGIONS := {
 	"hq": {
 		"outline": [Vector2(250, 135), Vector2(400, 52), Vector2(450, 70), Vector2(532, 135), Vector2(530, 185), Vector2(478, 205), Vector2(320, 225), Vector2(250, 180)],
 		"point": Vector2(400, 140),
-		"label": Vector2(395, 238),
+		"label": Vector2(395, 228),
 	},
 	"barracks": {
 		"outline": [Vector2(130, 395), Vector2(232, 345), Vector2(290, 372), Vector2(345, 395), Vector2(375, 500), Vector2(290, 530), Vector2(170, 550), Vector2(135, 470)],
 		"point": Vector2(215, 430),
-		"label": Vector2(250, 568),
+		"label": Vector2(250, 548),
 	},
 	"armory": {
 		"outline": [Vector2(465, 455), Vector2(520, 400), Vector2(585, 362), Vector2(655, 420), Vector2(650, 470), Vector2(590, 495), Vector2(550, 515), Vector2(465, 490)],
 		"point": Vector2(580, 430),
-		"label": Vector2(570, 532),
+		"label": Vector2(565, 518),
 	},
 	"hero_hall": {
 		"outline": [Vector2(30, 670), Vector2(180, 595), Vector2(262, 640), Vector2(262, 725), Vector2(130, 800), Vector2(30, 745)],
 		"point": Vector2(145, 690),
-		"label": Vector2(160, 818),
+		"label": Vector2(150, 802),
 	},
 	"treasury": {
 		"outline": [Vector2(618, 715), Vector2(680, 668), Vector2(738, 715), Vector2(738, 800), Vector2(695, 808), Vector2(618, 775)],
 		"point": Vector2(680, 740),
-		"label": Vector2(668, 824),
+		"label": Vector2(678, 812),
 	},
 	"farm": {
-		"outline": [Vector2(370, 965), Vector2(450, 870), Vector2(530, 790), Vector2(560, 775), Vector2(655, 835), Vector2(730, 960), Vector2(560, 1078)],
+		"outline": [Vector2(370, 965), Vector2(450, 870), Vector2(530, 790), Vector2(560, 775), Vector2(655, 835), Vector2(730, 960), Vector2(767, 985), Vector2(767, 1205), Vector2(690, 1170), Vector2(610, 1085), Vector2(560, 1078)],
 		"point": Vector2(560, 930),
-		"label": Vector2(555, 1094),
+		"label": Vector2(540, 1082),
 	},
 }
 
