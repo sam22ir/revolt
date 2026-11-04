@@ -8,9 +8,16 @@ const SEAM_COLOR := Color(0.54, 0.42, 0.27, 0.55)
 const SEAM_LIBERATED_COLOR := Color(0.88, 0.69, 0.25, 0.9)
 const SEAM_WIDTH := 3.0
 const BASE_SPAN := 2
-const BASE_OWN := Color("d8b45a")
+const BASE_OWN := Color("e0b43c")
+const BASE_ALLY := Color("3fae6a")
 const BASE_OTHER := Color("9fb0d0")
+const NPC_HOSTILE := Color("c2412d")
 const OUTLINE := Color(1.0, 0.95, 0.72)
+## Camp art (320x232 opaque): the ground diamond spans ~300 px and its bottom corner sits at y ~208, so scale to the
+## 2x2 footprint width and anchor that corner on the footprint's bottom corner.
+const BASE_TEXTURE := preload("res://art/map/base_camp.webp")
+const BASE_ART_WIDTH := 300.0
+const BASE_ART_ANCHOR := Vector2(156.0, 208.0)
 const NPC_SIZE := 1.45
 const NPC_COLORS := {
 	"patrol": Color("8c7a3c"),
@@ -24,6 +31,11 @@ const BADGE_RING_FORTIFIED := Color("d0573a")
 const HQ_OWN := Color("2f9e8f")
 const HQ_OTHER := Color("6a55a8")
 const SELECTION_COLOR := Color(1.0, 0.97, 0.78)
+const TEXT_SUPERSAMPLE := 4
+const BADGE_FONT := 16
+const BADGE_HEIGHT := 26.0
+const BADGE_MIN_WIDTH := 44.0
+const NAME_PATTERN := "^[ -~]{1,12}$"
 const TAG_PATTERN := "^[A-Z0-9]{2,4}$"
 
 enum Mode { SEAMS, OBJECTS }
@@ -37,6 +49,7 @@ var mode := Mode.OBJECTS
 var draw_count := 0
 ## The selected target or tile (x, y), or (-1, -1): outlined above everything else.
 var selected := Vector2i(-1, -1)
+var _name_re := RegEx.create_from_string(NAME_PATTERN)
 var _tag_re := RegEx.create_from_string(TAG_PATTERN)
 
 func setup(m: WorldMap) -> void:
@@ -78,11 +91,76 @@ func _draw_base(b: Dictionary) -> void:
 	var x := int(b["x"])
 	var y := int(b["y"])
 	var corners := Iso.footprint(x, y, BASE_SPAN, BASE_SPAN)
-	var fill := BASE_OWN if b["mine"] else BASE_OTHER
-	draw_colored_polygon(corners, fill)
-	var closed := corners.duplicate()
-	closed.append(corners[0])
-	draw_polyline(closed, OUTLINE if b["mine"] else Color(1, 1, 1, 0.6), 3.0 if b["mine"] else 1.5)
+	var relation := _relation(b)
+	var mine := relation == "mine"
+	# Soft contact shadow plus an owner-coloured glow (stacked shrinking diamonds) so the art melts into the ground.
+	var centre := (corners[0] + corners[2]) * 0.5
+	var tint := _relation_color(relation)
+	for step in 4:
+		var k := 1.12 - 0.12 * step
+		draw_colored_polygon(_scaled(corners, centre, k), Color(0.12, 0.08, 0.04, 0.10))
+	for step in 3:
+		draw_colored_polygon(_scaled(corners, centre, 0.95 - 0.12 * step), Color(tint, 0.16))
+	var scale := Iso.TILE_W * BASE_SPAN / BASE_ART_WIDTH
+	var size := BASE_TEXTURE.get_size() * scale
+	draw_texture_rect(BASE_TEXTURE, Rect2(corners[2] - BASE_ART_ANCHOR * scale, size), false)
+	_draw_badge(b, corners[2] + Vector2(0, 2), tint)
+
+## A rounded name plate under the base in the owner colour. Canvas text stays short ASCII (rule 6): a handle in
+## another script gets a plain coloured plate with no text.
+func _draw_badge(b: Dictionary, top_centre: Vector2, color: Color) -> void:
+	var text := _badge_text(b)
+	var font := ThemeDB.fallback_font
+	var width := maxf(BADGE_MIN_WIDTH, font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, BADGE_FONT).x + 18.0) if text != "" else BADGE_MIN_WIDTH
+	var rect := Rect2(top_centre - Vector2(width * 0.5, 0), Vector2(width, BADGE_HEIGHT))
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(0.17, 0.13, 0.10, 0.92)
+	box.border_color = color
+	box.set_border_width_all(3)
+	box.set_corner_radius_all(int(BADGE_HEIGHT * 0.5))
+	draw_style_box(box, rect)
+	if text != "":
+		_draw_text(text, rect.position + Vector2(width * 0.5, BADGE_HEIGHT - 8.0), BADGE_FONT, Color("fff8e6"))
+
+func _badge_text(b: Dictionary) -> String:
+	var handle := _text(b.get("tag"))
+	if not _name_re.search(handle):
+		return ""
+	var alliance := _text(b.get("alliance"))
+	return ("[%s] %s" % [alliance, handle]) if alliance != "" else handle
+
+## "mine", "ally" (same alliance tag as my base) or "other" (neutral player).
+func _relation(b: Dictionary) -> String:
+	if b["mine"]:
+		return "mine"
+	var tag := _text(b.get("alliance"))
+	if tag != "" and tag == _my_alliance():
+		return "ally"
+	return "other"
+
+func _my_alliance() -> String:
+	for b: Dictionary in map.snapshot["bases"]:
+		if b["mine"]:
+			return _text(b.get("alliance"))
+	return ""
+
+## A snapshot field as text. A base outside any alliance has `alliance: null`, which String() can't convert.
+static func _text(value: Variant) -> String:
+	return "" if value == null else str(value)
+
+func _relation_color(relation: String) -> Color:
+	match relation:
+		"mine":
+			return BASE_OWN
+		"ally":
+			return BASE_ALLY
+	return BASE_OTHER
+
+static func _scaled(points: PackedVector2Array, about: Vector2, k: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for p in points:
+		out.append(about + (p - about) * k)
+	return out
 
 func _draw_npc(n: Dictionary) -> void:
 	var c := Iso.tile_center(int(n["x"]), int(n["y"]))
@@ -91,6 +169,7 @@ func _draw_npc(n: Dictionary) -> void:
 	var half_h := Iso.TILE_H * 0.5 * NPC_SIZE
 	var diamond := PackedVector2Array([c + Vector2(0, -half_h), c + Vector2(half_w, 0), c + Vector2(0, half_h), c + Vector2(-half_w, 0)])
 	draw_colored_polygon(diamond, NPC_COLORS.get(kind, Color.GRAY))
+	draw_polyline(PackedVector2Array([diamond[0], diamond[1], diamond[2], diamond[3], diamond[0]]), NPC_HOSTILE, 3.0)
 	var badge_at := c + Vector2(half_w * 0.62, -half_h * 0.7)
 	draw_circle(badge_at, 11.0, BADGE_FILL)
 	draw_arc(badge_at, 11.0, 0.0, TAU, 20, BADGE_RING_FORTIFIED if kind == "fortified_line" else BADGE_RING, 2.0)
@@ -124,7 +203,11 @@ func set_selected(tile: Vector2i) -> void:
 	selected = tile
 	queue_redraw()
 
+## Text is rasterised at TEXT_SUPERSAMPLE times the size and drawn scaled down, so it stays crisp when the camera zooms in.
 func _draw_text(text: String, at: Vector2, font_size: int, color: Color) -> void:
 	var font := ThemeDB.fallback_font
 	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
-	draw_string(font, at - Vector2(width * 0.5, 0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
+	var origin := at - Vector2(width * 0.5, 0)
+	draw_set_transform(origin, 0.0, Vector2.ONE / TEXT_SUPERSAMPLE)
+	draw_string(font, Vector2.ZERO, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size * TEXT_SUPERSAMPLE, color)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
