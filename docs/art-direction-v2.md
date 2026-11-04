@@ -1,3 +1,5 @@
+> **Superseded (3 Nov 2026)** by docs/design/design-system.md (daylight camp and bronze). Kept for history.
+
 # Art direction v2 (draft for agreement)
 
 Status: brainstorm notes, not yet agreed. Nothing here changes `docs/GDD.md` §7 until we confirm. Written 21 Oct 2026.

@@ -1,3 +1,5 @@
+> **Changed 3 Nov 2026:** the look is now docs/design/design-system.md (daylight camp, bronze HUD). The base is one painting, the HUD uses painted bronze frames rather than the code-drawn panels below, and the round buttons stay. Kept for history and the ground and map notes.
+
 # Godot visuals plan (draft for agreement)
 
 **Status (26 Oct 2026): chunk V1 (look test) is built on `godot-client`; waiting for the user to pick a ground variant.** See "V1 status" at the end.

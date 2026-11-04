@@ -1,0 +1,84 @@
+# Design system: daylight camp and bronze
+
+*Decided 3 Nov 2026. Replaces "night and lamp" (kept for history in `rejected-night-and-lamp.md`). Supersedes `docs/art-direction-v2.md` where they disagree.*
+
+**The one reference is [`concepts/daylight-camp.jpg`](concepts/daylight-camp.jpg)**, for its look only. When this doc and the image disagree on content (faces, vehicles, flags, the real organisation names and the resource names shown in it), this doc and GDD §6 and §7 win. Every other file in `concepts/` is a rejected exploration.
+
+## 1. The idea
+
+A hidden mountain camp in full daylight, seen from above: sunlit sandstone, packed earth, whitewash and terracotta, dense enough to feel lived in. The interface is dark weathered metal with bronze edges, so it stays calm and readable over the busy painting.
+
+## 2. Decisions
+
+| Topic | Decision (3 Nov) |
+|---|---|
+| Lighting | Daylight everywhere: base camp and world map |
+| Base | One painting of the whole camp with every building and prop in it, so everything matches. See §5 |
+| Animated things | Left out of the painting and drawn on top: people, animals, smoke, flags |
+| HUD | Painted bronze frames, with a full-width header and nav band. No text baked in |
+| Bottom nav | Round buttons from the start edge, the big Base/Map switch at the end edge |
+| Fire | On colonial targets only (GDD §5, §6) |
+
+## 3. Color tokens
+
+The constants in `apps/godot/scripts/hud/hud_theme.gd` are the source of truth.
+
+| Constant | Hex | Use |
+|---|---|---|
+| `PANEL` | `#282723` at 92% | Flat gunmetal panels inside the frames |
+| `BRASS` | `#A8834F` | Bronze hairlines |
+| `RING` | `#E2C07A` | A hairline that marks something active |
+| `TEXT` | `#E8D5B0` | Body text, numbers |
+| `TEXT_SECOND` | `#BFA77C` | Labels, rates |
+| `GOLD` | `#F0C060` | The screen's one main button, a full store |
+| `ON_GOLD` | `#2B2A24` | Text on the gold button |
+| `LACKING` | `#F0795C` | A cost the player can't pay |
+| `ALERT` | `#D9462B` | Attention dots only, with a light ring |
+
+### Contrast (WCAG, on `PANEL`)
+
+| Pair | Ratio | Verdict |
+|---|---|---|
+| `TEXT` | 10.4 | Body text, all sizes |
+| `TEXT_SECOND` | 6.4 | Labels |
+| `GOLD` | 8.8 | Status text |
+| `LACKING` | 5.4 | Status text |
+| `ON_GOLD` on `GOLD` | 8.5 | Main button label |
+| `ALERT` | 3.5 | Fails for text: dots only |
+| `TEXT` on `BRASS` | 2.4 | Fails: never put text on a bronze rim |
+
+Rules: Arabic at 11 to 13 px uses `TEXT`, not `TEXT_SECOND`. Names over the painting sit on dark plates, because the painting has no calm ground to read against.
+
+## 4. Type
+
+IBM Plex Sans Arabic for Arabic and Latin, regular and bold (`apps/godot/fonts`). Sizes at the 375 pt design width, scaled by `HudTheme.SCALE`: 11 small labels, 13 body, 15 titles and numbers, 18 page titles.
+
+## 5. The base painting
+
+Art and its limits: `apps/godot/art/camp/README.md`. Tap outlines and name positions: `apps/godot/scripts/base/camp_layout.gd`.
+
+- **Making one:** Google Flow (Nano Banana 2.1) with the reference attached, listing every building and where it stands, and asking for no people, animals, vehicles, flags, smoke, fire or text. Download the 2K upscale.
+- **Limits:** upgrades don't change a building's look, new buildings need a repaint, nothing can be hidden, and each base skin is a whole painting.
+- **Before launch:** repaint with all planned buildings (GDD §4.1), so the layout changes only once.
+- **Vietnam** uses the Algerian painting until it has its own.
+
+## 6. HUD art
+
+Pieces and source: `apps/godot/art/hud/`. Nine-slice margins: `HudTheme`. Frames must look right mirrored for Arabic, so no one-sided detail.
+
+## 7. Content rules for art
+
+- **No faces:** people are small, with no readable faces (GDD §7). This rules out the portrait in the reference.
+- **Vehicles:** none on player columns until a historian has checked them. Player columns are foot and mules.
+- **Red on the map** means colonial-held land, not rival alliances.
+- **Flags and real organisation names** go to the historian review (GDD §6) before they appear.
+
+## 8. Motion
+
+Everything animated is cosmetic and computed from the clock, so it can't drift from the server's numbers. Slow and subtle: no bouncing or flashing rewards.
+
+## 9. Open questions
+
+- Who reviews flags, vehicles and organisation names (GDD §12).
+- Vietnam's painting and palette.
+- The other sheets (Reports, Alliance, Heroes) are not yet bronze.
