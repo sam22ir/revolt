@@ -33,6 +33,7 @@ var selected := ""
 var background := ""
 
 var _painting := Sprite2D.new()
+var _life := CampLife.new()
 var _labels := {}
 var _overlay := Node2D.new()
 var _levels: Dictionary = {}
@@ -63,6 +64,8 @@ func build() -> void:
 	_painting.scale = CampLayout.WORLD / tex.get_size()
 	_painting.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	add_child(_painting)
+	_life.build()
+	add_child(_life)
 	for id: String in CampLayout.REGIONS:
 		_labels[id] = _make_label()
 		add_child(_labels[id])
@@ -92,6 +95,7 @@ func set_state(levels: Dictionary, queue: Variant, now_ms: int) -> void:
 	_levels = levels
 	_queue = queue
 	_now_ms = now_ms
+	_life.tick(now_ms)
 	_refresh_labels()
 	_overlay.queue_redraw()
 

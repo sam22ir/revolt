@@ -42,6 +42,30 @@ const REGIONS := {
 	},
 }
 
+## Where the people walk, along the painted road and yards and clear of every building's outline.
+const ROUTES := {
+	"road": [Vector2(768, 505), Vector2(610, 590), Vector2(450, 690), Vector2(300, 752), Vector2(200, 815), Vector2(165, 880), Vector2(205, 945), Vector2(285, 1000), Vector2(345, 1035)],
+	"yard": [Vector2(395, 440), Vector2(400, 520), Vector2(300, 585), Vector2(200, 570)],
+	"cave": [Vector2(360, 405), Vector2(395, 450), Vector2(440, 520), Vector2(420, 570)],
+}
+
+## The people and animals on top of the painting. A walker goes back and forth along its route, starting `start` world units
+## along it, at `speed` world units a second. Figures are art/camp/life/ pieces.
+const WALKERS := [
+	{"kind": "mule", "route": "road", "speed": 13.0, "start": 0.0},
+	{"kind": "pack", "route": "road", "speed": 13.0, "start": 34.0},
+	{"kind": "crate", "route": "road", "speed": 15.0, "start": 620.0},
+	{"kind": "pack", "route": "yard", "speed": 11.0, "start": 0.0},
+	{"kind": "crate", "route": "cave", "speed": 12.0, "start": 40.0},
+]
+const STANDING := [
+	{"kind": "guard", "at": Vector2(235, 192), "flip": false},
+	{"kind": "guard", "at": Vector2(665, 288), "flip": true},
+	{"kind": "farmer", "at": Vector2(690, 1100), "flip": true},
+]
+## The top of the farm's painted chimney.
+const CHIMNEY := Vector2(546, 782)
+
 static func outline(id: String) -> PackedVector2Array:
 	return PackedVector2Array(REGIONS[id]["outline"])
 

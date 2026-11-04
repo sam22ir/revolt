@@ -121,7 +121,8 @@ static func build() -> Theme:
 	theme.set_font_size("font_size", "Label", font(FONT_BODY))
 	theme.set_stylebox("panel", "PanelContainer", panel())
 	for state in ["normal", "hover", "pressed", "focus", "disabled"]:
-		var box := frame("bronze_button", 22.0, 10.0, 6.0)
+		# The half-size piece: small buttons need a thin rim, and a nine-slice can't scale its edges.
+		var box := frame("bronze_button_small", 11.0, 10.0, 6.0)
 		if state == "pressed":
 			box.modulate_color = Color(1.25, 1.2, 1.1)
 		elif state == "disabled":
