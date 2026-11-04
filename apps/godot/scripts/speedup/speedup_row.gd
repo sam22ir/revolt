@@ -25,6 +25,7 @@ func _init() -> void:
 	visible = false
 	_button.focus_mode = Control.FOCUS_NONE
 	_button.add_theme_font_size_override("font_size", FONT)
+	_button.custom_minimum_size.y = 84.0
 	_button.pressed.connect(func() -> void:
 		if not _blocked and not _pending:
 			pressed.emit())

@@ -22,7 +22,7 @@ const LABEL_FONT := 52
 const LABEL_SCALE := 0.5
 ## How close a name plate may come to the painting's sides, in world units.
 const LABEL_MARGIN := 6.0
-const BAR_WIDTH := 70.0
+const BAR_WIDTH := 120.0
 ## A press and release closer than this (viewport px) is a tap.
 const TAP_SLOP := 16.0
 
@@ -190,6 +190,6 @@ func _draw_progress(label_at: Vector2) -> void:
 	var job: Dictionary = _queue
 	var total := maxf(1.0, float(int(job["endsAt"]) - int(job["startedAt"])))
 	var frac := clampf((_now_ms - int(job["startedAt"])) / total, 0.0, 1.0)
-	var y := label_at.y - 10.0
-	_overlay.draw_style_box(_bar_back, Rect2(label_at.x - BAR_WIDTH / 2.0 - 2.0, y - 2.0, BAR_WIDTH + 4.0, 9.0))
-	_overlay.draw_style_box(_bar_fill, Rect2(label_at.x - BAR_WIDTH / 2.0, y, maxf(2.0, BAR_WIDTH * frac), 5.0))
+	var y := label_at.y - 16.0
+	_overlay.draw_style_box(_bar_back, Rect2(label_at.x - BAR_WIDTH / 2.0 - 2.0, y - 2.0, BAR_WIDTH + 4.0, 14.0))
+	_overlay.draw_style_box(_bar_fill, Rect2(label_at.x - BAR_WIDTH / 2.0, y, maxf(2.0, BAR_WIDTH * frac), 10.0))
