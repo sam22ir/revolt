@@ -33,7 +33,7 @@ export {
   type TrainingJob,
   type UpgradeJob,
 } from "./base-state.ts";
-export { counterFactor, resolveBattle, takeLoot, type BattleResult, type BattleRound } from "./battle.ts";
+export { carryCapacity, counterFactor, resolveBattle, takeLoot, type BattleResult, type BattleRound } from "./battle.ts";
 export { BUILDING_IDS, type BuildingId } from "./building-id.ts";
 export { heroBattleModifier, checkLoadout, heroesOnMarch, parseHeroLoadout, HERO_LOADOUT_BLOCK_REASONS, loadoutIds, MAX_DEPUTIES, snapshotHeroes, type HeroLoadout, type HeroLoadoutBlockReason } from "./hero-loadout.ts";
 export { drawHero, HERO_DRAW_BLOCK_REASONS, isPityDraw, recruitHero, type HeroDraw, type HeroDrawBlockReason, type HeroRecruitResult } from "./hero-draw.ts";
@@ -65,6 +65,32 @@ export {
   type MarchStartResult,
   type MarchTiming,
 } from "./march.ts";
+export {
+  checkHarvest,
+  harvestCarry,
+  harvestedAt,
+  harvestTiming,
+  HARVEST_BLOCK_REASONS,
+  placeSites,
+  recallTiming,
+  type HarvestBlockReason,
+  type HarvestTiming,
+  type MapSite,
+  type RecallResult,
+} from "./sites.ts";
+export {
+  SITE_KINDS,
+  SITE_LEVEL_BANDS,
+  SITE_LEVEL_FALLBACK,
+  SITE_LEVELS,
+  SITE_MAX_HARVEST_MS,
+  SITE_MIN_SPACING,
+  SITE_RATE_PER_HOUR,
+  SITE_RESOURCE,
+  SITE_TILES_PER_SITE,
+  type SiteKind,
+  type SiteLevel,
+} from "./data/sites.ts";
 export { migrateBaseState } from "./migrate-state.ts";
 export { fightNpc, npcLevel, targetGone } from "./npc-battle.ts";
 export { RESOURCE_IDS, type ResourceId } from "./resource-id.ts";
