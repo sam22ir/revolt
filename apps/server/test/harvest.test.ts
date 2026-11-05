@@ -121,6 +121,9 @@ test("harvest: the load comes home and is capped by the carry and by storage", a
       ex(after.troops.infantry).toBe(10);
       ex(after.marches).toEqual([]);
       ex(r.ok).toBe(true);
+      // A harvest is not a fight: no report, so no event, battle-pass or story award can come from it.
+      const reports = await s.env.DB.prepare("SELECT COUNT(*) AS n FROM reports WHERE account_id = ?").bind(p.res.account.id).first();
+      ex(reports).toEqual({ n: 0 });
     },
     "a recall pays the load gathered so far into the base, brings the troops home at the recalled time, and frees the site": async (s, ex) => {
       const p = await newGuest(s);
