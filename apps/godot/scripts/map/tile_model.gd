@@ -30,13 +30,16 @@ static func npc_def(level: int) -> Variant:
 	return null
 
 ## What the panel draws for `info` at (x, y): {"title": String, "level": int (-1 for none), "coords": String, "desc": String,
-## "defenders": Dictionary or null, "rally_only": bool, "can_march": bool (a target that is not rally-only; one whose level the table does not know can be sent at, as in the Phaser panel), "alliance_name": String}. `alliance_name` is the player's own alliance's name
-## for their own HQ, else "". Player text (an alliance's name) never goes through a translation template: it is appended after.
-static func view(info: Dictionary, x: int, y: int, own_alliance_name: String) -> Dictionary:
+## "defenders": Dictionary or null, "rally_only": bool, "can_march": bool (a target that is not rally-only; one whose level the table does not know can be sent at, as in the Phaser panel), "alliance_name": String,
+## "lines": Array of String (a site's resource, rate and holder), "harvest_action": "" | "harvest" (free site) | "recall" (your march is at it), "recall_march": the march id to recall}.
+## `alliance_name` is the player's own alliance's name for their own HQ, else "". Player text (an alliance's name) never goes through a translation template: it is appended after.
+## `marches` and `now` (the viewer's marches and the synced clock, ms) decide a site's Recall button; a site needs neither otherwise.
+static func view(info: Dictionary, x: int, y: int, own_alliance_name: String, marches: Array = [], now := 0.0) -> Dictionary:
 	var lang := Fmt.lang()
 	var out := {
 		"title": "", "level": -1, "coords": Loc.t("map.coords", {"x": Fmt.amount(lang, x), "y": Fmt.amount(lang, y)}),
 		"desc": "", "defenders": null, "rally_only": false, "can_march": false, "alliance_name": "",
+		"lines": [], "harvest_action": "", "recall_march": "",
 	}
 	match info["kind"]:
 		"own":
@@ -61,10 +64,49 @@ static func view(info: Dictionary, x: int, y: int, own_alliance_name: String) ->
 				out["defenders"] = info["def"]["defenders"]
 				out["rally_only"] = bool(info["def"]["rallyOnly"])
 			out["can_march"] = not out["rally_only"]
+		"site":
+			_site_view(out, info["site"], marches, now)
 		_:
 			out["title"] = Loc.t("terrain." + String(info["terrain"]))
 			out["desc"] = Loc.t("map.nothingHere")
 	return out
+
+## A site's panel: its name and level, what it yields and at what rate, and who holds it. "mine" (the viewer's march is on it, or the
+## snapshot says so) offers Recall only while that march is at the site; "free" offers Harvest; "taken" offers nothing.
+static func _site_view(out: Dictionary, site: Dictionary, marches: Array, now: float) -> void:
+	var lang := Fmt.lang()
+	var kind := String(site["kind"])
+	var level := int(site["level"])
+	var holder := site_holder(site, marches, now)
+	out["title"] = Loc.t("site.%s.name" % kind)
+	out["level"] = level
+	out["lines"] = [
+		Loc.t("harvest.resourceLine", {"resource": Loc.t("resource." + SitesModel.kind_resource(kind))}),
+		Loc.t("harvest.rateLine", {"rate": Fmt.amount(lang, HarvestModel.rate_per_hour(kind, level))}),
+		Loc.t("harvest.mine" if holder == "mine" else ("harvest.taken" if holder == "taken" else "harvest.free")),
+	]
+	if holder == "mine":
+		var march := recall_march(site, marches, now)
+		if march != "":
+			out["harvest_action"] = "recall"
+			out["recall_march"] = march
+	elif holder == "free":
+		out["harvest_action"] = "harvest"
+
+## Who holds a site for the viewer: "mine" when one of the viewer's marches on it has not yet come home (the base can still list one that
+## has, until its next refresh) or the snapshot says so, else "taken" or "free" as the snapshot says.
+static func site_holder(site: Dictionary, marches: Array, now: float) -> String:
+	for m: Dictionary in marches:
+		if String(m.get("siteId", "")) == String(site["id"]) and now < float(m["returnAt"]):
+			return "mine"
+	return SitesModel.state_of(site)
+
+## The id of the viewer's march on this site that is at it now and can still be called home (its leave is not yet due), or "".
+static func recall_march(site: Dictionary, marches: Array, now: float) -> String:
+	for m: Dictionary in marches:
+		if String(m.get("siteId", "")) == String(site["id"]) and MarchesModel.stage(m, now) == "at_site" and now < MarchesModel.leave_at(m):
+			return String(m["id"])
+	return ""
 
 ## "Camp ABCD" or "ABCD, alliance Name": the tag and the name are placed by marker substitution done in one pass over the template, so
 ## a name that looks like a placeholder stays literal.

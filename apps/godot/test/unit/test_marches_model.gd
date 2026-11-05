@@ -104,3 +104,29 @@ func test_a_march_that_is_already_home_has_no_row() -> void:
 	assert_eq(MarchesModel.rows([_march(), _march({"id": "late", "returnAt": 20000.0})], 12000.0).size(), 1)
 	var last: Dictionary = MarchesModel.rows([_march({"outcome": {"result": "victory"}})], 8999.0)[0]
 	assert_eq(last["ms"], 1.0)
+
+## A harvest's recallable flag: only at its site before its leave time (docs/resource-sites-plan.md, chunk 4).
+func _site_march() -> Dictionary:
+	return {"id": "h1", "siteId": "quarry:0", "from": {"x": 1, "y": 1}, "to": {"x": 2, "y": 2}, "departAt": 0.0, "arriveAt": 1000.0,
+		"leaveSiteAt": 5000.0, "returnAt": 7000.0, "outcome": null}
+
+func test_a_harvest_at_its_site_before_it_leaves_can_be_recalled() -> void:
+	var r: Dictionary = MarchesModel.rows([_site_march()], 3000.0)[0]
+	assert_eq(r["stage"], "at_site")
+	assert_true(r["recallable"])
+	assert_eq(r["time_key"], "march.leavesSiteIn")
+	assert_eq(r["ms"], 2000.0)
+
+func test_a_harvest_cannot_be_recalled_on_the_way_out_or_home() -> void:
+	assert_false(MarchesModel.rows([_site_march()], 500.0)[0]["recallable"], "outbound")
+	assert_false(MarchesModel.rows([_site_march()], 6000.0)[0]["recallable"], "returning")
+
+func test_a_harvest_at_its_leave_time_cannot_be_recalled() -> void:
+	var rows := MarchesModel.rows([_site_march()], 5000.0)
+	assert_eq(rows[0]["stage"], "returning")
+	assert_false(rows[0]["recallable"], "the leave is due: nothing to recall")
+
+func test_a_battle_march_is_never_recallable() -> void:
+	var m := {"id": "b1", "target": {"npcId": "n", "level": 1, "x": 2, "y": 2}, "from": {"x": 1, "y": 1}, "to": {"x": 2, "y": 2},
+		"departAt": 0.0, "arriveAt": 1000.0, "returnAt": 3000.0, "outcome": null}
+	assert_false(MarchesModel.rows([m], 1500.0)[0]["recallable"])

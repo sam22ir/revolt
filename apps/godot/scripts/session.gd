@@ -72,6 +72,7 @@ var _hero_pending := {}
 var _recruit_pending := false
 var _march_pending := false
 var _rally_pending := false
+var _harvest_pending := false
 var _hq_pending := false
 var _refreshing := false
 var _alliance_refreshing := false
@@ -338,6 +339,27 @@ func _rally_intent(intent: Dictionary) -> Dictionary:
 	_rally_pending = false
 	return verdict
 
+## Sends a harvest march to a resource site (the intent `harvest_start`): `troops` are counts per troop id. Returns the verdict like an
+## intent; "" as the reason means a harvest intent is already out.
+func harvest_start(site_id: String, troops: Dictionary) -> Dictionary:
+	return await _harvest_intent({"type": "harvest_start", "site": site_id, "troops": troops}, false)
+
+## Calls a harvest march home now (the intent `harvest_recall`). A 404 (`not_found`) means there is nothing to recall: the march came home or
+## was removed. The caller refreshes the base and shows no error for it. Same verdict as `harvest_start` otherwise.
+func harvest_recall(march_id: String) -> Dictionary:
+	return await _harvest_intent({"type": "harvest_recall", "march": march_id}, true)
+
+func _harvest_intent(intent: Dictionary, not_found_is_gone: bool) -> Dictionary:
+	if _harvest_pending:
+		return {"ok": false, "reason": ""}
+	_harvest_pending = true
+	var result: Dictionary = await api.post_json("/v1/intent", intent)
+	_harvest_pending = false
+	if not_found_is_gone and int(result["status"]) == 404:
+		_take(result)
+		return {"ok": false, "reason": "not_found"}
+	return _take_verdict(result)
+
 ## Asks the server to put the alliance HQ on a tile (the leader only; the first placement is free, a move waits out a cooldown). Returns
 ## {"ok", "reason"} like an alliance action; "" as the reason means a placement is already out. The map socket brings the new HQ.
 func place_hq(x: int, y: int) -> Dictionary:
@@ -372,6 +394,10 @@ func refresh() -> void:
 ## "unreachable" means no answer arrived. A refused intent still carries the base, which is applied either way.
 func send_intent(intent: Dictionary) -> Dictionary:
 	var result: Dictionary = await api.post_json("/v1/intent", intent)
+	return _take_verdict(result)
+
+## Takes an intent's reply: the base and clock it carries, then the verdict (see send_intent).
+func _take_verdict(result: Dictionary) -> Dictionary:
 	_take(result)
 	var data: Variant = result["data"]
 	if data is Dictionary and data.has("ok"):

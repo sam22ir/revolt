@@ -142,6 +142,21 @@ msgstr "Not enough troops at home"
 msgid "reason.too_many_marches"
 msgstr "All march slots are in use"
 
+msgid "reason.no_such_site"
+msgstr "That site no longer exists"
+
+msgid "reason.site_taken"
+msgstr "Another march already harvests that site"
+
+msgid "reason.not_at_site"
+msgstr "The march is not at the site yet"
+
+msgid "reason.already_leaving"
+msgstr "The march is already leaving the site"
+
+msgid "reason.not_harvest"
+msgstr "That march is not a harvest"
+
 msgid "reason.rally_only"
 msgstr "Only an alliance rally can take on this target"
 
@@ -369,6 +384,45 @@ msgstr "Farmland"
 
 msgid "site.quarry.name"
 msgstr "Quarry"
+
+msgid "harvest.button"
+msgstr "Harvest"
+
+msgid "harvest.recall"
+msgstr "Recall"
+
+msgid "harvest.mine"
+msgstr "Your march is harvesting here"
+
+msgid "harvest.taken"
+msgstr "Another player is harvesting here"
+
+msgid "harvest.free"
+msgstr "Nobody is harvesting here"
+
+msgid "harvest.resourceLine"
+msgstr "Yields {resource}"
+
+msgid "harvest.rateLine"
+msgstr "{rate} per hour"
+
+msgid "harvest.sendTitle"
+msgstr "Send harvest"
+
+msgid "harvest.send"
+msgstr "Start harvest"
+
+msgid "harvest.rate"
+msgstr "Harvest per hour"
+
+msgid "harvest.fillTime"
+msgstr "Time to fill"
+
+msgid "harvest.load"
+msgstr "Expected load"
+
+msgid "harvest.away"
+msgstr "Total time away"
 
 msgid "npc.patrol.name"
 msgstr "Colonial patrol"

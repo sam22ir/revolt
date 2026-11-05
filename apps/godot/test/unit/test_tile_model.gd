@@ -106,3 +106,63 @@ func test_the_hq_button_says_move_once_the_alliance_has_one() -> void:
 	assert_eq(TileModel.hq_button_key({"hqs": []}), "map.placeHq")
 	assert_eq(TileModel.hq_button_key({"hqs": [{"mine": false, "x": 1, "y": 1}]}), "map.placeHq", "another alliance's HQ is not yours")
 	assert_eq(TileModel.hq_button_key({"hqs": [{"mine": true, "x": 1, "y": 1}]}), "map.moveHq")
+
+## A resource site's panel (docs/resource-sites-plan.md, chunk 4): the three holder states, and Recall only while your march is at it.
+func _site_snap(site: Dictionary) -> Dictionary:
+	return {"bases": [], "hqs": [], "npcs": [], "sites": [site]}
+
+func _site(extra := {}) -> Dictionary:
+	var s := {"id": "quarry:0", "kind": "quarry", "level": 3, "x": 13, "y": 14, "occupied": false, "mine": false}
+	s.merge(extra, true)
+	return s
+
+func _own_march(stage_at: Dictionary) -> Dictionary:
+	var m := {"id": "m1", "siteId": "quarry:0", "from": {"x": 10, "y": 10}, "to": {"x": 13, "y": 14}, "departAt": 0.0, "arriveAt": 1000.0,
+		"leaveSiteAt": 9000.0, "returnAt": 12000.0, "outcome": null}
+	m.merge(stage_at, true)
+	return m
+
+func _site_view(site: Dictionary, marches: Array, now: float) -> Dictionary:
+	var info := TileModel.info(_site_snap(site), 13, 14, "plain")
+	return TileModel.view(info, 13, 14, "", marches, now)
+
+func test_a_free_site_offers_harvest_and_says_so() -> void:
+	var v := _site_view(_site(), [], 5000.0)
+	assert_eq(String(v["title"]), Loc.t("site.quarry.name"))
+	assert_eq(int(v["level"]), 3)
+	assert_eq(v["harvest_action"], "harvest")
+	assert_eq(v["recall_march"], "")
+	assert_eq(v["lines"][2], Loc.t("harvest.free"))
+	assert_eq(v["lines"][1], Loc.t("harvest.rateLine", {"rate": Fmt.amount(Fmt.lang(), 700)}), "700 per hour at level 3")
+	assert_eq(v["lines"][0], Loc.t("harvest.resourceLine", {"resource": Loc.t("resource.materiel")}))
+	assert_false(bool(v["can_march"]), "a site is not a target")
+
+func test_a_site_held_by_another_player_offers_nothing() -> void:
+	var v := _site_view(_site({"occupied": true}), [], 5000.0)
+	assert_eq(v["harvest_action"], "")
+	assert_eq(v["recall_march"], "")
+	assert_eq(v["lines"][2], Loc.t("harvest.taken"))
+
+func test_your_site_offers_recall_only_while_your_march_is_at_it() -> void:
+	var mine := _site({"occupied": true, "mine": true})
+	var at := _site_view(mine, [_own_march({})], 5000.0)
+	assert_eq(at["harvest_action"], "recall")
+	assert_eq(at["recall_march"], "m1")
+	assert_eq(at["lines"][2], Loc.t("harvest.mine"))
+
+func test_your_site_offers_no_recall_before_arrival_or_after_the_leave_time() -> void:
+	var mine := _site({"occupied": true, "mine": true})
+	var walking := _site_view(mine, [_own_march({})], 500.0)
+	assert_eq(walking["harvest_action"], "", "still on the way out")
+	assert_eq(walking["lines"][2], Loc.t("harvest.mine"), "the holder line still says it is yours")
+	var leaving := _site_view(mine, [_own_march({})], 9000.0)
+	assert_eq(leaving["harvest_action"], "", "its leave time has come")
+	assert_eq(leaving["recall_march"], "")
+
+func test_a_march_of_yours_on_the_site_counts_even_when_the_snapshot_lags() -> void:
+	var v := _site_view(_site(), [_own_march({})], 5000.0)
+	assert_eq(v["harvest_action"], "recall", "the base's march says it is yours, whatever the snapshot's flags")
+
+func test_a_march_that_has_come_home_no_longer_holds_the_site() -> void:
+	var v := _site_view(_site(), [_own_march({})], 13000.0)
+	assert_eq(v["harvest_action"], "harvest", "back home at 12 000: the site is free again")

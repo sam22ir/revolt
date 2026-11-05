@@ -142,6 +142,21 @@ msgstr "عدد المقاتلين في القاعدة غير كافٍ"
 msgid "reason.too_many_marches"
 msgstr "جميع خانات الحملات مشغولة"
 
+msgid "reason.no_such_site"
+msgstr "هذا الموقع لم يعد موجودا"
+
+msgid "reason.site_taken"
+msgstr "حملة أخرى تحصد هذا الموقع"
+
+msgid "reason.not_at_site"
+msgstr "الحملة لم تصل إلى الموقع بعد"
+
+msgid "reason.already_leaving"
+msgstr "الحملة تغادر الموقع بالفعل"
+
+msgid "reason.not_harvest"
+msgstr "هذه الحملة ليست حصادا"
+
 msgid "reason.rally_only"
 msgstr "لا يمكن مهاجمة هذا الهدف إلا بحشد من التحالف"
 
@@ -370,6 +385,45 @@ msgstr "حقل زراعي"
 msgid "site.quarry.name"
 msgstr "محجر"
 
+msgid "harvest.button"
+msgstr "حصاد"
+
+msgid "harvest.recall"
+msgstr "استدعاء"
+
+msgid "harvest.mine"
+msgstr "حملتك تحصد هنا"
+
+msgid "harvest.taken"
+msgstr "لاعب آخر يحصد هنا"
+
+msgid "harvest.free"
+msgstr "لا أحد يحصد هنا"
+
+msgid "harvest.resourceLine"
+msgstr "ينتج {resource}"
+
+msgid "harvest.rateLine"
+msgstr "{rate} في الساعة"
+
+msgid "harvest.sendTitle"
+msgstr "إرسال حملة حصاد"
+
+msgid "harvest.send"
+msgstr "ابدأ الحصاد"
+
+msgid "harvest.rate"
+msgstr "الحصاد في الساعة"
+
+msgid "harvest.fillTime"
+msgstr "مدة الامتلاء"
+
+msgid "harvest.load"
+msgstr "الحمولة المتوقعة"
+
+msgid "harvest.away"
+msgstr "مدة الغياب كاملة"
+
 msgid "npc.patrol.name"
 msgstr "دورية استعمارية"
 
@@ -533,7 +587,7 @@ msgid "march.leavesSiteIn"
 msgstr "تغادر الموقع بعد {time}"
 
 msgid "march.harvesting"
-msgstr "جمع {resource}"
+msgstr "حصاد: {resource}"
 
 msgid "march.arrivesIn"
 msgstr "تصل بعد {time}"

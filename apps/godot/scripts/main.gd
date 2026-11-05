@@ -276,6 +276,30 @@ func _open_march_sheet(npc: Dictionary, mode := "march", rally := {}) -> void:
 		return
 	_march_sheet.open(npc, from, mode, rally)
 
+## Opens the harvest sheet for a free resource site the tile sheet showed, from the player's own camp.
+func _open_harvest_sheet(site: Dictionary) -> void:
+	var from := _map.own_base_tile()
+	if from.x < 0 or _session.state.is_empty():
+		return
+	_march_sheet.open(site, from, "harvest")
+
+## Calls a harvest march home (the Recall button on the tile sheet, `from_tile`, or in the marches list), then fetches the base again.
+## "not_found" means there was nothing to recall (it came home already): no message. Any other refusal shows its reason on the sheet
+## that sent it, and only there (the tile sheet only while it still shows that tile).
+func _recall_harvest(march_id: String, from_tile: bool) -> void:
+	var tile := _tile_panel.tile()
+	var verdict: Dictionary = await _session.harvest_recall(march_id)
+	_session.refresh()
+	_tile_panel.refresh()
+	var reason := ""
+	if not (verdict["ok"] or verdict["reason"] in ["", "not_found"]):
+		reason = "unreachable" if verdict["reason"] == "error" else String(verdict["reason"])
+	if from_tile:
+		if _tile_panel.tile() == tile:
+			_tile_panel.show_notice(reason)
+	else:
+		_marches_list.show_notice(reason)
+
 ## One chat line from the player, as a frame on the alliance socket; false when the socket is not open.
 func _send_chat(text: String) -> bool:
 	return _alliance_socket.send_text(AllianceMessages.chat_frame(text))
@@ -484,6 +508,9 @@ func _build_hud() -> void:
 	_tile_panel.hq_requested.connect(_place_hq)
 	_tile_panel.rally_start_requested.connect(func(npc: Dictionary) -> void: _open_march_sheet(npc, "rally_start"))
 	_tile_panel.rally_join_requested.connect(func(npc: Dictionary, rally: Dictionary) -> void: _open_march_sheet(npc, "rally_join", rally))
+	_tile_panel.harvest_requested.connect(_open_harvest_sheet)
+	_tile_panel.recall_requested.connect(func(march_id: String) -> void: _recall_harvest(march_id, true))
+	_marches_list.recall_requested.connect(func(march_id: String) -> void: _recall_harvest(march_id, false))
 	_alliance_screen.rally_join_requested.connect(func(rally: Dictionary) -> void: _open_march_sheet(RallyModel.npc_of(rally), "rally_join", rally))
 	_hud_root.add_child(_march_sheet)
 	# The player's marches float under the top box on the map only, so the base is never refitted when one starts or ends.
@@ -603,7 +630,7 @@ func _process(_delta: float) -> void:
 		_heroes_screen.tick(amounts)
 	if _tile_panel.visible and not _map.snapshot.is_empty():
 		var tile := _tile_panel.tile()
-		_tile_panel.update_view(_map.snapshot, _map.terrain_at_tile(tile.x, tile.y), String(_session.alliance["name"]) if _session.alliance is Dictionary else "", String(_session.alliance["myRank"]) if _session.alliance is Dictionary else "", now)
+		_tile_panel.update_view(_map.snapshot, _map.terrain_at_tile(tile.x, tile.y), String(_session.alliance["name"]) if _session.alliance is Dictionary else "", String(_session.alliance["myRank"]) if _session.alliance is Dictionary else "", now, _session.state.get("marches", []))
 	if _screen == "map" and _loaded:
 		_map.markers().tick(now, _camera.view_zoom)
 		_marches_list.update_view(_session.state.get("marches", []), now, _march_sheet.is_open())

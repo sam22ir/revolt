@@ -1,8 +1,9 @@
 class_name TilePanel
 extends PanelContainer
 ## The sheet over the map for the tapped tile: your camp, another camp, an alliance HQ, a target (name, level, defenders, the
-## rally-only note, the Send march, Start rally and Join rally buttons) or just land (its terrain). It draws TileModel.view and sends
-## nothing itself: the buttons ask the screen to open the march sheet (the HQ comes with its own chunk). It takes input, so a press on it never reaches the map, and it redraws only when what it shows changes.
+## rally-only note, the Send march, Start rally and Join rally buttons), a resource site (what it yields, its holder, the Harvest or
+## Recall button) or just land (its terrain). It draws TileModel.view and sends nothing itself: the buttons ask the screen to open a
+## sheet or to recall a march. It takes input, so a press on it never reaches the map, and it redraws only when what it shows changes.
 
 signal closed
 ## The Send march button on a target: the snapshot's entry for it ({id, kind, level, x, y, region}).
@@ -12,6 +13,10 @@ signal march_requested(npc: Dictionary)
 signal hq_requested(tile: Vector2i)
 signal rally_start_requested(npc: Dictionary)
 signal rally_join_requested(npc: Dictionary, rally: Dictionary)
+## Harvest on a free resource site (the snapshot's entry for it).
+signal harvest_requested(site: Dictionary)
+## Recall on your harvest march at the site, by the march's id.
+signal recall_requested(march_id: String)
 
 const FONT := 30
 const SMALL := 26
@@ -27,6 +32,7 @@ var _rallies: Array = []
 var _rank := ""
 var _now := 0.0
 var _snapshot: Dictionary = {}
+var _marches: Array = []
 ## Why the last HQ placement here was refused (a reason code), shown under the button until another tile is shown.
 var _notice := ""
 var _body := VBoxContainer.new()
@@ -62,13 +68,15 @@ func tile() -> Vector2i:
 	return _tile
 
 ## Call every frame while a tile is selected: the snapshot, the terrain under the tile, the player's own alliance name (or ""), their rank in
-## it ("" for none) and the synced server time in ms (a rally stops being joinable when its gathering ends).
-func update_view(snapshot: Dictionary, terrain: String, own_alliance_name: String, rank := "", now_ms := 0.0) -> void:
+## it ("" for none), the synced server time in ms (a rally stops being joinable when its gathering ends) and the player's marches (a
+## harvest's Recall shows only while it is at its site).
+func update_view(snapshot: Dictionary, terrain: String, own_alliance_name: String, rank := "", now_ms := 0.0, marches: Array = []) -> void:
 	if not visible:
 		return
 	_rank = rank
 	_now = now_ms
 	_rallies = snapshot.get("rallies", [])
+	_marches = marches
 	_snapshot = snapshot
 	var info := TileModel.info(snapshot, _tile.x, _tile.y, terrain)
 	var key := _signature(info, own_alliance_name)
@@ -92,6 +100,8 @@ func _signature(info: Dictionary, alliance_name: String) -> String:
 			what.append(JSON.stringify(info[k]))
 	if info["kind"] == "empty":
 		what.append("%s|%s|%s" % [TileModel.can_place_hq(_rank), TileModel.hq_button_key(_snapshot), _notice])
+	if info["kind"] == "site":
+		what.append("%s|%s" % [TileModel.site_holder(info["site"], _marches, _now), TileModel.recall_march(info["site"], _marches, _now)])
 	if info["kind"] == "npc":
 		what.append(str(RallyModel.can_start(_rank)))
 		for r: Dictionary in RallyModel.open_at(_rallies, String(info["npc"]["id"]), _now):
@@ -102,7 +112,7 @@ func _render(info: Dictionary, own_alliance_name: String) -> void:
 	for child in _body.get_children():
 		_body.remove_child(child)
 		child.queue_free()
-	var v := TileModel.view(info, _tile.x, _tile.y, own_alliance_name)
+	var v := TileModel.view(info, _tile.x, _tile.y, own_alliance_name, _marches, _now)
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 12)
 	head.add_child(_label(String(v["title"]), FONT + 2, INK, true))
@@ -118,7 +128,10 @@ func _render(info: Dictionary, own_alliance_name: String) -> void:
 	head.add_child(close)
 	_body.add_child(head)
 	_body.add_child(_label(String(v["coords"]), SMALL, MUTED))
-	_body.add_child(_label(String(v["desc"]), SMALL, INK, true))
+	if String(v["desc"]) != "":
+		_body.add_child(_label(String(v["desc"]), SMALL, INK, true))
+	for line: String in v["lines"]:
+		_body.add_child(_label(line, SMALL, INK, true))
 	if String(v["alliance_name"]) != "":
 		_body.add_child(_label("%s: %s" % [Loc.t("map.allianceName"), String(v["alliance_name"])], SMALL, INK, true))
 	if v["defenders"] is Dictionary:
@@ -140,8 +153,23 @@ func _render(info: Dictionary, own_alliance_name: String) -> void:
 			_notice = ""
 			hq_requested.emit(_tile))
 		_body.add_child(place)
-		if _notice != "":
-			_body.add_child(_label(Loc.t("reason." + _notice), SMALL, LACKING, true))
+	if v["harvest_action"] == "harvest":
+		var harvest := Button.new()
+		harvest.text = Loc.t("harvest.button")
+		harvest.add_theme_font_size_override("font_size", FONT)
+		harvest.pressed.connect(func() -> void: harvest_requested.emit(info["site"]))
+		_body.add_child(harvest)
+	elif v["harvest_action"] == "recall":
+		var recall := Button.new()
+		recall.text = Loc.t("harvest.recall")
+		recall.add_theme_font_size_override("font_size", FONT)
+		var march := String(v["recall_march"])
+		recall.pressed.connect(func() -> void:
+			recall.disabled = true
+			recall_requested.emit(march))
+		_body.add_child(recall)
+	if _notice != "":
+		_body.add_child(_label(Loc.t("reason." + _notice), SMALL, LACKING, true))
 	if info["kind"] == "npc":
 		# Starting a rally is for every target (it is the only way at a rally-only one); joining, for each rally still gathering at it.
 		if RallyModel.can_start(_rank):

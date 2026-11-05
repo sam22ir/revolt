@@ -90,3 +90,46 @@ func test_it_hides_for_a_march_that_came_home_and_while_a_sheet_covers_it() -> v
 	assert_true(list.visible)
 	list.update_view([_march("a", {"outcome": {"result": "victory"}})], 9500.0)
 	assert_false(list.visible, "home: past its return, though the base still lists it")
+
+## The Recall button of a harvest at its site: shown only while it is recallable, pressing it asks for the march, a refusal shows as its
+## reason.
+func _harvest(extra := {}) -> Dictionary:
+	var h := {"id": "h1", "siteId": "quarry:0", "from": {"x": 1, "y": 1}, "to": {"x": 2, "y": 2}, "departAt": 0.0, "arriveAt": 1000.0,
+		"leaveSiteAt": 5000.0, "returnAt": 7000.0, "outcome": null}
+	h.merge(extra, true)
+	return h
+
+func _recall_buttons(list: MarchesList) -> Array:
+	return list.find_children("*", "Button", true, false).filter(func(b: Button) -> bool: return b.text == Loc.t("harvest.recall"))
+
+func test_a_harvest_at_its_site_shows_recall_and_its_time_left() -> void:
+	var list: MarchesList = add_child_autofree(MarchesList.new())
+	list.update_view([_harvest()], 3000.0)
+	var buttons := _recall_buttons(list)
+	assert_eq(buttons.size(), 1)
+	assert_true(buttons[0].visible)
+	assert_true(_texts(list).has("%s · %s" % [Loc.t("march.phase.at_site"), Loc.t("march.leavesSiteIn", {"time": Fmt.duration(2000.0)})]))
+
+func test_recall_is_hidden_on_the_way_out_and_after_the_leave_time() -> void:
+	var list: MarchesList = add_child_autofree(MarchesList.new())
+	list.update_view([_harvest()], 500.0)
+	assert_false(_recall_buttons(list)[0].visible, "outbound")
+	list.update_view([_harvest()], 6000.0)
+	assert_false(_recall_buttons(list)[0].visible, "returning")
+
+func test_pressing_recall_asks_for_that_march() -> void:
+	var list: MarchesList = add_child_autofree(MarchesList.new())
+	list.update_view([_harvest()], 3000.0)
+	watch_signals(list)
+	_recall_buttons(list)[0].pressed.emit()
+	assert_signal_emitted_with_parameters(list, "recall_requested", ["h1"])
+
+func test_a_refused_recall_shows_its_reason_until_cleared() -> void:
+	var list: MarchesList = add_child_autofree(MarchesList.new())
+	list.update_view([_harvest()], 3000.0)
+	list.show_notice("already_leaving")
+	list.update_view([_harvest()], 3000.0)
+	assert_true(_texts(list).has(Loc.t("reason.already_leaving")))
+	list.show_notice("")
+	list.update_view([_harvest()], 3000.0)
+	assert_false(_texts(list).has(Loc.t("reason.already_leaving")))

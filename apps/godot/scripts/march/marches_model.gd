@@ -65,7 +65,7 @@ static func battle_flash(m: Dictionary, now: float) -> bool:
 ## The list's rows for the base's own marches, without one that is already home (`now` is past its return: the server brings a march home
 ## lazily, so the base the client holds can still list it; Phaser advances the state itself, a thin client just leaves it out): {id, kind ("" when the level is unknown; a site kind for a harvest), level, heroes (ids, lead first), stage,
 ## result ("" until the battle, always "" for a harvest), time_key ("" for fighting), ms (to departure, arrival, leaving the site or return),
-## harvest (bool), resource (the id a harvest brings in, "" otherwise)}.
+## harvest (bool), resource (the id a harvest brings in, "" otherwise), recallable (a harvest at its site before its leave time)}.
 static func rows(marches: Array, now: float) -> Array:
 	var out: Array = []
 	for m: Dictionary in marches:
@@ -97,7 +97,7 @@ static func rows(marches: Array, now: float) -> Array:
 			"id": String(m["id"]), "kind": String(def["kind"]) if def != null else "", "level": int(m["target"]["level"]),
 			"heroes": heroes, "stage": st,
 			"result": String(m["outcome"]["result"]) if m.get("outcome") is Dictionary else "",
-			"time_key": time_key, "ms": ms, "harvest": false, "resource": "",
+			"time_key": time_key, "ms": ms, "harvest": false, "resource": "", "recallable": false,
 		})
 	return out
 
@@ -119,4 +119,5 @@ static func _harvest_row(m: Dictionary, st: String, now: float) -> Dictionary:
 	return {
 		"id": String(m["id"]), "kind": kind, "level": 0, "heroes": [], "stage": st, "result": "",
 		"time_key": time_key, "ms": ms, "harvest": true, "resource": SitesModel.kind_resource(kind),
+		"recallable": st == "at_site" and now < leave_at(m),
 	}

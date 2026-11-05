@@ -142,6 +142,21 @@ msgstr "Pas assez de troupes à la base"
 msgid "reason.too_many_marches"
 msgstr "Tous les emplacements de marche sont occupés"
 
+msgid "reason.no_such_site"
+msgstr "Ce site n’existe plus"
+
+msgid "reason.site_taken"
+msgstr "Une autre marche récolte déjà ce site"
+
+msgid "reason.not_at_site"
+msgstr "La marche n’est pas encore sur le site"
+
+msgid "reason.already_leaving"
+msgstr "La marche quitte déjà le site"
+
+msgid "reason.not_harvest"
+msgstr "Cette marche n’est pas une récolte"
+
 msgid "reason.rally_only"
 msgstr "Seul un rassemblement d’alliance peut attaquer cette cible"
 
@@ -369,6 +384,45 @@ msgstr "Champ agricole"
 
 msgid "site.quarry.name"
 msgstr "Carrière"
+
+msgid "harvest.button"
+msgstr "Récolter"
+
+msgid "harvest.recall"
+msgstr "Rappeler"
+
+msgid "harvest.mine"
+msgstr "Votre marche récolte ici"
+
+msgid "harvest.taken"
+msgstr "Un autre joueur récolte ici"
+
+msgid "harvest.free"
+msgstr "Personne ne récolte ici"
+
+msgid "harvest.resourceLine"
+msgstr "Rapporte : {resource}"
+
+msgid "harvest.rateLine"
+msgstr "{rate} par heure"
+
+msgid "harvest.sendTitle"
+msgstr "Envoyer une récolte"
+
+msgid "harvest.send"
+msgstr "Lancer la récolte"
+
+msgid "harvest.rate"
+msgstr "Récolte par heure"
+
+msgid "harvest.fillTime"
+msgstr "Temps de remplissage"
+
+msgid "harvest.load"
+msgstr "Charge attendue"
+
+msgid "harvest.away"
+msgstr "Durée totale d’absence"
 
 msgid "npc.patrol.name"
 msgstr "Patrouille coloniale"

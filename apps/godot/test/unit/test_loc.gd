@@ -163,3 +163,26 @@ func test_help_reason_keys_exist_in_every_language() -> void:
 			if not known.has(key):
 				missing.append(key)
 		assert_eq(missing, [] as Array[String], "%s is missing help keys" % lang)
+
+## The harvest keys and reason codes the Godot panels and sheets use: present in en, ar and fr (the parity test above checks the key sets;
+## this one names them, since the reason keys are built at run time).
+func test_harvest_keys_exist_in_every_language() -> void:
+	var keys: Array[String] = ["harvest.button", "harvest.recall", "harvest.mine", "harvest.taken", "harvest.free", "harvest.resourceLine",
+		"harvest.rateLine", "harvest.sendTitle", "harvest.send", "harvest.rate", "harvest.fillTime", "harvest.load", "harvest.away",
+		"march.harvesting", "march.leavesSiteIn", "march.phase.at_site", "march.target"]
+	for reason in ["no_such_site", "site_taken", "not_at_site", "already_leaving", "not_harvest", "no_troops", "not_enough_troops",
+			"too_many_marches", "unreachable"]:
+		keys.append("reason." + reason)
+	for lang in ["en", "ar", "fr"]:
+		var known := _po_keys(lang)
+		var missing: Array[String] = []
+		for key in keys:
+			if not known.has(key):
+				missing.append(key)
+		assert_eq(missing, [] as Array[String], "%s is missing harvest keys" % lang)
+
+func test_the_arabic_harvest_button_is_translated() -> void:
+	TranslationServer.set_locale("ar")
+	assert_ne(Loc.t("harvest.button"), "harvest.button")
+	TranslationServer.set_locale("en")
+	assert_eq(Loc.t("harvest.button"), "Harvest")

@@ -4,7 +4,8 @@ extends Control
 ## travel time, what the force can carry and why Send is off. MarchModel works the numbers out from the base the session holds; the
 ## server decides, and its refusal shows under the buttons. Fills the area between the HUD and the nav bar and is hidden (no drawing,
 ## no input) when closed. It serves three kinds of send: a solo march (with heroes), starting an alliance rally (a gathering time, no
-## heroes) and joining one that gathers (no heroes; it leaves and arrives on the rally's own times, whatever the troops).
+## heroes) and joining one that gathers (no heroes; it leaves and arrives on the rally's own times, whatever the troops). A fourth is a
+## harvest of a resource site ("harvest"): the troops, the travel and what the march will bring home (HarvestModel), no odds, no heroes.
 
 signal closed
 ## A march left: the sheet has closed itself.
@@ -26,6 +27,11 @@ var _npc: Dictionary = {}
 ## "march", "rally_start" or "rally_join".
 var _mode := "march"
 var _rally: Dictionary = {}
+## The harvest preview's rows (time to fill, rate, expected load, total time away) in harvest mode.
+var _fill_label: Label
+var _rate_label: Label
+var _load_label: Label
+var _away_label: Label
 var _gather := 0
 var _gather_picker: OptionButton
 var _from := Vector2i(-1, -1)
@@ -70,8 +76,8 @@ func setup(session: Session) -> void:
 func is_open() -> bool:
 	return visible and not _npc.is_empty()
 
-## Opens the sheet for `npc` (the snapshot's entry for the target) from the player's camp tile. The base is asked for again, so a march
-## that has just come home does not still count against the slots.
+## Opens the sheet for `npc` (the snapshot's entry for the target; a resource site in "harvest" mode) from the player's camp tile. The
+## base is asked for again, so a march that has just come home does not still count against the slots.
 func open(npc: Dictionary, from: Vector2i, mode := "march", rally := {}) -> void:
 	_npc = npc
 	_from = from
@@ -110,17 +116,21 @@ func _build() -> void:
 	var lang := Fmt.lang()
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 12)
-	head.add_child(_label(Loc.t({"march": "march.title", "rally_start": "rally.startTitle", "rally_join": "rally.joinTitle"}[_mode]), FONT + 6, PAPER))
+	head.add_child(_label(Loc.t({"march": "march.title", "rally_start": "rally.startTitle", "rally_join": "rally.joinTitle", "harvest": "harvest.sendTitle"}[_mode]), FONT + 6, PAPER))
 	var x := Button.new()
 	x.text = Loc.t("panel.close")
 	x.add_theme_font_size_override("font_size", FONT)
 	x.pressed.connect(close)
 	head.add_child(x)
 	_body.add_child(head)
-	_body.add_child(_label(Loc.t("march.target", {"name": Loc.t("npc.%s.name" % _npc["kind"]), "level": Fmt.amount(lang, int(_npc["level"]))}), FONT, PAPER, true))
-	var def: Variant = TileModel.npc_def(int(_npc["level"]))
-	if def != null:
-		_body.add_child(_label("%s: %s" % [Loc.t("map.defenders"), TrainingModel.troop_list(def["defenders"], lang)], SMALL, MUTED, true))
+	if _mode == "harvest":
+		var site_name := Loc.t("site.%s.name" % _npc["kind"])
+		_body.add_child(_label(Loc.t("march.target", {"name": site_name, "level": Fmt.amount(lang, int(_npc["level"]))}), FONT, PAPER, true))
+	else:
+		_body.add_child(_label(Loc.t("march.target", {"name": Loc.t("npc.%s.name" % _npc["kind"]), "level": Fmt.amount(lang, int(_npc["level"]))}), FONT, PAPER, true))
+		var def: Variant = TileModel.npc_def(int(_npc["level"]))
+		if def != null:
+			_body.add_child(_label("%s: %s" % [Loc.t("map.defenders"), TrainingModel.troop_list(def["defenders"], lang)], SMALL, MUTED, true))
 	if _mode == "rally_start":
 		_body.add_child(_gather_row())
 	for id: String in Balance.data()["troopIds"]:
@@ -135,6 +145,15 @@ func _build() -> void:
 	_carry = _label("", SMALL, PAPER)
 	_body.add_child(_stat(Loc.t("march.travel"), _travel))
 	_body.add_child(_stat(Loc.t("march.carry"), _carry))
+	if _mode == "harvest":
+		_rate_label = _label("", SMALL, PAPER)
+		_fill_label = _label("", SMALL, PAPER)
+		_load_label = _label("", SMALL, PAPER)
+		_away_label = _label("", SMALL, PAPER)
+		_body.add_child(_stat(Loc.t("harvest.rate"), _rate_label))
+		_body.add_child(_stat(Loc.t("harvest.fillTime"), _fill_label))
+		_body.add_child(_stat(Loc.t("harvest.load"), _load_label))
+		_body.add_child(_stat(Loc.t("harvest.away"), _away_label))
 	_reason = _label("", SMALL, LACKING, true)
 	_body.add_child(_reason)
 	_submit = Button.new()
@@ -293,8 +312,16 @@ func _refresh() -> void:
 	_picks = _picks.map(func(p: Variant) -> String: return String(p) if free.has(String(p)) else "")
 	_fill_pickers(state, free)
 	var loadout: Variant = _loadout()
-	var p := MarchModel.preview(state, _from, Vector2i(int(_npc["x"]), int(_npc["y"])), _counts, loadout)
-	if _mode != "march" and int(p["travel_ms"]) >= 0:
+	var p: Dictionary
+	if _mode == "harvest":
+		p = HarvestModel.preview(state, _from, _npc, _counts)
+		_rate_label.text = Fmt.amount(lang, p["rate"])
+		_fill_label.text = Fmt.duration(p["fill_ms"]) if int(p["carry"]) > 0 else "—"
+		_load_label.text = Fmt.amount(lang, p["load"]) if int(p["carry"]) > 0 else "—"
+		_away_label.text = Fmt.duration(p["away_ms"]) if int(p["away_ms"]) >= 0 else "—"
+	else:
+		p = MarchModel.preview(state, _from, Vector2i(int(_npc["x"]), int(_npc["y"])), _counts, loadout)
+	if _mode != "march" and _mode != "harvest" and int(p["travel_ms"]) >= 0:
 		p["travel_ms"] = _rally_leg()
 	var bonus := MarchModel.hero_bonus(state, loadout)
 	_bonus.visible = loadout != null
@@ -303,7 +330,7 @@ func _refresh() -> void:
 	_carry.text = Fmt.amount(lang, p["carry"])
 	var why := _server_reason if _server_reason != "" else String(p["reason"])
 	_reason.text = Loc.t("reason." + why) if why != "" else ""
-	_submit.text = Loc.t("march.sending" if _sending else {"march": "march.send", "rally_start": "rally.start", "rally_join": "rally.join"}[_mode])
+	_submit.text = Loc.t("march.sending" if _sending else {"march": "march.send", "rally_start": "rally.start", "rally_join": "rally.join", "harvest": "harvest.send"}[_mode])
 	_submit.disabled = _sending or p["reason"] != ""
 
 ## The one-way leg a rally shows: from your camp at the fixed rally speed when you start it; the rally's own when you join (the server
@@ -347,6 +374,8 @@ func _on_send() -> void:
 			verdict = await _session.rally_start(String(_npc["id"]), _counts, _gather)
 		"rally_join":
 			verdict = await _session.rally_join(String(_rally["id"]), _counts)
+		"harvest":
+			verdict = await _session.harvest_start(String(_npc["id"]), _counts)
 		_:
 			verdict = await _session.march(String(_npc["id"]), _counts, _loadout())
 	_sending = false
