@@ -1,6 +1,6 @@
 import type { HeroLoadout, MapPoint, MapSnapshot, Troops } from "@revolt/rules";
 import type { Env } from "../env.ts";
-import type { HqResult, MapViewer, SendMarchResult } from "./map-service.ts";
+import type { HqResult, MapViewer, RecallHarvestResult, SendMarchResult } from "./map-service.ts";
 
 export type { MapViewer } from "./map-service.ts";
 
@@ -13,6 +13,8 @@ export interface MapStub {
   sendMarch(map: string, viewer: MapViewer, npcId: string, troops: Troops, heroes: HeroLoadout | null, now: number): Promise<SendMarchResult>;
   startRally(map: string, viewer: MapViewer, npcId: string, troops: Troops, gatherMs: number, now: number): Promise<SendMarchResult>;
   joinRally(map: string, viewer: MapViewer, rallyId: string, troops: Troops, now: number): Promise<SendMarchResult>;
+  startHarvest(map: string, viewer: MapViewer, siteId: string, troops: Troops, now: number): Promise<SendMarchResult>;
+  recallHarvest(map: string, viewer: MapViewer, marchId: string, now: number): Promise<RecallHarvestResult>;
   setHq(map: string, viewer: MapViewer, x: number, y: number, now: number): Promise<HqResult>;
   hqOf(map: string, allianceId: string): Promise<MapPoint | null>;
   hqAllianceIds(map: string): Promise<string[]>;
@@ -34,6 +36,8 @@ export interface MapApi {
   sendMarch(viewer: MapViewer, npcId: string, troops: Troops, heroes: HeroLoadout | null, now: number): Promise<SendMarchResult>;
   startRally(viewer: MapViewer, npcId: string, troops: Troops, gatherMs: number, now: number): Promise<SendMarchResult>;
   joinRally(viewer: MapViewer, rallyId: string, troops: Troops, now: number): Promise<SendMarchResult>;
+  startHarvest(viewer: MapViewer, siteId: string, troops: Troops, now: number): Promise<SendMarchResult>;
+  recallHarvest(viewer: MapViewer, marchId: string, now: number): Promise<RecallHarvestResult>;
   setHq(viewer: MapViewer, x: number, y: number, now: number): Promise<HqResult>;
   hqOf(allianceId: string): Promise<MapPoint | null>;
   hqAllianceIds(): Promise<string[]>;
@@ -53,6 +57,8 @@ export const durableMap = (env: Env, server: string): MapApi => {
     sendMarch: (v, npcId, troops, heroes, now) => stub.sendMarch(server, v, npcId, troops, heroes, now),
     startRally: (v, npcId, troops, gatherMs, now) => stub.startRally(server, v, npcId, troops, gatherMs, now),
     joinRally: (v, rallyId, troops, now) => stub.joinRally(server, v, rallyId, troops, now),
+    startHarvest: (v, siteId, troops, now) => stub.startHarvest(server, v, siteId, troops, now),
+    recallHarvest: (v, marchId, now) => stub.recallHarvest(server, v, marchId, now),
     setHq: (v, x, y, now) => stub.setHq(server, v, x, y, now),
     hqOf: (allianceId) => stub.hqOf(server, allianceId),
     hqAllianceIds: () => stub.hqAllianceIds(server),

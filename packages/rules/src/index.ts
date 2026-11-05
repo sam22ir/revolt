@@ -156,6 +156,7 @@ export {
   type RallyView,
   type MapBaseView,
   type MapMarchView,
+  type MapSiteView,
   type LiberationView,
   type MapNpcView,
   type MapServerMessage,

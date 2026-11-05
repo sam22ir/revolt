@@ -38,6 +38,8 @@ export type Intent =
   | { readonly type: "march"; readonly target: string; readonly troops: Troops; readonly heroes: HeroLoadout | null }
   | { readonly type: "rally_start"; readonly target: string; readonly troops: Troops; readonly gather: number }
   | { readonly type: "rally_join"; readonly rally: string; readonly troops: Troops }
+  | { readonly type: "harvest_start"; readonly site: string; readonly troops: Troops }
+  | { readonly type: "harvest_recall"; readonly march: string }
   | { readonly type: "recruit" }
   | { readonly type: "hero_level"; readonly hero: HeroId }
   | { readonly type: "story_claim" }
@@ -70,6 +72,13 @@ export const parseIntent = (body: Record<string, unknown>): Intent => {
   if (type === "rally_join" && typeof body.rally === "string" && body.rally.length > 0 && body.rally.length <= MAX_TARGET_ID) {
     const troops = parseTroops(body.troops);
     if (troops !== null) return { type, rally: body.rally, troops };
+  }
+  if (type === "harvest_start" && typeof body.site === "string" && body.site.length > 0 && body.site.length <= MAX_TARGET_ID) {
+    const troops = parseTroops(body.troops);
+    if (troops !== null) return { type, site: body.site, troops };
+  }
+  if (type === "harvest_recall" && typeof body.march === "string" && body.march.length > 0 && body.march.length <= MAX_TARGET_ID) {
+    return { type, march: body.march };
   }
   throw new HttpError("bad_request");
 };
@@ -151,6 +160,18 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
       const { viewer, membership } = await viewerFor(ctx, account);
       if (membership === null) return refusedIntent(ctx, account, "not_member");
       const r = await ctx.deps.map(ctx.env, account.server).joinRally(viewer, intent.rally, intent.troops, ctx.now);
+      if ("error" in r) throw new HttpError(r.error);
+      return json({ ...r, now: ctx.now });
+    }
+    case "harvest_start": {
+      const { viewer } = await viewerFor(ctx, account);
+      const r = await ctx.deps.map(ctx.env, account.server).startHarvest(viewer, intent.site, intent.troops, ctx.now);
+      if ("error" in r) throw new HttpError(r.error);
+      return json({ ...r, now: ctx.now });
+    }
+    case "harvest_recall": {
+      const { viewer } = await viewerFor(ctx, account);
+      const r = await ctx.deps.map(ctx.env, account.server).recallHarvest(viewer, intent.march, ctx.now);
       if ("error" in r) throw new HttpError(r.error);
       return json({ ...r, now: ctx.now });
     }
