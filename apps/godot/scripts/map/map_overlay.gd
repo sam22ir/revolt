@@ -28,6 +28,17 @@ const NPC_COLORS := {
 const BADGE_FILL := Color("2b2219")
 const BADGE_RING := Color("c8964a")
 const BADGE_RING_FORTIFIED := Color("d0573a")
+const SITE_SIZE := 0.9
+const SITE_BADGE_RADIUS := 9.0
+const SITE_BADGE_FONT := 14
+const SITE_FARM := Color("c9a24a")
+const SITE_FARM_ROWS := Color("7d8a3a")
+const SITE_QUARRY := Color("8d8a80")
+const SITE_ROCK := Color("b5b1a4")
+const SITE_ROCK_SHADE := Color("6f6c64")
+const SITE_TAKEN_SHADE := Color(0.08, 0.06, 0.04, 0.45)
+const SITE_FLAG_OTHER := Color("9fb0d0")
+const SITE_FLAG_MINE := Color("e0b43c")
 const HQ_OWN := Color("2f9e8f")
 const HQ_OTHER := Color("6a55a8")
 const SELECTION_COLOR := Color(1.0, 0.97, 0.78)
@@ -65,6 +76,9 @@ func _draw() -> void:
 		_draw_seams()
 		return
 	var snap := map.snapshot
+	# Sites first: they are scenery under the camps, NPCs and HQs.
+	for site: Dictionary in SitesModel.sites(snap):
+		_draw_site(site)
 	for b: Dictionary in snap["bases"]:
 		_draw_base(b)
 	for n: Dictionary in snap["npcs"]:
@@ -170,10 +184,60 @@ func _draw_npc(n: Dictionary) -> void:
 	var diamond := PackedVector2Array([c + Vector2(0, -half_h), c + Vector2(half_w, 0), c + Vector2(0, half_h), c + Vector2(-half_w, 0)])
 	draw_colored_polygon(diamond, NPC_COLORS.get(kind, Color.GRAY))
 	draw_polyline(PackedVector2Array([diamond[0], diamond[1], diamond[2], diamond[3], diamond[0]]), NPC_HOSTILE, 3.0)
-	var badge_at := c + Vector2(half_w * 0.62, -half_h * 0.7)
-	draw_circle(badge_at, 11.0, BADGE_FILL)
-	draw_arc(badge_at, 11.0, 0.0, TAU, 20, BADGE_RING_FORTIFIED if kind == "fortified_line" else BADGE_RING, 2.0)
-	_draw_text(str(int(n["level"])), badge_at + Vector2(0, 6), 16, Color("fff8e6"))
+	var ring := BADGE_RING_FORTIFIED if kind == "fortified_line" else BADGE_RING
+	_draw_level_badge(c + Vector2(half_w * 0.62, -half_h * 0.7), 11.0, str(int(n["level"])), ring, 16)
+
+## A dark disc with a coloured ring and a level number: the NPC and resource site badge.
+func _draw_level_badge(at: Vector2, radius: float, text: String, ring: Color, font_size: int) -> void:
+	draw_circle(at, radius, BADGE_FILL)
+	draw_arc(at, radius, 0.0, TAU, 20, ring, 2.0)
+	_draw_text(text, at + Vector2(0, font_size * 0.375), font_size, Color("fff8e6"))
+
+## A resource site: a small isometric field (farmland, with crop rows) or a rock pile (quarry) inside its own tile, with a
+## level badge. Free sites are plain; a site another player holds is shaded with a flag; one of the viewer's has a gold glow,
+## ring and flag (as a base does). Scenery, so it stays lighter than camps and NPCs.
+func _draw_site(site: Dictionary) -> void:
+	var c := Iso.tile_center(int(site["x"]), int(site["y"]))
+	var state := SitesModel.state_of(site)
+	var half_w := Iso.TILE_W * 0.5 * SITE_SIZE
+	var half_h := Iso.TILE_H * 0.5 * SITE_SIZE
+	var diamond := PackedVector2Array([c + Vector2(0, -half_h), c + Vector2(half_w, 0), c + Vector2(0, half_h), c + Vector2(-half_w, 0)])
+	if state == "mine":
+		for step in 2:
+			draw_colored_polygon(_scaled(diamond, c, 1.25 + 0.2 * step), Color(SITE_FLAG_MINE, 0.18))
+	if String(site["kind"]) == "quarry":
+		_draw_rock_pile(c, diamond)
+	else:
+		_draw_field(diamond)
+	if state == "taken":
+		draw_colored_polygon(diamond, SITE_TAKEN_SHADE)
+	if state == "mine":
+		draw_polyline(PackedVector2Array([diamond[0], diamond[1], diamond[2], diamond[3], diamond[0]]), SITE_FLAG_MINE, 3.0)
+	if state != "free":
+		_draw_site_flag(c + Vector2(0, -half_h), SITE_FLAG_MINE if state == "mine" else SITE_FLAG_OTHER)
+	_draw_level_badge(c + Vector2(half_w * 0.62, -half_h * 0.7), SITE_BADGE_RADIUS, SitesModel.label(site), SITE_FLAG_MINE if state == "mine" else BADGE_RING, SITE_BADGE_FONT)
+
+## Farmland: a wheat diamond with three crop rows running along its diagonal.
+func _draw_field(diamond: PackedVector2Array) -> void:
+	draw_colored_polygon(diamond, SITE_FARM)
+	for k in [0.25, 0.5, 0.75]:
+		draw_line(diamond[0].lerp(diamond[3], k), diamond[1].lerp(diamond[2], k), SITE_FARM_ROWS, 2.0)
+	draw_polyline(PackedVector2Array([diamond[0], diamond[1], diamond[2], diamond[3], diamond[0]]), SITE_FARM_ROWS, 1.5)
+
+## Quarry: a grey diamond plate with three rocks on it.
+func _draw_rock_pile(c: Vector2, diamond: PackedVector2Array) -> void:
+	draw_colored_polygon(diamond, SITE_QUARRY)
+	var r := Iso.TILE_H * 0.12
+	for offset: Vector2 in [Vector2(-0.12, 0.02), Vector2(0.1, -0.04), Vector2(0.0, 0.1)]:
+		var at := c + Vector2(offset.x * Iso.TILE_W, offset.y * Iso.TILE_H)
+		draw_circle(at + Vector2(0, r * 0.3), r, SITE_ROCK_SHADE)
+		draw_circle(at, r, SITE_ROCK)
+
+## A short pole with a pennant at the site's top corner.
+func _draw_site_flag(base: Vector2, color: Color) -> void:
+	var top := base + Vector2(0, -16)
+	draw_line(base, top, SITE_ROCK_SHADE, 2.0)
+	draw_colored_polygon(PackedVector2Array([top, top + Vector2(10, 4), top + Vector2(0, 8)]), color)
 
 func _draw_hq(h: Dictionary) -> void:
 	var c := Iso.tile_center(int(h["x"]), int(h["y"]))

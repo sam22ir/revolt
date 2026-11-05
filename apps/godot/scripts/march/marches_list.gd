@@ -58,16 +58,24 @@ func _rebuild(rows: Array) -> void:
 	for r: Dictionary in rows:
 		var row := VBoxContainer.new()
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var name := Loc.t("npc.%s.name" % r["kind"]) if r["kind"] != "" else Loc.t("march.listTitle")
-		var title := _label(Loc.t("march.entry", {"name": name, "level": Fmt.amount(lang, r["level"])}), PAPER)
+		var title := _label(_title(r, lang), PAPER)
 		row.add_child(title)
-		if not (r["heroes"] as Array).is_empty():
+		if r["harvest"]:
+			row.add_child(_label(Loc.t("march.harvesting", {"resource": Loc.t("resource." + String(r["resource"]))}), MUTED))
+		elif not (r["heroes"] as Array).is_empty():
 			var names: Array = (r["heroes"] as Array).map(func(id: String) -> String: return Loc.t("hero.%s.name" % id))
 			row.add_child(_label(Loc.t("march.ledBy", {"names": ("، " if lang == "ar" else ", ").join(PackedStringArray(names))}), MUTED))
 		var status := _label("", MUTED)
 		row.add_child(status)
 		_body.add_child(row)
 		_refs[r["id"]] = status
+
+## The row's name: a site's kind for a harvest (no level, it is not in the march), else the target and level.
+func _title(r: Dictionary, lang: String) -> String:
+	if r["harvest"]:
+		return Loc.t("site.%s.name" % r["kind"])
+	var name := Loc.t("npc.%s.name" % r["kind"]) if r["kind"] != "" else Loc.t("march.listTitle")
+	return Loc.t("march.entry", {"name": name, "level": Fmt.amount(lang, r["level"])})
 
 func _fill(status: Label, r: Dictionary) -> void:
 	# After the battle the result is the news; before it, the leg of the journey.

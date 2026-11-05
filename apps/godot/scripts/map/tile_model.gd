@@ -3,9 +3,10 @@ extends RefCounted
 ## What a tapped tile holds and what the tile panel shows about it, as `tileInfo` (apps/client/src/state/tile-info.ts) says (golden cases
 ## in data/tile-fixtures.json; the terrain of an empty tile is the map's own). Pure: the snapshot and the terrain come in.
 
-## What the exact tile (x, y) holds: {"kind": "own"|"camp"|"hq"|"npc"|"empty", "terrain", and "base", "hq" or "npc" (the snapshot's
-## entry) with "def" (the exported level table row, or null for a level the table does not know)}. Precedence on one tile: a base,
-## then an HQ, then a target.
+## What the exact tile (x, y) holds: {"kind": "own"|"camp"|"hq"|"npc"|"site"|"empty", "terrain", and "base", "hq", "npc" or "site" (the
+## snapshot's entry) with "def" (the exported level table row, or null for a level the table does not know)}. Precedence on one tile: a
+## base, then an HQ, then a target, then a resource site (sites are never on a base's, HQ's or target's tile in a live world, but the
+## order is the rule). A site is not in tileInfo (the Phaser client has none), so its kind is Godot-only.
 static func info(snapshot: Dictionary, x: int, y: int, terrain: String) -> Dictionary:
 	for b: Dictionary in snapshot["bases"]:
 		if int(b["x"]) == x and int(b["y"]) == y:
@@ -16,6 +17,9 @@ static func info(snapshot: Dictionary, x: int, y: int, terrain: String) -> Dicti
 	for n: Dictionary in snapshot["npcs"]:
 		if int(n["x"]) == x and int(n["y"]) == y:
 			return {"kind": "npc", "npc": n, "def": npc_def(int(n["level"])), "terrain": terrain}
+	var site := SitesModel.site_at(snapshot, x, y)
+	if not site.is_empty():
+		return {"kind": "site", "site": site, "terrain": terrain}
 	return {"kind": "empty", "terrain": terrain}
 
 ## The exported table row for a target level (`npcLevel` in the rules), or null.

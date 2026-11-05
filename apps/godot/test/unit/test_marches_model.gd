@@ -51,6 +51,46 @@ func test_a_row_lists_the_heroes_lead_first_and_an_unknown_level_has_no_kind() -
 	odd["target"]["level"] = 99
 	assert_eq(MarchesModel.rows([odd], 2000.0)[0]["kind"], "")
 
+func _harvest(extra := {}) -> Dictionary:
+	var m := {"id": "h", "target": {"npcId": "farmland:0", "level": 0, "x": 32, "y": 53}, "from": {"x": 43, "y": 54}, "to": {"x": 32, "y": 53},
+		"siteId": "farmland:0", "departAt": 1000.0, "arriveAt": 5000.0, "leaveSiteAt": 9000.0, "returnAt": 13000.0, "outcome": null}
+	m.merge(extra, true)
+	return m
+
+func test_a_harvest_goes_out_waits_at_the_site_then_comes_home() -> void:
+	var m := _harvest()
+	assert_eq([MarchesModel.stage(m, 2000.0), MarchesModel.stage(m, 6000.0), MarchesModel.stage(m, 8999.0), MarchesModel.stage(m, 9000.0)],
+		["outbound", "at_site", "at_site", "returning"])
+	var waiting := MarchesModel.position(m, 6000.0)
+	assert_eq([waiting["leg"], waiting["x"], waiting["y"]], ["at_site", 32.0, 53.0], "on the site tile while it works")
+	var back := MarchesModel.position(m, 11000.0)
+	assert_eq(back["leg"], "returning")
+	assert_almost_eq(float(back["x"]), 37.5, 1e-9, "halfway home from the site")
+	assert_eq(MarchesModel.position(m, 13000.0)["leg"], "done")
+
+func test_a_harvest_is_at_the_site_whatever_its_outcome_says_until_it_leaves() -> void:
+	var m := _harvest({"outcome": {"result": "victory"}})
+	assert_eq(MarchesModel.stage(m, 6000.0), "at_site")
+	assert_eq(MarchesModel.stage(m, 10000.0), "returning")
+
+func test_a_harvest_row_names_the_resource_and_never_says_victory() -> void:
+	var at_site: Dictionary = MarchesModel.rows([_harvest({"outcome": {"result": "victory"}})], 6000.0)[0]
+	assert_eq([at_site["stage"], at_site["result"], at_site["time_key"], at_site["ms"]], ["at_site", "", "march.leavesSiteIn", 3000.0])
+	assert_eq([at_site["harvest"], at_site["resource"], at_site["kind"]], [true, "food", "farmland"])
+	var home: Dictionary = MarchesModel.rows([_harvest({"outcome": {"result": "victory"}})], 10000.0)[0]
+	assert_eq([home["stage"], home["result"], home["time_key"], home["ms"]], ["returning", "", "march.returnsIn", 3000.0])
+	var going: Dictionary = MarchesModel.rows([_harvest()], 2000.0)[0]
+	assert_eq([going["stage"], going["time_key"], going["ms"]], ["outbound", "march.arrivesIn", 3000.0])
+	var quarry: Dictionary = MarchesModel.rows([_harvest({"siteId": "quarry:4"})], 2000.0)[0]
+	assert_eq([quarry["kind"], quarry["resource"]], ["quarry", "materiel"])
+
+func test_a_harvest_is_no_fight_and_a_row_without_leave_time_uses_the_travel_leg() -> void:
+	assert_false(MarchesModel.battle_flash(_harvest(), 5000.0))
+	var m := _harvest()
+	m.erase("leaveSiteAt")
+	assert_eq(MarchesModel.stage(m, 8999.0), "at_site")
+	assert_eq(MarchesModel.stage(m, 9000.0), "returning", "returnAt 13000 less the 4000 travel leg")
+
 func test_the_fight_marker_shows_for_five_seconds_after_arrival() -> void:
 	var m := _march()
 	assert_false(MarchesModel.battle_flash(m, 4999.0))

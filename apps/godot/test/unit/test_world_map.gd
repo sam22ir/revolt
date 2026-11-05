@@ -32,6 +32,11 @@ func _snapshot() -> Dictionary:
 			{"id": "m2", "mine": false, "from": {"x": 30, "y": 12}, "to": {"x": 40, "y": 40}, "departAt": NOW - 1000, "arriveAt": NOW + 1000, "returnAt": NOW + 3000},
 		],
 		"rallies": [],
+		"sites": [
+			{"id": "farmland:0", "kind": "farmland", "level": 1, "x": 14, "y": 14, "occupied": false, "mine": false},
+			{"id": "quarry:0", "kind": "quarry", "level": 3, "x": 50, "y": 30, "occupied": true, "mine": true},
+			{"id": "farmland:1", "kind": "farmland", "level": 2, "x": 44, "y": 44, "occupied": true, "mine": false},
+		],
 		"liberations": [
 			{"region": 5, "from": NOW - 1000, "until": null, "alliance": null},
 			{"region": 6, "from": NOW - 5000, "until": NOW - 100, "alliance": null},
@@ -49,6 +54,23 @@ func test_builds_and_draws_everything() -> void:
 	assert_gt(map.seam_points.size(), 0)
 	assert_true(map.seam_liberated.has(true), "a liberated region should have gold seams")
 	assert_eq(map.own_base_tile(), Vector2i(10, 10))
+
+func test_a_site_keeps_props_off_its_three_by_three_ring() -> void:
+	var map := await _built_map()
+	var occupied := map.occupied_tiles()
+	for t in [Vector2i(13, 13), Vector2i(14, 14), Vector2i(15, 15), Vector2i(49, 31), Vector2i(45, 43)]:
+		assert_true(occupied.has(t.y * 64 + t.x), "tile %s is in a site's ring" % t)
+	assert_false(occupied.has(14 * 64 + 17), "three tiles away is free of the ring")
+
+func test_a_map_without_sites_still_builds_and_draws() -> void:
+	var snap := _snapshot()
+	snap.erase("sites")
+	var map := WorldMap.new()
+	add_child_autofree(map)
+	await map.build(snap)
+	await wait_frames(2)
+	assert_gt(map.overlay().draw_count, 0)
+	assert_false(map.occupied_tiles().has(14 * 64 + 14))
 
 func test_tile_lookups_are_safe_outside_the_map() -> void:
 	var map := WorldMap.new()

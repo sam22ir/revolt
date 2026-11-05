@@ -364,6 +364,12 @@ msgstr "الحمّالون"
 msgid "troop.porters.desc"
 msgstr "ينقلون الموارد إلى القاعدة. لا يقاتلون."
 
+msgid "site.farmland.name"
+msgstr "حقل زراعي"
+
+msgid "site.quarry.name"
+msgstr "محجر"
+
 msgid "npc.patrol.name"
 msgstr "دورية استعمارية"
 
@@ -517,8 +523,17 @@ msgstr "في القتال"
 msgid "march.phase.returning"
 msgstr "في طريق العودة"
 
+msgid "march.phase.at_site"
+msgstr "في الموقع"
+
 msgid "march.departsIn"
 msgstr "تنطلق بعد {time}"
+
+msgid "march.leavesSiteIn"
+msgstr "تغادر الموقع بعد {time}"
+
+msgid "march.harvesting"
+msgstr "جمع {resource}"
 
 msgid "march.arrivesIn"
 msgstr "تصل بعد {time}"

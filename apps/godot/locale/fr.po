@@ -364,6 +364,12 @@ msgstr "Porteurs"
 msgid "troop.porters.desc"
 msgstr "Rapportent les ressources à la base. Ils ne combattent pas."
 
+msgid "site.farmland.name"
+msgstr "Champ agricole"
+
+msgid "site.quarry.name"
+msgstr "Carrière"
+
 msgid "npc.patrol.name"
 msgstr "Patrouille coloniale"
 
@@ -517,8 +523,17 @@ msgstr "Au combat"
 msgid "march.phase.returning"
 msgstr "Retour"
 
+msgid "march.phase.at_site"
+msgstr "Sur le site"
+
 msgid "march.departsIn"
 msgstr "Départ dans {time}"
+
+msgid "march.leavesSiteIn"
+msgstr "Quitte le site dans {time}"
+
+msgid "march.harvesting"
+msgstr "Récolte : {resource}"
 
 msgid "march.arrivesIn"
 msgstr "Arrivée dans {time}"

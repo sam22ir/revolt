@@ -31,6 +31,7 @@ import { MAX_DEPUTIES } from "../hero-loadout.ts";
 import { ALLIANCE_RANKS, canPerform } from "../alliance.ts";
 import { RALLY_GATHER_OPTIONS_MS, RALLY_SPEED } from "../data/alliance.ts";
 import { DEFAULT_BACKGROUND } from "../background.ts";
+import { SITE_KINDS, SITE_LEVELS, SITE_MAX_HARVEST_MS, SITE_RATE_PER_HOUR, SITE_RESOURCE } from "../data/sites.ts";
 import { MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING, REGION_CELL } from "../data/map.ts";
 import { hash32 } from "../rng.ts";
 import { regionAt, regionSite } from "../regions.ts";
@@ -94,6 +95,14 @@ export const buildGodotBalance = (): unknown => ({
   passTierCount: PASS_TIER_COUNT,
   passTiers: PASS_TIERS,
   products: PRODUCTS,
+  sites: {
+    kinds: [...SITE_KINDS],
+    levels: [...SITE_LEVELS],
+    maxHarvestMs: SITE_MAX_HARVEST_MS,
+    siteResource: SITE_RESOURCE,
+    /** Per kind, keyed by level as a string (JSON object keys): units of the site's resource per hour on site. */
+    ratePerHour: SITE_RATE_PER_HOUR,
+  },
 });
 
 const HOUR_MS = 3_600_000;

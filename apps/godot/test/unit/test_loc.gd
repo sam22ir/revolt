@@ -74,6 +74,19 @@ func test_every_mechanical_id_has_its_keys() -> void:
 		for suffix in ["name", "desc"]:
 			if not known.has("troop.%s.%s" % [id, suffix]):
 				missing.append("troop.%s.%s" % [id, suffix])
+	for kind: String in data["sites"]["kinds"]:
+		if not known.has("site.%s.name" % kind):
+			missing.append("site.%s.name" % kind)
+		var resource: String = data["sites"]["siteResource"][kind]
+		if not known.has("resource." + resource):
+			missing.append("resource." + resource)
+	# The march list builds these from its stage and countdown ids.
+	for key: String in ["at_site", "outbound", "fighting", "returning", "gathering"]:
+		if not known.has("march.phase." + key):
+			missing.append("march.phase." + key)
+	for key: String in ["march.arrivesIn", "march.departsIn", "march.leavesSiteIn", "march.returnsIn", "march.harvesting"]:
+		if not known.has(key):
+			missing.append(key)
 	for lang in ["en", "ar", "fr"]:
 		if not known.has("language." + lang):
 			missing.append("language." + lang)

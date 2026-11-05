@@ -34,6 +34,25 @@ func test_a_base_wins_over_an_hq_and_an_hq_over_a_target() -> void:
 	assert_eq(TileModel.info(snap, 12, 12, "plain")["kind"], "camp", "base and HQ on one tile")
 	assert_eq(TileModel.info(snap, 13, 13, "plain")["kind"], "hq", "HQ and target on one tile")
 
+func test_a_site_tile_resolves_after_a_base_an_hq_and_a_target() -> void:
+	var snap := {
+		"bases": [{"x": 1, "y": 1, "tag": "AAAA", "mine": false, "alliance": null}],
+		"hqs": [{"x": 2, "y": 2, "tag": "AB", "mine": false}],
+		"npcs": [{"id": "n1", "kind": "patrol", "level": 1, "x": 3, "y": 3}],
+		"sites": [
+			{"id": "farmland:0", "kind": "farmland", "level": 1, "x": 1, "y": 1, "occupied": false, "mine": false},
+			{"id": "farmland:1", "kind": "farmland", "level": 2, "x": 2, "y": 2, "occupied": false, "mine": false},
+			{"id": "quarry:0", "kind": "quarry", "level": 3, "x": 3, "y": 3, "occupied": true, "mine": true},
+			{"id": "quarry:1", "kind": "quarry", "level": 3, "x": 4, "y": 4, "occupied": true, "mine": false},
+		],
+	}
+	assert_eq(TileModel.info(snap, 1, 1, "plain")["kind"], "camp", "a base over a site")
+	assert_eq(TileModel.info(snap, 2, 2, "plain")["kind"], "hq", "an HQ over a site")
+	assert_eq(TileModel.info(snap, 3, 3, "plain")["kind"], "npc", "a target over a site")
+	var site: Dictionary = TileModel.info(snap, 4, 4, "plain")
+	assert_eq([site["kind"], site["site"]["id"], site["terrain"]], ["site", "quarry:1", "plain"])
+	assert_eq(TileModel.info(snap, 5, 5, "plain")["kind"], "empty", "no site and nothing else")
+
 func test_the_view_of_each_kind() -> void:
 	var snap: Dictionary = _fixtures()["snapshot"]
 	var own := TileModel.view(TileModel.info(snap, 2, 2, "plain"), 2, 2, "")

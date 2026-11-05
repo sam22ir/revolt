@@ -87,7 +87,7 @@ func refresh() -> void:
 
 func _signature(info: Dictionary, alliance_name: String) -> String:
 	var what: Array = [info["kind"], info["terrain"]]
-	for k in ["base", "hq", "npc"]:
+	for k in ["base", "hq", "npc", "site"]:
 		if info.has(k):
 			what.append(JSON.stringify(info[k]))
 	if info["kind"] == "empty":

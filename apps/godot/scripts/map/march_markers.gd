@@ -55,7 +55,8 @@ func _draw() -> void:
 		if not _well_formed(m):
 			continue
 		var pos := MarchesModel.position(m, _now)
-		if pos["leg"] == "done":
+		# Done, or a harvest waiting at its site: nothing to draw on the road (the site marker shows it).
+		if pos["leg"] == "done" or pos["leg"] == "at_site":
 			continue
 		var a := Iso.tile_center(int(m["from"]["x"]), int(m["from"]["y"]))
 		var b := Iso.tile_center(int(m["to"]["x"]), int(m["to"]["y"]))

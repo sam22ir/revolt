@@ -21,6 +21,12 @@ func test_any_tile_of_a_camps_square_taps_the_camp() -> void:
 		assert_eq(MapPicker.pick(snap, SIZE, Iso.tile_center(10 + d.x, 10 + d.y)), Vector2i(10, 10), "tile +%s" % d)
 	assert_eq(MapPicker.pick(snap, SIZE, Iso.tile_center(12, 10)), Vector2i(12, 10), "just outside the square is land")
 
+func test_a_site_tile_taps_the_site_tile_and_a_camp_on_it_wins() -> void:
+	var snap := _snap([{"tag": "AAAA", "x": 10, "y": 10, "mine": true, "alliance": null}])
+	snap["sites"] = [{"id": "farmland:0", "kind": "farmland", "level": 1, "x": 6, "y": 6, "occupied": false, "mine": false}, {"id": "quarry:0", "kind": "quarry", "level": 1, "x": 11, "y": 11, "occupied": false, "mine": false}]
+	assert_eq(MapPicker.pick(snap, SIZE, Iso.tile_center(6, 6)), Vector2i(6, 6), "a site is the tile under the finger")
+	assert_eq(MapPicker.pick(snap, SIZE, Iso.tile_center(11, 11)), Vector2i(10, 10), "a camp's square is tested before the tile")
+
 func test_a_targets_diamond_is_wider_than_its_tile() -> void:
 	var snap := _snap([], [_npc(10, 10)])
 	var c := Iso.tile_center(10, 10)

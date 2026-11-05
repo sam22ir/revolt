@@ -146,19 +146,24 @@ func apply_snapshot(snap: Dictionary) -> void:
 		refresh_props()
 	_objects.setup(self)
 
-## The tile indices kept free of props: the 3x3 ring around every base, NPC and HQ (bases and targets are drawn wider than
+## The tile indices kept free of props: the 3x3 ring around every base, NPC, HQ and resource site (bases and targets are drawn wider than
 ## their tile), as ground-layer.ts trackOccupied does. It comes from the snapshot, so props are rebuilt when it changes.
 func occupied_tiles() -> Dictionary:
 	var out := {}
 	for list_name in ["bases", "npcs", "hqs"]:
 		for t: Dictionary in snapshot.get(list_name, []):
-			for dy in range(-1, 2):
-				for dx in range(-1, 2):
-					var x := int(t["x"]) + dx
-					var y := int(t["y"]) + dy
-					if x >= 0 and y >= 0 and x < size and y < size:
-						out[y * size + x] = true
+			_mark_ring(out, t)
+	for site: Dictionary in SitesModel.sites(snapshot):
+		_mark_ring(out, site)
 	return out
+
+func _mark_ring(out: Dictionary, t: Dictionary) -> void:
+	for dy in range(-1, 2):
+		for dx in range(-1, 2):
+			var x := int(t["x"]) + dx
+			var y := int(t["y"]) + dy
+			if x >= 0 and y >= 0 and x < size and y < size:
+				out[y * size + x] = true
 
 ## Rebuilds the props after the snapshot's occupied tiles changed.
 func refresh_props() -> void:

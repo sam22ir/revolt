@@ -364,6 +364,12 @@ msgstr "Porters"
 msgid "troop.porters.desc"
 msgstr "Carry resources home. They do not fight."
 
+msgid "site.farmland.name"
+msgstr "Farmland"
+
+msgid "site.quarry.name"
+msgstr "Quarry"
+
 msgid "npc.patrol.name"
 msgstr "Colonial patrol"
 
@@ -517,8 +523,17 @@ msgstr "Fighting"
 msgid "march.phase.returning"
 msgstr "Returning"
 
+msgid "march.phase.at_site"
+msgstr "At the site"
+
 msgid "march.departsIn"
 msgstr "Leaves in {time}"
+
+msgid "march.leavesSiteIn"
+msgstr "Leaves the site in {time}"
+
+msgid "march.harvesting"
+msgstr "Harvesting {resource}"
 
 msgid "march.arrivesIn"
 msgstr "Arrives in {time}"
