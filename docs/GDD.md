@@ -176,9 +176,9 @@ These are hard rules for all content:
 
 - **Style (decided 3 Nov 2026):** a sunlit hidden mountain camp in hand-inked linework with warm painted color: sandstone, packed earth, whitewash and terracotta, dense and lived in. UI is painted dark metal with bronze edges and no baked-in text. Full spec, tokens and the single reference image: docs/design/design-system.md. (Replaces "night and lamp" of 28 Oct.)
 - **No faces:** people appear small and without readable faces in art; heroes follow §6.
-- **Sources:** art is generated (Nano Banana 2.1 in Google Flow). The base is one painting of the whole camp, so everything in it matches; animated things are drawn on top. Check Flow's commercial-use terms and Google Play's AI-content disclosure before release.
+- **Sources:** art is generated (Nano Banana 2.1 in Google Flow). The base is one painting of the whole camp, so everything in it matches, shown in 3D: the buildings are blocks with the painting projected onto them, and people walk among them (design-system §5). Check Flow's commercial-use terms and Google Play's AI-content disclosure before release.
 - **Budget:** under $500 in year one. Use generated art, free asset packs (Kenney.nl) and code-drawn placeholders. Hire artists only if the budget grows; the first hires would be a building/unit artist, then a hero portrait artist.
-- Each background gets its own camp painting and palette, with its own traced tap areas.
+- Each background gets its own camp painting and palette, with its own traced tap areas and 3D building blocks.
 - **Audio:** free/CC music and SFX packs. ElevenLabs voice narration is **deferred** until there is budget.
 
 ---

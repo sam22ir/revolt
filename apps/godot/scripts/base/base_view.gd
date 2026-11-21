@@ -1,6 +1,7 @@
 class_name BaseView
 extends Node2D
-## The base screen's picture: one painting of the whole camp with every building in it (CampLayout). Over it go each building's
+## The base screen's picture: the camp in 3D (CampScene), which at rest is exactly the painting of the whole camp, so the outlines
+## traced on the painting (CampLayout) fit it. Over it go the chimney smoke (CampLife) and each building's
 ## name and level, a progress bar and a shade while it is upgrading, and an outline on the selected one. A tap lands on a
 ## building's traced outline; a tap on empty ground deselects. A drag pans the painting where it is bigger than the space between
 ## the HUD and the nav bar. It lives in its own CanvasLayer (`layer`), and `apply_fit` fits that layer to the screen, so the map
@@ -33,6 +34,7 @@ var selected := ""
 var background := ""
 
 var _painting := Sprite2D.new()
+var _scene := CampScene.new()
 var _life := CampLife.new()
 var _labels := {}
 var _overlay := Node2D.new()
@@ -56,13 +58,14 @@ func _ready() -> void:
 	_overlay.draw.connect(_draw_overlay)
 	add_child(_overlay)
 
-## Loads the painting and makes the names. Called once.
+## Builds the 3D camp and makes the names. Called once.
 func build() -> void:
-	var tex: Texture2D = load(CampLayout.PAINTING)
-	_painting.texture = tex
+	_scene.build()
+	add_child(_scene)
+	_painting.texture = _scene.get_texture()
 	_painting.centered = false
-	_painting.scale = CampLayout.WORLD / tex.get_size()
 	_painting.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	_fit_painting()
 	add_child(_painting)
 	_life.build()
 	add_child(_life)
@@ -95,6 +98,7 @@ func set_state(levels: Dictionary, queue: Variant, now_ms: int) -> void:
 	_levels = levels
 	_queue = queue
 	_now_ms = now_ms
+	_scene.tick(now_ms)
 	_life.tick(now_ms)
 	_refresh_labels()
 	_overlay.queue_redraw()
@@ -142,7 +146,22 @@ func apply_fit(view: Vector2, top: float, nav: float) -> void:
 	_fit = CampLayout.fit(view, top, nav)
 	var z := float(_fit["zoom"])
 	layer.scale = Vector2(z, z)
+	# The 3D camp renders at the size it shows on screen, so it is as sharp as the painting was and no bigger.
+	_scene.set_render_size(CampLayout.WORLD * z)
+	_fit_painting()
 	_move_to(_fit["start"] if _offset == Vector2.INF else _offset)
+
+## The rendered camp covers exactly the painting's world rectangle, whatever size it renders at.
+func _fit_painting() -> void:
+	_painting.scale = CampLayout.WORLD / Vector2(_scene.size)
+
+## Renders the 3D camp only while the base shows.
+func set_rendering(on: bool) -> void:
+	_scene.render_target_update_mode = SubViewport.UPDATE_ALWAYS if on else SubViewport.UPDATE_DISABLED
+
+## How big the picture is drawn, in world units (for tests).
+func painting_size() -> Vector2:
+	return Vector2(_scene.size) * _painting.scale
 
 func _move_to(offset: Vector2) -> void:
 	_offset = offset.clamp(_fit["low"], _fit["high"])

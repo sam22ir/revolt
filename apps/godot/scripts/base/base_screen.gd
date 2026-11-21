@@ -49,6 +49,7 @@ func is_built() -> bool:
 ## Shows or hides the screen. A hidden base takes no input and closes its sheet.
 func set_active(active: bool) -> void:
 	layer.visible = active
+	view.set_rendering(active)
 	view.process_mode = Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
 	if not active:
 		deselect()

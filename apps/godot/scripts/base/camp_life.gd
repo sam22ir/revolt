@@ -1,8 +1,9 @@
 class_name CampLife
 extends Node2D
-## The living camp on top of the painting: people and mules walking the routes in CampLayout, others standing, and smoke from the
-## farm's chimney. All of it is cosmetic and worked out from the time the caller gives, so nothing here ticks or touches game
-## state, and it only redraws while the base screen is updating it.
+## The living camp: where the people and mules walking the routes in CampLayout and the ones standing are at any time (CampScene
+## shows them in 3D among the buildings), and the smoke from the farm's chimney, which this layer draws on top of the picture. All
+## of it is cosmetic and worked out from the time the caller gives, so nothing here ticks or touches game state, and it only
+## redraws while the base screen is updating it.
 
 const ART := "res://art/camp/life/"
 ## Walk cycles, in the order they alternate.
@@ -27,17 +28,11 @@ const PUFF_SIZE := 48
 
 var draw_count := 0
 
-var _textures := {}
 var _puff: GradientTexture2D
 var _now_ms := 0
 
-## Loads the figures. Called once.
+## Makes the smoke puff. Called once.
 func build() -> void:
-	for kind: String in FRAMES:
-		var list: Array[Texture2D] = []
-		for piece: String in FRAMES[kind]:
-			list.append(load(ART + piece + ".png"))
-		_textures[kind] = list
 	var fade := Gradient.new()
 	fade.set_color(0, Color.WHITE)
 	fade.set_color(1, Color(1, 1, 1, 0))
@@ -104,20 +99,7 @@ static func figures(now_ms: int) -> Array:
 
 func _draw() -> void:
 	draw_count += 1
-	for f: Dictionary in figures(_now_ms):
-		_draw_figure(f)
 	for i in SMOKE_PUFFS:
 		var p := puff(i, _now_ms)
 		var r: float = p["radius"]
 		draw_texture_rect(_puff, Rect2(p["at"] - Vector2(r, r), Vector2(r, r) * 2.0), false, Color(SMOKE_COLOR, p["alpha"]))
-
-func _draw_figure(f: Dictionary) -> void:
-	var tex: Texture2D = _textures[f["kind"]][f["frame"]]
-	var size := tex.get_size()
-	var feet: Vector2 = f["at"]
-	# A flat shadow under the feet, so the figure stands on the painted ground.
-	draw_set_transform(feet, 0.0, Vector2(1.0, 0.42))
-	draw_circle(Vector2.ZERO, size.x * FIGURE_SCALE * 0.42, GROUND_SHADOW)
-	draw_set_transform(feet + Vector2(0.0, -float(f["lift"])), 0.0, Vector2(-FIGURE_SCALE if f["left"] else FIGURE_SCALE, FIGURE_SCALE))
-	draw_texture(tex, Vector2(-size.x * 0.5, -size.y))
-	draw_set_transform(Vector2.ZERO)

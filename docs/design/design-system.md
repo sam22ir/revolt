@@ -13,8 +13,8 @@ A hidden mountain camp in full daylight, seen from above: sunlit sandstone, pack
 | Topic | Decision (3 Nov) |
 |---|---|
 | Lighting | Daylight everywhere: base camp and world map |
-| Base | One painting of the whole camp with every building and prop in it, so everything matches. See §5 |
-| Animated things | Left out of the painting and drawn on top: people, animals, smoke, flags |
+| Base | One painting of the whole camp with every building and prop in it, so everything matches, shown in 3D: the buildings are blocks with the painting projected onto them. See §5 |
+| Animated things | Left out of the painting: people and animals stand among the 3D buildings (hidden when behind one); smoke and flags are drawn on top |
 | HUD | Painted bronze frames, with a full-width header and nav band. No text baked in |
 | Bottom nav | Round buttons from the start edge, the big Base/Map switch at the end edge |
 | Fire | On colonial targets only (GDD §5, §6) |
@@ -55,10 +55,12 @@ IBM Plex Sans Arabic for Arabic and Latin, regular and bold (`apps/godot/fonts`)
 
 ## 5. The base painting
 
-Art and its limits: `apps/godot/art/camp/README.md`. Tap outlines and name positions: `apps/godot/scripts/base/camp_layout.gd`.
+Art and its limits: `apps/godot/art/camp/README.md`. Tap outlines and name positions: `apps/godot/scripts/base/camp_layout.gd`. The 3D blocks and where they stand: `apps/godot/tools/blender/camp_buildings.py` and `apps/godot/scripts/base/camp_models.gd`.
+
+- **3D (21 Nov 2026):** each building is a rough Blender block placed where it is painted; the painting is projected onto the blocks and the ground from the camera it was painted from (30° up, 45° round), so at rest the base looks exactly like the painting and figures can walk behind buildings.
 
 - **Making one:** Google Flow (Nano Banana 2.1) with the reference attached, listing every building and where it stands, and asking for no people, animals, vehicles, flags, smoke, fire or text. Download the 2K upscale.
-- **Limits:** upgrades don't change a building's look, new buildings need a repaint, nothing can be hidden, and each base skin is a whole painting.
+- **Limits:** upgrades don't change a building's look yet (each level needs its own painting of that building), new buildings need a repaint and a new block, and each base skin is a whole painting.
 - **Before launch:** repaint with all planned buildings (GDD §4.1), so the layout changes only once.
 - **Vietnam** uses the Algerian painting until it has its own.
 

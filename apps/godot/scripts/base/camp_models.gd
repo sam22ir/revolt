@@ -5,8 +5,9 @@ extends RefCounted
 ## and they show their depth when the camera turns or something passes behind them. One 3D unit is one painting px; the ground
 ## is the plane y = 0.
 
-const PAINTING := "res://art/camp/algeria_camp.webp"
-## The painting with the buildings smudged out, for the ground under them (tools/camp_fill_buildings.py).
+const PAINTING := CampLayout.PAINTING
+## The painting with the buildings smudged out, for the ground under them when the camera turns: only the look test
+## (scripts/dev/camp_3d_test.gd) does; the base screen never turns, so it keeps the painting itself (tools/camp_fill_buildings.py).
 const GROUND := "res://art/camp/dev/ground_no_buildings.webp"
 const MODELS := "res://art/camp/models/"
 const PROJECTION := preload("res://shaders/camp_projection.gdshader")
@@ -69,6 +70,7 @@ static func material(texture: String, tint: float = 0.0) -> ShaderMaterial:
 ## The building `id`, placed and turned, with `mat` on every mesh.
 static func building(id: String, mat: Material) -> Node3D:
 	var model: Node3D = (load(MODELS + id + ".glb") as PackedScene).instantiate()
+	model.name = id
 	model.position = ground_at(PLACES[id]["corner"])
 	model.rotation.y = deg_to_rad(PLACES[id]["turn"])
 	for mesh: Node in model.find_children("*", "MeshInstance3D", true, false):
