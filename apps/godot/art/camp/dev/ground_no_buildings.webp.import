@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c6g31vfirxpnw"
-path="res://.godot/imported/ground_no_barracks.webp-804d6373cd22d265a00e2a893cbd94b0.ctex"
+uid="uid://c6ny76ge4hwgt"
+path="res://.godot/imported/ground_no_buildings.webp-e38c5e157912df9541621a483bdb42c2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/camp/dev/ground_no_barracks.webp"
-dest_files=["res://.godot/imported/ground_no_barracks.webp-804d6373cd22d265a00e2a893cbd94b0.ctex"]
+source_file="res://art/camp/dev/ground_no_buildings.webp"
+dest_files=["res://.godot/imported/ground_no_buildings.webp-e38c5e157912df9541621a483bdb42c2.ctex"]
 
 [params]
 
