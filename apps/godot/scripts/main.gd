@@ -45,6 +45,9 @@ var _reports_unseen := false
 var _failed := false
 
 func _ready() -> void:
+	if UrlParam.value("scene") == "camp3d":
+		add_child(Camp3dTest.new())
+		return
 	GroundStyle.set_active(UrlParam.value("ground"))
 	RenderingServer.set_default_clear_color(GroundFrame.BACKGROUND)
 	_api.base_url = Api.resolve_base_url()
