@@ -40,11 +40,13 @@ The kit grows with the screens: each component is built when the first screen ne
 kit's font sizes then (no global font change, which would reflow every screen and the HUD heights the base fit depends on).
 
 1. **Building sheet, first, as the look test.** Card, CostRow, StatRow and the button states, in the real game; its en and ar
-   screenshots are the mockup the user approves before the rest. Portrait header (building art, name, level), "now → next" stat rows, cost row with icons, time, the
-   requirement as a line with a lock icon, one gold Upgrade button; the speed-up and help rows restyled.
+   screenshots are the mockup the user approves before the rest. Portrait header (cut from the painting, name, level),
+   "now → next" stat rows, cost chips with icons, time, the requirement as a warning line (its lock icon waits for the painted
+   set), one gold Upgrade button; the speed-up row at kit sizes. *Built 23 Nov, waiting for the user's verdict.*
 2. **Barracks training.** Troop cards with art and the counter/weakness line, a `Stepper`, cost row, Train button; troops at
    home and wounded as small stat chips.
-3. **Top HUD.** Bigger resource numbers, painted resource icons, the builders pill with an icon and a progress ring.
+3. **Top HUD.** Bigger resource numbers, painted resource icons, the builders pill with an icon and a progress ring, and its
+   ask-for-help button.
 4. **Settings.** `PageFrame`, cards for account, language, sound, about.
 5. **Reports.** `ListRow` with a win/loss badge and target icon; a report as cards (forces, losses, loot with icons);
    an `EmptyState`.

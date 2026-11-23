@@ -7,7 +7,8 @@ extends RefCounted
 
 ## {"id", "level", "hq", "production": {"resource", "perHour"} | null, "storage": int | null, "mode": "upgrading" | "next" | "max",
 ##  "job": {"toLevel", "remainingMs", "fraction"} | null,
-##  "next": {"toLevel", "cost": [{"id", "amount", "lacking"}], "durationMs", "production": perHour | null, "ok", "reason"} | null,
+##  "next": {"toLevel", "cost": [{"id", "amount", "lacking"}], "durationMs", "production": perHour | null, "storage": int | null,
+##           "ok", "reason"} | null,
 ##  "key": String}
 ## `key` changes exactly when the panel's structure has to be rebuilt; the countdown and the bar are updated without a rebuild.
 static func build(id: String, levels: Dictionary, resources: Dictionary, queue: Variant, now_ms: int) -> Dictionary:
@@ -51,6 +52,7 @@ static func build(id: String, levels: Dictionary, resources: Dictionary, queue: 
 			"cost": cost,
 			"durationMs": int(check["durationMs"]),
 			"production": rate_at(id, int(check["toLevel"])) if produces != null else null,
+			"storage": int(Balance.storage_cap(int(check["toLevel"]))["food"]) if id == "hq" else null,
 			"ok": bool(check["ok"]),
 			"reason": String(check.get("reason", "")),
 		}

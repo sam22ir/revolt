@@ -6,7 +6,7 @@ extends VBoxContainer
 
 signal pressed
 
-const FONT := 28
+const FONT := 40 # UiKit.BODY in viewport px
 const NOTE_S := 4.0
 const MUTED := HudTheme.TEXT_SECOND
 const LACKING := HudTheme.LACKING
@@ -25,7 +25,7 @@ func _init() -> void:
 	visible = false
 	_button.focus_mode = Control.FOCUS_NONE
 	_button.add_theme_font_size_override("font_size", FONT)
-	_button.custom_minimum_size.y = 84.0
+	_button.custom_minimum_size.y = HudTheme.px(UiKit.TAP)
 	_button.pressed.connect(func() -> void:
 		if not _blocked and not _pending:
 			pressed.emit())

@@ -12,14 +12,13 @@ signal closed
 ## The hero hall sheet's link to the Heroes screen.
 signal heroes_requested
 
-const FONT := 34
-const TITLE_FONT := 42
+
 const INK := HudTheme.TEXT
 const GOLD := HudTheme.GOLD
 const LACKING := HudTheme.LACKING
 const MUTED := HudTheme.TEXT_SECOND
-## The close button is a round bronze face, a comfortable target (38 mockup px).
-const CLOSE_SIZE := 110.0
+## The close button is a round bronze face, a comfortable target (UiKit.TAP).
+const CLOSE_SIZE := UiKit.TAP
 
 var _model: Dictionary = {}
 var _key := ""
@@ -141,17 +140,63 @@ func _rebuild() -> void:
 	var m := _model
 	var lang := Fmt.lang()
 	var id: String = m["id"]
+	_body.add_child(_header(id, lang, int(m["level"])))
+	_body.add_child(UiKit.label(Loc.t("building.%s.desc" % id, {}, _background), UiKit.SMALL, MUTED, false, true))
+
+	match m["mode"]:
+		"upgrading":
+			var c := UiKit.card(Loc.t("panel.upgrading", {"level": Fmt.amount(lang, m["job"]["toLevel"])}))
+			var body := UiKit.card_body(c)
+			_bar = _progress_bar()
+			body.add_child(_bar)
+			_countdown = UiKit.label("", UiKit.BIG, INK, true)
+			_countdown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			body.add_child(_countdown)
+			_body.add_child(c)
+			# Straight in the body, not the card: it is kept across rebuilds, and the old card is freed with its children.
+			_body.add_child(upgrade_speedup)
+			_add_stats_card(m, lang)
+		"max":
+			_add_stats_card(m, lang)
+			var c := UiKit.card()
+			UiKit.card_body(c).add_child(UiKit.label(Loc.t("panel.maxLevel"), UiKit.BODY, MUTED, false, true))
+			_body.add_child(c)
+		_:
+			_build_next(m, lang, id)
+
+	if id == "hero_hall":
+		var c := UiKit.card()
+		var body := UiKit.card_body(c)
+		body.add_child(UiKit.label(Loc.t("heroes.hallNote"), UiKit.BODY, INK, false, true))
+		var heroes := Button.new()
+		heroes.text = Loc.t("heroes.open")
+		heroes.add_theme_font_size_override("font_size", HudTheme.font(UiKit.BODY))
+		heroes.custom_minimum_size.y = HudTheme.px(UiKit.TAP)
+		heroes.pressed.connect(func() -> void: heroes_requested.emit())
+		body.add_child(heroes)
+		_body.add_child(c)
+	if id == "barracks":
+		_body.add_child(training)
+
+## Portrait, name and level, and the close button.
+func _header(id: String, lang: String, level: int) -> HBoxContainer:
 	var head := HBoxContainer.new()
-	head.add_theme_constant_override("separation", 14)
-	var title := _label(Loc.t("building.%s.name" % id, {}, _background), TITLE_FONT, INK)
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	head.add_child(title)
-	head.add_child(_label(Loc.t("panel.level", {"level": Fmt.amount(lang, m["level"])}), FONT, MUTED))
+	head.add_theme_constant_override("separation", roundi(HudTheme.px(10)))
+	head.add_child(UiKit.portrait(id, 60.0))
+	var names := VBoxContainer.new()
+	names.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	names.alignment = BoxContainer.ALIGNMENT_CENTER
+	names.add_theme_constant_override("separation", 0)
+	var title := UiKit.label(Loc.t("building.%s.name" % id, {}, _background), UiKit.TITLE, INK, true)
+	title.name = "Title"
+	names.add_child(title)
+	names.add_child(UiKit.label(Loc.t("panel.level", {"level": Fmt.amount(lang, level)}), UiKit.SMALL, HudTheme.RING))
+	head.add_child(names)
 	var close_button := Button.new()
 	close_button.text = "×"
-	close_button.add_theme_font_size_override("font_size", TITLE_FONT)
+	close_button.add_theme_font_size_override("font_size", HudTheme.font(UiKit.TITLE + 6.0))
 	close_button.tooltip_text = Loc.t("panel.close")
-	close_button.custom_minimum_size = Vector2.ONE * CLOSE_SIZE
+	close_button.custom_minimum_size = Vector2.ONE * HudTheme.px(CLOSE_SIZE)
 	close_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	for state in ["normal", "hover", "pressed", "focus"]:
 		close_button.add_theme_stylebox_override(state, HudTheme.round_face())
@@ -159,91 +204,64 @@ func _rebuild() -> void:
 		close()
 		closed.emit())
 	head.add_child(close_button)
-	_body.add_child(head)
-	_body.add_child(_label(Loc.t("building.%s.desc" % id, {}, _background), FONT, INK, true))
+	return head
 
+## A card with what the building does now (while upgrading or at the maximum level), if it produces or stores anything.
+func _add_stats_card(m: Dictionary, lang: String) -> void:
+	if m["production"] == null and m["storage"] == null:
+		return
+	var c := UiKit.card()
+	_add_stats(UiKit.card_body(c), m, lang, null)
+	_body.add_child(c)
+
+## Production and storage rows; with `next`, each shows now → next.
+func _add_stats(body: VBoxContainer, m: Dictionary, lang: String, next: Variant) -> void:
 	if m["production"] != null:
-		_body.add_child(_row(Loc.t("panel.production"), Loc.t("panel.perHour", {"amount": "+" + Fmt.amount(lang, m["production"]["perHour"])})))
+		var res: String = m["production"]["resource"]
+		var now := Loc.t("panel.perHour", {"amount": "+" + Fmt.amount(lang, m["production"]["perHour"])})
+		var later := "" if next == null or next["production"] == null else Loc.t("panel.perHour", {"amount": "+" + Fmt.amount(lang, next["production"])})
+		body.add_child(UiKit.stat_row(res, ResourceCell.ICON_TINT.get(res, INK), Loc.t("panel.production"), now, later))
 	if m["storage"] != null:
-		_body.add_child(_row(Loc.t("panel.storage"), Fmt.amount(lang, m["storage"])))
+		var later := "" if next == null or next["storage"] == null else Fmt.amount(lang, next["storage"])
+		# No icon until the painted set has a storage one.
+		body.add_child(UiKit.stat_row("", MUTED, Loc.t("panel.storage"), Fmt.amount(lang, m["storage"]), later))
 
-	match m["mode"]:
-		"upgrading":
-			_body.add_child(_label(Loc.t("panel.upgrading", {"level": Fmt.amount(lang, m["job"]["toLevel"])}), FONT, INK))
-			_bar = ProgressBar.new()
-			_bar.show_percentage = false
-			_bar.custom_minimum_size.y = 26
-			_bar.value = 0.0
-			# Gold on a dark track; the fill starts at the layout's start side, so it runs right to left in Arabic.
-			var track := StyleBoxFlat.new()
-			track.bg_color = Color(0, 0, 0, 0.45)
-			track.set_corner_radius_all(10)
-			var fill := StyleBoxFlat.new()
-			fill.bg_color = GOLD
-			fill.set_corner_radius_all(10)
-			_bar.add_theme_stylebox_override("background", track)
-			_bar.add_theme_stylebox_override("fill", fill)
-			_body.add_child(_bar)
-			_countdown = _label("", FONT, INK)
-			_body.add_child(_countdown)
-			_body.add_child(upgrade_speedup)
-		"max":
-			_body.add_child(_label(Loc.t("panel.maxLevel"), FONT, MUTED, true))
-		_:
-			_build_next(m["next"], lang, m["id"])
-
-	if id == "hero_hall":
-		_body.add_child(_label(Loc.t("heroes.hallNote"), FONT, INK, true))
-		var heroes := Button.new()
-		heroes.text = Loc.t("heroes.open")
-		heroes.add_theme_font_size_override("font_size", FONT)
-		heroes.pressed.connect(func() -> void: heroes_requested.emit())
-		_body.add_child(heroes)
-	if id == "barracks":
-		_body.add_child(training)
-
-func _build_next(n: Dictionary, lang: String, id: String) -> void:
-	_body.add_child(_label(Loc.t("panel.nextLevel", {"level": Fmt.amount(lang, n["toLevel"])}), FONT + 4, INK))
-	var costs := HFlowContainer.new()
-	costs.add_theme_constant_override("h_separation", 24)
-	for c: Dictionary in n["cost"]:
-		var chip := _label("%s %s" % [Loc.t("resource." + c["id"], {}, _background), Fmt.amount(lang, c["amount"])], FONT, LACKING if c["lacking"] else INK)
-		costs.add_child(chip)
-	_body.add_child(costs)
-	_body.add_child(_row(Loc.t("panel.duration"), Fmt.duration(float(n["durationMs"]))))
-	if n["production"] != null:
-		_body.add_child(_row(Loc.t("panel.production"), Loc.t("panel.perHour", {"amount": "+" + Fmt.amount(lang, n["production"])})))
-	var button := Button.new()
-	button.text = Loc.t("panel.upgrade")
-	button.add_theme_font_size_override("font_size", FONT + 2)
-	button.custom_minimum_size.y = 96
-	button.disabled = not n["ok"] or _pending
-	HudTheme.make_primary(button)
-	button.pressed.connect(func() -> void: upgrade_pressed.emit(id))
-	_body.add_child(button)
+func _build_next(m: Dictionary, lang: String, id: String) -> void:
+	var n: Dictionary = m["next"]
+	var c := UiKit.card(Loc.t("panel.nextLevel", {"level": Fmt.amount(lang, n["toLevel"])}))
+	var body := UiKit.card_body(c)
+	_add_stats(body, m, lang, n)
+	var items: Array = []
+	for cost: Dictionary in n["cost"]:
+		items.append(UiKit.cost_chip(cost["id"], Fmt.amount(lang, cost["amount"]), cost["lacking"]))
+	items.append(UiKit.time_chip(Fmt.duration(float(n["durationMs"]))))
+	body.add_child(UiKit.chips(items))
 	# The check's own reason, or the one the server just gave (it can know better: a stale view, a queue started elsewhere).
 	var reason := _notice if _notice != "" else (String(n["reason"]) if not n["ok"] else "")
 	if reason != "":
 		var key := "reason." + reason
 		var text := Loc.t(key, {"level": Fmt.amount(lang, n["toLevel"])})
-		_body.add_child(_label(text if text != key else Loc.t("reason.unreachable"), FONT, LACKING, true))
+		body.add_child(UiKit.warning(text if text != key else Loc.t("reason.unreachable")))
+	var button := UiKit.primary_button(Loc.t("panel.upgrade"))
+	button.disabled = not n["ok"] or _pending
+	button.pressed.connect(func() -> void: upgrade_pressed.emit(id))
+	body.add_child(button)
+	_body.add_child(c)
 
-func _row(left: String, right: String) -> HBoxContainer:
-	var row := HBoxContainer.new()
-	var a := _label(left, FONT, MUTED)
-	a.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(a)
-	row.add_child(_label(right, FONT, INK))
-	return row
-
-## `wrap` only for a paragraph that has the whole row to itself: an auto-wrapping label inside a row or a flow container has no
-## minimum width and collapses to one character per line.
-func _label(text: String, size: int, color: Color, wrap := false) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.add_theme_font_size_override("font_size", size)
-	label.add_theme_color_override("font_color", color)
-	if wrap:
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return label
+## Gold on a dark track; the fill starts at the layout's start side, so it runs right to left in Arabic.
+func _progress_bar() -> ProgressBar:
+	var bar := ProgressBar.new()
+	bar.show_percentage = false
+	bar.custom_minimum_size.y = HudTheme.px(12)
+	bar.value = 0.0
+	var track := StyleBoxFlat.new()
+	track.bg_color = Color(0, 0, 0, 0.5)
+	track.border_color = Color(HudTheme.BRASS, 0.6)
+	track.set_border_width_all(1)
+	track.set_corner_radius_all(roundi(HudTheme.px(6)))
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = GOLD
+	fill.set_corner_radius_all(roundi(HudTheme.px(6)))
+	bar.add_theme_stylebox_override("background", track)
+	bar.add_theme_stylebox_override("fill", fill)
+	return bar

@@ -233,10 +233,10 @@ func test_the_panel_follows_the_language() -> void:
 	panel.open_for("farm")
 	var model := BuildingPanelModel.build("farm", _levels(), {"food": 9999.0, "materiel": 9999.0, "funds": 9999.0, "support": 0.0}, null, NOW)
 	panel.update_model(model, "")
-	var title_en := (panel._body.get_child(0).get_child(0) as Label).text
+	var title_en := (panel._body.get_child(0).find_child("Title", true, false) as Label).text
 	TranslationServer.set_locale("ar")
 	panel.update_model(model, "")
-	var title_ar := (panel._body.get_child(0).get_child(0) as Label).text
+	var title_ar := (panel._body.get_child(0).find_child("Title", true, false) as Label).text
 	assert_ne(title_en, title_ar, "the sheet is rebuilt in Arabic")
 
 func _screen(api: FakeApi, state: Dictionary) -> BaseScreen:
