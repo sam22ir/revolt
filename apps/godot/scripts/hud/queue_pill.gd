@@ -1,7 +1,9 @@
 class_name QueuePill
 extends PanelContainer
-## The builders' status (ui/hud.ts): "Builders idle — tap a building", or the running upgrade ("Command post → level 2") with
-## its countdown from the server's end time. Its structure text changes only when the job does; the countdown ticks in place.
+## The builders' status (ui/hud.ts) beside a painted hammer: "Builders idle — tap a building" with a gold rim that invites a tap,
+## or the running upgrade ("Command post → level 2") with its countdown from the server's end time and a thin bar along the
+## pill's bottom edge showing how far it is. Its structure text changes only when the job does; the countdown and the bar move
+## in place, and nothing changes the pill's height.
 
 const FONT := 32 # HudTheme.font(FONT_SMALL), a mockup 11 px
 ## How long a refusal stays on the pill (Phaser's NOTE_MS in ui/hud.ts).
@@ -16,6 +18,8 @@ var _text_key := ""
 var _help := Button.new()
 var _note_code := ""
 var _note_timer := Timer.new()
+var _fraction := 0.0
+var _busy := false
 
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -25,6 +29,10 @@ func _init() -> void:
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_theme_constant_override("separation", 16)
+	# No taller than the text line (the top bar must not grow: the camp is fitted under it), and a flat SVG so it reads at this size.
+	var hammer := HudIcon.new("hammer", 16.0, HudTheme.RING)
+	hammer.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(hammer)
 	_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	# One line only: a longer text must not make the top box taller, because the base is fitted below it.
 	_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -69,11 +77,31 @@ func update_model(m: Dictionary, background: String) -> void:
 			_label.text = Loc.t("queue.busy", {"building": Loc.t("building.%s.name" % m["building"], {}, background), "level": Fmt.amount(Fmt.lang(), m["level"])})
 		else:
 			_label.text = Loc.t("queue.idle")
-		_box.border_color = HudTheme.RING if m["busy"] else HudTheme.BRASS
+		# Idle builders are an invitation: a gold rim, twice as wide.
+		_box.border_color = HudTheme.BRASS if m["busy"] else HudTheme.GOLD
+		_box.set_border_width_all(maxi(1, roundi(HudTheme.px(HudTheme.BORDER))) * (1 if m["busy"] else 2))
 	_set_help_shown(m["help"])
 	# A lone space keeps the row's height (an empty button is shorter) but gives its width to the text beside it.
 	_help.text = Loc.t("help.ask") if m["help"] else " "
+	_busy = m["busy"]
+	var fraction := float(m.get("fraction", 0.0)) if _busy else 0.0
+	if not is_equal_approx(fraction, _fraction):
+		_fraction = fraction
+		queue_redraw()
 	if _note_code != "":
 		_time.text = Loc.t("reason." + _note_code)
 	else:
 		_time.text = Fmt.duration(float(m["remainingMs"])) if m["busy"] else ""
+
+## The running upgrade's progress: a gold line along the bottom edge, inside the rounded corners.
+func _draw() -> void:
+	if not _busy or _fraction <= 0.0:
+		return
+	var inset := HudTheme.px(10)
+	var h := HudTheme.px(2.5)
+	var width := (size.x - inset * 2.0) * _fraction
+	var x := inset if not is_layout_rtl() else size.x - inset - width
+	draw_rect(Rect2(x, size.y - h - HudTheme.px(2), width, h), HudTheme.GOLD)
+
+func progress() -> float:
+	return _fraction

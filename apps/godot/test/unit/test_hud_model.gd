@@ -66,3 +66,12 @@ func test_hud_texts_exist_in_en_and_ar() -> void:
 		for k in ["queue.idle", "queue.busy", "sync.offline"]:
 			assert_ne(Loc.t(k), k, "%s: %s" % [lang, k])
 	TranslationServer.set_locale("en")
+
+func test_the_pill_knows_how_far_the_upgrade_is_whatever_the_clock_says() -> void:
+	var job := {"building": "farm", "toLevel": 2, "startedAt": 1000, "endsAt": 5000}
+	assert_almost_eq(float(HudModel.pill(job, 3000, "base")["fraction"]), 0.5, 0.001)
+	assert_eq(float(HudModel.pill(job, 0, "base")["fraction"]), 0.0, "a clock before the start")
+	assert_eq(float(HudModel.pill(job, 9000, "base")["fraction"]), 1.0, "after the end")
+	var instant := {"building": "farm", "toLevel": 2, "startedAt": 5000, "endsAt": 5000}
+	assert_eq(float(HudModel.pill(instant, 5000, "base")["fraction"]), 1.0, "no length: done")
+	assert_eq(float(HudModel.pill(null, 3000, "base")["fraction"]), 0.0)

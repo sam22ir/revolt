@@ -89,6 +89,7 @@ func _start() -> void:
 		return
 	_session.apply(session["data"])
 	_settings.set_guest_tag(HudModel.guest_tag(_api.token))
+	_top.chip.set_tag(HudModel.guest_tag(_api.token))
 	# The base needs only the state, so it is ready (and the default screen) before the heavy map build.
 	_base.build()
 	_debug_time("base ready", started_ms)

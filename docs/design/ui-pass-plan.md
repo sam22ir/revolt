@@ -50,8 +50,11 @@ kit's font sizes then (no global font change, which would reflow every screen an
    opens the Heroes page.
 2. **Barracks training.** Troop cards with art and the counter/weakness line, a `Stepper`, cost row, Train button; troops at
    home and wounded as small stat chips.
-3. **Top HUD.** Bigger resource numbers, painted resource icons, the builders pill with an icon and a progress ring, and its
-   ask-for-help button.
+3. **Top and bottom bars.** *Built 23 Nov.* Top: each resource in a dark pill with a store bar along its bottom edge (brass,
+   amber near the cap, gold when full); the player chip as a round avatar with a gold level badge, the guest name and power by
+   the painted sword; the builders pill with the painted hammer, a gold rim when idle and a progress line while building. The
+   top bar keeps its height (313 px), so the camp's fit is unchanged. Bottom: five even slots, Heroes, Alliance, the big
+   Base/Map switch in the middle, Reports and a new Settings button (own gear SVG). The ask-for-help button keeps its place.
 4. **Settings.** `PageFrame`, cards for account, language, sound, about.
 5. **Reports.** `ListRow` with a win/loss badge and target icon; a report as cards (forces, losses, loot with icons);
    an `EmptyState`.

@@ -112,7 +112,7 @@ export const en = {
     hq_job: "The command post upgrade cannot be sped up",
     daily_cap: "You reached today’s speed-up limit",
   },
-  nav: { map: "Map", base: "Base", reports: "Reports", alliance: "Alliance", heroes: "Heroes", story: "Story", live: "Live" },
+  nav: { map: "Map", base: "Base", reports: "Reports", alliance: "Alliance", heroes: "Heroes", story: "Story", live: "Live", settings: "Settings" },
   troop: {
     infantry: { name: "Infantry", desc: "Frontline fighters. Strong against scouts, weak against heavy troops." },
     scouts: { name: "Scouts", desc: "Fast raiders. Strong against heavy troops, weak against infantry." },

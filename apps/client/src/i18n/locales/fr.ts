@@ -117,7 +117,7 @@ export const fr: LocaleShape = {
     hq_job: "L’amélioration du poste de commandement ne peut pas être accélérée",
     daily_cap: "Vous avez atteint la limite d’accélération du jour",
   },
-  nav: { map: "Carte", base: "Base", reports: "Rapports", alliance: "Alliance", heroes: "Héros", story: "Histoire", live: "En direct" },
+  nav: { map: "Carte", base: "Base", reports: "Rapports", alliance: "Alliance", heroes: "Héros", story: "Histoire", live: "En direct", settings: "Réglages" },
   troop: {
     infantry: { name: "Infanterie", desc: "Combattants de première ligne. Forts contre les éclaireurs, faibles contre les troupes lourdes." },
     scouts: { name: "Éclaireurs", desc: "Rapides et mobiles. Forts contre les troupes lourdes, faibles contre l’infanterie." },

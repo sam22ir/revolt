@@ -51,7 +51,7 @@ func set_resources(chips: Array, rates: Dictionary) -> void:
 	for c: Dictionary in chips:
 		var id: String = c["id"]
 		var rate_text := Loc.t("hud.rate", {"amount": Fmt.amount(lang, float(rates.get(id, 0.0)))})
-		cells[id].set_values(Fmt.amount(lang, c["amount"]), rate_text, c["state"])
+		cells[id].set_values(Fmt.amount(lang, c["amount"]), rate_text, c["state"], float(c["fraction"]))
 
 ## The strip shows the builders on the base and the marches on the map.
 func show_context(screen: String) -> void:

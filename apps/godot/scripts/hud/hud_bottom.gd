@@ -1,14 +1,16 @@
 class_name HudBottom
 extends HBoxContainer
-## The bottom of the Base and the Map: a full-width bronze band with Heroes, Alliance and Reports as round buttons with labels from
-## the start edge, and the Base/Map switch as a big round button in the corner at the end edge (bottom right in English, bottom left
-## in Arabic, because the row follows the layout direction). The switch shows where it goes, not where you are.
+## The bottom of the Base and the Map: a full-width bronze band with five evenly spread slots: Heroes and Alliance, the Base/Map
+## switch as a big round button in the middle, then Reports and Settings (mirrored in Arabic, because the row follows the layout
+## direction). The switch shows where it goes, not where you are.
 
 signal page_requested(page: String)
 signal switch_requested(target: String)
 
-const PAGES: Array[String] = ["heroes", "alliance", "reports"]
-const PAGE_ICONS := {"heroes": "heroes", "alliance": "alliance", "reports": "reports"}
+const PAGES: Array[String] = ["heroes", "alliance", "reports", "settings"]
+const PAGE_ICONS := {"heroes": "heroes", "alliance": "alliance", "reports": "reports", "settings": "settings"}
+## The switch's slot among the page buttons: the middle of five.
+const SWITCH_SLOT := 2
 ## Room the bar needs above the screen's bottom edge, in viewport px: the switch, its label and the margin under it.
 const HEIGHT := 252
 ## How far the shell insets this row from the screen's sides and bottom, in mockup px; the band reaches past it to the edges.
@@ -23,21 +25,19 @@ var _band := HudTheme.band()
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layout_direction = Control.LAYOUT_DIRECTION_LOCALE
-	alignment = BoxContainer.ALIGNMENT_BEGIN
-	add_theme_constant_override("separation", roundi(HudTheme.px(14)))
+	add_theme_constant_override("separation", 0)
+	switch.size_flags_vertical = Control.SIZE_SHRINK_END
+	switch.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	switch.pressed.connect(func() -> void: switch_requested.emit(_target))
 	for id in PAGES:
+		if get_child_count() == SWITCH_SLOT:
+			add_child(switch)
 		var b := RoundButton.new(PAGE_ICONS[id], HudTheme.ROUND_BUTTON)
 		b.size_flags_vertical = Control.SIZE_SHRINK_END
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.pressed.connect(func() -> void: page_requested.emit(id))
 		add_child(b)
 		buttons[id] = b
-	var gap := Control.new()
-	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	add_child(gap)
-	switch.size_flags_vertical = Control.SIZE_SHRINK_END
-	switch.pressed.connect(func() -> void: switch_requested.emit(_target))
-	add_child(switch)
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:

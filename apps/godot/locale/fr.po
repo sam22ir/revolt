@@ -361,6 +361,9 @@ msgstr "Histoire"
 msgid "nav.live"
 msgstr "En direct"
 
+msgid "nav.settings"
+msgstr "Réglages"
+
 msgid "troop.infantry.name"
 msgstr "Infanterie"
 

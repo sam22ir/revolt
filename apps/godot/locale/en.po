@@ -361,6 +361,9 @@ msgstr "Story"
 msgid "nav.live"
 msgstr "Live"
 
+msgid "nav.settings"
+msgstr "Settings"
+
 msgid "troop.infantry.name"
 msgstr "Infantry"
 

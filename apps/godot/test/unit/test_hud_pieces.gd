@@ -1,5 +1,5 @@
 extends GutTest
-## The look-test HUD pieces: resource cells (gold when full, no bar), the round buttons and the Base/Map switch, the player chip,
+## The HUD pieces: resource pills (a store bar, gold when full), the round buttons and the Base/Map switch, the player chip,
 ## the Settings page, and the pure helpers in HudModel.
 
 func after_each() -> void:
@@ -14,11 +14,18 @@ func test_a_full_cell_turns_gold_and_says_full_instead_of_the_rate() -> void:
 	assert_eq(cell.rate_text(), Loc.t("hud.full"))
 	assert_true(cell.is_full())
 	cell.set_values("5,000", "+150/h", "near")
-	assert_false(cell.is_full(), "near the cap changes nothing")
+	assert_false(cell.is_full(), "near the cap is not full")
 
-func test_a_cell_has_no_progress_bar() -> void:
+func test_the_store_bar_fills_and_changes_colour_near_and_at_the_cap() -> void:
 	var cell: ResourceCell = add_child_autofree(ResourceCell.new("funds"))
-	assert_eq(cell.find_children("*", "ProgressBar", true, false).size(), 0)
+	cell.set_values("1,000", "+10/h", "normal", 0.25)
+	assert_almost_eq(cell.bar_value(), 25.0, 0.01)
+	assert_eq(cell.bar_colour(), HudTheme.BRASS)
+	cell.set_values("4,700", "+10/h", "near", 0.94)
+	assert_eq(cell.bar_colour(), ResourceCell.NEAR)
+	cell.set_values("5,500", "+10/h", "full", 1.4)
+	assert_almost_eq(cell.bar_value(), 100.0, 0.01, "clamped")
+	assert_eq(cell.bar_colour(), HudTheme.GOLD)
 
 func test_the_switch_shows_where_it_goes() -> void:
 	var bottom: HudBottom = add_child_autofree(HudBottom.new())
@@ -39,10 +46,18 @@ func test_the_switch_and_the_page_buttons_report_their_taps() -> void:
 	bottom.buttons["reports"].button().pressed.emit()
 	assert_signal_emitted_with_parameters(bottom, "page_requested", ["reports"])
 
-func test_the_switch_sits_at_the_end_edge_in_both_directions() -> void:
+func test_the_switch_sits_in_the_middle_of_five_slots() -> void:
 	var bottom: HudBottom = add_child_autofree(HudBottom.new())
-	assert_eq(bottom.get_child(bottom.get_child_count() - 1), bottom.switch, "last child: bottom right in English, left in Arabic")
+	assert_eq(bottom.get_child_count(), 5)
+	assert_eq(bottom.get_child(2), bottom.switch, "the middle slot, in both directions")
 	assert_eq(bottom.layout_direction, Control.LAYOUT_DIRECTION_LOCALE)
+	assert_true(bottom.buttons.has("settings"))
+
+func test_the_settings_button_asks_for_the_settings_page() -> void:
+	var bottom: HudBottom = add_child_autofree(HudBottom.new())
+	watch_signals(bottom)
+	bottom.buttons["settings"].button().pressed.emit()
+	assert_signal_emitted_with_parameters(bottom, "page_requested", ["settings"])
 
 func test_the_dot_is_hidden_by_alpha_and_never_changes_the_height() -> void:
 	var button: RoundButton = add_child_autofree(RoundButton.new("alliance", HudTheme.ROUND_BUTTON))
@@ -63,9 +78,11 @@ func test_the_open_page_button_is_marked_active() -> void:
 func test_the_player_chip_shows_level_and_power_and_is_tappable() -> void:
 	var chip: PlayerChip = add_child_autofree(PlayerChip.new())
 	watch_signals(chip)
+	chip.set_tag("#BAF466")
 	chip.set_values(3, 1_240)
-	assert_eq(chip.level_text(), "Lv 3")
-	assert_eq(chip.power_text(), "Power 1,240")
+	assert_eq(chip.level_text(), "3", "the level on the avatar's badge")
+	assert_eq(chip.power_text(), "1,240", "beside the sword")
+	assert_eq(chip.name_text(), "#BAF466")
 	chip.pressed.emit()
 	assert_signal_emitted(chip, "pressed")
 

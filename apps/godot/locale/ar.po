@@ -361,6 +361,9 @@ msgstr "القصة"
 msgid "nav.live"
 msgstr "مباشر"
 
+msgid "nav.settings"
+msgstr "الإعدادات"
+
 msgid "troop.infantry.name"
 msgstr "المشاة"
 

@@ -24,18 +24,21 @@ static func chips(amounts: Dictionary, hq_level: int) -> Array:
 		out.append({"id": id, "amount": amount, "cap": cap, "fraction": fraction, "state": state})
 	return out
 
-## {"visible", "busy", "building", "level", "remainingMs"}: idle builders are shown on the base ("tap a building") and hidden
+## {"visible", "busy", "building", "level", "remainingMs", "fraction"} (how far the upgrade is, 0 to 1): idle builders are shown on the base ("tap a building") and hidden
 ## on the map; a running upgrade is shown on both. `queue` is the running upgrade or null.
 ## `help` is true when the help button shows: a running upgrade, and the player may ask (HelpModel.can_ask for "upgrade").
 static func pill(queue: Variant, now_ms: int, screen: String, can_help := false) -> Dictionary:
 	if queue == null:
-		return {"visible": screen == "base", "busy": false, "building": "", "level": 0, "remainingMs": 0, "help": false}
+		return {"visible": screen == "base", "busy": false, "building": "", "level": 0, "remainingMs": 0, "fraction": 0.0, "help": false}
+	var started := int(queue.get("startedAt", queue["endsAt"]))
+	var ends := int(queue["endsAt"])
 	return {
 		"visible": true,
 		"busy": true,
 		"building": String(queue["building"]),
 		"level": int(queue["toLevel"]),
-		"remainingMs": maxi(0, int(queue["endsAt"]) - now_ms),
+		"remainingMs": maxi(0, ends - now_ms),
+		"fraction": 1.0 if ends <= started else clampf(float(now_ms - started) / float(ends - started), 0.0, 1.0),
 		"help": can_help and HelpModel.helpable_job(queue, now_ms) != null,
 	}
 
