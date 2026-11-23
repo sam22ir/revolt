@@ -4,13 +4,18 @@ extends Node
 ## Every call returns {"ok": bool, "status": int, "data": Variant}. status 0 means the request never completed.
 
 const DEFAULT_BASE_URL := "http://localhost:8787"
+## The deployed server (docs/deploy.md), which a phone build talks to.
+const LIVE_BASE_URL := "https://revolt-server.nafaa-store.workers.dev"
 const SESSION_FILE := "user://session.cfg"
 
 var base_url: String = DEFAULT_BASE_URL
 var token: String = ""
 
-## On web the server address can be given as `?api=http://host:port` (used by the dev previews).
+## A phone build talks to the deployed server. On web the server address can be given as `?api=http://host:port` (used by
+## the dev previews); otherwise the local dev server.
 static func resolve_base_url() -> String:
+	if OS.has_feature("mobile"):
+		return LIVE_BASE_URL
 	if OS.has_feature("web"):
 		var q: Variant = JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('api')")
 		if q is String and q != "":
