@@ -12,6 +12,8 @@ const BIG := 20.0
 const BUTTON := 50.0
 const TAP := 44.0
 const BOLD := "res://fonts/IBMPlexSansArabic-Bold.ttf"
+## The painted icon set (art/hud/icons/, cut from art/hud/source/icons-1.jpg): round bronze medallions.
+const ICONS := "res://art/hud/icons/"
 ## A card is a dark inset in the bronze sheet.
 const CARD_FILL := Color(0.08, 0.07, 0.05, 0.55)
 const CHIP_FILL := Color(0.0, 0.0, 0.0, 0.35)
@@ -58,7 +60,17 @@ static func cost_chip(resource_id: String, amount: String, lacking: bool) -> Pan
 
 ## A duration as a clock and the time.
 static func time_chip(text: String) -> PanelContainer:
-	return _chip(ClockIcon.new(18.0, HudTheme.TEXT_SECOND), label(text, BODY, HudTheme.TEXT, true))
+	return _chip(painted("clock", 22.0), label(text, BODY, HudTheme.TEXT, true))
+
+## One painted medallion of `size` mockup px: clock, lock, sword, shield, troops, wounded, storage, builders, level_up.
+static func painted(icon_name: String, size := 22.0) -> TextureRect:
+	var t := TextureRect.new()
+	t.texture = load(ICONS + icon_name + ".png")
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	t.custom_minimum_size = Vector2.ONE * HudTheme.px(size)
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return t
 
 static func _chip(icon: Control, value: Label) -> PanelContainer:
 	var chip := PanelContainer.new()
@@ -85,13 +97,12 @@ static func chips(items: Array) -> HFlowContainer:
 		flow.add_child(item)
 	return flow
 
-## Icon, label, value and, for an upgrade, the arrow and the next value in gold. Returns the row; its value label is named
-## "Value" so a caller can update it in place.
-static func stat_row(icon_name: String, tint: Color, text: String, value: String, next_value := "") -> HBoxContainer:
+## Icon (or null), label, value and, for an upgrade, the arrow and the next value in gold. Returns the row; its value label is
+## named "Value" so a caller can update it in place.
+static func stat_row(icon: Control, text: String, value: String, next_value := "") -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", roundi(HudTheme.px(8)))
-	if icon_name != "":
-		var icon := HudIcon.new(icon_name, 18.0, tint)
+	if icon != null:
 		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(icon)
 	var name := label(text, BODY, HudTheme.TEXT_SECOND)
@@ -119,12 +130,20 @@ static func primary_button(text: String) -> Button:
 	HudTheme.make_primary(b)
 	return b
 
-## A short warning line: why an action is blocked.
+## A short warning line with a lock: why an action is blocked.
 static func warning(text: String) -> PanelContainer:
 	var c := PanelContainer.new()
 	var box := HudTheme.flat(Color(HudTheme.LACKING, 0.12), 6.0, Color(HudTheme.LACKING, 0.6), 1.0)
 	c.add_theme_stylebox_override("panel", box)
-	c.add_child(label(text, BODY, HudTheme.LACKING, false, true))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", roundi(HudTheme.px(8)))
+	var lock := painted("lock", 22.0)
+	lock.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(lock)
+	var text_label := label(text, BODY, HudTheme.LACKING, false, true)
+	text_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(text_label)
+	c.add_child(row)
 	return c
 
 ## The building as it is painted in the camp, framed: a square cut of the painting around its traced outline.
