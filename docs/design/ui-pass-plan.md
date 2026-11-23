@@ -42,7 +42,12 @@ kit's font sizes then (no global font change, which would reflow every screen an
 1. **Building sheet, first, as the look test.** Card, CostRow, StatRow and the button states, in the real game; its en and ar
    screenshots are the mockup the user approves before the rest. Portrait header (cut from the painting, name, level),
    "now → next" stat rows, cost chips with icons, time, the requirement as a warning line (its lock icon waits for the painted
-   set), one gold Upgrade button; the speed-up row at kit sizes. *Built 23 Nov, waiting for the user's verdict.*
+   set), one gold Upgrade button; the speed-up row at kit sizes. *Built 23 Nov.*
+   **Then the bottom sheet was replaced (user's choice, 23 Nov):** a tap on a building outlines it and brings up an **action
+   ring** of round bronze buttons over it (Upgrade and Info on every building, Train on the barracks, Heroes on the hero hall;
+   own SVG icons). It sits above the building, or below it under the top HUD, kept on screen, reversed in Arabic. Upgrade, Info
+   and Train open the building as a **centred card** on a dim backdrop (a tap outside or × closes it and deselects); Heroes
+   opens the Heroes page.
 2. **Barracks training.** Troop cards with art and the counter/weakness line, a `Stepper`, cost row, Train button; troops at
    home and wounded as small stat chips.
 3. **Top HUD.** Bigger resource numbers, painted resource icons, the builders pill with an icon and a progress ring, and its

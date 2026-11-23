@@ -155,6 +155,20 @@ func apply_fit(view: Vector2, top: float, nav: float) -> void:
 func _fit_painting() -> void:
 	_painting.scale = CampLayout.WORLD / Vector2(_scene.size)
 
+## Where the action ring goes for building `id`, in viewport px: [the middle of its top edge, the middle of its bottom edge
+## below its name plate].
+func ring_anchors(id: String) -> Array:
+	var outline := CampLayout.outline(id)
+	var low := outline[0]
+	var high := outline[0]
+	for p in outline:
+		low = low.min(p)
+		high = high.max(p)
+	var label_at: Vector2 = CampLayout.REGIONS[id]["label"]
+	var x := (low.x + high.x) * 0.5
+	var to_screen := func(world: Vector2) -> Vector2: return layer.offset + world * layer.scale if layer != null else world
+	return [to_screen.call(Vector2(x, low.y)), to_screen.call(Vector2(x, maxf(high.y, label_at.y + LABEL_FONT * LABEL_SCALE * 1.4)))]
+
 ## Renders the 3D camp only while the base shows.
 func set_rendering(on: bool) -> void:
 	_scene.render_target_update_mode = SubViewport.UPDATE_ALWAYS if on else SubViewport.UPDATE_DISABLED

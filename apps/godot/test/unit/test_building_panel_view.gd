@@ -27,9 +27,9 @@ func test_a_farm_sheet_has_its_content_and_no_training_form() -> void:
 	assert_gt(panel.get_combined_minimum_size().y, 200.0, "the sheet is drawn, not collapsed to its margins")
 	assert_false(panel.is_ancestor_of(panel.training))
 
-func test_the_barracks_sheet_holds_the_training_form_and_is_drawn() -> void:
+func test_the_barracks_train_card_holds_the_training_form_and_is_drawn() -> void:
 	var panel: BuildingPanel = add_child_autofree(BuildingPanel.new())
-	panel.open_for("barracks")
+	panel.open_for("barracks", "train")
 	panel.update_model(_model("barracks"), "")
 	panel.update_training(_context("en"))
 	await wait_process_frames(3)
@@ -38,7 +38,7 @@ func test_the_barracks_sheet_holds_the_training_form_and_is_drawn() -> void:
 
 func test_a_sheet_taller_than_its_maximum_scrolls_instead_of_growing() -> void:
 	var panel: BuildingPanel = add_child_autofree(BuildingPanel.new())
-	panel.open_for("barracks")
+	panel.open_for("barracks", "train")
 	panel.update_model(_model("barracks"), "")
 	panel.update_training(_context("en"))
 	panel.set_max_height(300.0)
@@ -49,7 +49,7 @@ func test_a_shorter_sheet_does_not_keep_the_last_ones_height() -> void:
 	var panel: BuildingPanel = add_child_autofree(BuildingPanel.new())
 	panel.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	panel.open_for("barracks")
+	panel.open_for("barracks", "train")
 	for i in 3:
 		panel.update_model(_model("barracks"), "")
 		panel.update_training(_context("en"))
@@ -131,13 +131,40 @@ func test_leaving_the_tree_does_not_free_the_kept_children() -> void:
 	assert_true(is_instance_valid(panel.upgrade_speedup))
 	panel.free()
 
-func test_the_hero_hall_sheet_links_to_the_heroes_screen() -> void:
+func test_the_info_card_shows_what_the_building_does_and_the_upgrade_card_does_not() -> void:
 	var panel: BuildingPanel = add_child_autofree(BuildingPanel.new())
-	watch_signals(panel)
-	panel.open_for("hero_hall")
+	panel.open_for("hero_hall", "info")
 	panel.update_model(_model("hero_hall"), "")
-	await wait_process_frames(2)
-	var link: Array = panel.find_children("*", "Button", true, false).filter(func(b: Button) -> bool: return b.text == Loc.t("heroes.open"))
-	assert_eq(link.size(), 1)
-	link[0].pressed.emit()
-	assert_signal_emitted(panel, "heroes_requested")
+	var texts := _texts(panel)
+	assert_has(texts, Loc.t("heroes.hallNote"))
+	assert_has(texts, Loc.t("building.hero_hall.desc"))
+	panel.open_for("hero_hall", "upgrade")
+	panel.update_model(_model("hero_hall"), "")
+	assert_does_not_have(_texts(panel), Loc.t("heroes.hallNote"), "switching the mode rebuilds the card")
+
+func test_the_train_card_is_only_the_training_form() -> void:
+	var panel: BuildingPanel = add_child_autofree(BuildingPanel.new())
+	panel.open_for("barracks", "train")
+	panel.update_model(_model("barracks"), "")
+	assert_true(panel.is_ancestor_of(panel.training))
+	assert_does_not_have(_texts(panel), Loc.t("panel.upgrade"))
+
+func test_a_centred_card_stays_centred_at_its_height() -> void:
+	var holder: Control = add_child_autofree(Control.new())
+	holder.size = Vector2(1000, 2000)
+	var panel := BuildingPanel.new()
+	holder.add_child(panel)
+	panel.anchor_left = 0.0
+	panel.anchor_right = 1.0
+	panel.anchor_top = 0.5
+	panel.anchor_bottom = 0.5
+	panel.open_for("farm")
+	for i in 3:
+		panel.update_model(_model("farm"), "")
+		await wait_process_frames(1)
+	assert_almost_eq(panel.offset_top, -panel.offset_bottom, 0.5)
+	assert_almost_eq(panel.position.y + panel.size.y * 0.5, 1000.0, 1.0)
+
+func _texts(panel: BuildingPanel) -> Array:
+	return panel.find_children("*", "Label", true, false).map(func(l: Label) -> String: return l.text)
+

@@ -1,7 +1,8 @@
 class_name BaseScreen
 extends Node
-## The base screen as the shell sees it: the picture (BaseView in its own CanvasLayer), the building sheet (BuildingPanel, put
-## in the HUD by the shell) and the upgrade request. It reads the Session and never decides anything: the button sends the
+## The base screen as the shell sees it: the picture (BaseView in its own CanvasLayer), the round action buttons over a tapped
+## building (ActionRing) and the building card they open (BuildingPanel on a dimmed backdrop, `card_layer`), both put in the HUD
+## by the shell, and the upgrade request. It reads the Session and never decides anything: the button sends the
 ## intent, the server's answer replaces the state, and a refusal's reason is shown under the button.
 
 ## The hero hall sheet asked for the Heroes screen.
@@ -12,6 +13,13 @@ const SHEET_GAP := 16.0
 
 var view := BaseView.new()
 var panel := BuildingPanel.new()
+var ring := ActionRing.new()
+## The building card's layer: a dim backdrop that closes the card on a tap and keeps taps off the camp, with the card centred on it.
+var card_layer := Control.new()
+var _backdrop := ColorRect.new()
+## The band between the top HUD and the nav bar, in viewport px (from `refit`): the ring stays inside it.
+var _band_top := 0.0
+var _band_bottom := 0.0
 var layer := CanvasLayer.new()
 
 var _session: Session
@@ -34,7 +42,16 @@ func _ready() -> void:
 	panel.upgrade_speedup.pressed.connect(_on_speedup_pressed.bind("upgrade", panel.upgrade_speedup))
 	panel.training.speedup.pressed.connect(_on_speedup_pressed.bind("training", panel.training.speedup))
 	panel.closed.connect(deselect)
-	panel.heroes_requested.connect(func() -> void: heroes_requested.emit())
+	ring.action.connect(_on_ring_action)
+	_backdrop.color = Color(0, 0, 0, 0.45)
+	_backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
+	_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_backdrop.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+			deselect())
+	card_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_layer.visible = false
+	card_layer.add_child(_backdrop)
 
 ## Loads the art. Called once, when the first state is in.
 func build() -> void:
@@ -54,19 +71,42 @@ func set_active(active: bool) -> void:
 	if not active:
 		deselect()
 
+## A tapped building: outlined, with its round buttons over it. The card opens from a button.
 func select(id: String) -> void:
 	view.set_selected(id)
-	panel.open_for(id)
+	panel.close()
+	card_layer.visible = false
+	ring.show_for(id)
 
+## Opens building `id`'s card on `mode` ("upgrade", "info" or "train"); the ring makes way for it.
+func open_card(id: String, mode := "upgrade") -> void:
+	view.set_selected(id)
+	ring.hide_ring()
+	panel.open_for(id, mode)
+	card_layer.visible = true
+
+## Closing the card, a tap on empty ground or leaving the screen: nothing selected, no ring, no card.
 func deselect() -> void:
 	view.set_selected("")
+	ring.hide_ring()
 	panel.close()
+	card_layer.visible = false
+
+func _on_ring_action(kind: String) -> void:
+	var id := ring.shown_id
+	if kind == "heroes":
+		deselect()
+		heroes_requested.emit()
+	else:
+		open_card(id, kind)
 
 ## Fits the picture between the HUD above (`top` px) and the nav bar below (`nav` px) of a `viewport` px screen.
 func refit(viewport: Vector2, top: float, nav: float) -> void:
 	view.apply_fit(viewport, top, nav)
+	_band_top = top
+	_band_bottom = viewport.y - nav
 	# The sheet keeps a gap to the top box and the nav bar; a sheet taller than that scrolls.
-	panel.set_max_height(viewport.y - top - nav - SHEET_GAP)
+	panel.set_max_height(viewport.y - top - nav - SHEET_GAP * 2.0)
 
 ## Call every frame while the screen shows. `resources` are the amounts accrued to `now_ms`, as the counters show them.
 func update(now_ms: int, resources: Dictionary) -> void:
@@ -75,6 +115,9 @@ func update(now_ms: int, resources: Dictionary) -> void:
 	var queue: Variant = _session.queue()
 	view.background = _session.background
 	view.set_state(_session.levels, queue, now_ms)
+	if ring.visible:
+		var anchors := view.ring_anchors(ring.shown_id)
+		ring.place(anchors[0], anchors[1], _band_top, _band_bottom)
 	if panel.is_open():
 		panel.update_model(BuildingPanelModel.build(panel.shown_id(), _session.levels, resources, queue, now_ms), _session.background)
 		panel.update_training({

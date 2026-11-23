@@ -26,6 +26,7 @@ export const en = {
     upgrading: "Upgrading to level {{level}}",
     maxLevel: "Maximum level reached",
     close: "Close",
+    info: "Info",
     more: "More",
     less: "Fewer",
     max: "Max",

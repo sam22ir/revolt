@@ -28,6 +28,7 @@ export const ar: LocaleShape = {
     upgrading: "جارٍ الترقية إلى المستوى {{level}}",
     maxLevel: "تم بلوغ المستوى الأقصى",
     close: "إغلاق",
+    info: "معلومات",
     more: "زيادة",
     less: "إنقاص",
     max: "الأقصى",

@@ -91,6 +91,9 @@ msgstr "تم بلوغ المستوى الأقصى"
 msgid "panel.close"
 msgstr "إغلاق"
 
+msgid "panel.info"
+msgstr "معلومات"
+
 msgid "panel.more"
 msgstr "زيادة"
 

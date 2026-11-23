@@ -11,6 +11,8 @@ const PAGES: Array[String] = ["heroes", "alliance", "reports", "settings"]
 const TOAST_GAP := 8
 ## The marches list sits below the report notice, which takes the strip right under the top box.
 const MARCHES_GAP := 110
+## The building card's gap to the screen's sides, in viewport px.
+const CARD_SIDE := 24
 
 var _api := Api.new()
 var _clock := Clock.new()
@@ -183,7 +185,7 @@ func _setup_fps_debug() -> void:
 	JavaScriptBridge.get_interface("window").revoltRefresh = _js_refresh
 	_js_report = JavaScriptBridge.create_callback(func(args: Array) -> void: _inject_report(str(args[0])))
 	JavaScriptBridge.get_interface("window").revoltReport = _js_report
-	_js_sheet = JavaScriptBridge.create_callback(func(args: Array) -> void: _base.select(str(args[0])))
+	_js_sheet = JavaScriptBridge.create_callback(func(args: Array) -> void: _base.open_card(str(args[0])))
 	JavaScriptBridge.get_interface("window").revoltSheet = _js_sheet
 	_js_tile = JavaScriptBridge.create_callback(func(args: Array) -> void: _select_tile(Vector2i(int(args[0]), int(args[1]))))
 	JavaScriptBridge.get_interface("window").revoltTile = _js_tile
@@ -431,6 +433,7 @@ func _refit() -> void:
 	_marches_list.offset_top = top + MARCHES_GAP
 	_march_sheet.offset_bottom = -NAV_HEIGHT
 	_toast.offset_top = top + TOAST_GAP
+	_base.card_layer.offset_top = top
 	if not _base.is_built():
 		return
 	_base.refit(get_viewport().get_visible_rect().size, top, float(NAV_HEIGHT))
@@ -447,6 +450,7 @@ func _build_hud() -> void:
 	# so does the building sheet. The other sheets keep their own styling until they are restyled.
 	var theme := HudTheme.build()
 	_base.panel.theme = theme
+	_base.ring.theme = theme
 	_top_box = _top
 	_top.theme = theme
 	_top.set_anchors_preset(Control.PRESET_TOP_WIDE)
@@ -472,11 +476,20 @@ func _build_hud() -> void:
 	_coords.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hud_root.add_child(_coords)
 
-	# The building sheet sits right above the nav bar, below the counters; it grows upward from there.
-	_base.panel.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	_base.panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_base.panel.offset_bottom = -NAV_HEIGHT
-	_hud_root.add_child(_base.panel)
+	# The round buttons over a tapped building, and the building card centred between the counters and the nav bar on a dim
+	# backdrop (its band is set in _refit).
+	_base.ring.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_hud_root.add_child(_base.ring)
+	_base.card_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_base.card_layer.offset_bottom = -NAV_HEIGHT
+	_hud_root.add_child(_base.card_layer)
+	_base.panel.anchor_left = 0.0
+	_base.panel.anchor_right = 1.0
+	_base.panel.anchor_top = 0.5
+	_base.panel.anchor_bottom = 0.5
+	_base.panel.offset_left = CARD_SIDE
+	_base.panel.offset_right = -CARD_SIDE
+	_base.card_layer.add_child(_base.panel)
 
 	# Above the screens, below the offline badge; hidden until its screen shows.
 	_reports_screen.set_anchors_preset(Control.PRESET_FULL_RECT)

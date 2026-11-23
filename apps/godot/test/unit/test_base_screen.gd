@@ -246,21 +246,46 @@ func _screen(api: FakeApi, state: Dictionary) -> BaseScreen:
 	screen.setup(session)
 	add_child_autofree(screen)
 	screen.build()
-	screen.add_child(screen.panel)
+	screen.add_child(screen.ring)
+	screen.add_child(screen.card_layer)
+	screen.card_layer.add_child(screen.panel)
 	return screen
 
-func test_tapping_a_building_opens_its_sheet_and_ground_closes_it() -> void:
+func test_tapping_a_building_shows_its_ring_and_a_button_opens_its_card() -> void:
 	var screen := _screen(FakeApi.new(), _state(_levels()))
 	screen.view.building_tapped.emit("barracks")
-	assert_eq(screen.panel.shown_id(), "barracks")
 	assert_eq(screen.view.selected, "barracks")
+	assert_true(screen.ring.visible)
+	assert_eq(screen.ring.kinds(), ["upgrade", "info", "train"])
+	assert_false(screen.panel.is_open(), "the card waits for a button")
+	screen.ring.action.emit("train")
+	assert_eq(screen.panel.shown_id(), "barracks")
+	assert_eq(screen.panel.mode, "train")
+	assert_true(screen.card_layer.visible)
+	assert_false(screen.ring.visible, "the ring makes way for the card")
+	screen.panel.closed.emit()
+	assert_false(screen.card_layer.visible)
+	assert_eq(screen.view.selected, "", "closing the card deselects")
+
+func test_a_tap_on_the_ground_clears_the_ring() -> void:
+	var screen := _screen(FakeApi.new(), _state(_levels()))
+	screen.view.building_tapped.emit("farm")
 	screen.view.ground_tapped.emit()
-	assert_false(screen.panel.is_open())
+	assert_false(screen.ring.visible)
 	assert_eq(screen.view.selected, "")
+
+func test_the_heroes_button_opens_the_heroes_screen() -> void:
+	var screen := _screen(FakeApi.new(), _state(_levels()))
+	watch_signals(screen)
+	screen.view.building_tapped.emit("hero_hall")
+	assert_has(screen.ring.kinds(), "heroes")
+	screen.ring.action.emit("heroes")
+	assert_signal_emitted(screen, "heroes_requested")
+	assert_false(screen.ring.visible)
 
 func test_hiding_the_screen_closes_the_sheet() -> void:
 	var screen := _screen(FakeApi.new(), _state(_levels()))
-	screen.select("farm")
+	screen.open_card("farm")
 	screen.set_active(false)
 	assert_false(screen.panel.is_open())
 	assert_false(screen.layer.visible)
@@ -269,7 +294,7 @@ func test_the_upgrade_button_sends_the_intent_and_a_refusal_shows_its_reason() -
 	var api := FakeApi.new()
 	api.reply = {"ok": true, "status": 200, "data": {"ok": false, "reason": "queue_busy", "state": _state(_levels()), "now": NOW + 1000}}
 	var screen := _screen(api, _state(_levels()))
-	screen.select("farm")
+	screen.open_card("farm")
 	screen.update(NOW, {"food": 9999.0, "materiel": 9999.0, "funds": 9999.0, "support": 0.0})
 	screen.panel.upgrade_pressed.emit("farm")
 	assert_true(screen.panel._pending, "off while the request is out")
@@ -283,7 +308,7 @@ func test_an_accepted_upgrade_applies_the_state_the_server_returned() -> void:
 	var job := {"building": "farm", "toLevel": 2, "startedAt": NOW, "endsAt": NOW + 30_000}
 	api.reply = {"ok": true, "status": 200, "data": {"ok": true, "state": _state(_levels(), job), "now": NOW + 10}}
 	var screen := _screen(api, _state(_levels()))
-	screen.select("farm")
+	screen.open_card("farm")
 	screen.panel.upgrade_pressed.emit("farm")
 	await wait_until(func() -> bool: return screen._session.queue() != null, 5.0)
 	assert_eq(screen._session.queue()["building"], "farm")
@@ -293,7 +318,7 @@ func test_a_second_press_before_the_answer_sends_nothing() -> void:
 	var api := FakeApi.new()
 	api.reply = {"ok": true, "status": 200, "data": {"ok": true, "state": _state(_levels()), "now": NOW + 10}}
 	var screen := _screen(api, _state(_levels()))
-	screen.select("farm")
+	screen.open_card("farm")
 	screen.panel.upgrade_pressed.emit("farm")
 	screen.panel.upgrade_pressed.emit("farm")
 	screen.panel.upgrade_pressed.emit("farm")

@@ -9,8 +9,6 @@ extends PanelContainer
 signal upgrade_pressed(id: String)
 signal train_pressed(troop: String, count: int)
 signal closed
-## The hero hall sheet's link to the Heroes screen.
-signal heroes_requested
 
 
 const INK := HudTheme.TEXT
@@ -21,6 +19,8 @@ const MUTED := HudTheme.TEXT_SECOND
 const CLOSE_SIZE := UiKit.TAP
 
 var _model: Dictionary = {}
+## Which part of the building the card shows: "upgrade", "info" or "train" (the barracks' training form).
+var mode := "upgrade"
 var _key := ""
 var _pending := false
 var _notice := ""
@@ -69,6 +69,11 @@ func _fit() -> void:
 	# Anchored to the bottom, it grows upward; a Control never shrinks by itself, so a shorter sheet would keep the last one's height.
 	if anchor_top == 1.0:
 		offset_top = offset_bottom - get_combined_minimum_size().y
+	# Centred (the building card): as tall as its content, about the middle of its parent.
+	elif anchor_top == 0.5:
+		var h := get_combined_minimum_size().y
+		offset_top = -h * 0.5
+		offset_bottom = h * 0.5
 
 ## Feeds the training form (only on the barracks sheet). `ctx` is TrainingView.update_context's.
 func update_training(ctx: Dictionary) -> void:
@@ -88,8 +93,9 @@ func is_open() -> bool:
 func shown_id() -> String:
 	return String(_model.get("id", "")) if visible else ""
 
-func open_for(id: String) -> void:
+func open_for(id: String, show := "upgrade") -> void:
 	_model = {"id": id}
+	mode = show
 	_key = ""
 	_notice = ""
 	visible = true
@@ -120,7 +126,7 @@ func update_model(model: Dictionary, background: String) -> void:
 	_background = background
 	if _notice != "" and _notice_key != String(model["key"]):
 		_notice = ""
-	var key := "%s|%s|%s|%s|%s" % [model["key"], TranslationServer.get_locale(), background, _pending, _notice]
+	var key := "%s|%s|%s|%s|%s|%s" % [model["key"], mode, TranslationServer.get_locale(), background, _pending, _notice]
 	if key != _key:
 		_key = key
 		_rebuild()
@@ -141,7 +147,13 @@ func _rebuild() -> void:
 	var lang := Fmt.lang()
 	var id: String = m["id"]
 	_body.add_child(_header(id, lang, int(m["level"])))
-	_body.add_child(UiKit.label(Loc.t("building.%s.desc" % id, {}, _background), UiKit.SMALL, MUTED, false, true))
+	if mode == "info":
+		_build_info(m, lang, id)
+		return
+	if mode == "train":
+		if id == "barracks":
+			_body.add_child(training)
+		return
 
 	match m["mode"]:
 		"upgrading":
@@ -164,19 +176,15 @@ func _rebuild() -> void:
 		_:
 			_build_next(m, lang, id)
 
+## What the building is and does now; the hero hall adds its note (the ring's Heroes button opens the roster).
+func _build_info(m: Dictionary, lang: String, id: String) -> void:
+	var c := UiKit.card()
+	var body := UiKit.card_body(c)
+	body.add_child(UiKit.label(Loc.t("building.%s.desc" % id, {}, _background), UiKit.BODY, INK, false, true))
 	if id == "hero_hall":
-		var c := UiKit.card()
-		var body := UiKit.card_body(c)
-		body.add_child(UiKit.label(Loc.t("heroes.hallNote"), UiKit.BODY, INK, false, true))
-		var heroes := Button.new()
-		heroes.text = Loc.t("heroes.open")
-		heroes.add_theme_font_size_override("font_size", HudTheme.font(UiKit.BODY))
-		heroes.custom_minimum_size.y = HudTheme.px(UiKit.TAP)
-		heroes.pressed.connect(func() -> void: heroes_requested.emit())
-		body.add_child(heroes)
-		_body.add_child(c)
-	if id == "barracks":
-		_body.add_child(training)
+		body.add_child(UiKit.label(Loc.t("heroes.hallNote"), UiKit.BODY, MUTED, false, true))
+	_body.add_child(c)
+	_add_stats_card(m, lang)
 
 ## Portrait, name and level, and the close button.
 func _header(id: String, lang: String, level: int) -> HBoxContainer:

@@ -31,6 +31,7 @@ export const fr: LocaleShape = {
     upgrading: "Amélioration au niveau {{level}}",
     maxLevel: "Niveau maximal atteint",
     close: "Fermer",
+    info: "Infos",
     more: "Plus",
     less: "Moins",
     max: "Max",

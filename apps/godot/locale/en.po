@@ -91,6 +91,9 @@ msgstr "Maximum level reached"
 msgid "panel.close"
 msgstr "Close"
 
+msgid "panel.info"
+msgstr "Info"
+
 msgid "panel.more"
 msgstr "More"
 
