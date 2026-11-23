@@ -13,6 +13,7 @@
     "art:terrain": "node scripts/process-terrain.mjs",
     "godot:export": "node scripts/export-godot.mjs",
     "godot:web": "cd apps/godot && mkdir -p build/web && godot --headless --import && godot --headless --export-release Web build/web/index.html",
+    "godot:android": "cd apps/godot && mkdir -p build/android && godot --headless --import && godot --headless --export-debug Android build/android/revolt-debug.apk",
     "godot:test": "cd apps/godot && godot --headless --import && godot --headless -s addons/gut/gut_cmdln.gd"
   },
   "devDependencies": {
