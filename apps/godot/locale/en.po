@@ -166,6 +166,9 @@ msgstr "That target is already gone"
 msgid "reason.unreachable"
 msgstr "Could not reach the server. Try again."
 
+msgid "reason.unreachableDetail"
+msgstr "Error {result} · HTTP {status}"
+
 msgid "reason.already_member"
 msgstr "You are already in an alliance"
 

@@ -166,6 +166,9 @@ msgstr "Cette cible a déjà disparu"
 msgid "reason.unreachable"
 msgstr "Serveur injoignable. Réessayez."
 
+msgid "reason.unreachableDetail"
+msgstr "Erreur {result} · HTTP {status}"
+
 msgid "reason.already_member"
 msgstr "Vous êtes déjà dans une alliance"
 

@@ -53,6 +53,7 @@ export const en = {
     rally_only: "Only an alliance rally can take on this target",
     target_gone: "That target is already gone",
     unreachable: "Could not reach the server. Try again.",
+    unreachableDetail: "Error {{result}} · HTTP {{status}}",
     already_member: "You are already in an alliance",
     not_member: "You are not in an alliance",
     bad_name: "The name must be 3 to 24 characters, without special characters",

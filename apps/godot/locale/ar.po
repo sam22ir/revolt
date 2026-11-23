@@ -166,6 +166,9 @@ msgstr "اختفى هذا الهدف بالفعل"
 msgid "reason.unreachable"
 msgstr "تعذّر الوصول إلى الخادم. حاول مرة أخرى."
 
+msgid "reason.unreachableDetail"
+msgstr "الخطأ {result} · HTTP {status}"
+
 msgid "reason.already_member"
 msgstr "أنت عضو في تحالف بالفعل"
 

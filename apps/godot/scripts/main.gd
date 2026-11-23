@@ -364,7 +364,8 @@ func _refresh_names() -> void:
 ## The centre text: the failure, or "Loading the map…" while the map screen waits for its build; nothing otherwise.
 func _refresh_status() -> void:
 	if _failed:
-		_status.text = Loc.t("reason.unreachable")
+		# The failure's codes under the message, so a report from a phone says what went wrong.
+		_status.text = "%s\n%s" % [Loc.t("reason.unreachable"), Loc.t("reason.unreachableDetail", _api.last_failure)]
 		_status.visible = true
 	elif _screen == "map" and not _loaded:
 		_status.text = Loc.t("map.loading")

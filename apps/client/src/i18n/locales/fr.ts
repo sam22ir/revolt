@@ -58,6 +58,7 @@ export const fr: LocaleShape = {
     rally_only: "Seul un rassemblement d’alliance peut attaquer cette cible",
     target_gone: "Cette cible a déjà disparu",
     unreachable: "Serveur injoignable. Réessayez.",
+    unreachableDetail: "Erreur {{result}} · HTTP {{status}}",
     already_member: "Vous êtes déjà dans une alliance",
     not_member: "Vous n'êtes dans aucune alliance",
     bad_name: "Le nom doit avoir de 3 à 24 caractères, sans caractères spéciaux",

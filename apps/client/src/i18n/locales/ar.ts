@@ -55,6 +55,7 @@ export const ar: LocaleShape = {
     rally_only: "لا يمكن مهاجمة هذا الهدف إلا بحشد من التحالف",
     target_gone: "اختفى هذا الهدف بالفعل",
     unreachable: "تعذّر الوصول إلى الخادم. حاول مرة أخرى.",
+    unreachableDetail: "الخطأ {{result}} · HTTP {{status}}",
     already_member: "أنت عضو في تحالف بالفعل",
     not_member: "أنت لست عضوًا في أي تحالف",
     bad_name: "يجب أن يتكوّن الاسم من 3 إلى 24 حرفًا دون رموز خاصة",

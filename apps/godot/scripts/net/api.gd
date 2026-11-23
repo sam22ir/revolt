@@ -10,6 +10,8 @@ const SESSION_FILE := "user://session.cfg"
 
 var base_url: String = DEFAULT_BASE_URL
 var token: String = ""
+## The last request that failed: {result: HTTPRequest.Result, status: HTTP status}, shown under the "could not reach" message.
+var last_failure := {"result": 0, "status": 0}
 
 ## A phone build talks to the deployed server. On web the server address can be given as `?api=http://host:port` (used by
 ## the dev previews); otherwise the local dev server.
@@ -32,12 +34,16 @@ func request_json(method: HTTPClient.Method, path: String, body: Variant = null)
 	var err := req.request(base_url + path, headers, method, payload)
 	if err != OK:
 		req.queue_free()
+		last_failure = {"result": -int(err), "status": 0}
 		return {"ok": false, "status": 0, "data": null}
 	var done: Array = await req.request_completed
 	req.queue_free()
 	var status := int(done[1])
 	var parsed: Variant = JSON.parse_string((done[3] as PackedByteArray).get_string_from_utf8())
-	return {"ok": int(done[0]) == HTTPRequest.RESULT_SUCCESS and status >= 200 and status < 300, "status": status, "data": parsed}
+	var ok := int(done[0]) == HTTPRequest.RESULT_SUCCESS and status >= 200 and status < 300
+	if not ok:
+		last_failure = {"result": int(done[0]), "status": status}
+	return {"ok": ok, "status": status, "data": parsed}
 
 func get_json(path: String) -> Dictionary:
 	return await request_json(HTTPClient.METHOD_GET, path)
