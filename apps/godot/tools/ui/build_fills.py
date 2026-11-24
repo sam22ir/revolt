@@ -87,22 +87,6 @@ def stain(img, rng, colour, amount, scales, low, high):
     return Image.composite(Image.new("RGB", (w, h), colour), img, m)
 
 
-def dimples(rng, w, h, step, r):
-    """A height map of overlapping hammer marks on a jittered grid."""
-    height = Image.new("L", (w, h), 255)
-    d = ImageDraw.Draw(height)
-    for gy in range(0, h, step):
-        for gx in range(0, w, step):
-            x = gx + (step / 2 if (gy // step) % 2 else 0) + rng.uniform(-step * .22, step * .22)
-            y = gy + rng.uniform(-step * .22, step * .22)
-            for k in range(6):
-                rr = r * (1 - k / 6)
-                for ox in (-w, 0, w):
-                    for oy in (-h, 0, h):
-                        d.ellipse((x + ox - rr, y + oy - rr, x + ox + rr, y + oy + rr), fill=235 - int(150 * (k / 6)))
-    return wrap_blur(height, 2.2)
-
-
 def leather():
     rng = random.Random("leather")
     w = h = 512
@@ -174,16 +158,6 @@ def wood_h():
     return wood().transpose(Image.ROTATE_90)
 
 
-def gold():
-    rng = random.Random("gold")
-    w = h = 256
-    img = ImageOps.colorize(fbm(rng, w, h, (64, 32, 8, 2)), "#d5982f", "#fbd977", "#edbd55")
-    img = relief(img, dimples(rng, w, h, 32, 20), 1, .4)
-    img = strokes(img, rng, 200, (8, 50), 12, 25, [(255, 250, 222, 60), (140, 84, 16, 46)])
-    img = dots(img, rng, 70, (.5, 1.3), [(120, 70, 14, 110), (255, 250, 225, 130)])
-    return img
-
-
 def parchment():
     rng = random.Random("parchment")
     w = h = 512
@@ -218,7 +192,7 @@ def raked():
 
 
 def main():
-    for f, q in ((leather, 92), (wood, 92), (wood_h, 92), (gold, 92), (parchment, 92), (raked, 90)):
+    for f, q in ((leather, 92), (wood, 92), (wood_h, 92), (parchment, 92), (raked, 90)):
         img = f()
         path = (OUT.parent / "frontier" / "raked.webp") if f is raked else (OUT / f"fill_{f.__name__}.webp")
         img.save(path, quality=q, method=6)

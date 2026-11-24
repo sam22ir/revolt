@@ -1,7 +1,7 @@
 class_name RoundButton
 extends VBoxContainer
 ## A round HUD button with its label under it: the bottom row's Heroes, Alliance and Reports (44 mockup px) and the Base/Map
-## switch (66 px), on the painted bronze ring. A one-dot badge sits at the top end of the button; it hides by alpha,
+## switch (66 px), on a round game button. A one-dot badge sits at the top end of the button; it hides by alpha,
 ## never by `visible`, so the row keeps its height. The label sits on a soft shadow so it reads on the light ground too.
 
 signal pressed

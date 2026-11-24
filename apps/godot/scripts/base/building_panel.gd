@@ -229,7 +229,7 @@ func _add_stats(body: VBoxContainer, m: Dictionary, lang: String, next: Variant)
 		body.add_child(UiKit.stat_row(HudIcon.new(res, 24.0), Loc.t("panel.production"), now, later))
 	if m["storage"] != null:
 		var later := "" if next == null or next["storage"] == null else Fmt.amount(lang, next["storage"])
-		body.add_child(UiKit.stat_row(UiKit.painted("storage", 22.0), Loc.t("panel.storage"), Fmt.amount(lang, m["storage"]), later))
+		body.add_child(UiKit.stat_row(HudIcon.new("storage", 26.0), Loc.t("panel.storage"), Fmt.amount(lang, m["storage"]), later))
 
 func _build_next(m: Dictionary, lang: String, id: String) -> void:
 	var n: Dictionary = m["next"]

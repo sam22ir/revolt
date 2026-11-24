@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://oyd53v4f5xry"
-path="res://.godot/imported/sword.png-465762798c31219db288d553c4f3a8e4.ctex"
+uid="uid://oyjsj7t7x5g2"
+path="res://.godot/imported/clock.svg-e211d95a099d5337d859a99c39c46370.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/hud/icons/sword.png"
-dest_files=["res://.godot/imported/sword.png-465762798c31219db288d553c4f3a8e4.ctex"]
+source_file="res://art/icons/clock.svg"
+dest_files=["res://.godot/imported/clock.svg-e211d95a099d5337d859a99c39c46370.ctex"]
 
 [params]
 
@@ -23,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
@@ -38,3 +38,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
+svg/scale=1.0
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

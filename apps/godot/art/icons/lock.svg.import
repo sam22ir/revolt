@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cefieq0s6s688"
-path="res://.godot/imported/icons-1.jpg-500c1294d3839a9641b678bbdf10ab30.ctex"
+uid="uid://vxuv83rs6m4m"
+path="res://.godot/imported/lock.svg-9fd8687d9e395230e8edd5e24f08f64c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/hud/source/icons-1.jpg"
-dest_files=["res://.godot/imported/icons-1.jpg-500c1294d3839a9641b678bbdf10ab30.ctex"]
+source_file="res://art/icons/lock.svg"
+dest_files=["res://.godot/imported/lock.svg-9fd8687d9e395230e8edd5e24f08f64c.ctex"]
 
 [params]
 
@@ -23,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
@@ -38,3 +38,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
+svg/scale=1.0
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

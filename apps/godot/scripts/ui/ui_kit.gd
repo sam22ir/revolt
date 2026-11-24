@@ -12,9 +12,6 @@ const BIG := 20.0
 const BUTTON := 50.0
 const TAP := 44.0
 const BOLD := "res://fonts/IBMPlexSansArabic-Bold.ttf"
-## The painted icon set (art/hud/icons/, cut from art/hud/source/icons-1.jpg): round bronze medallions.
-const ICONS := "res://art/hud/icons/"
-const TROOPS := "res://art/troops/"
 ## The painting around a building's outline that its portrait also shows, in painting px.
 const PORTRAIT_PAD := 24.0
 
@@ -60,27 +57,11 @@ static func set_chip(chip: PanelContainer, text: String, lacking := false) -> vo
 
 ## A duration as a clock and the time.
 static func time_chip(text: String) -> PanelContainer:
-	return _chip(painted("clock", 22.0), label(text, BODY, HudTheme.TEXT, true))
+	return _chip(HudIcon.new("clock", 22.0), label(text, BODY, HudTheme.TEXT, true))
 
-## One painted medallion of `size` mockup px: clock, lock, sword, shield, troops, wounded, storage, builders, level_up.
-static func painted(icon_name: String, size := 22.0) -> TextureRect:
-	var t := TextureRect.new()
-	t.texture = load(ICONS + icon_name + ".png")
-	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	t.custom_minimum_size = Vector2.ONE * HudTheme.px(size)
-	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return t
-
-## A troop's painted medallion (art/troops/, copied from the Phaser client by `pnpm godot:export`).
-static func troop_medallion(troop: String, size := 44.0) -> TextureRect:
-	var t := painted("troops", size)
-	t.texture = troop_texture(troop)
-	t.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-	return t
-
-static func troop_texture(troop: String) -> Texture2D:
-	return load(TROOPS + "troop_%s.webp" % troop)
+## A troop's round medallion (art/icons/troop_*.svg).
+static func troop_medallion(troop: String, size := 46.0) -> HudIcon:
+	return HudIcon.new("troop_" + troop, size)
 
 ## A small icon (HudIcon) and a text in a dark pill, such as "At home 10".
 static func stat_chip(icon_name: String, text: String) -> PanelContainer:
@@ -157,7 +138,7 @@ static func warning(text: String) -> PanelContainer:
 	c.add_theme_stylebox_override("panel", box)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", roundi(HudTheme.px(8)))
-	var lock := painted("lock", 22.0)
+	var lock := HudIcon.new("lock", 24.0)
 	lock.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(lock)
 	var text_label := label(text, BODY, HudTheme.LACKING, false, true)

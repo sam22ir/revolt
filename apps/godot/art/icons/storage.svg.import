@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b5lf5ar5qrw8q"
-path="res://.godot/imported/bronze_button_small.png-7a7a1d174e519b137a8d3b30fd8f40ed.ctex"
+uid="uid://c8vovjy20fhrb"
+path="res://.godot/imported/storage.svg-a12b54d84400dd12d931c70fa32fee49.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/hud/bronze_button_small.png"
-dest_files=["res://.godot/imported/bronze_button_small.png-7a7a1d174e519b137a8d3b30fd8f40ed.ctex"]
+source_file="res://art/icons/storage.svg"
+dest_files=["res://.godot/imported/storage.svg-a12b54d84400dd12d931c70fa32fee49.ctex"]
 
 [params]
 
@@ -23,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
@@ -38,3 +38,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
+svg/scale=1.0
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

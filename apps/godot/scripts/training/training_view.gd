@@ -24,7 +24,7 @@ var _notice_code := ""
 var speedup := SpeedupRow.new()
 
 var _job_card := UiKit.card()
-var _job_icon: TextureRect
+var _job_icon: HudIcon
 var _job_label := UiKit.label("", UiKit.BODY, HudTheme.TEXT, true, true)
 var _job_bar := UiKit.progress_bar()
 var _job_time := UiKit.label("", UiKit.BIG, HudTheme.TEXT, true)
@@ -207,7 +207,7 @@ func _update_job(job: Variant, lang: String) -> void:
 	_job_card.visible = job != null
 	if job == null:
 		return
-	_job_icon.texture = UiKit.troop_texture(job["troop"])
+	_job_icon.set_icon("troop_" + String(job["troop"]))
 	_job_label.text = Loc.t("train.inProgress", {"count": Fmt.amount(lang, job["count"]), "troop": Loc.t("troop.%s.name" % job["troop"])})
 	_job_bar.value = float(job["fraction"]) * 100.0
 	_job_time.text = Fmt.duration(float(job["remaining_ms"]))

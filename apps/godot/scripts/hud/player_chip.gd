@@ -34,7 +34,6 @@ func _init() -> void:
 	var power_row := HBoxContainer.new()
 	power_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	power_row.add_theme_constant_override("separation", roundi(HudTheme.px(3)))
-	# The SVG, not the painted medallion: it has to read at this size.
 	var sword := HudIcon.new("power", 18.0)
 	sword.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	power_row.add_child(sword)

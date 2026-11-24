@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cbhjg6rqvupmu"
-path="res://.godot/imported/troop_heavy.webp-4573674e16274d3fd3526ac6e7f11dea.ctex"
+uid="uid://42vvqpfymwg5"
+path="res://.godot/imported/troop_porters.svg-c5dd8ee50aae23d3783473a763a87453.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/troops/troop_heavy.webp"
-dest_files=["res://.godot/imported/troop_heavy.webp-4573674e16274d3fd3526ac6e7f11dea.ctex"]
+source_file="res://art/icons/troop_porters.svg"
+dest_files=["res://.godot/imported/troop_porters.svg-c5dd8ee50aae23d3783473a763a87453.ctex"]
 
 [params]
 
@@ -23,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
@@ -38,3 +38,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
+svg/scale=1.0
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

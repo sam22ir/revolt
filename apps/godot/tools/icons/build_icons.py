@@ -35,6 +35,7 @@ GREY = ["#e6dfd0", "#bdb29c", "#8b7f69", "#544a3a"]
 class Icon:
     def __init__(self, name):
         self.name, self.defs, self.backs, self.body, self.n = name, [], [], [], 0
+        self.layers = []
         self.rng = random.Random(name)
 
     def uid(self):
@@ -103,11 +104,17 @@ class Icon:
                 d = f"M{x:.1f} {a:.1f}Q{x + r.uniform(-wob, wob):.1f} {(a + b) / 2:.1f} {x + r.uniform(-wob / 2, wob / 2):.1f} {b:.1f}"
             self.line(d, colour, round(r.uniform(1.1, 2.4), 1), op, tf, clip)
 
+    def layer(self):
+        """Starts a new layer: what comes next has its own dark outline, over everything drawn so far."""
+        self.layers.append((self.backs, self.body))
+        self.backs, self.body = [], []
+
     def save(self, scale=1.0, dx=0, dy=0, round_clip=False):
         """Writes the icon, drawn at `scale` about the middle and moved by (dx, dy), cut to a circle with `round_clip`."""
         cut = f' clip-path="url(#{self.clip(circ(128, 128, 126))})"' if round_clip else ""
-        back = f'<g fill="{INK}" stroke="{INK}" stroke-linejoin="round" stroke-linecap="round">{"".join(self.backs)}</g>'
-        svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><defs>{"".join(self.defs)}</defs><g{cut}><g transform="translate({128 * (1 - scale) + dx:.2f} {128 * (1 - scale) + dy:.2f}) scale({scale})">{back}{"".join(self.body)}</g></g></svg>\n'
+        self.layer()
+        art = "".join(f'<g fill="{INK}" stroke="{INK}" stroke-linejoin="round" stroke-linecap="round">{"".join(backs)}</g>{"".join(body)}' for backs, body in self.layers)
+        svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><defs>{"".join(self.defs)}</defs><g{cut}><g transform="translate({128 * (1 - scale) + dx:.2f} {128 * (1 - scale) + dy:.2f}) scale({scale})">{art}</g></g></svg>\n'
         (OUT / f"{self.name}.svg").write_text(svg)
 
 
@@ -1066,7 +1073,296 @@ def chevron():
     arrow("chevron", out, inn, [(84, 50), (166, 128), (84, 206)], ["M96 62L150 116", "M96 194L150 140"])
 
 
+# ---------------------------------------------------------------- troops and small things
+
+BLUE = ["#8fb6c0", "#4f7d8a", "#305561", "#16303a"]
+RED = ["#d98a72", "#a84a36", "#7d2f20", "#42130b"]
+MULE = ["#b58e69", "#8a6443", "#5f412a", "#392415"]
+
+
+def medallion(ic, face):
+    """The round wooden shield a troop stands on, like the round buttons; the troop goes on the next layer and may overlap its rim."""
+    c = 128
+    ic.shape(circ(c, c, 112), ic.lin(["#d9b484", "#8a6038", "#4a3018"], 0, 16, 0, 240), INK, 3)
+    ic.line(circ(c, c, 106), "#3d2412", 2, .7)
+    ic.line(f"M{c - 78} {c - 76}A109 109 0 0 1 {c + 78} {c - 76}", "#fff0cf", 4, .55)
+    for i in range(24):
+        a = i * 15 + 4
+        (x0, y0), (x1, y1) = pol(c, c, 98, a), pol(c, c, 109, a + ic.rng.uniform(-2, 2))
+        ic.line(f"M{x0:.1f} {y0:.1f}L{x1:.1f} {y1:.1f}", "#3d2412", 1.6, .5)
+    ic.shape(circ(c, c, 94), ic.rad([face[0], face[1], face[2], face[3]], 108, 96, 136), INK, 4, False)
+    cl = ic.clip(circ(c, c, 92))
+    for i in range(18):
+        tf = f"rotate({i * 20} {c} {c})"
+        ic.fill(f"M{c} {c}L{c - 8} 20H{c + 8}z", "#ffffff", .055, tf, cl)
+    ic.fill("M36 168C80 152 176 152 220 168V232H36z", "#000000", .22, "", cl)
+    ic.line("M40 110A90 90 0 0 1 108 40", "#ffffff", 4, .3)
+    ic.layer()
+
+
+def field_cap(ic, tf):
+    """A soft cap, its crown up and its brim to the left, about 120 px wide round the origin."""
+    ic.shape("M-44 10C-50 -28 -18 -44 14 -42C46 -40 62 -18 56 12C30 22 -20 22 -44 10z", ic.lin(OLIVE, -40, -40, 50, 20), LINE, 2.4, True, tf, 12)
+    ic.line("M10 -41C0 -22 0 -8 4 8M-26 -30C-34 -16 -36 -4 -34 6M40 -30C46 -16 46 -6 44 8", "#33391a", 2, .7, tf)
+    ic.line("M-20 -34C-4 -42 14 -42 28 -38", "#eef2c0", 3, .6, tf)
+    ic.shape("M-46 6C-20 18 30 18 57 6V20C30 32 -20 32 -46 20z", ic.lin(OLIVE[1:], 0, 4, 0, 32), LINE, 2, True, tf, 10)
+    for i in range(13):
+        t = i / 12
+        ic.line(f"M{-40 + t * 90:.1f} {16 + 8 * math.sin(math.pi * t):.1f}h3", "#e6ebb4", 1.3, .8, tf)
+    ic.shape("M-46 12C-62 14 -78 22 -80 32C-66 38 -38 36 -20 27C-32 25 -42 21 -46 12z", ic.lin(["#8d965a", "#4c5528", "#272d12"], -70, 12, -30, 36), LINE, 2.2, True, tf, 10)
+    ic.line("M-72 30C-60 25 -48 24 -38 25", "#d3d795", 1.8, .8, tf)
+    ic.rivet(-40, 15, 3.6, BRASS, tf)
+
+
+def troop_infantry():
+    ic = Icon("troop_infantry")
+    medallion(ic, OLIVE)
+    rifle(ic, "translate(128 136) rotate(-40) scale(.98)")
+    ic.layer()
+    field_cap(ic, "translate(134 176) scale(.98)")
+    ic.save()
+
+
+def troop_scouts():
+    ic = Icon("troop_scouts")
+    medallion(ic, BLUE)
+    ic.line("M62 106C50 60 96 34 128 46C160 34 206 60 194 106", "#4f2f16", 9, 1, "", None, True, 9)
+    ic.line("M62 105C50 59 96 33 128 45C160 33 206 59 194 105", "#b07846", 4.4)
+    ic.line("M62 103C52 60 96 36 128 46", "#e8bb8a", 1.4, .8)
+    for k in (-1, 1):
+        x = 128 + k * 40
+        barrel = f"M{x - 22} 92L{x + 22} 92L{x + 36} 178C{x + 36} 198 {x - 36} 198 {x - 36} 178z"
+        ic.shape(barrel, ic.lin(["#3f4426", "#8d965a", "#5c6535", "#2b3016"], x - 34, 0, x + 34, 0), LINE, 2.6)
+        cl = ic.clip(barrel)
+        for _ in range(70):
+            px, py = ic.rng.uniform(x - 34, x + 34), ic.rng.uniform(100, 176)
+            ic.line(f"M{px:.1f} {py:.1f}l2.4 2.4", "#1d210d" if ic.rng.random() < .6 else "#c8ce8c", 1.2, .4, "", cl)
+        ic.shape(rect(x - 24, 76, 48, 20, 5), ic.lin(IRON, x - 24, 0, x + 24, 0), INK, 2.4)
+        ic.line(f"M{x - 16} 79V93M{x - 8} 79V93M{x} 79V93M{x + 8} 79V93M{x + 16} 79V93", "#17140f", 1.8, .8)
+        ic.shape(ell(x, 76, 22, 7), ic.lin(["#8fd0d0", "#1f4a50"], 0, 70, 0, 84), INK, 2.2)
+        ic.shape(rect(x - 38, 160, 76, 14, 5), ic.lin(BRASS, 0, 160, 0, 174), LINE, 2.2)
+        ic.line(f"M{x - 32} 163H{x + 32}", "#fff6d0", 1.6, .8)
+        ic.shape(ell(x, 190, 37, 17), ic.lin(IRON, 0, 174, 0, 206), INK, 2.6)
+        ic.shape(ell(x, 190, 29, 12.5), ic.rad(["#d5f4f2", "#5fa8ab", "#1d4a52", "#0a1e24"], x - 9, 185, 38), INK, 2, False)
+        ic.fill(f"M{x - 20} 186C{x - 14} 180 {x - 2} 179 {x + 4} 181C{x - 6} 184 {x - 14} 188 {x - 18} 193z", "#ffffff", .75)
+        ic.line(f"M{x - 20} 100L{x - 28} 154", "#e6ebb4", 3, .5)
+    ic.shape(rect(110, 108, 36, 34, 6), ic.lin(IRON, 0, 108, 0, 142), INK, 2.6)
+    ic.shape(circ(128, 104, 13), ic.lin(BRASS, 116, 92, 140, 116), LINE, 2.4)
+    for i in range(16):
+        (x0, y0), (x1, y1) = pol(128, 104, 9.5, i * 22.5), pol(128, 104, 12, i * 22.5)
+        ic.line(f"M{x0:.1f} {y0:.1f}L{x1:.1f} {y1:.1f}", "#5c3812", 1.6, .9)
+    ic.rivet(128, 126, 5, STEEL)
+    ic.save()
+
+
+def troop_heavy():
+    ic = Icon("troop_heavy")
+    medallion(ic, RED)
+    # Tripod, then the gun, the belt and its box.
+    for d in ("M134 130L84 216", "M140 130L196 214", "M136 132L140 206"):
+        ic.line(d, "#4a4d50", 10, 1, "", None, True, 10)
+        ic.line(d, "#8b8f93", 4, .9, "translate(-2 -1)")
+    for x, y in ((82, 218), (198, 216), (140, 208)):
+        ic.shape(ell(x, y, 13, 6), ic.lin(IRON, x - 12, y - 6, x + 12, y + 6), INK, 2.2)
+    ic.shape("M118 116H160L152 142H126z", ic.lin(IRON, 118, 116, 160, 142), INK, 2.4)
+    ic.rivet(139, 129, 6, BRASS)
+    tf = "rotate(-7 128 100)"
+    ic.shape(rect(6, 92, 40, 12, 3), ic.lin(STEEL, 0, 92, 0, 104), INK, 2.2, True, tf)
+    ic.shape(rect(2, 88, 10, 20, 3), ic.lin(IRON, 0, 88, 0, 108), INK, 2.2, True, tf)
+    ic.shape(rect(40, 80, 88, 36, 9), ic.lin(STEEL, 0, 80, 0, 116), INK, 2.6, True, tf)
+    for x in range(52, 124, 14):
+        for y in (90, 104):
+            ic.fill(ell(x, y, 4.4, 3.6), "#17181a", .95, tf)
+            ic.line(f"M{x - 4} {y + 3}a4.4 3.6 0 0 0 8 0", "#f4f2ea", 1, .7, tf)
+    ic.line("M46 84H122", "#ffffff", 2.2, .75, tf)
+    ic.shape("M124 70H196L206 78V122H124z", ic.lin(IRON, 0, 70, 0, 122), INK, 2.8, True, tf)
+    ic.line("M129 75H193", "#dcdad2", 2.2, .7, tf)
+    for x, y in ((132, 114), (160, 114), (198, 114), (132, 80), (186, 80)):
+        ic.rivet(x, y, 3.6, STEEL, tf)
+    ic.shape(rect(142, 58, 26, 14, 2), ic.lin(STEEL, 0, 58, 0, 72), INK, 2, True, tf)
+    ic.shape("M152 58V44L160 44V58z", ic.lin(STEEL, 152, 0, 160, 0), INK, 1.8, True, tf)
+    ic.shape("M204 84H226C234 84 234 96 226 96H204zM204 104H226C234 104 234 116 226 116H204z", ic.lin(WOOD, 0, 84, 0, 116), LINE, 2.2, True, tf)
+    for k in range(8):
+        a = k / 7
+        x, y = 168 + 30 * a * a, 120 + 62 * a
+        ic.shape(rect(x - 13, y - 4, 22, 8, 2.5), ic.lin(BRASS, 0, y - 4, 0, y + 4), LINE, 1.6, True, "", 7)
+        ic.shape(f"M{x - 13:.1f} {y - 3.5:.1f}L{x - 23:.1f} {y:.1f}L{x - 13:.1f} {y + 3.5:.1f}z", ic.lin(COPPER, 0, y - 4, 0, y + 4), LINE, 1.4, True, "", 6)
+    ic.shape(rect(176, 178, 56, 42, 4), ic.lin(OLIVE, 176, 178, 232, 220), LINE, 2.6)
+    ic.shape(rect(172, 172, 64, 12, 3), ic.lin(OLIVE, 0, 172, 0, 184), LINE, 2.2)
+    ic.line("M180 190H228M180 208H228", "#33391a", 2.4, .7)
+    ic.line("M178 175H230", "#eef2c0", 2, .7)
+    ic.shape(rect(196, 188, 16, 12, 2), ic.lin(BRASS, 196, 188, 212, 200), LINE, 1.8, False)
+    ic.save(.96, 0, 2)
+
+
+def troop_porters():
+    ic = Icon("troop_porters")
+    medallion(ic, OCHRE)
+    far = ["#6f5036", "#543a25", "#3d2917", "#25170b"]
+    for x, w in ((98, 12), (184, 12)):
+        ic.shape(f"M{x} 152L{x + 18} 152L{x + w} 214H{x}z", ic.lin(far, x, 150, x + 16, 214), LINE, 2)
+        ic.shape(rect(x - 2, 210, 17, 12, 3), "#1d130a", INK, 1.6)
+    ic.line("M204 136C220 140 222 162 216 182", "#3a2616", 8, 1, "", None, True, 8)
+    ic.shape("M210 176C204 196 210 210 218 214C224 204 224 188 220 176z", ic.lin(far, 208, 176, 222, 214), LINE, 2)
+    body = "M84 122C104 112 164 110 192 120C212 128 214 152 204 170C176 182 112 182 88 170C76 156 74 132 84 122z"
+    ic.shape(body, ic.lin(MULE, 100, 112, 160, 182), LINE, 2.8)
+    ic.fill("M90 168C116 180 174 180 204 168C196 154 110 156 90 168z", "#e3c8a4", .45)
+    neck = "M100 126C92 108 82 92 70 82C58 82 40 96 28 110C20 120 24 132 36 132C48 130 58 124 66 128C70 146 80 160 94 166z"
+    ic.shape(neck, ic.lin(MULE, 40, 84, 100, 160), LINE, 2.8)
+    ic.shape("M40 100C30 106 20 116 24 126C28 134 40 132 46 128C52 118 50 106 40 100z", ic.lin(["#eedcc0", "#c9a981", "#8f6f4a"], 26, 100, 46, 132), LINE, 2, False)
+    ic.fill(ell(31, 118, 3, 2.4), "#1d130a")
+    ic.line("M28 127Q36 128 42 124", "#4a2f18", 1.8, .9)
+    ic.shape(ell(60, 102, 4.6, 4.2), "#140b05", INK, 1.4, False)
+    ic.fill(circ(58.6, 100.6, 1.5), "#fff")
+    for d in ("M66 84C58 62 62 44 72 36C80 50 80 70 76 86z", "M78 86C80 66 90 52 100 50C102 66 96 82 88 92z"):
+        ic.shape(d, ic.lin(MULE, 60, 40, 96, 90), LINE, 2.4)
+    ic.line("M70 78C68 64 69 54 72 46M84 84C86 72 91 64 96 60", "#e8c4a4", 3, .7)
+    ic.line("M78 84C92 98 100 114 104 130", "#2b1a0d", 8, .9)
+    for k in range(7):
+        ic.line(f"M{80 + k * 3.6:.1f} {86 + k * 6.6:.1f}l8 -3", "#1a0f07", 3, .8)
+    for x in (112, 168):
+        ic.shape(f"M{x} 160L{x + 22} 160L{x + 15} 218H{x + 2}z", ic.lin(MULE, x, 158, x + 22, 218), LINE, 2.4)
+        ic.line(f"M{x + 5} 168L{x + 6} 212", "#e3c8a4", 2, .5)
+        ic.shape(rect(x - 1, 214, 19, 12, 3), "#241609", INK, 1.8)
+    # Halter, blanket, pannier, crate, roll and rope.
+    ic.line("M46 94L52 128M34 108L50 112M66 90C78 100 84 112 84 126", "#8f2a1c", 5, 1)
+    ic.line("M46 94L52 128M34 108L50 112M66 90C78 100 84 112 84 126", "#e88f72", 1.6, .8)
+    ic.rivet(50, 112, 4)
+    ic.shape("M108 108C130 102 164 102 184 108L190 150C164 158 128 158 104 150z", ic.lin(TERRA, 108, 104, 180, 156), LINE, 2.4)
+    for y in (116, 128, 140):
+        ic.line(f"M108 {y}C130 {y - 5} 164 {y - 5} 186 {y}", "#f3cd80", 2.4, .8)
+    ic.shape(rect(116, 118, 60, 48, 8), ic.lin(["#e8d3a0", "#bd9a62", "#7d6036"], 116, 118, 176, 166), LINE, 2.6)
+    c = ic.clip(rect(116, 118, 60, 48, 8))
+    for k in range(9):
+        ic.line(f"M{112 + k * 9} 114L{124 + k * 9} 170M{124 + k * 9} 114L{112 + k * 9} 170", "#5c4726", 1.3, .5, "", c)
+    ic.line("M146 112V170M114 142H178", "#4f2f16", 5)
+    ic.line("M145 112V170M114 141H178", "#b07846", 2)
+    ic.shape(rect(114, 60, 62, 46, 4), ic.lin(WOOD, 114, 60, 176, 106), LINE, 2.8)
+    ic.grain(118, 64, 172, 102, 16, "#4a2812", .5)
+    ic.line("M114 76H176M114 91H176", "#2b1508", 2.2, .9)
+    for x in (114, 164):
+        ic.shape(rect(x, 58, 12, 50, 2), ic.lin(IRON, x, 0, x + 12, 0), INK, 2)
+        for y in (66, 83, 100):
+            ic.rivet(x + 6, y, 2.8, STEEL)
+    ic.shape(rect(110, 42, 70, 20, 10), ic.lin(OLIVE, 0, 42, 0, 62), LINE, 2.4)
+    ic.shape(ell(180, 52, 6, 10), ic.lin(OLIVE, 174, 42, 186, 62), LINE, 2)
+    ic.line("M180 47a3 4.5 0 1 1 -2 8", "#33391a", 1.8)
+    for x in (126, 160):
+        ic.line(f"M{x} 42V62", "#e2c58c", 4.4)
+        ic.line(f"M{x} 42V62", "#6b4c22", 1.2, .8)
+    ic.save()
+
+
+def clock():
+    ic = Icon("clock")
+    cx, cy = 128, 146
+    ic.line("M108 26C108 4 148 4 148 26C148 40 108 40 108 26z", "#b98538", 9, 1, "", None, True, 10)
+    ic.line("M109 24C110 8 146 8 147 24", "#fff0bd", 2.4, .9)
+    ic.shape(rect(112, 36, 32, 22, 5), ic.lin(BRASS, 112, 0, 144, 0), LINE, 2.6)
+    for x in range(117, 144, 5):
+        ic.line(f"M{x} 39V55", "#5c3812", 1.8, .8)
+    ic.shape(circ(cx, cy, 98), ic.lin(BRASS, 60, 60, 200, 236), LINE, 3)
+    for i in range(60):
+        (x0, y0), (x1, y1) = pol(cx, cy, 90, i * 6), pol(cx, cy, 96.5, i * 6)
+        ic.line(f"M{x0:.1f} {y0:.1f}L{x1:.1f} {y1:.1f}", "#6b4418", 1.6, .6)
+    ic.line("M44 112A92 92 0 0 1 106 56", "#fffbe6", 5, .75)
+    ic.shape(circ(cx, cy, 84), ic.lin([BRASS[3], BRASS[2], BRASS[0]], 70, 80, 190, 220), LINE, 2.4, False)
+    ic.shape(circ(cx, cy, 77), ic.rad(["#fffbee", "#f6e6be", "#d9bd86"], 108, 118, 118), INK, 2.6, False)
+    ic.line(circ(cx, cy, 70), "#7a5a2e", 1.8, .8)
+    for i in range(60):
+        big = i % 5 == 0
+        (x0, y0), (x1, y1) = pol(cx, cy, 54 if i % 15 == 0 else (59 if big else 65), i * 6 - 90), pol(cx, cy, 69, i * 6 - 90)
+        ic.line(f"M{x0:.1f} {y0:.1f}L{x1:.1f} {y1:.1f}", "#2b1a0d", 6.5 if i % 15 == 0 else (4 if big else 1.4), .95)
+    ic.line(circ(cx, cy + 30, 15), "#7a5a2e", 1.6, .8)
+    for i in range(12):
+        (x0, y0), (x1, y1) = pol(cx, cy + 30, 12, i * 30), pol(cx, cy + 30, 14.5, i * 30)
+        ic.line(f"M{x0:.1f} {y0:.1f}L{x1:.1f} {y1:.1f}", "#2b1a0d", 1.2, .9)
+    ic.line(f"M{cx} {cy + 30}L{cx + 8} {cy + 22}", "#a82c1c", 2.2)
+    for a, l, w in ((-60, 46, 11), (60, 64, 8)):
+        x, y = pol(cx, cy, l, a - 90 + 0)
+        ic.line(f"M{cx} {cy}L{x:.1f} {y:.1f}", "#1a1109", w)
+        ic.line(f"M{cx} {cy}L{x:.1f} {y:.1f}", "#4b5a78", w - 5)
+    ic.shape(circ(cx, cy, 9), ic.rad(GOLD, cx - 3, cy - 3, 13), LINE, 2, False)
+    ic.fill("M70 112C84 88 108 78 130 78C112 90 92 112 84 140C76 134 70 124 70 112z", "#ffffff", .4)
+    ic.save()
+
+
+def lock():
+    ic = Icon("lock")
+    ic.line("M78 124V82C78 14 178 14 178 82V124", "#80858a", 24, 1, "", None, True, 15)
+    ic.line("M72 122V82C72 8 178 6 184 78", "#f4f3ee", 4.5, .85)
+    ic.line("M89 122V84C89 32 167 32 167 84V122", "#3d4148", 4, .8)
+    body = "M44 116H212C222 116 228 122 228 132V198C228 226 206 246 180 246H76C50 246 28 226 28 198V132C28 122 34 116 44 116z"
+    ic.shape(body, ic.lin(IRON, 40, 110, 216, 246), INK, 3.4)
+    c = ic.clip(body)
+    for _ in range(60):
+        x, y = ic.rng.uniform(32, 224), ic.rng.uniform(120, 240)
+        ic.line(f"M{x:.1f} {y:.1f}l{ic.rng.uniform(-9, 9):.1f} {ic.rng.uniform(-6, 6):.1f}", ic.rng.choice(["#d6d3c9", "#141516"]), 1.3, .4, "", c)
+    for x, y, r in ((52, 214, 16), (206, 148, 13), (176, 232, 15)):
+        ic.fill(ell(x, y, r, r * .7), "#8f5430", .45, "", c)
+    ic.line("M40 126H216", "#e8e6de", 4, .7)
+    ic.line("M46 138H210V196C210 216 196 230 176 230H80C60 230 46 216 46 196z", "#16171a", 3, .7)
+    ic.line("M47.500 139.500H208", "#a9a9a6", 1.6, .8)
+    for x, y in ((46, 132), (210, 132), (48, 200), (208, 200), (80, 234), (176, 234)):
+        ic.rivet(x, y, 7, STEEL)
+    ic.shape("M128 146C150 146 166 160 166 180C166 204 146 222 128 230C110 222 90 204 90 180C90 160 106 146 128 146z", ic.lin(BRASS, 94, 146, 162, 228), LINE, 2.8, False)
+    ic.line("M100 176C100 162 112 153 126 152", "#fffbe2", 3, .85)
+    for x, y in ((128, 154), (100, 182), (156, 182), (128, 221)):
+        ic.rivet(x, y, 3.2, GOLD)
+    ic.shape("M128 164A14 14 0 0 1 137 189L142 212H114L119 189A14 14 0 0 1 128 164z", "#0d0805", INK, 2, False)
+    ic.line("M120 172A11 11 0 0 1 129 167", "#6b4418", 2, .9)
+    ic.save()
+
+
+def storage():
+    ic = Icon("storage")
+    # Barrel, sack, crate.
+    ic.shape("M18 66C10 110 10 168 20 222H112C122 168 122 110 114 66z", ic.lin([WOOD[2], WOOD[0], WOOD[1], WOOD[2], WOOD[3]], 12, 0, 120, 0), LINE, 3)
+    for k in range(1, 6):
+        x0, x1 = 18 + k * 16, 20 + k * 15.4
+        b = (k - 3) * 2.6
+        ic.line(f"M{x0} 68C{x0 + b:.1f} 110 {x0 + b:.1f} 170 {x1:.0f} 221", "#3a1e0c", 2.2, .85)
+    ic.grain(18, 80, 112, 214, 26, "#4a2812", .45, None, "", 2, False)
+    for y in (84, 128, 172, 208):
+        ic.shape(f"M12 {y}C40 {y + 9} 92 {y + 9} 120 {y}V{y + 14}C92 {y + 23} 40 {y + 23} 12 {y + 14}z", ic.lin(IRON, 12, 0, 120, 0), INK, 2.4)
+        ic.line(f"M18 {y + 4}C42 {y + 11} 90 {y + 11} 112 {y + 4}", "#d9d8d2", 1.6, .6)
+        for x in (30, 66, 102):
+            ic.rivet(x, y + 12, 3, STEEL)
+    ic.shape(ell(66, 66, 48, 15), ic.lin(WOOD, 20, 52, 110, 82), LINE, 2.8)
+    ic.line(ell(66, 67, 40, 11), "#3a1e0c", 2, .8)
+    for x in (46, 60, 74, 88):
+        ic.line(f"M{x} 57V77", "#3a1e0c", 1.6, .6)
+    ic.layer()
+    ic.shape("M150 60C138 88 112 112 116 152C118 176 206 176 210 152C214 114 190 88 178 60z", ic.lin(PAPER, 118, 60, 206, 172), LINE, 2.8)
+    c = ic.clip("M150 60C138 88 112 112 116 152C118 176 206 176 210 152C214 114 190 88 178 60z")
+    for k in range(14):
+        ic.line(f"M{112 + k * 8} 60V176", "#8a6a3c", 1.1, .35, "", c)
+        ic.line(f"M110 {66 + k * 8}H214", "#8a6a3c", 1.1, .35, "", c)
+    ic.line("M150 70C140 96 128 118 128 146M180 72C190 98 196 120 198 140", "#7a5a2e", 2.4, .6)
+    ic.shape("M140 36C148 44 156 46 164 38C172 46 182 44 190 34C186 50 182 56 180 62H148C146 54 144 48 140 36z", ic.lin(PAPER, 140, 34, 190, 62), LINE, 2.4)
+    ic.line("M144 60C154 66 174 66 184 60", "#8f2a1c", 7, 1, "", None, True, 6)
+    ic.line("M145 59C155 64 173 64 183 59", "#e88f72", 2, .9)
+    ic.shape("M152 100C140 108 140 128 152 138C148 124 148 112 152 100zM164 94C154 108 154 130 164 144C174 130 174 108 164 94zM176 100C188 108 188 128 176 138C180 124 180 112 176 100z", ic.lin(OCHRE, 140, 94, 190, 144), LINE, 1.6, False)
+    ic.layer()
+    ic.shape(rect(104, 148, 138, 92, 4), ic.lin(WOOD, 104, 148, 242, 240), LINE, 3)
+    for k in range(3):
+        y = 148 + k * 30.6
+        ic.grain(108, y + 4, 238, y + 27, 9, "#4a2812", .5)
+        ic.line(f"M106 {y + 2:.1f}H240", "#f6cf9b", 2, .6)
+        if k:
+            ic.line(f"M104 {y:.1f}H242", "#2b1508", 3, .9)
+    ic.line("M116 232L230 156M116 156L230 232", "#7c4822", 15, 1)
+    ic.line("M116 229L230 153M116 153L230 229", "#e3b987", 3, .6)
+    ic.line("M116 240L230 164M116 164L230 240", "#2b1508", 2, .6)
+    for x in (100, 224):
+        ic.shape(rect(x, 144, 22, 100, 3), ic.lin(IRON, x, 144, x + 22, 244), INK, 2.6)
+        for y in (156, 180, 206, 232):
+            ic.rivet(x + 11, y, 4.4, STEEL)
+    ic.rivet(173, 194, 7, BRASS)
+    ic.save(.98)
+
+
 if __name__ == "__main__":
-    for draw in (food, materiel, funds, support, heroes, alliance, map_icon, base, reports, settings, upgrade, info, train, hammer, builders, power, marches, wounded, avatar, back, chevron):
+    for draw in (food, materiel, funds, support, heroes, alliance, map_icon, base, reports, settings, upgrade, info, train, hammer, builders, power, marches, wounded, avatar, back, chevron, clock, lock, storage, troop_infantry, troop_scouts, troop_heavy, troop_porters):
         draw()
     print(f"wrote {len(list(OUT.glob('*.svg')))} icons, {sum(f.stat().st_size for f in OUT.glob('*.svg')) // 1024} KB")

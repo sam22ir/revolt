@@ -1,6 +1,6 @@
 class_name QueuePill
 extends PanelContainer
-## The builders' status (ui/hud.ts) beside a painted hammer: "Builders idle — tap a building" with a gold rim that invites a tap,
+## The builders' status (ui/hud.ts) beside a hammer: "Builders idle — tap a building" with a sand rim that invites a tap,
 ## or the running upgrade ("Command post → level 2") with its countdown from the server's end time and a thin bar along the
 ## pill's bottom edge showing how far it is. Its structure text changes only when the job does; the countdown and the bar move
 ## in place, and nothing changes the pill's height.

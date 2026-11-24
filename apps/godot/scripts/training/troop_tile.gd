@@ -5,7 +5,7 @@ extends PanelContainer
 
 signal pressed
 
-const MEDALLION := 44.0
+const MEDALLION := 50.0
 
 var troop := ""
 var _name := UiKit.label("", UiKit.SMALL, HudTheme.TEXT, false, true)
