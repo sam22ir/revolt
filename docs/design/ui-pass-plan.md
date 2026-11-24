@@ -67,8 +67,10 @@ kit's font sizes then (no global font change, which would reflow every screen an
    body), cards headed by an icon for account (avatar, guest tag, level and power, Link Google as later), language, sound (sliding
    `GameSwitch`) and about. Fits a phone without scrolling. Help and privacy are named but lead nowhere yet. **The tab bar was redone
    with it** (step 3's round buttons replaced by `NavTab`s; the bar now shows on Settings too).
-5. **Reports.** `ListRow` with a win/loss badge and target icon; a report as cards (forces, losses, loot with icons);
-   an `EmptyState`.
+5. **Reports.** *Built 25 Nov* on `PageFrame`. The list: a `ListRow` per report (the target's medallion, name, level and time, the loot
+   with icons, the result as a coloured badge and rim) or an `EmptyState` with a button to the map. A report: a banner in the result's
+   colour, loot, the troops sent as a `SegmentBar` each (survived, wounded, lost; zeros left out), the defenders the same way, heroes.
+   Back goes to the list, then home. Icons: the three results and the four colonial targets (objects only, on a red medallion).
 6. **Alliance.** Search and found as cards; members, chat and help as `ListRow`s under `Tabs`.
 7. **Heroes.** Portrait grid with rarity frames; a hero as a card with skills; recruit with odds in a card.
 8. **Map sheets.** Tile sheet, march sheet, marches list, rallies: the same kit.

@@ -1482,7 +1482,180 @@ def link():
     ic.save()
 
 
+# ---------------------------------------------------------------- battle reports
+
+def small_laurel(ic, spread=1.0):
+    """Two branches of leaves round the middle, open at the top."""
+    for s in (-1, 1):
+        p = ((128 + s * 6, 214), (128 + s * 66 * spread, 206), (128 + s * 84 * spread, 150), (128 + s * 66 * spread, 82))
+        ic.line(f"M{p[0][0]} {p[0][1]}C{p[1][0]} {p[1][1]} {p[2][0]} {p[2][1]} {p[3][0]} {p[3][1]}", "#4b5424", 6, 1, "", None, True, 8)
+        for k in range(7):
+            t = .1 + k / 7.2
+            x, y = (sum(c * q[i] for c, q in zip(((1 - t) ** 3, 3 * t * (1 - t) ** 2, 3 * t * t * (1 - t), t ** 3), p)) for i in (0, 1))
+            for side, pal in ((-1, GOLD), (1, OCHRE)):
+                tf = f"translate({x:.1f} {y:.1f}) rotate({s * (104 - k * 20) + side * 40:.1f}) scale(.86)"
+                ic.shape("M0 2C-11 -8 -9 -26 0 -37C9 -26 11 -8 0 2z", ic.lin(pal, -9, -30, 9, 0), LINE, 1.8, True, tf, 9)
+                ic.line("M0 -2V-30M0 -12L-5 -18M0 -12L5 -18", "#7a4710", 1.3, .7, tf)
+
+
+def victory():
+    ic = Icon("victory")
+    medallion(ic, OLIVE)
+    small_laurel(ic)
+    ic.layer()
+    faceted_star(ic, 128, 120, 58, 25, ["#fffbe2", "#ffe48c"], ["#f8cf5c", "#dfa236"], ["#b97722", "#84500f"], 2.8)
+    ic.shape(circ(128, 121, 12), ic.rad(GOLD, 123, 116, 18), LINE, 2, False)
+    ic.save()
+
+
+def defeat():
+    ic = Icon("defeat")
+    medallion(ic, RED)
+    d = "M128 46C148 60 174 66 196 66C198 126 184 178 128 214C72 178 58 126 60 66C82 66 108 60 128 46z"
+    ic.shape(d, ic.lin(IRON, 70, 50, 186, 210), INK, 3.4)
+    ic.line("M72 76C92 76 110 70 128 60", "#e8e6de", 4, .6)
+    ic.shape("M128 72C142 82 160 86 178 87C178 130 166 168 128 194C90 168 78 130 78 87C96 86 114 82 128 72z", ic.lin(WOOD, 80, 74, 178, 194), LINE, 2.4, False)
+    for x in (104, 128, 152):
+        ic.line(f"M{x} 80V186", "#2b1508", 2.4, .7)
+    for x, y in ((72, 78), (184, 78), (82, 150), (174, 150), (128, 202)):
+        ic.rivet(x, y, 5, STEEL)
+    crack = "M134 40L118 84L140 106L108 140L132 160L112 220"
+    ic.line(crack, "#0d0805", 13)
+    ic.line(crack, "#e9ded0", 1.6, .5, "translate(5 1)")
+    ic.line("M118 84L96 92M140 106L166 100M108 140L88 146M132 160L152 168", "#0d0805", 5)
+    ic.save()
+
+
+def gone():
+    """A cold campfire: whoever was here has left."""
+    ic = Icon("gone")
+    medallion(ic, ["#b9b09c", "#857c69", "#5b5344", "#2f2a21"])
+    for x, y, w in ((118, 96, 20), (138, 66, 15), (122, 40, 10)):
+        ic.line(f"M{x - w} {y}C{x - w} {y - 16} {x + w * .4:.0f} {y - 18} {x + w * .5:.0f} {y - 4}C{x + w * .6:.0f} {y + 8} {x + w * 1.6:.0f} {y + 2} {x + w * 1.5:.0f} {y - 14}", "#e8e0d0", 7, .55)
+    ic.shape(ell(128, 182, 78, 30), ic.lin(["#4a4236", "#1f1a13"], 0, 152, 0, 212), INK, 2.6)
+    for a, l in ((-28, 1), (24, -1), (4, 1)):
+        tf = f"rotate({a} 128 164)"
+        ic.shape(rect(66, 154, 124, 22, 9), ic.lin(["#6b5a48", "#3f3226", "#1d150e"], 0, 154, 0, 176), INK, 2.6, True, tf)
+        ic.line("M78 160H176", "#a8937a", 2, .6, tf)
+        ic.shape(ell(190, 165, 8, 11), ic.lin(["#b59a78", "#6b5139"], 182, 154, 198, 176), INK, 2, False, tf)
+        ic.line(ell(190, 165, 4, 5.5), "#3f3226", 1.4, .8, tf)
+    for i in range(11):
+        a = math.pi * (i + .5) / 11
+        x, y = 128 - 84 * math.cos(a), 184 + 32 * math.sin(a)
+        ic.shape(ell(x, y, 15, 11), ic.rad(GREY, x - 4, y - 4, 20), INK, 2.2)
+    ic.save()
+
+
+def npc_patrol():
+    ic = Icon("npc_patrol")
+    medallion(ic, RED)
+    rifle(ic, "translate(128 150) rotate(-38) scale(.92)")
+    ic.layer()
+    # A steel helmet, no badge on it.
+    ic.shape("M62 148C60 92 90 58 130 58C170 58 198 92 196 148C176 158 82 158 62 148z", ic.lin(["#8d938a", "#5d645a", "#3b4139", "#20241f"], 70, 60, 190, 150), LINE, 3.2)
+    ic.shape("M44 148C70 136 188 136 214 148C220 160 208 168 196 168C150 158 106 158 62 168C50 168 38 160 44 148z", ic.lin(["#737a70", "#434940", "#252923"], 0, 138, 0, 168), LINE, 3)
+    ic.shape("M108 60C112 44 148 44 152 60L150 132H110z", ic.lin(["#7e857b", "#4c534a", "#333831"], 108, 0, 152, 0), LINE, 2.4)
+    ic.line("M80 104C88 82 102 70 118 66", "#e6e8df", 6, .65)
+    ic.line("M60 152C100 142 156 142 198 152", "#c9cdc2", 2.4, .6)
+    for x in (86, 172):
+        ic.rivet(x, 134, 5, STEEL)
+    ic.line("M70 166C80 196 110 212 128 212C146 212 176 196 186 166", "#4f2f16", 7, 1, "", None, True, 7)
+    ic.line("M72 168C84 196 110 208 128 208", "#a86f3d", 2.4, .9)
+    ic.save()
+
+
+def npc_convoy():
+    """A covered lorry."""
+    ic = Icon("npc_convoy")
+    medallion(ic, RED)
+    ic.fill(ell(128, 206, 92, 12), "#000000", .35)
+    ic.shape("M100 64C100 54 224 54 224 64V160H100z", ic.lin(["#c9bd92", "#94895c", "#665d3a"], 100, 56, 224, 160), LINE, 3.2)
+    for x in (128, 160, 192):
+        ic.line(f"M{x} 60C{x - 4} 90 {x - 4} 130 {x} 158", "#4c4527", 3, .6)
+        ic.line(f"M{x + 4} 60C{x} 90 {x} 130 {x + 4} 158", "#efe6c2", 1.6, .6)
+    ic.line("M106 66C140 60 190 60 218 66", "#f6eed0", 4, .7)
+    ic.line("M100 142H224", "#4c4527", 4, .6)
+    ic.shape(rect(94, 156, 136, 26, 4), ic.lin(OLIVE, 0, 156, 0, 182), LINE, 2.8)
+    for x in (112, 144, 176, 208):
+        ic.line(f"M{x} 158V180", "#33391a", 3, .8)
+    ic.shape("M30 122C32 116 38 114 44 114H60L72 78C74 74 78 72 82 72H104V186H26V140C26 132 28 126 30 122z", ic.lin(OLIVE, 26, 74, 104, 186), LINE, 3.2)
+    ic.shape("M70 112L80 84H97V112z", ic.lin(["#d5eef0", "#7fb0b2", "#2f5a63"], 72, 84, 98, 112), INK, 2.4, False)
+    ic.line("M76 106L84 88", "#ffffff", 3, .7)
+    ic.line("M32 128H62M32 140H62M32 152H62", "#33391a", 3.4, .8)
+    ic.line("M40 118H62", "#eef2c0", 3, .7)
+    ic.rivet(38, 168, 8, GOLD)
+    ic.shape(rect(20, 180, 90, 12, 4), ic.lin(IRON, 0, 180, 0, 192), INK, 2.4)
+    for x in (64, 152, 204):
+        ic.shape(circ(x, 194, 25), ic.rad(["#5a5a58", "#2c2c2b", "#121211"], x - 6, 188, 34), INK, 3)
+        for i in range(14):
+            (x0, y0), (x1, y1) = pol(x, 194, 20, i * 360 / 14), pol(x, 194, 24, i * 360 / 14)
+            ic.line(f"M{x0:.1f} {y0:.1f}L{x1:.1f} {y1:.1f}", "#0c0c0c", 2.6, .9)
+        ic.shape(circ(x, 194, 12), ic.rad(STEEL, x - 4, 190, 17), INK, 2, False)
+        for i in range(5):
+            px, py = pol(x, 194, 7, i * 72)
+            ic.fill(circ(px, py, 1.8), "#2c2e32")
+    ic.save(.95, -2, 0)
+
+
+def npc_outpost():
+    """A stone blockhouse behind sandbags."""
+    ic = Icon("npc_outpost")
+    medallion(ic, RED)
+    ic.shape("M70 92H186V206H70z", ic.lin(["#e3d3b0", "#b89f74", "#80694a"], 70, 92, 186, 206), LINE, 3.2)
+    ic.fill("M150 92H186V206H150z", "#3a2412", .28)
+    for y in range(6):
+        for x in range(5):
+            px, py = 72 + x * 24 + (12 if y % 2 else 0), 96 + y * 18
+            if px < 176:
+                ic.line(rect(px, py, 22, 15, 3), "#6b5436", 1.6, .55)
+                ic.line(f"M{px + 3} {py + 3}h12", "#fff6df", 1.4, .5)
+    for x in range(5):
+        ic.shape(rect(58 + x * 29, 62, 22, 34, 2), ic.lin(["#efe0bd", "#c4ab7e", "#8c7450"], 58 + x * 29, 62, 80 + x * 29, 96), LINE, 2.8)
+    ic.shape(rect(54, 88, 148, 14, 3), ic.lin(["#e8d6b0", "#9f8660"], 0, 88, 0, 102), LINE, 2.6)
+    for x in (88, 148):
+        ic.shape(rect(x, 122, 24, 34, 3), "#140c06", INK, 3, False)
+        ic.line(f"M{x + 3} 125H{x + 21}", "#5a4326", 2.4, .9)
+    ic.shape("M114 206V168C114 154 142 154 142 168V206z", ic.lin(DARKWOOD, 114, 156, 142, 206), LINE, 2.6, False)
+    for y in (174, 194):
+        ic.shape(rect(114, y, 28, 5), ic.lin(IRON, 0, y, 0, y + 5), INK, 1.4, False)
+    ic.layer()
+    for row, n, y in ((0, 6, 200), (1, 5, 184)):
+        for k in range(n):
+            if row and k == 2:
+                continue
+            x = 44 + k * 29 + row * 14
+            ic.shape(rect(x, y, 32, 20, 9), ic.lin(["#dcc898", "#ab9160", "#6f5a35"], 0, y, 0, y + 20), LINE, 2.4)
+            ic.line(f"M{x + 6} {y + 5}Q{x + 16} {y + 2} {x + 26} {y + 6}", "#f6e9c6", 2, .7)
+    ic.save(.98, 0, -4)
+
+
+def npc_fortified_line():
+    """Wired stakes before a concrete wall with slits."""
+    ic = Icon("npc_fortified_line")
+    medallion(ic, RED)
+    ic.shape("M28 104L52 82H204L228 104V176H28z", ic.lin(["#d6cdb8", "#9d937c", "#645b48"], 0, 82, 0, 176), LINE, 3.2)
+    ic.line("M34 104H222", "#4b4434", 3, .7)
+    ic.line("M56 88H200", "#fbf5e4", 3.4, .6)
+    for x in (58, 112, 166):
+        ic.shape(rect(x, 122, 34, 16, 2), "#120c07", INK, 3, False)
+        ic.line(f"M{x + 3} 142H{x + 31}", "#efe7d2", 2, .6)
+    for x in (48, 102, 156, 210):
+        ic.line(f"M{x} 106V174", "#4b4434", 2.2, .6)
+    ic.layer()
+    for x in range(34, 240, 47):
+        ic.shape(f"M{x - 7} 214L{x - 5} 138L{x} 128L{x + 5} 138L{x + 7} 214z", ic.lin([WOOD[0], WOOD[1], WOOD[3]], x - 7, 0, x + 7, 0), LINE, 2.6)
+    for y in (150, 176, 200):
+        ic.line(f"M22 {y}Q58 {y + 9} 81 {y}T128 {y}T175 {y}T234 {y}", INK, 7)
+        ic.line(f"M22 {y - 1}Q58 {y + 8} 81 {y - 1}T128 {y - 1}T175 {y - 1}T234 {y - 1}", "#c9c4b8", 2.6)
+        for k in range(8):
+            x = 40 + k * 25
+            ic.line(f"M{x - 7} {y - 6}l14 14M{x + 7} {y - 6}l-14 14", INK, 5)
+            ic.line(f"M{x - 5} {y - 4}l10 10M{x + 5} {y - 4}l-10 10", "#e6e1d3", 1.8)
+    ic.save(.97, 0, -2)
+
+
 if __name__ == "__main__":
-    for draw in (food, materiel, funds, support, heroes, alliance, map_icon, base, reports, settings, upgrade, info, train, hammer, builders, power, marches, wounded, avatar, back, chevron, clock, lock, storage, troop_infantry, troop_scouts, troop_heavy, troop_porters, music, effects, language, help_icon, link):
+    for draw in (food, materiel, funds, support, heroes, alliance, map_icon, base, reports, settings, upgrade, info, train, hammer, builders, power, marches, wounded, avatar, back, chevron, clock, lock, storage, troop_infantry, troop_scouts, troop_heavy, troop_porters, music, effects, language, help_icon, link,
+                 victory, defeat, gone, npc_patrol, npc_convoy, npc_outpost, npc_fortified_line):
         draw()
     print(f"wrote {len(list(OUT.glob('*.svg')))} icons, {sum(f.stat().st_size for f in OUT.glob('*.svg')) // 1024} KB")

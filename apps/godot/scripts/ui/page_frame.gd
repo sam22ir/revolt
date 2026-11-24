@@ -6,6 +6,7 @@ extends Control
 signal back_pressed
 
 var body := VBoxContainer.new()
+var scroll := ScrollContainer.new()
 var _back := Button.new()
 var _back_icon := HudIcon.new("back", 22.0)
 var _title := UiKit.label("", UiKit.TITLE + 2.0, HudTheme.TEXT, true)
@@ -20,7 +21,6 @@ func _init(icon_name := "") -> void:
 	page.add_theme_constant_override("separation", roundi(HudTheme.px(8)))
 	add_child(page)
 	page.add_child(_title_band(icon_name))
-	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	page.add_child(scroll)

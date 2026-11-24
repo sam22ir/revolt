@@ -513,6 +513,8 @@ func _build_hud() -> void:
 	_reports_screen.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_reports_screen.visible = false
 	_hud_root.add_child(_reports_screen)
+	_reports_screen.home_requested.connect(func() -> void: _show_screen(_home))
+	_reports_screen.map_requested.connect(_show_screen.bind("map"))
 	_session.reports_changed.connect(func() -> void: _reports_screen.set_reports(_session.reports))
 	_reports_screen.set_reports(_session.reports)
 	_alliance_screen.set_anchors_preset(Control.PRESET_FULL_RECT)

@@ -41,6 +41,54 @@ static func card(title := "") -> PanelContainer:
 		body.add_child(label(title, BODY, HudTheme.RING, true))
 	return c
 
+## A card headed by an icon and a title, with a groove under them. Add to `card_body`; `section_head` is the heading's row (put a
+## trailing value at its end) and `section_title` its label.
+static func section(icon_name: String, title := "") -> PanelContainer:
+	var c := card()
+	var body := card_body(c)
+	body.add_theme_constant_override("separation", roundi(HudTheme.px(6)))
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", roundi(HudTheme.px(8)))
+	var icon := HudIcon.new(icon_name, 26.0)
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	head.add_child(icon)
+	var text := label(title, BODY + 1.0, HudTheme.RING, true)
+	text.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	head.add_child(text)
+	body.add_child(head)
+	body.add_child(divider())
+	return c
+
+static func section_head(c: PanelContainer) -> HBoxContainer:
+	return card_body(c).get_child(0) as HBoxContainer
+
+static func section_title(c: PanelContainer) -> Label:
+	return section_head(c).get_child(1) as Label
+
+## A value at the end of a section's heading.
+static func section_value(c: PanelContainer, text: String) -> Label:
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	section_head(c).add_child(spacer)
+	var value := label(text, SMALL, HudTheme.TEXT_SECOND)
+	value.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	section_head(c).add_child(value)
+	return value
+
+## A small solid badge with a word on it (a result), in `colour`.
+static func badge(text: String, colour: Color) -> PanelContainer:
+	var b := PanelContainer.new()
+	var box := HudTheme.flat(colour, 9.0, HudTheme.BUTTON_INK, 1.4)
+	box.content_margin_left = HudTheme.px(8)
+	box.content_margin_right = HudTheme.px(8)
+	box.content_margin_top = HudTheme.px(1)
+	box.content_margin_bottom = HudTheme.px(2)
+	b.add_theme_stylebox_override("panel", box)
+	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	b.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(label(text, SMALL, HudTheme.BUTTON_TEXT, true))
+	return b
+
 ## A thin groove across a card, under its heading.
 static func divider() -> Control:
 	var line := Panel.new()

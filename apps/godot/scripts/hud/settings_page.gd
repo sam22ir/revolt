@@ -17,7 +17,7 @@ var _level_chip := UiKit.stat_chip("base", "")
 var _power_chip := UiKit.stat_chip("power", "")
 var _link := Button.new()
 var _titles := {}
-var _version := UiKit.label("", UiKit.SMALL, HudTheme.TEXT_SECOND)
+var _version: Label
 var _lang_buttons := {}
 var _sound_labels := {}
 var _sound_switches := {}
@@ -36,23 +36,11 @@ func _init() -> void:
 	visible = false
 	set_language(Fmt.lang())
 
-## A card headed by an icon and a title (kept in `_titles` by its key).
+## A headed card (its title is kept in `_titles` by its key); returns its body.
 func _section(key: String, icon_name: String) -> VBoxContainer:
-	var card := UiKit.card()
-	var inner := UiKit.card_body(card)
-	inner.add_theme_constant_override("separation", roundi(HudTheme.px(6)))
-	var head := HBoxContainer.new()
-	head.add_theme_constant_override("separation", roundi(HudTheme.px(8)))
-	var icon := HudIcon.new(icon_name, 26.0)
-	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	head.add_child(icon)
-	var title := UiKit.label("", UiKit.BODY + 1.0, HudTheme.RING, true)
-	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	head.add_child(title)
-	_titles[key] = title
-	inner.add_child(head)
-	inner.add_child(UiKit.divider())
-	return inner
+	var card := UiKit.section(icon_name)
+	_titles[key] = UiKit.section_title(card)
+	return UiKit.card_body(card)
 
 func _account_section() -> Control:
 	var inner := _section("settings.account", "avatar")
@@ -123,12 +111,7 @@ func _about_section() -> Control:
 		_about_labels[key] = _line(half, ABOUT[key], null)
 		row.add_child(half)
 	inner.add_child(row)
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var head := inner.get_child(0)
-	head.add_child(spacer)
-	_version.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	head.add_child(_version)
+	_version = UiKit.section_value(inner.get_parent(), "")
 	return inner.get_parent()
 
 ## One line of a section: an icon, a text and a control at the end. Returns its label.
