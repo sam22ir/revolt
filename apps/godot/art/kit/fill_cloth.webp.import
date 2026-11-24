@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dpwabvf6juq6a"
-path="res://.godot/imported/engraving.svg-bb0506d5d74513f9cd206d2403ad2c62.ctex"
+uid="uid://oreekbmk2eci"
+path="res://.godot/imported/fill_cloth.webp-7c5d7bc3d636a82588ad7852dc8bffc5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/kit/engraving.svg"
-dest_files=["res://.godot/imported/engraving.svg-bb0506d5d74513f9cd206d2403ad2c62.ctex"]
+source_file="res://art/kit/fill_cloth.webp"
+dest_files=["res://.godot/imported/fill_cloth.webp-7c5d7bc3d636a82588ad7852dc8bffc5.ctex"]
 
 [params]
 
@@ -38,6 +38,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=1.0
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false

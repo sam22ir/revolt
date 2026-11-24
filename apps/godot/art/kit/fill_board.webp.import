@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by6iq5nylsk47"
-path="res://.godot/imported/fill_leather.webp-68cdc13b602e6e6557b9779528f7a86e.ctex"
+uid="uid://c7tsj8g8scsln"
+path="res://.godot/imported/fill_board.webp-1c9919bee02e1189f44af7f9fab1a7e6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/kit/fill_leather.webp"
-dest_files=["res://.godot/imported/fill_leather.webp-68cdc13b602e6e6557b9779528f7a86e.ctex"]
+source_file="res://art/kit/fill_board.webp"
+dest_files=["res://.godot/imported/fill_board.webp-1c9919bee02e1189f44af7f9fab1a7e6.ctex"]
 
 [params]
 

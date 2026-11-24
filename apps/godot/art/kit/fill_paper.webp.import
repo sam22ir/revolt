@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b2gv0mw5l5q3o"
-path="res://.godot/imported/fill_wood.webp-00033655e68be9d4222df0dde5bda09b.ctex"
+uid="uid://bxk37d4elmigw"
+path="res://.godot/imported/fill_paper.webp-92325a92f07994d80b91634d5cf3ab1c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/kit/fill_wood.webp"
-dest_files=["res://.godot/imported/fill_wood.webp-00033655e68be9d4222df0dde5bda09b.ctex"]
+source_file="res://art/kit/fill_paper.webp"
+dest_files=["res://.godot/imported/fill_paper.webp-92325a92f07994d80b91634d5cf3ab1c.ctex"]
 
 [params]
 

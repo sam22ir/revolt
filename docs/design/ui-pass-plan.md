@@ -36,7 +36,7 @@ Built once, used by every screen. Each is a small Control with its look from `Hu
 
 ## Screens, in order
 
-**Backgrounds (24 Nov, user's ask):** every surface of the game moved to the camp kit (simple lashed-pole, iron and stitched borders, and game buttons, after the user found the first brass version too fancy): HUD bands, cards, pills, buttons, fields, pages, the loading screen and the map's frontier. The screens' layouts are still the old ones until their step below.
+**Backgrounds (24 Nov, user's ask):** every surface of the game moved to the camp kit (plain surfaces, rounded borders, lashed poles round the big panels and game buttons; the user found the first brass version too fancy and the plank and leather textures too busy): HUD bands, cards, pills, buttons, fields, pages, the loading screen and the map's frontier. The screens' layouts are still the old ones until their step below.
 
 **Icons (24 Nov, user's ask):** every SVG icon was redrawn as a detailed full-colour illustration; see `design-system.md` §6.
 

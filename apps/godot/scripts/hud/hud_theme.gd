@@ -1,7 +1,7 @@
 class_name HudTheme
 extends RefCounted
-## The camp look (docs/design/design-system.md): walnut, stitched leather and paper in simple borders (lashed poles, thin iron), and chunky
-## game buttons, all drawn by tools/ui/ into art/kit/. Every surface comes from here as a FrameBox or a small nine-slice. Lengths
+## The camp look (docs/design/design-system.md): plain calm surfaces in rounded borders with a lip, like the chunky
+## game buttons they carry, all drawn by tools/ui/ into art/kit/. Every surface comes from here as a FrameBox or a small nine-slice. Lengths
 ## are written in mockup px (a 375 px wide phone) and scaled to the 1080 px viewport by `px`.
 
 ## Viewport px per mockup px (the viewport is 1080 wide, the mockup 375).
@@ -74,9 +74,9 @@ static func slice(piece: String, edge: float, margin_x: float, margin_y: float) 
 	_margins(box, margin_x, margin_y)
 	return box
 
-## The full-width band: the header at the top and the nav band at the bottom, walnut in an iron strap.
+## The full-width band: the header at the top and the nav band at the bottom, a plain board in a wooden rim.
 static func band(margin_x := 9.0, margin_y := 8.0) -> FrameBox:
-	return framed("frame_band", 40.0, "wood_h", margin_x, margin_y)
+	return framed("frame_band", 40.0, "board", margin_x, margin_y)
 
 ## A round button's face ("round", "round_big" or "round_red"), up or pressed.
 static func round_face(piece := "round", down := false) -> StyleBoxTexture:
@@ -90,25 +90,28 @@ static func make_round(button: Button, piece := "round") -> void:
 		button.add_theme_stylebox_override(state, round_face(piece, true))
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 
-## The big cards and the pages' panel: walnut in four rough poles lashed with rope.
+## The big cards and the pages' panel: a plain board in four rough poles lashed with rope.
 static func sheet(margin_x := 15.0, margin_y := 15.0) -> FrameBox:
-	return framed("frame_sheet", SHEET_EDGE, "wood_h", margin_x, margin_y)
+	return framed("frame_sheet", SHEET_EDGE, "board", margin_x, margin_y)
 
-## A section: a stitched leather patch.
+## A section: plain cloth.
 static func card(margin_x := 13.0, margin_y := 12.0) -> FrameBox:
-	return framed("frame_card", 48.0, "leather", margin_x, margin_y)
+	var box := framed("frame_card", 48.0, "cloth", margin_x, margin_y)
+	# Its corners are rounder.
+	box.inset = 8.0
+	return box
 
-## The shared small plaque: leather in a thin iron rim; `warm` (a sand rim) marks one that invites a tap.
+## The shared small plaque: cloth in a rounded rim; `warm` (an amber rim) marks one that invites a tap.
 static func panel(margin_x := 10.0, margin_y := 6.0, warm := false) -> FrameBox:
-	return framed("frame_plate_warm" if warm else "frame_plate", 26.0, "leather", margin_x, margin_y, Color(0.82, 0.8, 0.78))
+	return framed("frame_plate_warm" if warm else "frame_plate", 26.0, "cloth", margin_x, margin_y, Color(0.82, 0.8, 0.78))
 
 ## A light paper panel with ink text: the map's tile panel.
 static func parchment(margin_x := 12.0, margin_y := 10.0) -> FrameBox:
-	return framed("frame_paper", 34.0, "parchment", margin_x, margin_y)
+	return framed("frame_paper", 34.0, "paper", margin_x, margin_y)
 
 ## A recess for a text field.
 static func inset(margin_x := 8.0, margin_y := 4.0) -> FrameBox:
-	return framed("frame_inset", 22.0, "leather", margin_x, margin_y, Color(0.45, 0.42, 0.4))
+	return framed("frame_inset", 22.0, "cloth", margin_x, margin_y, Color(0.45, 0.42, 0.4))
 
 static func pill(margin_x := 8.0, margin_y := 4.0) -> StyleBoxTexture:
 	return slice("pill", 38.0, margin_x, margin_y)
@@ -117,7 +120,7 @@ static func pill(margin_x := 8.0, margin_y := 4.0) -> StyleBoxTexture:
 static func tag(margin_x: float, margin_y: float) -> FrameBox:
 	var box := FrameBox.new()
 	box.frame = load(KIT + "tag.svg")
-	box.edge = 18.0
+	box.edge = 20.0
 	box.draw_centre = true
 	_margins(box, margin_x / SCALE, margin_y / SCALE)
 	return box
@@ -231,7 +234,7 @@ static func _bar(colour: Color) -> StyleBoxFlat:
 	return box
 
 static func progress_track() -> FrameBox:
-	return framed("frame_inset", 22.0, "leather", 0.0, 0.0, Color(0.4, 0.38, 0.36))
+	return framed("frame_inset", 22.0, "cloth", 0.0, 0.0, Color(0.4, 0.38, 0.36))
 
 static func progress_fill() -> StyleBoxTexture:
 	var box := slice("progress_fill", 6.0, 0.0, 0.0)

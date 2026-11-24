@@ -7,8 +7,8 @@ var fill: Texture2D
 var frame: Texture2D
 ## The frame's corner, in its own px.
 var edge := 0.0
-## How far the material stays inside the frame's outer line (under its rim), in px.
-var inset := 3.0
+## How far the material stays inside the frame's outer line, in px: under its rim, and clear of its rounded corners.
+var inset := 6.5
 var fill_tint := Color.WHITE
 var frame_tint := Color.WHITE
 ## Draws the frame's own middle too (a piece that carries its fill).

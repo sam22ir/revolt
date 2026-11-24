@@ -60,6 +60,6 @@ func title() -> String:
 	return _name.text
 
 func _style() -> void:
-	var box := HudTheme.framed("frame_tile_on" if _selected else "frame_tile", 34.0, "leather", 2.0, 5.0, Color(1.35, 1.2, 1.0) if _selected else Color(0.85, 0.82, 0.8))
+	var box := HudTheme.framed("frame_tile_on" if _selected else "frame_tile", 34.0, "cloth", 2.0, 5.0, Color(1.35, 1.2, 1.0) if _selected else Color(0.85, 0.82, 0.8))
 	add_theme_stylebox_override("panel", box)
 	_name.add_theme_color_override("font_color", HudTheme.GOLD if _selected else HudTheme.TEXT)

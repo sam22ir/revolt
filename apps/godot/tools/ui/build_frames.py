@@ -63,20 +63,6 @@ class Frame(Icon):
             self.line(f"M{at} {at}H{s - at}", colours[k], w, op, self.side(k))
 
 
-def motif(f, c, t, y, period, kind, size):
-    """Stitches along each edge, `period` px apart, aligned to the tile."""
-    s = f.w
-    for k in range(4):
-        tf = f.side(k)
-        for i in range(s // period):
-            x = period / 2 + i * period
-            if x < size * 4.5 or x > s - size * 4.5:
-                continue
-            f.line(f"M{x - period * .28:.1f} {y + 1.6}H{x + period * .28:.1f}", "#0a0502", size * 1.5, .9, tf)
-            f.line(f"M{x - period * .28:.1f} {y}H{x + period * .28:.1f}", "#b8915c", size, 1, tf)
-            f.line(f"M{x - period * .2:.1f} {y - size * .3:.1f}H{x + period * .1:.1f}", "#ead2a0", size * .35, .9, tf)
-
-
 def corner(f, draw):
     """Draws the top-left corner, then its mirror images in the other three (flipped, not rotated, so the light stays above)."""
     s = f.w
@@ -85,27 +71,11 @@ def corner(f, draw):
 
 
 # ------------------------------------------------------------------ frames
-# Simple on purpose: rough camp poles lashed with rope round the big panels, a thin blackened-iron rim on the small ones, plain stitched
-# leather for sections. No gold, no ornament.
+# Simple on purpose: rough camp poles lashed with rope round the big panels; everything else has the buttons' shape (round corners, a fat
+# outline, a lit top edge, a lip along the foot). No gold, no ornament.
 
-IRONS = (["#a19a8d", "#6f6a60"], ["#6f6a60", "#4a463f"], ["#4a463f", "#2b2824"], ["#6f6a60", "#4a463f"])
-IRON_HI = ("#d8d1c1", "#9b9486", "#6a655b", "#9b9486")
-NAIL = ["#c9c2b3", "#8a8478", "#4f4b44", "#2a2723"]
-SAND = "#e6cf9c"
 POLE = ["#b98a58", "#946539", "#6b4423", "#3d2412"]
 ROPE = ["#f0dfb4", "#cdb381", "#94794a", "#5c4726"]
-
-
-def iron(f, at, width):
-    """A plain iron bar on every side, lit from above."""
-    for k in range(4):
-        f.mitre(at, at + width, k, IRONS[k])
-    f.edge_line(at + 1.1, IRON_HI, 1.1, .75)
-    return at + width
-
-
-def nail(f, x, y, r, tf=""):
-    f.rivet(x, y, r, NAIL, tf)
 
 
 def pole(f, k, c, t, y, r):
@@ -128,25 +98,44 @@ def pole(f, k, c, t, y, r):
     f.line(ell(x + .4, y - r * .1, 9.5, r * .62), "#e3bd8a", 1, .35, tf)
 
 
+def path_round(l, t, rr, b, r):
+    r = max(0.0, r)
+    return f"M{l + r:.2f} {t:.2f}H{rr - r:.2f}A{r:.2f} {r:.2f} 0 0 1 {rr:.2f} {t + r:.2f}V{b - r:.2f}A{r:.2f} {r:.2f} 0 0 1 {rr - r:.2f} {b:.2f}H{l + r:.2f}A{r:.2f} {r:.2f} 0 0 1 {l:.2f} {b - r:.2f}V{t + r:.2f}A{r:.2f} {r:.2f} 0 0 1 {l + r:.2f} {t:.2f}z"
+
+
+def shell(f, outer, inner, colour):
+    """The space between two rounded boxes (left, top, right, bottom, radius)."""
+    f.body.append(f'<path fill-rule="evenodd" d="{path_round(*outer)}{path_round(*inner)}" fill="{colour}"/>')
+
+
+def panel_frame(name, c, t, radius, rim, lip, colours, ink=3.5, shade=.4):
+    """A rounded border in the buttons' shape: a fat outline, a flat rim with a lit top edge, a lip along the foot and a dark inner line.
+    `colours` is (rim, lit, lip). Flat colours, so its edges repeat cleanly. The fill under it must stay inside the rim."""
+    f = Frame(name, 2 * c + t)
+    s = f.w
+    face, lit, low = colours
+    box = lambda o, foot=0.0: (o, o, s - o, s - o - foot, radius - o)  # noqa: E731
+    inner = ink + rim
+    shell(f, box(0), box(inner + 2.5, lip), INK)
+    shell(f, box(ink), box(inner, lip), low)
+    shell(f, box(ink, lip) if lip else box(ink), box(inner, lip), face)
+    if lip:
+        shell(f, (ink, ink, s - ink, s - ink - lip + 2.2, radius - ink), (ink, ink, s - ink, s - ink - lip, radius - ink), INK)
+        f.line(f"M{radius} {s - ink - 2.2}H{s - radius}", lit, 1.2, .3)
+    o = ink + 1.5
+    f.line(f"M{o} {radius + 4}V{radius}A{radius - o} {radius - o} 0 0 1 {radius} {o}H{s - radius}A{radius - o} {radius - o} 0 0 1 {s - o} {radius}V{radius + 4}", lit, 2.4, .85)
+    at = inner + 2.5
+    for k, a in ((0, shade), (1, shade * .35), (3, shade * .35)):
+        g = f.alpha("#000000", 0, at, 0, at + 15, a, 0)
+        f.fill(poly([(at + 4, at), (s - at - 4, at), (s - at - 15, at + 15), (at + 15, at + 15)]), g, 1, f.side(k))
+    return f
+
+
 def band():
-    """The HUD header and nav bar: one iron strap with a nail every so often."""
+    """The HUD header and nav bar: a wooden rim with a lip."""
     c, t = 40, 96
-    f = Frame("frame_band", 2 * c + t)
-    at = iron(f, 3, 8)
-    f.bars([(3, "ink")])
-    for k in range(4):
-        f.mitre(at, at + 2.5, k, [INK, INK])
-    f.inner_shadow(at + 2.5, 20, .6)
-    for k in range(4):
-        nail(f, c + t / 2, 7, 3.4, f.side(k))
-
-    def strap(tf):
-        f.shape("M2.5 2.5H38V13.5H19C15.5 13.5 13.5 15.5 13.5 19V38H2.5z", f.lin(["#7d776b", "#4a463f"], 0, 0, 30, 30), INK, 2.2, False, tf)
-        f.line("M5 35V5H35", "#bdb6a6", 1.2, .7, tf)
-        for x, y in ((8, 8), (30, 8), (8, 30)):
-            nail(f, x, y, 3.2, tf)
-
-    corner(f, strap)
+    f = panel_frame("frame_band", c, t, 16, 9, 9, ("#7a5836", "#c69a66", "#24160c"), shade=.5)
+    f.fill(rect(c, 5, t, 1.6), "#ffe6bf", .18)
     f.write()
 
 
@@ -192,109 +181,67 @@ def sheet():
 
 
 def card():
-    """A leather section: a worn edge and a row of stitches, nothing else."""
+    """A section: a soft wooden edge and a lip."""
     c, t = 48, 48
-    f = Frame("frame_card", 2 * c + t)
-    s = f.w
-    for k in range(4):
-        f.mitre(0, 3, k, [INK, INK])
-        f.mitre(3, 5.5, k, [["#6b4a30", "#4c331f"], ["#4c331f", "#38240f"], ["#38240f", "#2a1a0b"], ["#4c331f", "#38240f"]][k])
-    f.inner_shadow(5.5, 14, .42)
-    motif(f, c, t, 14, 16, "stitch", 2.6)
+    f = panel_frame("frame_card", c, t, 24, 6, 7, ("#6b4a2e", "#b58a5a", "#1f130a"))
     f.write()
 
 
 def plate(name, warm=False):
-    """A small iron-rimmed plaque; `warm` has a pale sand rim, for one that invites a tap."""
+    """A small plaque; `warm` has an amber rim, for one that invites a tap."""
     c, t = 26, 32
-    f = Frame(name, 2 * c + t)
-    f.bars([(2.5, "ink")])
-    if warm:
-        for k in range(4):
-            f.mitre(2.5, 6.5, k, [[SAND, "#cdb27a"], ["#cdb27a", "#a98c55"], ["#a98c55", "#84693a"], ["#cdb27a", "#a98c55"]][k])
-        at = 6.5
-    else:
-        at = iron(f, 2.5, 4)
-    for k in range(4):
-        f.mitre(at, at + 2, k, [INK, INK])
-    f.inner_shadow(at + 2, 12, .55)
-    corner(f, lambda tf: nail(f, 12.5, 12.5, 2.6, tf))
-    f.write()
+    colours = ("#c4892f", "#ffe2a4", "#5a380d") if warm else ("#6b4a2e", "#b58a5a", "#1f130a")
+    panel_frame(name, c, t, 18, 5, 5, colours, 3, .45).write()
 
 
 def paper():
-    """A sheet of paper pinned down: a dark worn edge and a nail in each corner."""
+    """A sheet of paper: a pale wooden edge and a lip."""
     c, t = 34, 48
-    f = Frame("frame_paper", 2 * c + t)
-    f.bars([(2.5, "ink")])
-    for k in range(4):
-        f.mitre(2.5, 5, k, ["#8a6a3c", "#b9965f"])
-    s = f.w
-    for k in range(4):
-        g = f.alpha("#6b4a20", 0, 5, 0, 24, .5, 0)
-        f.fill(poly([(5, 5), (s - 5, 5), (s - 24, 24), (24, 24)]), g, 1, f.side(k))
-
-    def pin(tf):
-        f.fill(ell(16, 18, 7, 5.5), "#3d2a12", .4, tf)
-        nail(f, 15, 15, 5, tf)
-
-    corner(f, pin)
+    f = panel_frame("frame_paper", c, t, 22, 6, 8, ("#9a7444", "#f0d9a8", "#3d2712"), shade=.18)
     f.write()
 
 
 def inset():
-    """A recess: text fields and progress tracks."""
+    """A recess: text fields and progress tracks. Lit along its foot, as a hole is."""
     c, t = 22, 32
-    f = Frame("frame_inset", 2 * c + t)
-    f.bars([(2, "ink")])
-    iron(f, 2, 2.5)
-    for k in range(4):
-        f.mitre(4.5, 6, k, [INK, INK])
-    f.inner_shadow(6, 15, .85)
+    f = panel_frame("frame_inset", c, t, 16, 2.5, 0, ("#4c3320", "#2a1a0d", "#1f130a"), 3, .8)
+    s = f.w
+    f.line(f"M16 {s - 4.4}H{s - 16}", "#b58a5a", 1.8, .55)
     f.write()
 
 
 def portrait():
     """A picture frame, drawn over the picture's edge."""
     c, t = 34, 32
-    f = Frame("frame_portrait", 2 * c + t)
-    f.bars([(2.5, "ink")])
-    iron(f, 2.5, 6)
-    for k in range(4):
-        f.mitre(8.5, 10.5, k, [INK, INK])
-    f.inner_shadow(10.5, 10, .55)
-    corner(f, lambda tf: nail(f, 7.5, 7.5, 3, tf))
+    f = panel_frame("frame_portrait", c, t, 20, 7, 5, ("#7a5836", "#c69a66", "#24160c"), shade=.45)
     f.write()
 
 
 def tile(name, on):
-    """A troop tile; chosen, a pale rim and a warm light inside."""
+    """A troop tile; chosen, an amber rim and a warm light inside."""
     c, t = 34, 32
-    f = Frame(name, 2 * c + t)
-    f.bars([(2.5, "ink")])
-    s = f.w
     if on:
-        for k in range(4):
-            f.mitre(2.5, 8.5, k, [["#fff3cf", SAND], [SAND, "#cdb27a"], ["#cdb27a", "#a98c55"], [SAND, "#cdb27a"]][k])
-            f.mitre(8.5, 10.5, k, [INK, INK])
-            g = f.alpha("#ffd98a", 0, 10.5, 0, 36, .4, 0)
-            f.fill(poly([(10.5, 10.5), (s - 10.5, 10.5), (s - 34, 34), (34, 34)]), g, 1, f.side(k))
+        f = panel_frame(name, c, t, 22, 7, 7, ("#c4892f", "#ffe9b4", "#5a380d"), shade=.1)
+        s = f.w
+        for k in (0, 1, 3):
+            g = f.alpha("#ffd98a", 0, 13, 0, 38, .34, 0)
+            f.fill(poly([(17, 13), (s - 17, 13), (s - 34, 34), (34, 34)]), g, 1, f.side(k))
     else:
-        iron(f, 2.5, 3.5)
-        for k in range(4):
-            f.mitre(6, 8, k, [INK, INK])
-        f.inner_shadow(8, 14, .6)
+        f = panel_frame(name, c, t, 22, 5, 7, ("#6b4a2e", "#b58a5a", "#1f130a"))
     f.write()
 
 
-def rounded(name, w, h, r, rim, fill):
-    """A rounded piece with its own fill and a thin rim."""
+def rounded(name, w, h, r, rim, fill, lip=5):
+    """A rounded piece with its own fill, in the buttons' shape: outline, rim, lip and a sunk dark face."""
     f = Frame(name, w, h)
+    face, lit, low = rim
     f.fill(rect(0, 0, w, h, r), INK)
-    f.shape(rect(2, 2, w - 4, h - 4, r - 1.5), f.lin(rim, 0, 0, 0, h), "", 0, False)
-    f.fill(rect(4.5, 4.5, w - 9, h - 9, r - 4), INK)
-    f.shape(rect(6, 6, w - 12, h - 12, r - 5.5), f.lin(fill, 0, 6, 0, h - 6), "", 0, False)
-    f.line(f"M{r} 3.2H{w - r}", "#d8d1c1", 1.1, .6)
+    f.shape(rect(3, 3, w - 6, h - 6, r - 3), low, "", 0, False)
+    f.fill(rect(3, 3, w - 6, h - 6 - lip, r - 3), INK)
+    f.shape(rect(3, 3, w - 6, h - 7.5 - lip, r - 3), face, "", 0, False)
+    f.line(f"M4.4 {r}A{r - 4.4:.1f} {r - 4.4:.1f} 0 0 1 {r} 4.4H{w - r}A{r - 4.4:.1f} {r - 4.4:.1f} 0 0 1 {w - 4.4} {r}", lit, 1.8, .8)
+    f.fill(rect(6.5, 6.5, w - 13, h - 14.5 - lip, r - 6), INK)
+    f.shape(rect(8, 8, w - 16, h - 17.5 - lip, r - 7.5), f.lin(fill, 0, 8, 0, h - lip - 9), "", 0, False)
     f.write()
 
 
@@ -365,54 +312,16 @@ def progress():
     f.write()
 
 
-def engraving():
-    """The page backdrop's faint engraving: contour hills, a survey grid and a compass rose, in one ink (1024 px)."""
-    s = 1024
-    f = Frame("engraving", s)
-    ink = "#e8c98a"
-    for k in range(1, 8):
-        f.line(f"M{k * 128} 0V{s}M0 {k * 128}H{s}", ink, 1, .22)
-        for j in range(1, 8):
-            f.line(f"M{k * 128 - 7} {j * 128}h14M{k * 128} {j * 128 - 7}v14", ink, 1.6, .5)
-    for cx, cy, rr, sd in ((210, 250, 190, 1), (820, 190, 150, 2), (190, 800, 170, 3), (850, 800, 190, 4), (540, 70, 90, 5), (540, 960, 80, 6)):
-        ph = [f.rng.uniform(0, 6.28) for _ in range(4)]
-        for n in range(8):
-            r0 = rr * (1 - n / 8.5)
-            pts = []
-            for i in range(73):
-                a = i * math.tau / 72
-                r = r0 * (1 + .12 * math.sin(2 * a + ph[0]) + .07 * math.sin(3 * a + ph[1] + n * .12) + .035 * math.sin(7 * a + ph[2]))
-                pts.append((cx + r * math.cos(a), cy + r * .8 * math.sin(a)))
-            f.line(poly(pts), ink, 2 if n % 3 == 0 else 1.1, .55 if n % 3 == 0 else .38)
-    c = s / 2
-    for r, w in ((214, 3), (204, 1.2), (150, 1.4), (70, 2.4)):
-        f.line(circ(c, c, r), ink, w, .75)
-    for i in range(120):
-        a = i * 3
-        (x0, y0), (x1, y1) = pol(c, c, 204, a), pol(c, c, 196 if i % 5 else 184, a)
-        f.line(f"M{x0:.1f} {y0:.1f}L{x1:.1f} {y1:.1f}", ink, 1.4, .7)
-    for i in range(16):
-        big = i % 4 == 0
-        half = i % 2 == 0
-        R = 182 if big else (140 if half else 96)
-        a = i * 22.5 - 90
-        tip, l, r = pol(c, c, R, a), pol(c, c, 40 if half else 60, a - 11.25), pol(c, c, 40 if half else 60, a + 11.25)
-        f.fill(poly([(c, c), l, tip]), ink, .5)
-        f.line(poly([(c, c), r, tip]), ink, 1.6, .75)
-    f.line(circ(c, c, 22), ink, 2, .8)
-    f.write()
-
-
 def main():
     for old in OUT.glob("*.svg"):
         old.unlink()
     band(); sheet(); card(); plate("frame_plate"); plate("frame_plate_warm", True); paper(); inset(); portrait()
     tile("frame_tile", False); tile("frame_tile_on", True)
-    dark = ["#150c06", "#26180d", "#352215"]
-    rim = ["#a19a8d", "#6f6a60", "#3c3832"]
-    rounded("pill", 96, 80, 38, rim, dark)
-    rounded("frame_cell", 88, 88, 20, rim, dark)
-    rounded("tag", 56, 56, 14, rim, dark)
+    dark = ["#150c06", "#241810", "#302015"]
+    rim = ("#6b4a2e", "#b58a5a", "#1f130a")
+    rounded("pill", 96, 84, 38, rim, dark)
+    rounded("frame_cell", 88, 88, 22, rim, dark, 4)
+    rounded("tag", 64, 60, 17, rim, dark, 4)
     for kind in KINDS:
         for down in (False, True):
             button(kind, down)
@@ -420,7 +329,7 @@ def main():
         round_button("round", "wood", down)
         round_button("round_big", "green", down, 384)
         round_button("round_red", "red", down)
-    progress(); engraving()
+    progress()
     print(f"{len(list(OUT.glob('*.svg')))} pieces, {sum(p.stat().st_size for p in OUT.glob('*.svg')) // 1024} KB")
 
 
