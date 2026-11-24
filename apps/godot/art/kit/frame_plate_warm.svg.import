@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cad1qxkfbeiyr"
-path="res://.godot/imported/frame_plate_gold.svg-609dea0d2f81754082c0f70e9b3e680f.ctex"
+uid="uid://cfalnoxydrbk1"
+path="res://.godot/imported/frame_plate_warm.svg-9c8e177e9fde8c6d0b0c74f78bec8947.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/kit/frame_plate_gold.svg"
-dest_files=["res://.godot/imported/frame_plate_gold.svg-609dea0d2f81754082c0f70e9b3e680f.ctex"]
+source_file="res://art/kit/frame_plate_warm.svg"
+dest_files=["res://.godot/imported/frame_plate_warm.svg-9c8e177e9fde8c6d0b0c74f78bec8947.ctex"]
 
 [params]
 

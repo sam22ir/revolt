@@ -18,7 +18,7 @@ func test_mockup_px_scale_to_the_viewport_width() -> void:
 
 func test_every_framed_surface_has_a_material_and_corners_that_fit_its_frame() -> void:
 	for box: FrameBox in [HudTheme.band(), HudTheme.sheet(), HudTheme.card(), HudTheme.panel(), HudTheme.panel(10.0, 6.0, true), HudTheme.parchment(),
-			HudTheme.inset(), HudTheme.button_box("normal"), HudTheme.progress_track()]:
+			HudTheme.inset(), HudTheme.progress_track()]:
 		assert_not_null(box.fill)
 		assert_lt(box.edge * 2.0, box.frame.get_size().x, "there is an edge to repeat between the corners")
 		assert_gte(box.content_margin_left, 0.0, "margins are set, not taken from the corners")
@@ -26,7 +26,7 @@ func test_every_framed_surface_has_a_material_and_corners_that_fit_its_frame() -
 func test_text_reads_on_every_material() -> void:
 	# The brightest texels behind light text, the darkest behind ink (99th percentile), with each surface's own tint.
 	for row: Array in [["leather", HudTheme.TEXT_SECOND, true, 1.0], ["leather", HudTheme.LACKING, true, 1.0], ["wood_h", HudTheme.TEXT_SECOND, true, 1.0],
-			["leather", HudTheme.TEXT, true, 1.25], ["gold", HudTheme.ON_GOLD, false, 1.0], ["parchment", TilePanel.INK, false, 1.0],
+			["parchment", TilePanel.INK, false, 1.0],
 			["parchment", TilePanel.MUTED, false, 1.0], ["parchment", TilePanel.LACKING, false, 1.0]]:
 		var image: Image = (load(HudTheme.KIT + "fill_%s.webp" % row[0]) as Texture2D).get_image()
 		image.decompress()
@@ -39,6 +39,34 @@ func test_text_reads_on_every_material() -> void:
 		var text := _luminance(row[1])
 		assert_gt((maxf(text, worst) + 0.05) / (minf(text, worst) + 0.05), 4.5, "%s on %s" % [row[1], row[0]])
 
+func test_every_button_kind_has_both_faces_and_its_text_reads_on_them() -> void:
+	for kind in HudTheme.BUTTON_KINDS:
+		for down in [false, true]:
+			var box := HudTheme.button_box(kind, down)
+			assert_not_null(box.texture, kind)
+			var size := box.texture.get_size()
+			assert_lt(box.texture_margin_top + box.texture_margin_bottom, size.y, kind)
+			# The face's middle, where the text is; the text also has a dark outline.
+			var image := box.texture.get_image()
+			image.decompress()
+			var face := _luminance(image.get_pixel(int(size.x * 0.5), int(size.y * 0.5)))
+			var text := _luminance(Color("c9bda3") if kind == "grey" else HudTheme.BUTTON_TEXT)
+			assert_gt((text + 0.05) / (face + 0.05), 3.0, "%s %s" % [kind, down])
+
+func test_a_pressed_button_keeps_its_height_and_its_text_sinks() -> void:
+	for compact in [false, true]:
+		var up := HudTheme.button_box("green", false, compact)
+		var down := HudTheme.button_box("green", true, compact)
+		assert_eq(up.content_margin_top + up.content_margin_bottom, down.content_margin_top + down.content_margin_bottom)
+		assert_gt(down.content_margin_top, up.content_margin_top)
+
+func test_a_toggled_button_shows_its_chosen_kind_and_nothing_is_drawn_over_it() -> void:
+	var button: Button = autofree(Button.new())
+	HudTheme.dress(button, "wood", "amber")
+	assert_eq(button.get_theme_stylebox("pressed"), HudTheme.button_box("amber"))
+	assert_eq(button.get_theme_stylebox("hover_pressed"), HudTheme.button_box("amber"))
+	assert_is(button.get_theme_stylebox("focus"), StyleBoxEmpty)
+
 func _luminance(c: Color) -> float:
 	var l := c.srgb_to_linear()
 	return 0.2126 * l.r + 0.7152 * l.g + 0.0722 * l.b
@@ -50,7 +78,7 @@ func test_the_switch_is_terracotta_with_a_sand_ring() -> void:
 	assert_eq(box.corner_radius_top_left, roundi(HudTheme.px(HudTheme.SWITCH) * 0.5), "a circle")
 
 func test_every_painted_piece_loads_and_its_nine_slice_fits_it() -> void:
-	for box: StyleBoxTexture in [HudTheme.round_face(), HudTheme.round_face(true), HudTheme.pill(), HudTheme.segment(true), HudTheme.segment(false), HudTheme.progress_fill()]:
+	for box: StyleBoxTexture in [HudTheme.round_face(), HudTheme.round_face("round_big"), HudTheme.round_face("round_red", true), HudTheme.pill(), HudTheme.progress_fill()]:
 		assert_not_null(box.texture)
 		var size := box.texture.get_size()
 		assert_lt(box.texture_margin_left + box.texture_margin_right, size.x)

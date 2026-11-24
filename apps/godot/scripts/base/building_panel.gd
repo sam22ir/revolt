@@ -205,8 +205,7 @@ func _header(id: String, lang: String, level: int) -> HBoxContainer:
 	close_button.tooltip_text = Loc.t("panel.close")
 	close_button.custom_minimum_size = Vector2.ONE * HudTheme.px(CLOSE_SIZE)
 	close_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	for state in ["normal", "hover", "pressed", "focus"]:
-		close_button.add_theme_stylebox_override(state, HudTheme.round_face())
+	HudTheme.make_round(close_button, "round_red")
 	close_button.pressed.connect(func() -> void:
 		close()
 		closed.emit())

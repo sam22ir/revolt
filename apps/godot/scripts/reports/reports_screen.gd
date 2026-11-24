@@ -82,6 +82,12 @@ func _render_list() -> void:
 		var row := ReportsModel.row(r)
 		var button := Button.new()
 		button.custom_minimum_size.y = 150
+		# A row to read, not a button to push: a leather card that darkens under the finger.
+		for state in ["normal", "hover", "pressed", "hover_pressed"]:
+			var box := HudTheme.card()
+			box.fill_tint = Color(0.7, 0.68, 0.66) if state.ends_with("pressed") else Color.WHITE
+			button.add_theme_stylebox_override(state, box)
+		button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var margin := MarginContainer.new()
 		margin.set_anchors_preset(Control.PRESET_FULL_RECT)

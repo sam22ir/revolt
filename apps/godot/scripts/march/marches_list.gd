@@ -75,6 +75,7 @@ func _rebuild(rows: Array) -> void:
 			recall = Button.new()
 			recall.text = Loc.t("harvest.recall")
 			recall.add_theme_font_size_override("font_size", FONT)
+			HudTheme.dress(recall, "blue")
 			recall.pressed.connect(func() -> void: recall_requested.emit(id))
 			row.add_child(recall)
 		_body.add_child(row)

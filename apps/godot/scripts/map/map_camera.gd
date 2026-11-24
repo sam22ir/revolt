@@ -19,6 +19,8 @@ const MAX_VIEW_ZOOM := 1.6
 const START_VIEW_ZOOM := 0.9
 
 var bounds := Rect2()
+## The map's size in tiles; its centre stays on the map (0: not set).
+var map_size := 0
 var view_zoom := START_VIEW_ZOOM
 
 var _touches := {}
@@ -58,6 +60,8 @@ func _apply() -> void:
 	zoom = Vector2(z, z)
 	if bounds.size != Vector2.ZERO:
 		position = CameraMath.clamp_center(position, get_viewport_rect().size, z, bounds)
+	if map_size > 0:
+		position = CameraMath.clamp_to_map(position, map_size)
 	moved.emit()
 
 func _zoom_about(factor: float, anchor_screen: Vector2) -> void:

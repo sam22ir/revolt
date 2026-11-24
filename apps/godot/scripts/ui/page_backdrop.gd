@@ -1,6 +1,6 @@
 class_name PageBackdrop
 extends Control
-## What a full page stands on: the walnut wall, and on it a leather panel in the big brass frame, with a faint engraved survey map and a
+## What a full page stands on: the walnut wall, and on it a leather panel in a frame of lashed poles, with a faint engraved survey map and a
 ## pool of warm light from above. The page's content stays `MARGIN` mockup px from the edges, clear of the frame.
 
 const MARGIN := 20.0
@@ -12,7 +12,7 @@ const ENGRAVING_ALPHA := 0.16
 
 var _wall: Texture2D = load(HudTheme.KIT + "fill_wood.webp")
 var _engraving: Texture2D = load(HudTheme.KIT + "engraving.svg")
-var _panel := HudTheme.framed("frame_sheet", 138.0, "leather", 0.0, 0.0)
+var _panel := HudTheme.framed("frame_sheet", HudTheme.SHEET_EDGE, "leather", 0.0, 0.0)
 var _light := _make_light()
 
 func _init() -> void:

@@ -53,7 +53,8 @@ func set_part_visible(on: bool) -> void:
 func _draw_quad() -> void:
 	if _size == 0:
 		return
-	var corners := Iso.footprint(0, 0, _size, _size)
+	# Over the land past the frontier too, as far as its haze lets it be seen.
+	var corners := Frontier.outline(_size, Frontier.DECAL_DEPTH)
 	var uvs := PackedVector2Array([Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1)])
 	var white := PackedColorArray([Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE])
 	draw_polygon(corners, white, uvs)

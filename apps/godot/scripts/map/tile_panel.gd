@@ -115,6 +115,8 @@ func _render(info: Dictionary, own_alliance_name: String) -> void:
 	close.text = "×"
 	close.tooltip_text = Loc.t("panel.close")
 	close.add_theme_font_size_override("font_size", FONT + 4)
+	close.custom_minimum_size = Vector2.ONE * HudTheme.px(40)
+	HudTheme.make_round(close, "round_red")
 	close.pressed.connect(func() -> void: closed.emit())
 	head.add_child(close)
 	_body.add_child(head)
@@ -133,12 +135,14 @@ func _render(info: Dictionary, own_alliance_name: String) -> void:
 		var send := Button.new()
 		send.text = Loc.t("map.sendMarch")
 		send.add_theme_font_size_override("font_size", FONT)
+		HudTheme.dress(send, "green")
 		send.pressed.connect(func() -> void: march_requested.emit(info["npc"]))
 		_body.add_child(send)
 	if info["kind"] == "empty" and TileModel.can_place_hq(_rank):
 		var place := Button.new()
 		place.text = Loc.t(TileModel.hq_button_key(_snapshot))
 		place.add_theme_font_size_override("font_size", FONT)
+		HudTheme.dress(place, "green")
 		place.pressed.connect(func() -> void:
 			place.disabled = true
 			_notice = ""
@@ -148,6 +152,7 @@ func _render(info: Dictionary, own_alliance_name: String) -> void:
 		var harvest := Button.new()
 		harvest.text = Loc.t("harvest.button")
 		harvest.add_theme_font_size_override("font_size", FONT)
+		HudTheme.dress(harvest, "green")
 		harvest.pressed.connect(func() -> void: harvest_requested.emit(info["site"]))
 		_body.add_child(harvest)
 	elif v["harvest_action"] == "recall":
@@ -155,6 +160,7 @@ func _render(info: Dictionary, own_alliance_name: String) -> void:
 		recall.text = Loc.t("harvest.recall")
 		recall.add_theme_font_size_override("font_size", FONT)
 		var march := String(v["recall_march"])
+		HudTheme.dress(recall, "blue")
 		recall.pressed.connect(func() -> void:
 			recall.disabled = true
 			recall_requested.emit(march))
@@ -167,12 +173,14 @@ func _render(info: Dictionary, own_alliance_name: String) -> void:
 			var start := Button.new()
 			start.text = Loc.t("rally.start")
 			start.add_theme_font_size_override("font_size", FONT)
+			HudTheme.dress(start, "green")
 			start.pressed.connect(func() -> void: rally_start_requested.emit(info["npc"]))
 			_body.add_child(start)
 		for r: Dictionary in RallyModel.open_at(_rallies, String(info["npc"]["id"]), _now):
 			var join := Button.new()
 			join.text = Loc.t("rally.join")
 			join.add_theme_font_size_override("font_size", FONT)
+			HudTheme.dress(join, "green")
 			join.pressed.connect(func() -> void: rally_join_requested.emit(info["npc"], r))
 			_body.add_child(join)
 

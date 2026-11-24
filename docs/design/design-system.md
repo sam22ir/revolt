@@ -6,7 +6,7 @@
 
 ## 1. The idea
 
-A hidden mountain camp in full daylight, seen from above: sunlit sandstone, packed earth, whitewash and terracotta, dense enough to feel lived in. The interface is a campaign chest: dark walnut and stitched leather in engraved brass, the icons' own materials, so it stays calm and readable over the busy painting.
+A hidden mountain camp in full daylight, seen from above: sunlit sandstone, packed earth, whitewash and terracotta, dense enough to feel lived in. The interface is made of what a camp has: dark walnut, stitched leather, paper, poles, rope and iron, so it stays calm and readable over the busy painting.
 
 ## 2. Decisions
 
@@ -15,7 +15,9 @@ A hidden mountain camp in full daylight, seen from above: sunlit sandstone, pack
 | Lighting | Daylight everywhere: base camp and world map |
 | Base | One painting of the whole camp with every building and prop in it, so everything matches, shown in 3D: the buildings are blocks with the painting projected onto them. See §5 |
 | Animated things | Left out of the painting: people and animals stand among the 3D buildings (hidden when behind one); smoke and flags are drawn on top |
-| HUD and every screen | The campaign chest (24 Nov, replaces the painted bronze frames): walnut, stitched leather and parchment in engraved brass. No text baked in |
+| HUD and every screen | The camp (24 Nov): walnut, stitched leather and paper in simple borders, no gold: rough poles lashed with rope round the big panels, a thin blackened-iron rim on the small ones, stitching round sections. No text baked in |
+| Buttons | Chunky game buttons with a lip they sink into. Green goes, wood is neutral, blue is a tool, red leaves or closes, amber is the chosen tab, grey is off (`HudTheme.dress`) |
+| Map's edge | An iron frontier: two fences with a raked strip between, watchtowers, and the same land going on into dust haze past it. Scenery only: no flags, signs or emblems, and not modelled on a named barrier (that would need the GDD §6 review) |
 | Bottom nav | Round buttons from the start edge, the big Base/Map switch at the end edge |
 | Fire | On colonial targets only (GDD §5, §6) |
 
@@ -68,7 +70,7 @@ Art and its limits: `apps/godot/art/camp/README.md`. Tap outlines and name posit
 
 Icons (24 Nov 2026): full-colour illustrated SVGs on a 256 px grid with a dark outline, lit from the top left, in the camp's materials (brass, steel, wood, parchment, whitewash, terracotta). All are drawn by `apps/godot/tools/icons/build_icons.py` into `apps/godot/art/icons/`; change the script, not the SVGs. They are never tinted. No gold star on red (it reads as a flag).
 
-Pieces: `apps/godot/art/kit/`, made by our own scripts (`apps/godot/tools/ui/build_fills.py` for the seamless materials, `build_frames.py` for the brass frames); change the scripts, not the files. `HudTheme` hands them out as `FrameBox`es, which tile the material and repeat the frame's edges, so nothing is stretched; full pages stand on a `PageBackdrop`. `test_hud_theme.gd` checks text contrast on every material. The earlier painted bronze pieces stay in `apps/godot/art/hud/`, unused except the medallions. Frames must look right mirrored for Arabic, so no one-sided detail.
+Pieces: `apps/godot/art/kit/`, made by our own scripts (`apps/godot/tools/ui/build_fills.py` for the seamless materials, `build_frames.py` for the borders and buttons; `build_frontier.py` for the map's fence and tower in `art/frontier/`); change the scripts, not the files. `HudTheme` hands them out as `FrameBox`es, which tile the material and repeat the frame's edges, so nothing is stretched; full pages stand on a `PageBackdrop`. `test_hud_theme.gd` checks text contrast on every material. The earlier painted bronze pieces stay in `apps/godot/art/hud/`, unused except the medallions. Frames must look right mirrored for Arabic, so no one-sided detail.
 
 ## 7. Content rules for art
 

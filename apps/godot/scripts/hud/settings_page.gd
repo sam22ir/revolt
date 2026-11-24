@@ -133,9 +133,7 @@ func _language_section() -> Control:
 		b.button_group = group
 		b.focus_mode = Control.FOCUS_NONE
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		for state in ["normal", "hover", "pressed", "focus"]:
-			var on: bool = state == "pressed"
-			b.add_theme_stylebox_override(state, HudTheme.segment(on))
+		HudTheme.dress(b, "wood", "amber")
 		b.pressed.connect(func() -> void: language_selected.emit(lang))
 		row.add_child(b)
 		_lang_buttons[lang] = b
@@ -165,8 +163,7 @@ func _sound_section() -> Control:
 func _style_toggle(kind: String) -> void:
 	var toggle: Button = _sound_rows[kind]["toggle"]
 	var on: bool = _sound_on[kind]
-	for state in ["normal", "hover", "pressed", "focus"]:
-		toggle.add_theme_stylebox_override(state, HudTheme.segment(on))
+	HudTheme.dress(toggle, "green" if on else "grey")
 	toggle.text = Loc.t("settings.on" if on else "settings.off")
 
 func _about_section() -> Control:

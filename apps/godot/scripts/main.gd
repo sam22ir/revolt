@@ -5,6 +5,8 @@ extends Node
 const FONT_SIZE := 34
 ## Room kept free at the bottom for the round buttons and the Base/Map switch, in viewport px; the base screen and the sheets keep clear of it.
 const NAV_HEIGHT := HudBottom.HEIGHT
+## How far past the map's bounds the camera may look, in world px.
+const MAP_MARGIN := 480.0
 ## The screens that are pages opened from the bottom row (or Settings from the player chip); Base and Map are the two homes.
 const PAGES: Array[String] = ["heroes", "alliance", "reports", "settings"]
 ## Gap between the top box and the report toast, in viewport px.
@@ -53,7 +55,7 @@ func _ready() -> void:
 		return
 	GroundStyle.set_active(UrlParam.value("ground"))
 	RenderingServer.set_default_clear_color(GroundFrame.BACKGROUND)
-	# Under everything until the first state is in, so loading is not an empty screen.
+	# Under everything until the map is built, so loading is not an empty screen.
 	_loading_layer.layer = -10
 	_loading_layer.add_child(PageBackdrop.new())
 	add_child(_loading_layer)
@@ -97,7 +99,6 @@ func _start() -> void:
 	_top.chip.set_tag(HudModel.guest_tag(_api.token))
 	# The base needs only the state, so it is ready (and the default screen) before the heavy map build.
 	_base.build()
-	_loading_layer.queue_free()
 	_debug_time("base ready", started_ms)
 	_refit()
 	_refresh_status()
@@ -114,7 +115,11 @@ func _start() -> void:
 	var map_started_ms := Time.get_ticks_msec()
 	await _map.build(reply["data"])
 	_debug_time("map build", map_started_ms)
-	_camera.bounds = Iso.world_bounds(_map.size)
+	if is_instance_valid(_loading_layer):
+		_loading_layer.queue_free()
+	# Room past the edge, so the frontier shows all round.
+	_camera.bounds = Iso.world_bounds(_map.size).grow(MAP_MARGIN)
+	_camera.map_size = _map.size
 	var own := _map.own_base_tile()
 	if own.x >= 0:
 		_camera.focus_world(Iso.tile_to_world(own.x + 1.0, own.y + 1.0))
@@ -477,13 +482,18 @@ func _build_hud() -> void:
 	_hud_root.add_child(_status)
 
 	_coords.add_theme_font_size_override("font_size", FONT_SIZE)
-	_coords.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	_coords.offset_left = 24
-	_coords.offset_right = -24
-	_coords.offset_bottom = -24 - NAV_HEIGHT
-	_coords.offset_top = -24 - NAV_HEIGHT - FONT_SIZE * 1.6
+	_coords.add_theme_stylebox_override("normal", HudTheme.tag(16.0, 4.0))
 	_coords.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_hud_root.add_child(_coords)
+	# In a row, so the plate is as wide as its text, at the reading start.
+	var coords_row := HBoxContainer.new()
+	coords_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	coords_row.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	coords_row.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	coords_row.offset_left = 24
+	coords_row.offset_right = -24
+	coords_row.offset_bottom = -16 - NAV_HEIGHT
+	coords_row.add_child(_coords)
+	_hud_root.add_child(coords_row)
 
 	# The round buttons over a tapped building, and the building card centred between the counters and the nav bar on a dim
 	# backdrop (its band is set in _refit).

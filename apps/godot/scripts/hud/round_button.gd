@@ -7,7 +7,7 @@ extends VBoxContainer
 signal pressed
 
 ## The ring of the open page's button glows.
-const ACTIVE_TINT := Color(1.45, 1.3, 1.0)
+const ACTIVE_TINT := Color(1.45, 1.3, 1.05)
 
 var _button := Button.new()
 var _icon: HudIcon
@@ -27,10 +27,16 @@ func _init(icon_name := "", diameter := 44.0, big := false) -> void:
 	_button.custom_minimum_size = Vector2.ONE * HudTheme.px(diameter)
 	_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_button.pressed.connect(func() -> void: pressed.emit())
+	# The icon rides on the face: it sinks with it.
+	_button.button_down.connect(func() -> void: _icon.position.y += _sink())
+	_button.button_up.connect(func() -> void: _icon.position.y -= _sink())
 	_icon = HudIcon.new(icon_name, diameter * (0.6 if big else 0.64))
 	_icon.set_anchors_preset(Control.PRESET_CENTER)
 	_icon.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_icon.grow_vertical = Control.GROW_DIRECTION_BOTH
+	# The face sits above its lip, so its middle is a little above the button's.
+	_icon.offset_top -= HudTheme.px(diameter) * 9.0 / 256.0
+	_icon.offset_bottom -= HudTheme.px(diameter) * 9.0 / 256.0
 	_button.add_child(_icon)
 	_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_dot.custom_minimum_size = Vector2.ONE * HudTheme.px(11)
@@ -49,10 +55,11 @@ func _init(icon_name := "", diameter := 44.0, big := false) -> void:
 	_apply_style()
 	place_dot("en")
 
+func _sink() -> float:
+	return HudTheme.px(_diameter) * 10.0 / 256.0
+
 func _apply_style() -> void:
-	var box := HudTheme.round_face(_big)
-	for state in ["normal", "hover", "pressed", "focus"]:
-		_button.add_theme_stylebox_override(state, box)
+	HudTheme.make_round(_button, "round_big" if _big else "round")
 	_button.self_modulate = ACTIVE_TINT if _active else Color.WHITE
 
 func set_label(text: String) -> void:

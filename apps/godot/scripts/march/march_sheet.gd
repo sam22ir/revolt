@@ -119,6 +119,7 @@ func _build() -> void:
 	var x := Button.new()
 	x.text = Loc.t("panel.close")
 	x.add_theme_font_size_override("font_size", FONT)
+	HudTheme.dress(x, "red")
 	x.pressed.connect(close)
 	head.add_child(x)
 	_body.add_child(head)
@@ -158,12 +159,14 @@ func _build() -> void:
 	_submit = Button.new()
 	_submit.add_theme_font_size_override("font_size", FONT)
 	_submit.custom_minimum_size.y = ROW_HEIGHT
+	HudTheme.make_primary(_submit)
 	_submit.pressed.connect(_on_send)
 	_body.add_child(_submit)
 	var cancel := Button.new()
 	cancel.text = Loc.t("march.cancel")
 	cancel.add_theme_font_size_override("font_size", FONT)
 	cancel.custom_minimum_size.y = ROW_HEIGHT
+	HudTheme.dress(cancel, "wood")
 	cancel.pressed.connect(close)
 	_body.add_child(cancel)
 	_refresh()
@@ -219,6 +222,7 @@ func _troop_row(id: String) -> Control:
 	most.text = Loc.t("panel.max")
 	most.add_theme_font_size_override("font_size", SMALL)
 	most.custom_minimum_size.y = ROW_HEIGHT
+	HudTheme.dress(most, "blue")
 	most.pressed.connect(func() -> void: _set_count(id, _home(id)))
 	for control: Control in [less, field, more, most]:
 		row.add_child(control)
@@ -239,6 +243,7 @@ func _step_button(glyph: String, tip: String) -> Button:
 	b.tooltip_text = tip
 	b.add_theme_font_size_override("font_size", FONT + 4)
 	b.custom_minimum_size = Vector2(ROW_HEIGHT, ROW_HEIGHT)
+	HudTheme.dress(b, "wood")
 	return b
 
 func _picker_row(slot: int) -> Control:

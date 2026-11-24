@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bxdmv1b8unk8n"
-path="res://.godot/imported/segment.svg-ee62467f0976fc38ce850df22fa91a24.ctex"
+uid="uid://do0f7esm1t886"
+path="res://.godot/imported/btn_grey_down.svg-f2ebd8e60f5ad184dca22303f2f3e823.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/kit/segment.svg"
-dest_files=["res://.godot/imported/segment.svg-ee62467f0976fc38ce850df22fa91a24.ctex"]
+source_file="res://art/kit/btn_grey_down.svg"
+dest_files=["res://.godot/imported/btn_grey_down.svg-f2ebd8e60f5ad184dca22303f2f3e823.ctex"]
 
 [params]
 

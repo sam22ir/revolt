@@ -189,6 +189,7 @@ func _build_browse() -> void:
 	_tag_input.add_theme_font_size_override("font_size", FONT)
 	box.add_child(_tag_input)
 	_create_button.add_theme_font_size_override("font_size", FONT)
+	HudTheme.dress(_create_button, "green")
 	_create_button.pressed.connect(_on_create)
 	box.add_child(_create_button)
 
@@ -208,6 +209,7 @@ func _build_joined() -> void:
 		button.button_group = group
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.add_theme_font_size_override("font_size", FONT)
+		HudTheme.dress(button, "wood", "amber")
 		button.pressed.connect(select_tab.bind(id))
 		tabs.add_child(button)
 		_tab_buttons[id] = button
@@ -279,6 +281,7 @@ func _rebuild_help(open: Array) -> void:
 		give.text = Loc.t("help.give")
 		give.add_theme_font_size_override("font_size", FONT)
 		give.disabled = not HelpModel.can_give(r)
+		HudTheme.dress(give, "green")
 		give.pressed.connect(_on_give.bind(give, String(r["id"])))
 		row.add_child(give)
 		_help_rows.add_child(row)
@@ -336,6 +339,7 @@ func _rebuild_rallies(rallies: Array, now_ms: float) -> void:
 			var join := Button.new()
 			join.text = Loc.t("rally.join")
 			join.add_theme_font_size_override("font_size", FONT)
+			HudTheme.dress(join, "green")
 			join.pressed.connect(func() -> void: rally_join_requested.emit(r))
 			row.add_child(join)
 		_rallies_rows.add_child(row)
@@ -359,6 +363,7 @@ func _build_members() -> void:
 	_rows_box.add_theme_constant_override("separation", 8)
 	box.add_child(_rows_box)
 	_leave_button.add_theme_font_size_override("font_size", SMALL)
+	HudTheme.dress(_leave_button, "red")
 	_leave_button.pressed.connect(_on_leave)
 	box.add_child(_leave_button)
 	_style(_leader_note, SMALL, MUTED, true)
@@ -371,6 +376,7 @@ func _build_members() -> void:
 		b.add_theme_font_size_override("font_size", FONT)
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		answers.add_child(b)
+	HudTheme.dress(_yes_button, "red")
 	_yes_button.pressed.connect(_on_confirm_yes)
 	_no_button.pressed.connect(func() -> void:
 		_pending = {}
@@ -399,6 +405,7 @@ func _build_chat() -> void:
 	_chat_input.text_submitted.connect(func(_t: String) -> void: _on_send())
 	row.add_child(_chat_input)
 	_send_button.add_theme_font_size_override("font_size", FONT)
+	HudTheme.dress(_send_button, "green")
 	_send_button.pressed.connect(_on_send)
 	row.add_child(_send_button)
 	_chat_panel.add_child(row)
@@ -529,6 +536,8 @@ func _render_members() -> void:
 			button.text = Loc.t("alliance.action." + action)
 			button.add_theme_font_size_override("font_size", SMALL)
 			button.disabled = _busy
+			if action == "kick":
+				HudTheme.dress(button, "red")
 			button.pressed.connect(_on_member_action.bind(action, String(m["handle"])))
 			row.add_child(button)
 		_rows_box.add_child(row)
@@ -637,6 +646,7 @@ func _render_results() -> void:
 		join.add_theme_font_size_override("font_size", FONT)
 		join.disabled = not r["can_join"] or _busy
 		join.set_meta("can_join", r["can_join"])
+		HudTheme.dress(join, "green")
 		join.pressed.connect(_on_join.bind(r["id"]))
 		row.add_child(join)
 		_results_box.add_child(row)

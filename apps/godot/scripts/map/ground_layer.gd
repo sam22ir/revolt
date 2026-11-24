@@ -6,6 +6,7 @@ extends Node2D
 
 var _base := GroundBase.new()
 var _decals: SpriteBatch
+var _outside_decals: SpriteBatch
 var _features := FeaturePainter.new()
 var _frame := GroundFrame.new()
 var _detail := GroundDetail.new()
@@ -23,8 +24,32 @@ func build(size: int, plan: Dictionary, fertility: PackedFloat32Array, wadi_path
 	_decals = SpriteBatch.new(art.atlases["decals"])
 	add_child(_decals)
 	var decal_frames: Array = art.atlases["decals"]["frames"]
+	_decals.set_sprites(_decal_sprites(plan["decals"], decal_frames, look))
+	if _outside_decals != null:
+		_outside_decals.queue_free()
+		_outside_decals = null
+	if look.is_empty():
+		_outside_decals = SpriteBatch.new(art.atlases["decals"])
+		_outside_decals.modulate = FrontierView.OUTSIDE_TINT
+		_outside_decals.set_sprites(_decal_sprites(Frontier.mirrored_decals(plan["decals"], size), decal_frames, look))
+	if _features.get_parent() == null:
+		add_child(_features)
+		add_child(_frame)
+		add_child(_detail)
+	if _outside_decals != null:
+		# Over the land, under the detail and the strip's fences.
+		add_child(_outside_decals)
+		move_child(_outside_decals, _frame.get_index() + 1)
+	_features.setup(wadi_paths, road_paths, oases)
+	_frame.setup(size, _base.field())
+	_detail.setup(size)
+	if not look.is_empty():
+		_base.wash_visible = look["wash"]
+		_detail.set_part_visible(look["detail"])
+
+func _decal_sprites(decals: Array, decal_frames: Array, look: Dictionary) -> Array:
 	var sprites: Array = []
-	for d: Dictionary in plan["decals"]:
+	for d: Dictionary in decals:
 		if not look.is_empty() and not GroundStyle.decal_allowed(int(d["frame"]), look):
 			continue
 		var frame_w := float(decal_frames[int(d["frame"])]["w"])
@@ -36,17 +61,7 @@ func build(size: int, plan: Dictionary, fertility: PackedFloat32Array, wadi_path
 			"alpha": float(d["alpha"]) * (1.0 if look.is_empty() else float(look["decal_alpha"])),
 			"center": true,
 		})
-	_decals.set_sprites(sprites)
-	if _features.get_parent() == null:
-		add_child(_features)
-		add_child(_frame)
-		add_child(_detail)
-	_features.setup(wadi_paths, road_paths, oases)
-	_frame.setup(size)
-	_detail.setup(size)
-	if not look.is_empty():
-		_base.wash_visible = look["wash"]
-		_detail.set_part_visible(look["detail"])
+	return sprites
 
 ## Fades the detail overlay with the camera zoom (see GroundDetail.alpha_at).
 func set_view_zoom(view_zoom: float) -> void:

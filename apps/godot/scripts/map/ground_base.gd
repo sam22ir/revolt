@@ -49,6 +49,10 @@ func setup(size: int, colours: PackedInt32Array, fertility: PackedFloat32Array) 
 	queue_redraw()
 	_wash_view.queue_redraw()
 
+## The colour field, for the land outside (GroundFrame).
+func field() -> Texture2D:
+	return _field
+
 func _draw() -> void:
 	if _size == 0:
 		return

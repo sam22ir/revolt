@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bfosn3nn3fvd8"
-path="res://.godot/imported/segment_on.svg-746f1fe5640b1322671abc1561b34ed0.ctex"
+uid="uid://bwsioqafbducs"
+path="res://.godot/imported/btn_blue_down.svg-1fcbc3284f19174481cc0b3405a73ba2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/kit/segment_on.svg"
-dest_files=["res://.godot/imported/segment_on.svg-746f1fe5640b1322671abc1561b34ed0.ctex"]
+source_file="res://art/kit/btn_blue_down.svg"
+dest_files=["res://.godot/imported/btn_blue_down.svg-1fcbc3284f19174481cc0b3405a73ba2.ctex"]
 
 [params]
 

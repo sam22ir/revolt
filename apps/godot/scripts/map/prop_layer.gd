@@ -20,8 +20,9 @@ func build(size: int, props: Array, art: GroundArt, occupied: Dictionary) -> voi
 		var i: int = p["i"]
 		if occupied.has(i):
 			continue
-		var x := i % size
-		var y := i / size
+		# A mirrored prop outside the map names its own tile (Frontier).
+		var x: int = p.get("x", i % size)
+		var y: int = p.get("y", i / size)
 		if not look.is_empty() and not GroundStyle.prop_kept(x, y, look):
 			continue
 		var kind: String = p["kind"]

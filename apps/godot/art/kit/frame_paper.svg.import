@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://l6oamxopb8y0"
-path="res://.godot/imported/frame_button.svg-bc40a57fae4fb1e9088f0f85dd335399.ctex"
+uid="uid://cyudmuii68bsn"
+path="res://.godot/imported/frame_paper.svg-e543f1f00ccbef67710f17e5fc48078d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/kit/frame_button.svg"
-dest_files=["res://.godot/imported/frame_button.svg-bc40a57fae4fb1e9088f0f85dd335399.ctex"]
+source_file="res://art/kit/frame_paper.svg"
+dest_files=["res://.godot/imported/frame_paper.svg-e543f1f00ccbef67710f17e5fc48078d.ctex"]
 
 [params]
 

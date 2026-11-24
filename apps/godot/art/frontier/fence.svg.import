@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://uf8p7jh6qf2c"
-path="res://.godot/imported/frame_gold.svg-8e8417d05545c505fde4c2d6ab3e5e57.ctex"
+uid="uid://bu8ibekdhlpet"
+path="res://.godot/imported/fence.svg-42da93ae7876c401da712421b8723f80.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/kit/frame_gold.svg"
-dest_files=["res://.godot/imported/frame_gold.svg-8e8417d05545c505fde4c2d6ab3e5e57.ctex"]
+source_file="res://art/frontier/fence.svg"
+dest_files=["res://.godot/imported/fence.svg-42da93ae7876c401da712421b8723f80.ctex"]
 
 [params]
 

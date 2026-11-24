@@ -195,11 +195,34 @@ def parchment():
     return img
 
 
+def raked():
+    """The frontier's no-man's-land: pale sand raked along the fence, with one pair of wheel ruts. Wraps along x only."""
+    rng = random.Random("raked")
+    w, h = 512, 256
+    img = ImageOps.colorize(fbm(rng, w, h, (128, 64, 16, 4)), "#a98b5c", "#d9c294", "#c2a673")
+    layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    for y0 in range(6, h - 4, 11):
+        amp, ph = rng.uniform(.6, 1.8), rng.uniform(0, 6.28)
+        pts = [(x, y0 + amp * math.sin(ph + 2 * math.pi * 3 * x / w)) for x in range(0, w + 8, 8)]
+        d.line(pts, fill=(94, 70, 38, 120), width=3)
+        d.line([(x, y - 3) for x, y in pts], fill=(250, 232, 190, 110), width=2)
+    for y0 in (104, 160):
+        d.rectangle((0, y0, w, y0 + 16), fill=(120, 94, 56, 120))
+        for x in range(0, w, 16):
+            d.line((x, y0 + 2, x + 8, y0 + 14), fill=(74, 54, 28, 150), width=3)
+        d.line((0, y0, w, y0), fill=(70, 50, 26, 140), width=2)
+    img = Image.alpha_composite(img.convert("RGBA"), layer).convert("RGB")
+    img = dots(img, rng, 130, (.8, 2.4), [(92, 70, 40, 130), (236, 216, 170, 130)])
+    return relief(img, fbm(rng, w, h, (8, 4, 2)), 1, .25)
+
+
 def main():
-    for f, q in ((leather, 92), (wood, 92), (wood_h, 92), (gold, 92), (parchment, 92)):
+    for f, q in ((leather, 92), (wood, 92), (wood_h, 92), (gold, 92), (parchment, 92), (raked, 90)):
         img = f()
-        img.save(OUT / f"fill_{f.__name__}.webp", quality=q, method=6)
-        print(f.__name__, img.size, (OUT / f"fill_{f.__name__}.webp").stat().st_size // 1024, "KB")
+        path = (OUT.parent / "frontier" / "raked.webp") if f is raked else (OUT / f"fill_{f.__name__}.webp")
+        img.save(path, quality=q, method=6)
+        print(f.__name__, img.size, path.stat().st_size // 1024, "KB")
 
 
 if __name__ == "__main__":

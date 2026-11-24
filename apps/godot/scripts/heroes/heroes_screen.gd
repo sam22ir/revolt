@@ -93,6 +93,7 @@ func _render() -> void:
 	var close := Button.new()
 	close.text = Loc.t("panel.close")
 	close.add_theme_font_size_override("font_size", FONT)
+	HudTheme.dress(close, "red")
 	close.pressed.connect(func() -> void: closed.emit())
 	head.add_child(close)
 	_body.add_child(head)
@@ -116,6 +117,7 @@ func _recruit_box() -> Control:
 	button.text = Loc.t("heroes.recruit")
 	button.add_theme_font_size_override("font_size", FONT)
 	button.disabled = block != ""
+	HudTheme.dress(button, "green")
 	button.pressed.connect(_on_recruit.bind(button))
 	v.add_child(button)
 	var why := block
@@ -192,6 +194,7 @@ func _card(c: Dictionary) -> Control:
 			button.text = Loc.t("heroes.levelUp")
 			button.add_theme_font_size_override("font_size", FONT)
 			button.disabled = c["level_up"] != ""
+			HudTheme.dress(button, "green")
 			button.pressed.connect(_on_level_up.bind(button, String(c["id"])))
 			v.add_child(button)
 			var why := String(_notes.get(c["id"], c["level_up"]))

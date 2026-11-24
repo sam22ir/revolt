@@ -44,6 +44,7 @@ func _init() -> void:
 	# hidden by alpha and input, not by `visible`, so the pill keeps one height and the base is never refitted when it appears.
 	_help.add_theme_font_size_override("font_size", FONT)
 	_help.focus_mode = Control.FOCUS_NONE
+	HudTheme.dress(_help, "blue", "", true)
 	_help.pressed.connect(func() -> void: help_pressed.emit())
 	_set_help_shown(false)
 	_note_timer.one_shot = true

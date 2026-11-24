@@ -24,6 +24,7 @@ func _init() -> void:
 	for b: Button in [_minus, _plus]:
 		b.add_theme_font_size_override("font_size", HudTheme.font(UiKit.BIG))
 	_max_button.custom_minimum_size.x = HudTheme.px(64)
+	HudTheme.dress(_max_button, "blue")
 	_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_input.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER
 	_input.max_length = 6

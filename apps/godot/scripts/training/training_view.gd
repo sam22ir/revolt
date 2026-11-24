@@ -73,6 +73,7 @@ func _build_job() -> void:
 	_help_button.focus_mode = Control.FOCUS_NONE
 	_help_button.add_theme_font_size_override("font_size", HudTheme.font(UiKit.BODY))
 	_help_button.custom_minimum_size.y = HudTheme.px(UiKit.TAP)
+	HudTheme.dress(_help_button, "blue")
 	_help_button.visible = false
 	_help_button.pressed.connect(func() -> void: help_pressed.emit())
 	_help_note.visible = false

@@ -130,7 +130,7 @@ static func stat_row(icon: Control, text: String, value: String, next_value := "
 static func arrow() -> String:
 	return "←" if Fmt.lang() == "ar" else "→"
 
-## The screen's one main action: gold, full width, a thumb's height.
+## The screen's one main action: green, full width, a thumb's height.
 static func primary_button(text: String) -> Button:
 	var b := Button.new()
 	b.text = text
@@ -181,7 +181,7 @@ static func portrait(id: String, size := 64.0) -> PanelContainer:
 	pic.custom_minimum_size = Vector2.ONE * HudTheme.px(size)
 	pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	frame.add_child(pic)
-	# The brass frame goes over the picture's edge.
+	# The frame goes over the picture's edge.
 	var rim := Panel.new()
 	rim.add_theme_stylebox_override("panel", HudTheme.framed("frame_portrait", 34.0, "", 0.0, 0.0))
 	rim.mouse_filter = Control.MOUSE_FILTER_IGNORE

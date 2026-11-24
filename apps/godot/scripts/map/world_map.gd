@@ -1,7 +1,7 @@
 class_name WorldMap
 extends Node2D
 ## The world map, in Phaser's layer order: GroundLayer (colour field, wash, decals, roads/wadis/oases, rim), region seams and
-## liberation wash, props (trees, rocks, peaks, scrub), then bases, NPCs, HQs and marches. Terrain, regions, geography and
+## liberation wash, the frontier (Frontier) behind and before the props, props (trees, rocks, peaks, scrub), then bases, NPCs, HQs and marches. Terrain, regions, geography and
 ## decoration are all computed from `terrainSeed` (MapGrid, Geography, GroundPlan), never sent by the server.
 ## Map text is limited to short ASCII (NPC levels, HQ tags); names and menus live in the HUD controls.
 
@@ -24,6 +24,9 @@ var _regions := PackedInt32Array()
 var _ground := GroundLayer.new()
 var _seams := MapOverlay.new()
 var _props := PropLayer.new()
+var _behind := FrontierView.new(FrontierView.Side.BEHIND)
+var _in_front := FrontierView.new(FrontierView.Side.FRONT)
+var _haze := FrontierHaze.new()
 var _objects := MapOverlay.new()
 var _markers := MarchMarkers.new()
 var _art: GroundArt
@@ -39,7 +42,11 @@ func _ready() -> void:
 	_objects.mode = MapOverlay.Mode.OBJECTS
 	add_child(_ground)
 	add_child(_seams)
+	add_child(_behind)
 	add_child(_props)
+	# Before the objects, so no fence ever covers a base or its name.
+	add_child(_in_front)
+	add_child(_haze)
 	add_child(_objects)
 	_markers.setup(self)
 	add_child(_markers)
@@ -87,6 +94,8 @@ func set_layer_visible(layer: String, visible_now: bool) -> void:
 ## Props show from PROP_ZOOM up. Called when the camera zoom changes.
 func set_view_zoom(view_zoom: float) -> void:
 	_props.visible = view_zoom >= PROP_ZOOM
+	_behind.set_props_visible(_props.visible)
+	_in_front.set_props_visible(_props.visible)
 	_ground.set_view_zoom(view_zoom)
 
 ## Builds the map from a `GET /v1/map` reply. Yields between the heavy stages so the page stays alive.
@@ -117,6 +126,7 @@ func build(snap: Dictionary) -> void:
 	_ground.build(size, _plan, fertility, FeatureShape.wadi_paths(geo["wadis"]), FeatureShape.road_paths(geo["roads"]), geo["oases"], _art)
 	_build_seams()
 	_props.build(size, _plan["props"], _art, occupied_tiles())
+	_build_frontier()
 	_seams.setup(self)
 	_objects.setup(self)
 	_building = false
@@ -124,6 +134,15 @@ func build(snap: Dictionary) -> void:
 		var next := _pending
 		_pending = {}
 		await apply_snapshot(next)
+
+## The land past the edge and the fences. The look-test variants have a plain surround, so no frontier.
+func _build_frontier() -> void:
+	var shown := GroundStyle.params().is_empty()
+	for view: FrontierView in [_behind, _in_front]:
+		view.visible = shown
+		if shown:
+			view.setup(size, _plan["props"], _art)
+	_haze.setup(size)
 
 ## Takes a live snapshot (map socket). The ground depends only on the terrain seed, so it is never rebuilt for the same
 ## seed and size: bases, NPCs, HQs and marches are swapped and redrawn, the seams are rebuilt when the liberated regions

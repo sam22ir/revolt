@@ -26,6 +26,7 @@ func _init() -> void:
 	_button.focus_mode = Control.FOCUS_NONE
 	_button.add_theme_font_size_override("font_size", FONT)
 	_button.custom_minimum_size.y = HudTheme.px(UiKit.TAP)
+	HudTheme.dress(_button, "blue")
 	_button.pressed.connect(func() -> void:
 		if not _blocked and not _pending:
 			pressed.emit())

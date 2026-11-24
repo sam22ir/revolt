@@ -18,6 +18,11 @@ static func clamp_center(center: Vector2, viewport_px: Vector2, zoom: float, bou
 		out.y = clampf(center.y, bounds.position.y + half.y, bounds.end.y - half.y)
 	return out
 
+## Keeps the centre on the map's diamond of `size` tiles, so the view never wanders off into the land past the frontier.
+static func clamp_to_map(center: Vector2, size: int) -> Vector2:
+	var tile := Iso.world_to_tile(center)
+	return Iso.tile_to_world(clampf(tile.x, 0.0, size), clampf(tile.y, 0.0, size))
+
 static func clamp_zoom(zoom: float, min_zoom: float, max_zoom: float) -> float:
 	return clampf(zoom, min_zoom, max_zoom)
 
