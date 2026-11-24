@@ -4,12 +4,6 @@ extends PanelContainer
 ## and the `+rate/h` under it. The bar is brass while it fills, amber near the cap and gold when full; a full store also turns the
 ## amount gold and says "Full" in place of the rate.
 
-const ICON_TINT := {
-	"food": Color("d8b64a"),
-	"materiel": Color("c9c2b3"),
-	"funds": Color("f0c060"),
-	"support": Color("d8765a"),
-}
 const NEAR := Color("e09a3a")
 ## The store bar's height, in mockup px.
 const BAR := 2.0
@@ -35,7 +29,7 @@ func _init(resource_id := "food") -> void:
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_theme_constant_override("separation", roundi(HudTheme.px(3)))
-	_icon = HudIcon.new(resource_id, 20.0, ICON_TINT.get(resource_id, HudTheme.TEXT))
+	_icon = HudIcon.new(resource_id, 23.0)
 	_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(_icon)
 	var column := VBoxContainer.new()

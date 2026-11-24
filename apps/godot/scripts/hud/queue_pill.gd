@@ -29,8 +29,8 @@ func _init() -> void:
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_theme_constant_override("separation", 16)
-	# No taller than the text line (the top bar must not grow: the camp is fitted under it), and a flat SVG so it reads at this size.
-	var hammer := HudIcon.new("hammer", 16.0, HudTheme.RING)
+	# No taller than the text line (the top bar must not grow: the camp is fitted under it), and the SVG so it reads at this size.
+	var hammer := HudIcon.new("hammer", 20.0)
 	hammer.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(hammer)
 	_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL

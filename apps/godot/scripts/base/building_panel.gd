@@ -227,7 +227,7 @@ func _add_stats(body: VBoxContainer, m: Dictionary, lang: String, next: Variant)
 		var res: String = m["production"]["resource"]
 		var now := Loc.t("panel.perHour", {"amount": "+" + Fmt.amount(lang, m["production"]["perHour"])})
 		var later := "" if next == null or next["production"] == null else Loc.t("panel.perHour", {"amount": "+" + Fmt.amount(lang, next["production"])})
-		body.add_child(UiKit.stat_row(HudIcon.new(res, 18.0, ResourceCell.ICON_TINT.get(res, INK)), Loc.t("panel.production"), now, later))
+		body.add_child(UiKit.stat_row(HudIcon.new(res, 24.0), Loc.t("panel.production"), now, later))
 	if m["storage"] != null:
 		var later := "" if next == null or next["storage"] == null else Fmt.amount(lang, next["storage"])
 		body.add_child(UiKit.stat_row(UiKit.painted("storage", 22.0), Loc.t("panel.storage"), Fmt.amount(lang, m["storage"]), later))

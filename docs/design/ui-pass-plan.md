@@ -36,6 +36,8 @@ Built once, used by every screen. Each is a small Control with its look from `Hu
 
 ## Screens, in order
 
+**Icons (24 Nov, user's ask):** every SVG icon was redrawn as a detailed full-colour illustration; see `design-system.md` §6.
+
 The kit grows with the screens: each component is built when the first screen needs it, and each migrated screen moves to the
 kit's font sizes then (no global font change, which would reflow every screen and the HUD heights the base fit depends on).
 

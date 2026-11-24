@@ -34,8 +34,8 @@ func _init() -> void:
 	var power_row := HBoxContainer.new()
 	power_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	power_row.add_theme_constant_override("separation", roundi(HudTheme.px(3)))
-	# A flat SVG, not the painted medallion: it has to read at this size.
-	var sword := HudIcon.new("power", 15.0, HudTheme.RING)
+	# The SVG, not the painted medallion: it has to read at this size.
+	var sword := HudIcon.new("power", 18.0)
 	sword.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	power_row.add_child(sword)
 	_power.add_theme_font_override("font", load(UiKit.BOLD))
@@ -60,8 +60,9 @@ func _avatar() -> Control:
 	avatar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	avatar.set_anchors_preset(Control.PRESET_FULL_RECT)
 	avatar.add_theme_stylebox_override("panel", HudTheme.round_style(HudTheme.TERRACOTTA, HudTheme.RING, 40.0, 2.0))
-	var face := HudIcon.new("avatar", 28.0, HudTheme.TEXT)
-	face.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var face := HudIcon.new("avatar", 30.0)
+	# Inside the ring: the avatar is cut round.
+	face.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, roundi(HudTheme.px(2)))
 	avatar.add_child(face)
 	holder.add_child(avatar)
 	var badge := PanelContainer.new()

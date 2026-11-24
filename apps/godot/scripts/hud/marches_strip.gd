@@ -2,7 +2,7 @@ class_name MarchesStrip
 extends PanelContainer
 ## The context strip's map half (look test): how many of the player's marches are in flight. The builders half is the QueuePill.
 
-var _icon := HudIcon.new("marches", 16.0, HudTheme.TEXT)
+var _icon := HudIcon.new("marches", 18.0)
 var _label := Label.new()
 var _count := -1
 
@@ -33,7 +33,7 @@ func refresh() -> void:
 	if _count < 0:
 		return
 	_label.text = Loc.t("hud.marches", {"count": Fmt.amount(Fmt.lang(), _count)}) if _count > 0 else Loc.t("hud.marchesNone")
-	_icon.self_modulate = HudTheme.RING if _count > 0 else HudTheme.TEXT_SECOND
+	_icon.set_dimmed(_count == 0)
 
 func text() -> String:
 	return _label.text

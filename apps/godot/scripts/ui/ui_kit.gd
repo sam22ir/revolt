@@ -56,7 +56,7 @@ static func card_body(c: PanelContainer) -> VBoxContainer:
 
 ## A resource amount as an icon and a number; a lacking one is in LACKING.
 static func cost_chip(resource_id: String, amount: String, lacking: bool) -> PanelContainer:
-	var icon := HudIcon.new(resource_id, 20.0, ResourceCell.ICON_TINT.get(resource_id, HudTheme.TEXT))
+	var icon := HudIcon.new(resource_id, 24.0)
 	return _chip(icon, label(amount, BODY, HudTheme.LACKING if lacking else HudTheme.TEXT, true))
 
 ## Changes a cost or time chip in place (for chips that follow a count every frame).
@@ -89,9 +89,9 @@ static func troop_medallion(troop: String, size := 44.0) -> TextureRect:
 static func troop_texture(troop: String) -> Texture2D:
 	return load(TROOPS + "troop_%s.webp" % troop)
 
-## A small flat icon (HudIcon; the painted ones don't read at this size) and a text in a dark pill, such as "At home 10".
+## A small icon (HudIcon) and a text in a dark pill, such as "At home 10".
 static func stat_chip(icon_name: String, text: String) -> PanelContainer:
-	return _chip(HudIcon.new(icon_name, 17.0, HudTheme.RING), label(text, SMALL, HudTheme.TEXT, true))
+	return _chip(HudIcon.new(icon_name, 22.0), label(text, SMALL, HudTheme.TEXT, true))
 
 static func _chip(icon: Control, value: Label) -> PanelContainer:
 	var chip := PanelContainer.new()

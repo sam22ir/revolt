@@ -13,7 +13,7 @@ const SOUNDS: Array[String] = ["music", "effects"]
 const BACKGROUND := Color("241b14")
 
 var _back := Button.new()
-var _back_icon := HudIcon.new("back", 22.0, HudTheme.TEXT)
+var _back_icon := HudIcon.new("back", 24.0)
 var _title := Label.new()
 var _guest := Label.new()
 var _guest_note := Label.new()
@@ -107,8 +107,8 @@ func _account_section() -> Control:
 	var avatar := Panel.new()
 	avatar.custom_minimum_size = Vector2.ONE * HudTheme.px(40)
 	avatar.add_theme_stylebox_override("panel", HudTheme.round_style(HudTheme.TERRACOTTA, HudTheme.RING, 40.0))
-	var face := HudIcon.new("avatar", 28.0, HudTheme.TEXT)
-	face.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var face := HudIcon.new("avatar", 30.0)
+	face.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, roundi(HudTheme.px(1)))
 	avatar.add_child(face)
 	row.add_child(avatar)
 	var column := VBoxContainer.new()
@@ -181,7 +181,7 @@ func _about_section() -> Control:
 		var row := HBoxContainer.new()
 		var label := Label.new()
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var chevron := HudIcon.new("chevron", 14.0, HudTheme.TEXT_SECOND)
+		var chevron := HudIcon.new("chevron", 16.0)
 		row.add_child(label)
 		row.add_child(chevron)
 		inner.add_child(row)

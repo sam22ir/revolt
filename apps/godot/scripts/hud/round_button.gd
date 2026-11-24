@@ -27,7 +27,7 @@ func _init(icon_name := "", diameter := 44.0, big := false) -> void:
 	_button.custom_minimum_size = Vector2.ONE * HudTheme.px(diameter)
 	_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_button.pressed.connect(func() -> void: pressed.emit())
-	_icon = HudIcon.new(icon_name, diameter * (0.5 if big else 0.52), HudTheme.TEXT)
+	_icon = HudIcon.new(icon_name, diameter * (0.6 if big else 0.64))
 	_icon.set_anchors_preset(Control.PRESET_CENTER)
 	_icon.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_icon.grow_vertical = Control.GROW_DIRECTION_BOTH

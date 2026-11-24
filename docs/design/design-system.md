@@ -66,6 +66,8 @@ Art and its limits: `apps/godot/art/camp/README.md`. Tap outlines and name posit
 
 ## 6. HUD art
 
+Icons (24 Nov 2026): full-colour illustrated SVGs on a 256 px grid with a dark outline, lit from the top left, in the camp's materials (brass, steel, wood, parchment, whitewash, terracotta). All are drawn by `apps/godot/tools/icons/build_icons.py` into `apps/godot/art/icons/`; change the script, not the SVGs. They are never tinted. No gold star on red (it reads as a flag).
+
 Pieces and source: `apps/godot/art/hud/`. Nine-slice margins: `HudTheme`. Frames must look right mirrored for Arabic, so no one-sided detail.
 
 ## 7. Content rules for art
