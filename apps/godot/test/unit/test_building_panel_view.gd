@@ -108,17 +108,21 @@ func test_a_running_batch_hides_the_order_and_the_order_comes_back_after_it() ->
 	assert_false(training._job_card.visible)
 
 func test_the_train_card_fits_a_phone_without_scrolling() -> void:
-	for lang in ["en", "ar"]:
-		TranslationServer.set_locale(lang)
-		# A 375x812 phone's card: the width less a small side gap, the height between the top bar and the nav bar.
-		var panel: BuildingPanel = add_child_autofree(BuildingPanel.new())
-		panel.size.x = 1040.0
-		panel.open_for("barracks", "train")
-		for i in 4:
-			panel.update_model(_model("barracks"), "")
-			panel.update_training(_context(lang))
-			await wait_process_frames(1)
-		assert_lt(panel.get_combined_minimum_size().y, 2339.0 - 313.0 - 290.0, lang)
+	# Vietnam has the longest troop names (their tiles wrap).
+	for background in ["algeria", "vietnam"]:
+		for lang in ["en", "ar"]:
+			TranslationServer.set_locale(lang)
+			Loc.background_id = background
+			# A 375x812 phone's card: the width less a small side gap, the height between the top bar and the nav bar.
+			var panel: BuildingPanel = add_child_autofree(BuildingPanel.new())
+			panel.size.x = 1040.0
+			panel.open_for("barracks", "train")
+			for i in 4:
+				panel.update_model(_model("barracks"), background)
+				panel.update_training(_context(lang))
+				await wait_process_frames(1)
+			assert_lt(panel.get_combined_minimum_size().y, 2339.0 - 313.0 - 290.0, "%s %s" % [background, lang])
+			assert_lte(panel.get_combined_minimum_size().x, 1040.0, "%s %s" % [background, lang])
 
 func test_the_card_keeps_its_height_when_another_troop_is_chosen() -> void:
 	for lang in ["en", "ar"]:
