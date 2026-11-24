@@ -33,8 +33,9 @@ const FONT_BIG := 15.0
 const KIT := "res://art/kit/"
 ## The pole frame's corner, in its own px.
 const SHEET_EDGE := 72.0
-## The kinds of button: green goes, wood is neutral, blue is a tool, red leaves or stops, amber is the chosen one, grey is off.
-const BUTTON_KINDS: Array[String] = ["green", "wood", "blue", "red", "amber", "grey"]
+## The kinds of button: green goes, wood is neutral, blue is a tool, red leaves or stops, amber is the chosen one, grey is off;
+## lit is the open page's tab.
+const BUTTON_KINDS: Array[String] = ["green", "lit", "wood", "blue", "red", "amber", "grey"]
 ## How far a pressed button's face sinks, in viewport px (tools/ui/build_frames.py `button`).
 const PRESS := 9.0
 ## The lip under a button's face, which its text must stay clear of.

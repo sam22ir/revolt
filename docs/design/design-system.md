@@ -18,7 +18,7 @@ A hidden mountain camp in full daylight, seen from above: sunlit sandstone, pack
 | HUD and every screen | Plain, calm surfaces (24 Nov, the user wanted simple backgrounds): flat warm browns and paper, no planks, nails, stitches or engraving. Rounded borders in the buttons' shape (fat outline, lit top edge, lip), and rough poles lashed with rope round the big panels. No gold. No text baked in |
 | Buttons | Chunky game buttons with a lip they sink into. Green goes, wood is neutral, blue is a tool, red leaves or closes, amber is the chosen tab, grey is off (`HudTheme.dress`) |
 | Map's edge | An iron frontier: two fences with a raked strip between, watchtowers, and the same land going on into dust haze past it. Scenery only: no flags, signs or emblems, and not modelled on a named barrier (that would need the GDD §6 review) |
-| Bottom nav | Round buttons from the start edge, the big Base/Map switch at the end edge |
+| Tab bar | One plain rounded board with five even tabs: Heroes, Alliance, the green Base/Map switch in the middle, Reports, Settings (mirrored in Arabic). Big icons over their names; the open page's tab is raised. On every screen (`NavTab`, 24 Nov) |
 | Fire | On colonial targets only (GDD §5, §6) |
 
 ## 3. Color tokens

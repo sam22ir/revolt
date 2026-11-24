@@ -400,9 +400,8 @@ func _show_screen(screen: String) -> void:
 	_alliance_screen.visible = screen == "alliance"
 	_heroes_screen.visible = screen == "heroes"
 	_settings.visible = screen == "settings"
-	# The resource bar and the bottom row show on Base and Map and on the pages not yet restyled; Settings has neither.
+	# The tab bar is on every screen; the resource bar is not on Settings.
 	_top.visible = screen != "settings"
-	_bottom.visible = screen != "settings"
 	_top.show_context(screen)
 	_bottom.set_screen(screen)
 	if screen == "reports":
@@ -533,7 +532,8 @@ func _build_hud() -> void:
 	_tile_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_tile_panel.offset_left = 16
 	_tile_panel.offset_right = -16
-	_tile_panel.offset_bottom = -NAV_HEIGHT - 12
+	# Clear of the raised middle tab.
+	_tile_panel.offset_bottom = -NAV_HEIGHT - HudTheme.px(NavTab.RISE) - 4.0
 	_tile_panel.closed.connect(func() -> void: _select_tile(Vector2i(-1, -1)))
 	_hud_root.add_child(_tile_panel)
 	# Send march on a target opens the sheet over the map; a march that left clears the selection with it.
@@ -580,7 +580,10 @@ func _build_hud() -> void:
 	_settings.theme = theme
 	_settings.back_pressed.connect(func() -> void: _show_screen(_home))
 	_settings.language_selected.connect(_apply_language)
+	_settings.offset_bottom = -NAV_HEIGHT
 	_hud_root.add_child(_settings)
+	# The tab bar's raised tabs stand over every page.
+	_hud_root.move_child(_bottom, -1)
 
 	_top.resized.connect(_refit)
 	get_viewport().size_changed.connect(_refit)
@@ -600,7 +603,7 @@ func _build_offline_badge() -> void:
 	_offline_badge.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	_offline_badge.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_offline_badge.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_offline_badge.offset_bottom = -NAV_HEIGHT - 12
+	_offline_badge.offset_bottom = -NAV_HEIGHT - HudTheme.px(NavTab.RISE) - 8.0
 	_offline_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_offline_badge.layout_direction = Control.LAYOUT_DIRECTION_LOCALE
 	var box := HudTheme.panel(10.0, 5.0)
@@ -654,6 +657,7 @@ func _process(_delta: float) -> void:
 	var lang := Fmt.lang()
 	_top.set_resources(HudModel.chips(amounts, int(_session.levels["hq"])), HudModel.rates(_session.levels, _session.liberations, now))
 	_top.chip.set_values(int(_session.levels["hq"]), HudModel.power(_session.state.get("troops", {})))
+	_settings.set_player(int(_session.levels["hq"]), HudModel.power(_session.state.get("troops", {})))
 	_top.marches.set_count(_session.state.get("marches", []).size())
 	if _alliance_screen.is_visible_in_tree():
 		_alliance_screen.tick(now, _map.snapshot.get("rallies", []))

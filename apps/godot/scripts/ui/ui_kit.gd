@@ -41,6 +41,30 @@ static func card(title := "") -> PanelContainer:
 		body.add_child(label(title, BODY, HudTheme.RING, true))
 	return c
 
+## A thin groove across a card, under its heading.
+static func divider() -> Control:
+	var line := Panel.new()
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(0, 0, 0, 0.38)
+	box.border_color = Color(1.0, 0.85, 0.6, 0.13)
+	box.border_width_bottom = 2
+	line.add_theme_stylebox_override("panel", box)
+	line.custom_minimum_size.y = 5.0
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return line
+
+## The player's round avatar in a wooden ring, `size` mockup px across.
+static func avatar(size := 64.0) -> Control:
+	var holder := Panel.new()
+	holder.custom_minimum_size = Vector2.ONE * HudTheme.px(size)
+	holder.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.add_theme_stylebox_override("panel", HudTheme.round_style(HudTheme.TERRACOTTA, Color("b58a5a"), size, 3.0))
+	var face := HudIcon.new("avatar", size)
+	face.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, roundi(HudTheme.px(3)))
+	holder.add_child(face)
+	return holder
+
 static func card_body(c: PanelContainer) -> VBoxContainer:
 	return c.get_child(0) as VBoxContainer
 

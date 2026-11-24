@@ -250,6 +250,7 @@ def rounded(name, w, h, r, rim, fill, lip=5):
 
 KINDS = {
     "green": (["#8eae46", "#6a8a32", "#527026"], ["#c9e088", "#3c551a"], ["#34491a", "#1f2d0e"]),
+    "lit": (["#b98a55", "#8f6538", "#6f4b27"], ["#ffe0a8", "#4a2f17"], ["#3d2815", "#25170b"]),
     "wood": (["#9c7448", "#775431", "#5f4126"], ["#d9b484", "#452d18"], ["#3d2815", "#25170b"]),
     "blue": (["#5d8d99", "#3f6b78", "#305561"], ["#a9d0d8", "#223f49"], ["#1f3a43", "#12242b"]),
     "red": (["#c0604a", "#9a3f2d", "#7d2f20"], ["#f0a590", "#5c2015"], ["#551d13", "#34100a"]),
@@ -302,6 +303,39 @@ def round_button(name, kind, down, s=256):
     f.write()
 
 
+def tabbar():
+    """The tab bar: one rounded board with a lit top edge, running off the screen at the sides and the foot (nine-slice 44)."""
+    s = 136
+    f = Frame("tabbar", s)
+    r = 34
+    f.fill(path_round(0, 0, s, s + 60, r), INK)
+    f.shape(path_round(0, 4, s, s + 60, r - 2), "#b58a5a", "", 0, False)
+    f.shape(path_round(0, 8.5, s, s + 60, r - 5), f.lin(["#664630", "#553a25", "#432d1c", "#352315"], 0, 8, 0, s), "", 0, False)
+    f.write()
+
+
+def toggle():
+    """A sliding switch's track, off and on (nine-slice 34), and its knob."""
+    for name, rim, face in (("switch_off", "#4c3320", ["#150c06", "#241810"]), ("switch_on", "#3c551a", ["#4f6c24", "#7ea23c"])):
+        f = Frame(name, 108, 72)
+        f.fill(rect(0, 0, 108, 72, 36), INK)
+        f.shape(rect(3, 3, 102, 66, 33), rim, "", 0, False)
+        f.fill(rect(6, 6, 96, 60, 30), INK)
+        f.shape(rect(8, 8, 92, 56, 28), f.lin(face, 0, 8, 0, 64), "", 0, False)
+        f.line("M36 66.500H72", "#ffe6bf", 2, .3)
+        f.write()
+    f = Frame("switch_knob", 72)
+    f.fill(circ(36, 37, 33), INK)
+    f.shape(circ(36, 38.5, 29.5), "#6b4a2a", "", 0, False)
+    f.fill(circ(36, 34.5, 30), INK)
+    f.shape(circ(36, 34, 28), f.lin(["#fff6df", "#ecd3a0", "#c49a5e"], 0, 6, 0, 62), "", 0, False)
+    f.shape(circ(36, 34, 21), f.lin(["#e3c48c", "#f6e6c0"], 0, 12, 0, 56), "", 0, False)
+    for x in (29, 36, 43):
+        f.line(f"M{x} 26V42", "#9a7444", 2.6, .8)
+    f.line("M17 25A23 23 0 0 1 36 10", "#ffffff", 4, .8)
+    f.write()
+
+
 def progress():
     """The bar's fill (nine-slice 6, tiled across): an amber rod with soft stripes."""
     f = Frame("progress_fill", 48, 32)
@@ -329,7 +363,7 @@ def main():
         round_button("round", "wood", down)
         round_button("round_big", "green", down, 384)
         round_button("round_red", "red", down)
-    progress()
+    progress(); tabbar(); toggle()
     print(f"{len(list(OUT.glob('*.svg')))} pieces, {sum(p.stat().st_size for p in OUT.glob('*.svg')) // 1024} KB")
 
 

@@ -68,12 +68,36 @@ func test_the_dot_is_hidden_by_alpha_and_never_changes_the_height() -> void:
 	assert_true(button.is_dot_shown())
 	assert_eq(button.get_combined_minimum_size().y, without)
 
-func test_the_open_page_button_is_marked_active() -> void:
+func test_the_open_pages_tab_is_raised_and_the_switch_always_is() -> void:
 	var bottom: HudBottom = add_child_autofree(HudBottom.new())
-	assert_eq(bottom.buttons["reports"].button().self_modulate, Color.WHITE)
+	bottom.set_screen("base")
+	assert_false(bottom.buttons["reports"].slab_shown())
+	assert_true(bottom.switch.slab_shown())
 	bottom.set_screen("reports")
-	assert_eq(bottom.buttons["reports"].button().self_modulate, RoundButton.ACTIVE_TINT)
-	assert_eq(bottom.buttons["heroes"].button().self_modulate, Color.WHITE)
+	assert_true(bottom.buttons["reports"].is_active())
+	assert_true(bottom.buttons["reports"].slab_shown())
+	assert_false(bottom.buttons["heroes"].slab_shown())
+
+func test_the_tab_bar_fits_its_height_and_a_raised_tab_changes_no_size() -> void:
+	var bottom: HudBottom = add_child_autofree(HudBottom.new())
+	bottom.size = Vector2(1080, HudBottom.HEIGHT - HudTheme.px(HudBottom.INSET_BOTTOM))
+	await wait_process_frames(2)
+	assert_lte(bottom.get_combined_minimum_size().y, float(HudBottom.HEIGHT))
+	var before: Vector2 = bottom.buttons["alliance"].size
+	bottom.set_screen("alliance")
+	await wait_process_frames(2)
+	assert_eq(bottom.buttons["alliance"].size, before)
+
+func test_a_tabs_dot_shows_and_changes_side_with_the_language() -> void:
+	var tab: NavTab = add_child_autofree(NavTab.new("alliance"))
+	tab.size = Vector2(200, 220)
+	assert_false(tab.is_dot_shown())
+	tab.set_dot(true)
+	assert_true(tab.is_dot_shown())
+	tab.place_dot("en")
+	var english := tab._dot.position.x
+	tab.place_dot("ar")
+	assert_lt(tab._dot.position.x, english)
 
 func test_the_player_chip_shows_level_and_power_and_is_tappable() -> void:
 	var chip: PlayerChip = add_child_autofree(PlayerChip.new())
@@ -108,7 +132,30 @@ func test_the_sound_toggles_flip_and_report() -> void:
 	page.sound_toggle("music").pressed.emit()
 	assert_false(page.sound_on("music"))
 	assert_signal_emitted_with_parameters(page, "sound_toggled", ["music", false])
-	assert_eq(page.sound_toggle("music").text, Loc.t("settings.off"))
+	assert_eq(page.sound_toggle("music").word(), Loc.t("settings.off"))
+	assert_false(page.sound_toggle("music").is_on())
+
+func test_the_account_card_shows_the_players_level_and_power() -> void:
+	var page: SettingsPage = add_child_autofree(SettingsPage.new())
+	page.set_guest_tag("#BAF466")
+	page.set_player(3, 1240)
+	var texts := page.find_children("*", "Label", true, false).map(func(l: Label) -> String: return l.text)
+	assert_has(texts, Loc.t("hud.level", {"level": "3"}))
+	assert_has(texts, Loc.t("hud.power", {"amount": "1,240"}))
+	assert_has(texts, Loc.t("settings.guestId", {"id": "#BAF466"}))
+
+func test_the_settings_page_fits_a_phone_without_scrolling() -> void:
+	for lang in ["en", "ar"]:
+		TranslationServer.set_locale(lang)
+		var page: SettingsPage = add_child_autofree(SettingsPage.new())
+		page.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		# 375x812 less the tab bar.
+		page.size = Vector2(1080, 2339 - HudBottom.HEIGHT)
+		page.visible = true
+		page.refresh()
+		await wait_process_frames(3)
+		var scroll := page.body.get_parent() as ScrollContainer
+		assert_lte(page.body.get_combined_minimum_size().y, scroll.size.y, lang)
 
 func test_the_settings_texts_follow_the_language() -> void:
 	var page: SettingsPage = add_child_autofree(SettingsPage.new())

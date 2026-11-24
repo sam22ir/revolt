@@ -61,7 +61,10 @@ kit's font sizes then (no global font change, which would reflow every screen an
    the painted sword; the builders pill with the painted hammer, a gold rim when idle and a progress line while building. The
    top bar keeps its height (313 px), so the camp's fit is unchanged. Bottom: five even slots, Heroes, Alliance, the big
    Base/Map switch in the middle, Reports and a new Settings button (own gear SVG). The ask-for-help button keeps its place.
-4. **Settings.** `PageFrame`, cards for account, language, sound, about.
+4. **Settings.** *Built 24 Nov.* `PageFrame` (`scripts/ui/page_frame.gd`: title band with the back button and the page's icon, scrolling
+   body), cards headed by an icon for account (avatar, guest tag, level and power, Link Google as later), language, sound (sliding
+   `GameSwitch`) and about. Fits a phone without scrolling. Help and privacy are named but lead nowhere yet. **The tab bar was redone
+   with it** (step 3's round buttons replaced by `NavTab`s; the bar now shows on Settings too).
 5. **Reports.** `ListRow` with a win/loss badge and target icon; a report as cards (forces, losses, loot with icons);
    an `EmptyState`.
 6. **Alliance.** Search and found as cards; members, chat and help as `ListRow`s under `Tabs`.

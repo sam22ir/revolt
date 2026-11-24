@@ -1362,7 +1362,127 @@ def storage():
     ic.save(.98)
 
 
+# ---------------------------------------------------------------- settings
+
+def music():
+    """Two beamed notes in brass over a drum's edge of light."""
+    ic = Icon("music")
+    ic.shape("M92 58L214 26V74L92 106z", ic.lin(BRASS, 92, 30, 200, 106), LINE, 3)
+    ic.line("M98 64L208 35", "#fffbe2", 3.4, .85)
+    ic.line("M98 98L208 69", "#5e3b14", 2.4, .7)
+    for x, y0, y1 in ((92, 60, 194), (196, 34, 168)):
+        ic.shape(rect(x, y0, 18, y1 - y0, 4), ic.lin([BRASS[1], BRASS[0], BRASS[2], BRASS[3]], x, 0, x + 18, 0), LINE, 2.6)
+        ic.line(f"M{x + 5} {y0 + 30}V{y1 - 6}", "#fffbe2", 2.4, .75)
+    for x, y in ((70, 198), (174, 172)):
+        tf = f"rotate(-18 {x} {y})"
+        ic.shape(ell(x, y, 43, 31), ic.rad(GOLD, x - 14, y - 12, 62), LINE, 3, True, tf)
+        ic.line(f"M{x - 28} {y - 8}A34 22 0 0 1 {x + 6} {y - 22}", "#fffef2", 5, .8, tf)
+        ic.line(f"M{x - 24} {y + 18}A36 24 0 0 0 {x + 30} {y + 10}", "#6b3f0c", 3, .6, tf)
+        for k in range(4):
+            ic.line(f"M{x - 16 + k * 10} {y + 12 - k * 2}l6 5", "#8a5212", 1.6, .6, tf)
+    for x, y in ((112, 78), (190, 57), (152, 67)):
+        ic.rivet(x, y, 5, GOLD)
+    ic.save()
+
+
+def effects():
+    """A field horn, its sound in three arcs."""
+    ic = Icon("effects")
+    for r, w in ((34, 9), (60, 10), (86, 11)):
+        (x0, y0), (x1, y1) = pol(140, 128, r, -44), pol(140, 128, r, 44)
+        d = f"M{x0:.1f} {y0:.1f}A{r} {r} 0 0 1 {x1:.1f} {y1:.1f}"
+        ic.line(d, "#b98538", w, 1, "", None, True, 10)
+        ic.line(d, "#ffe9a8", w * .4, .95, "translate(-1.5 -1.5)")
+    ic.shape(rect(16, 92, 52, 72, 9), ic.lin(OLIVE, 16, 92, 68, 164), LINE, 3)
+    ic.line("M24 99H60", "#eef2c0", 3.4, .7)
+    for y in (112, 128, 144):
+        ic.line(f"M26 {y}H58", "#33391a", 4, .8)
+        ic.line(f"M26 {y + 2.4}H58", "#d3d795", 1.2, .6)
+    ic.shape("M66 100C92 92 116 72 138 44C150 40 154 46 154 54V202C154 210 150 216 138 212C116 184 92 164 66 156z", ic.lin(BRASS, 70, 50, 140, 212), LINE, 3.2)
+    ic.line("M76 104C100 96 122 76 142 52", "#fffbe2", 5, .85)
+    ic.line("M76 152C100 160 122 180 142 204", "#5e3b14", 4, .65)
+    for k in range(4):
+        x = 84 + k * 15
+        ic.line(f"M{x} {100 - k * 9}V{156 + k * 9}", "#7a4c18", 2, .55)
+        ic.line(f"M{x + 2.4} {102 - k * 9}V{154 + k * 9}", "#fff3c4", 1.1, .5)
+    ic.shape(ell(148, 128, 17, 84), ic.lin([BRASS[3], BRASS[1], BRASS[0]], 132, 60, 164, 200), LINE, 3)
+    ic.shape(ell(148, 128, 10, 70), ic.rad(["#5a3a1c", "#2b1809", "#0d0603"], 146, 112, 74), INK, 2.4, False)
+    for a in range(0, 360, 30):
+        x, y = 148 + 13.4 * math.cos(math.radians(a)), 128 + 77 * math.sin(math.radians(a))
+        ic.fill(circ(x, y, 2.3), "#fff6d0")
+    ic.save(.96, 4, 0)
+
+
+def language():
+    """Two speech bubbles, one Latin and one Arabic letter."""
+    ic = Icon("language")
+    ic.shape("M40 20H146C162 20 172 30 172 46V112C172 128 162 138 146 138H92L58 172V138H40C24 138 14 128 14 112V46C14 30 24 20 40 20z", ic.lin(["#a9d0d8", "#5d8d99", "#3f6b78", "#223f49"], 20, 20, 160, 160), LINE, 3.4)
+    ic.line("M34 29H150", "#e9fbff", 5, .7)
+    ic.line("M60 128H148", "#16303a", 3, .4)
+    ic.shape("M46 96L64 36H80L98 96H82L78.500 84H65.500L62 96zM68.500 71H75.500L72 56z", "#fff6df", "#16303a", 3, False)
+    ic.layer()
+    ic.shape("M112 98H216C232 98 242 108 242 124V186C242 202 232 212 216 212H200V244L164 212H112C96 212 86 202 86 186V124C86 108 96 98 112 98z", ic.lin(["#f3cd80", "#d39b43", "#ad7424", "#6d4512"], 92, 98, 232, 230), LINE, 3.4)
+    ic.line("M106 107H222", "#fff3cf", 5, .75)
+    ic.line("M110 202H220", "#5a380d", 3, .4)
+    # An ain, drawn.
+    ic.line("M184 126C168 116 148 122 148 136C148 146 162 150 182 146C154 148 142 162 144 176C148 198 178 198 192 188", "#4a2a0c", 17)
+    ic.line("M184 126C168 116 148 122 148 136C148 146 162 150 182 146C154 148 142 162 144 176C148 198 178 198 192 188", "#fff6df", 11)
+    ic.save()
+
+
+def help_icon():
+    """A lantern-lit signpost: a board with a question mark on a pole."""
+    ic = Icon("help")
+    ic.shape(rect(112, 120, 32, 124, 5), ic.lin([WOOD[1], WOOD[0], WOOD[1], WOOD[3]], 112, 0, 144, 0), LINE, 3)
+    ic.grain(116, 150, 140, 238, 18, "#4a2812", .6, None, "", 2, False)
+    ic.shape("M60 246C76 224 180 224 196 246z", ic.lin(["#a3774a", "#6b4a2a", "#3d2712"], 0, 226, 0, 246), LINE, 2.6)
+    for x, y in ((92, 238), (120, 234), (158, 238)):
+        ic.line(f"M{x} {y}q5 -5 10 0", "#d9b684", 2.4, .7)
+    board = "M26 26C70 18 186 18 230 26C238 28 240 34 240 42V148C240 156 238 162 230 164C186 172 70 172 26 164C18 162 16 156 16 148V42C16 34 18 28 26 26z"
+    ic.shape(board, ic.lin(WOOD, 20, 20, 230, 170), LINE, 3.6)
+    c = ic.clip(board)
+    for y in (64, 110, 146):
+        ic.line(f"M16 {y}H240", "#2b1508", 3, .8, "", c)
+        ic.line(f"M16 {y + 3}H240", "#f6cf9b", 1.6, .5, "", c)
+    ic.grain(22, 26, 234, 164, 46, "#4a2812", .5, c)
+    ic.line("M30 32C76 25 180 25 226 32", "#ffe2b4", 4, .75)
+    for x in (34, 222):
+        for y in (42, 148):
+            ic.rivet(x, y, 8, STEEL)
+    q = "M92 76C92 46 112 34 130 34C152 34 168 48 168 70C168 92 144 96 142 114H116C116 88 140 88 140 70C140 62 136 58 130 58C122 58 118 64 118 76z"
+    ic.shape(q, "#1a1109", "#1a1109", 8, False)
+    ic.shape(q, ic.lin(GOLD, 94, 36, 168, 116), "#5c380c", 2, False)
+    ic.line("M97 72C98 50 114 40 130 40", "#fffbe2", 4, .9)
+    ic.shape(circ(129, 138, 15), "#1a1109", "#1a1109", 6, False)
+    ic.shape(circ(129, 138, 14), ic.rad(GOLD, 124, 132, 21), "#5c380c", 2, False)
+    ic.fill(circ(124, 133, 4), "#fffef2", .9)
+    ic.save()
+
+
+def link():
+    """Two chain links."""
+    ic = Icon("link")
+
+    def ring_at(tf, pal):
+        d = rect(-34, -62, 68, 124, 34) + "M-12 -28V28A12 12 0 0 0 12 28V-28A12 12 0 0 0 -12 -28z"
+        ic.backs.append(f'<path d="{rect(-34, -62, 68, 124, 34)}" transform="{tf}" fill="none" stroke-width="16"/>')
+        ic.body.append(f'<path fill-rule="evenodd" d="{d}" transform="{tf}" fill="{ic.lin(pal, -34, -60, 34, 60)}" stroke="{INK}" stroke-width="3.4"/>')
+        ic.line("M-27 -24A27 27 0 0 1 4 -55", "#ffffff", 5, .8, tf)
+        ic.line("M27 22A27 27 0 0 1 -4 55", "#23262b", 4, .6, tf)
+        for _ in range(16):
+            y = ic.rng.uniform(-30, 30)
+            x = ic.rng.choice([-23, 23]) + ic.rng.uniform(-6, 6)
+            ic.line(f"M{x:.1f} {y:.1f}l{ic.rng.uniform(-3, 3):.1f} {ic.rng.uniform(3, 8):.1f}", ic.rng.choice(["#ffffff", "#2d3036"]), 1.4, .5, tf)
+
+    ring_at("translate(92 164) rotate(45)", STEEL)
+    ic.layer()
+    ring_at("translate(164 92) rotate(45)", BRASS)
+    ic.layer()
+    ring_at("translate(128 128) rotate(45) scale(.72 .8)", STEEL)
+    ic.save()
+
+
 if __name__ == "__main__":
-    for draw in (food, materiel, funds, support, heroes, alliance, map_icon, base, reports, settings, upgrade, info, train, hammer, builders, power, marches, wounded, avatar, back, chevron, clock, lock, storage, troop_infantry, troop_scouts, troop_heavy, troop_porters):
+    for draw in (food, materiel, funds, support, heroes, alliance, map_icon, base, reports, settings, upgrade, info, train, hammer, builders, power, marches, wounded, avatar, back, chevron, clock, lock, storage, troop_infantry, troop_scouts, troop_heavy, troop_porters, music, effects, language, help_icon, link):
         draw()
     print(f"wrote {len(list(OUT.glob('*.svg')))} icons, {sum(f.stat().st_size for f in OUT.glob('*.svg')) // 1024} KB")
