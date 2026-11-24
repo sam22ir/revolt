@@ -21,10 +21,10 @@ signal recall_requested(march_id: String)
 const FONT := 30
 const SMALL := 26
 const INK := Color8(0x2b, 0x2a, 0x24)
-const MUTED := Color8(0x6b, 0x65, 0x52)
+const MUTED := Color8(0x4a, 0x44, 0x34)
 const GOLD := Color8(0xe0, 0xb0, 0x40)
 const PAPER := Color8(0xf4, 0xea, 0xd6)
-const LACKING := Color8(0xb0, 0x3a, 0x2a)
+const LACKING := Color8(0x8a, 0x26, 0x18)
 
 var _tile := Vector2i(-1, -1)
 var _key := ""
