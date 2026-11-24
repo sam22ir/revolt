@@ -48,8 +48,10 @@ kit's font sizes then (no global font change, which would reflow every screen an
    own SVG icons). It sits above the building, or below it under the top HUD, kept on screen, reversed in Arabic. Upgrade, Info
    and Train open the building as a **centred card** on a dim backdrop (a tap outside or × closes it and deselects); Heroes
    opens the Heroes page.
-2. **Barracks training.** Troop cards with art and the counter/weakness line, a `Stepper`, cost row, Train button; troops at
-   home and wounded as small stat chips.
+2. **Barracks training.** *Built 24 Nov.* Four troop tiles (the Phaser medallions, name, number at home, wounded in red; a gold
+   ring on the chosen one), then one card: the troop's role line with its strength and weakness, home and wounded chips, a
+   `Stepper` (`scripts/ui/stepper.gd`), cost and time chips, Train. A running batch is its own card on top (medallion, bar,
+   countdown, help, speed-up), and the order is hidden until it ends, because the barracks trains one batch at a time.
 3. **Top and bottom bars.** *Built 23 Nov.* Top: each resource in a dark pill with a store bar along its bottom edge (brass,
    amber near the cap, gold when full); the player chip as a round avatar with a gold level badge, the guest name and power by
    the painted sword; the builders pill with the painted hammer, a gold rim when idle and a progress line while building. The

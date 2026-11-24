@@ -46,6 +46,9 @@ const baseKeys = ["hq", "farm", "armory", "treasury", "barracks", "hero_hall", "
 for (const key of baseKeys) copy(`apps/client/public/art/${key}.webp`, `art/${key}.webp`);
 write("art/buildings-manifest.json", json(Object.fromEntries(baseKeys.map((k) => [k, artManifest[k]]))));
 
+// Troop medallions: the training card's tiles.
+for (const id of buildGodotBalance().troopIds) copy(`apps/client/public/art/units/troop_${id}.webp`, `art/troops/troop_${id}.webp`);
+
 console.log("generating data/base-fixtures.json (vitest)");
 execFileSync("pnpm", ["--filter", "@revolt/client", "exec", "vitest", "run", "test/godot-base.test.ts"], {
   cwd: root,

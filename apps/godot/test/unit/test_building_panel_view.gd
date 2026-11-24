@@ -66,11 +66,90 @@ func test_the_training_form_follows_the_language() -> void:
 	var training: TrainingView = add_child_autofree(TrainingView.new())
 	TranslationServer.set_locale("en")
 	training.update_context(_context("en"))
-	var english: String = training._title.text
+	var english := _tile(training, "scouts").title()
 	TranslationServer.set_locale("ar")
 	training.update_context(_context("ar"))
-	assert_eq(training._title.text, Loc.t("train.title"))
-	assert_ne(training._title.text, english, "the title is translated after a language switch")
+	assert_eq(_tile(training, "scouts").title(), Loc.t("troop.scouts.name"))
+	assert_ne(_tile(training, "scouts").title(), english, "the tiles are translated after a language switch")
+	assert_eq(training._submit.text, Loc.t("train.start"))
+
+func test_the_training_tiles_take_the_backgrounds_troop_names() -> void:
+	var training: TrainingView = add_child_autofree(TrainingView.new())
+	training.update_context(_context("en"))
+	assert_eq(_tile(training, "infantry").title(), "Infantry")
+	Loc.background_id = "vietnam"
+	training.update_context(_context("en"))
+	assert_eq(_tile(training, "infantry").title(), "Light infantry")
+
+func test_a_tile_chooses_the_troop_and_the_order_follows() -> void:
+	var training: TrainingView = add_child_autofree(TrainingView.new())
+	training.update_context(_context("en"))
+	assert_true(_tile(training, "infantry").is_selected())
+	_tile(training, "porters").pressed.emit()
+	training.update_context(_context("en"))
+	assert_true(_tile(training, "porters").is_selected())
+	assert_false(_tile(training, "infantry").is_selected())
+	assert_false(training._cost_chips["materiel"].visible, "porters take no materiel")
+	watch_signals(training)
+	training._stepper.set_value(5)
+	training._on_submit()
+	assert_signal_emitted_with_parameters(training, "train_pressed", ["porters", 5])
+
+func test_a_running_batch_hides_the_order_and_the_order_comes_back_after_it() -> void:
+	var training: TrainingView = add_child_autofree(TrainingView.new())
+	var ctx := _context("en")
+	ctx["training"] = {"troop": "heavy", "count": 5, "startedAt": 0, "endsAt": 600000}
+	training.update_context(ctx)
+	assert_false(training._order.visible)
+	assert_true(training._job_card.visible)
+	ctx["training"] = null
+	training.update_context(ctx)
+	assert_true(training._order.visible)
+	assert_false(training._job_card.visible)
+
+func test_the_train_card_fits_a_phone_without_scrolling() -> void:
+	for lang in ["en", "ar"]:
+		TranslationServer.set_locale(lang)
+		# A 375x812 phone's card: the width less a small side gap, the height between the top bar and the nav bar.
+		var panel: BuildingPanel = add_child_autofree(BuildingPanel.new())
+		panel.size.x = 1040.0
+		panel.open_for("barracks", "train")
+		for i in 4:
+			panel.update_model(_model("barracks"), "")
+			panel.update_training(_context(lang))
+			await wait_process_frames(1)
+		assert_lt(panel.get_combined_minimum_size().y, 2339.0 - 313.0 - 290.0, lang)
+
+func test_the_card_keeps_its_height_when_another_troop_is_chosen() -> void:
+	for lang in ["en", "ar"]:
+		TranslationServer.set_locale(lang)
+		var panel: BuildingPanel = add_child_autofree(BuildingPanel.new())
+		panel.size.x = 1040.0
+		panel.open_for("barracks", "train")
+		var heights: Array = []
+		for troop in ["infantry", "porters"]:
+			panel.training.choose(troop)
+			for i in 4:
+				panel.update_model(_model("barracks"), "")
+				panel.update_training(_context(lang))
+				await wait_process_frames(1)
+			heights.append(panel.get_combined_minimum_size().y)
+		assert_almost_eq(heights[0], heights[1], 2.0, lang)
+
+func test_lacking_resources_block_the_order_with_the_reason() -> void:
+	var training: TrainingView = add_child_autofree(TrainingView.new())
+	var ctx := _context("en")
+	ctx["amounts"] = {"food": 10.0, "materiel": 1000.0, "funds": 1000.0, "support": 0.0}
+	training.update_context(ctx)
+	assert_true(training._warning.visible)
+	assert_true(training._submit.disabled)
+	training.set_notice("training_busy")
+	training.update_context(_context("en"))
+	assert_true(training._warning.visible, "a refusal shows on an order the form would allow")
+	assert_false(training._submit.disabled)
+
+func _tile(training: TrainingView, troop: String) -> TroopTile:
+	return training._tiles[troop]
 
 func test_the_training_help_button_shows_with_a_running_batch_the_player_may_ask_about() -> void:
 	var training: TrainingView = add_child_autofree(TrainingView.new())

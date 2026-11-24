@@ -14,6 +14,7 @@ const TAP := 44.0
 const BOLD := "res://fonts/IBMPlexSansArabic-Bold.ttf"
 ## The painted icon set (art/hud/icons/, cut from art/hud/source/icons-1.jpg): round bronze medallions.
 const ICONS := "res://art/hud/icons/"
+const TROOPS := "res://art/troops/"
 ## A card is a dark inset in the bronze sheet.
 const CARD_FILL := Color(0.08, 0.07, 0.05, 0.55)
 const CHIP_FILL := Color(0.0, 0.0, 0.0, 0.35)
@@ -58,6 +59,12 @@ static func cost_chip(resource_id: String, amount: String, lacking: bool) -> Pan
 	var icon := HudIcon.new(resource_id, 20.0, ResourceCell.ICON_TINT.get(resource_id, HudTheme.TEXT))
 	return _chip(icon, label(amount, BODY, HudTheme.LACKING if lacking else HudTheme.TEXT, true))
 
+## Changes a cost or time chip in place (for chips that follow a count every frame).
+static func set_chip(chip: PanelContainer, text: String, lacking := false) -> void:
+	var value := chip.get_child(0).get_child(1) as Label
+	value.text = text
+	value.add_theme_color_override("font_color", HudTheme.LACKING if lacking else HudTheme.TEXT)
+
 ## A duration as a clock and the time.
 static func time_chip(text: String) -> PanelContainer:
 	return _chip(painted("clock", 22.0), label(text, BODY, HudTheme.TEXT, true))
@@ -71,6 +78,20 @@ static func painted(icon_name: String, size := 22.0) -> TextureRect:
 	t.custom_minimum_size = Vector2.ONE * HudTheme.px(size)
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return t
+
+## A troop's painted medallion (art/troops/, copied from the Phaser client by `pnpm godot:export`).
+static func troop_medallion(troop: String, size := 44.0) -> TextureRect:
+	var t := painted("troops", size)
+	t.texture = troop_texture(troop)
+	t.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	return t
+
+static func troop_texture(troop: String) -> Texture2D:
+	return load(TROOPS + "troop_%s.webp" % troop)
+
+## A small flat icon (HudIcon; the painted ones don't read at this size) and a text in a dark pill, such as "At home 10".
+static func stat_chip(icon_name: String, text: String) -> PanelContainer:
+	return _chip(HudIcon.new(icon_name, 17.0, HudTheme.RING), label(text, SMALL, HudTheme.TEXT, true))
 
 static func _chip(icon: Control, value: Label) -> PanelContainer:
 	var chip := PanelContainer.new()
@@ -130,6 +151,24 @@ static func primary_button(text: String) -> Button:
 	HudTheme.make_primary(b)
 	return b
 
+## Gold on a dark track; the fill starts at the layout's start side, so it runs right to left in Arabic.
+static func progress_bar() -> ProgressBar:
+	var bar := ProgressBar.new()
+	bar.show_percentage = false
+	bar.custom_minimum_size.y = HudTheme.px(12)
+	bar.value = 0.0
+	var track := StyleBoxFlat.new()
+	track.bg_color = Color(0, 0, 0, 0.5)
+	track.border_color = Color(HudTheme.BRASS, 0.6)
+	track.set_border_width_all(1)
+	track.set_corner_radius_all(roundi(HudTheme.px(6)))
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = HudTheme.GOLD
+	fill.set_corner_radius_all(roundi(HudTheme.px(6)))
+	bar.add_theme_stylebox_override("background", track)
+	bar.add_theme_stylebox_override("fill", fill)
+	return bar
+
 ## A short warning line with a lock: why an action is blocked.
 static func warning(text: String) -> PanelContainer:
 	var c := PanelContainer.new()
@@ -145,6 +184,9 @@ static func warning(text: String) -> PanelContainer:
 	row.add_child(text_label)
 	c.add_child(row)
 	return c
+
+static func set_warning(warning_line: PanelContainer, text: String) -> void:
+	(warning_line.get_child(0).get_child(1) as Label).text = text
 
 ## The building as it is painted in the camp, framed: a square cut of the painting around its traced outline.
 static func portrait(id: String, size := 64.0) -> PanelContainer:

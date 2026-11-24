@@ -4,7 +4,7 @@ extends TextureRect
 ## as SVG so it stays sharp at every phone density. `mirrored` flips it for the layout direction (arrows).
 
 const DIR := "res://art/icons/"
-const NAMES: Array[String] = ["food", "materiel", "funds", "support", "heroes", "alliance", "reports", "map", "base", "builders", "marches", "avatar", "back", "chevron", "upgrade", "info", "train", "settings", "power", "hammer"]
+const NAMES: Array[String] = ["food", "materiel", "funds", "support", "heroes", "alliance", "reports", "map", "base", "builders", "marches", "avatar", "back", "chevron", "upgrade", "info", "train", "settings", "power", "hammer", "wounded"]
 
 static var _cache := {}
 

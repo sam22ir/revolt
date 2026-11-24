@@ -12,7 +12,6 @@ signal closed
 
 
 const INK := HudTheme.TEXT
-const GOLD := HudTheme.GOLD
 const LACKING := HudTheme.LACKING
 const MUTED := HudTheme.TEXT_SECOND
 ## The close button is a round bronze face, a comfortable target (UiKit.TAP).
@@ -159,7 +158,7 @@ func _rebuild() -> void:
 		"upgrading":
 			var c := UiKit.card(Loc.t("panel.upgrading", {"level": Fmt.amount(lang, m["job"]["toLevel"])}))
 			var body := UiKit.card_body(c)
-			_bar = _progress_bar()
+			_bar = UiKit.progress_bar()
 			body.add_child(_bar)
 			_countdown = UiKit.label("", UiKit.BIG, INK, true)
 			_countdown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -254,21 +253,3 @@ func _build_next(m: Dictionary, lang: String, id: String) -> void:
 	button.pressed.connect(func() -> void: upgrade_pressed.emit(id))
 	body.add_child(button)
 	_body.add_child(c)
-
-## Gold on a dark track; the fill starts at the layout's start side, so it runs right to left in Arabic.
-func _progress_bar() -> ProgressBar:
-	var bar := ProgressBar.new()
-	bar.show_percentage = false
-	bar.custom_minimum_size.y = HudTheme.px(12)
-	bar.value = 0.0
-	var track := StyleBoxFlat.new()
-	track.bg_color = Color(0, 0, 0, 0.5)
-	track.border_color = Color(HudTheme.BRASS, 0.6)
-	track.set_border_width_all(1)
-	track.set_corner_radius_all(roundi(HudTheme.px(6)))
-	var fill := StyleBoxFlat.new()
-	fill.bg_color = GOLD
-	fill.set_corner_radius_all(roundi(HudTheme.px(6)))
-	bar.add_theme_stylebox_override("background", track)
-	bar.add_theme_stylebox_override("fill", fill)
-	return bar

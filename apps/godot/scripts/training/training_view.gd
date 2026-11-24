@@ -1,10 +1,11 @@
 class_name TrainingView
 extends VBoxContainer
-## The barracks training form inside the building sheet (ui/training-section.ts): the troops at home and wounded, the batch in
-## progress (bar and countdown), then a unit, a count (− + Max), the cost (lacking resources in red), the time, and the Train
-## button with the reason it is blocked. It renders TrainingModel.view and sends the intent through `train_pressed`; the server
-## decides. One instance lives as long as the panel, so the chosen unit and count survive the sheet being rebuilt, and the count
-## field is never rewritten while it has focus.
+## The barracks training card inside the building card: the batch in progress (bar, countdown, help and speed-up), four troop tiles
+## to choose from, the chosen troop's role and how many are at home and wounded, then the order: a count, the cost (lacking
+## resources in red), the time, and the Train button with the reason it is blocked. While a batch runs the order is hidden, because
+## the barracks trains one batch at a time. It renders TrainingModel.view and sends the intent through `train_pressed`; the server
+## decides. One instance lives as long as the panel, so the chosen troop and count survive the card being rebuilt; everything is
+## updated in place, and the count field is never rewritten while it has focus.
 
 signal train_pressed(troop: String, count: int)
 signal help_pressed
@@ -12,138 +13,114 @@ signal help_pressed
 ## How long a refusal of the help request stays under the button (Phaser's NOTE_MS in ui/training-section.ts, 4 s).
 const HELP_NOTE_S := 4.0
 
-const FONT := 32
-const INK := HudTheme.TEXT
-const LACKING := HudTheme.LACKING
-const MUTED := HudTheme.TEXT_SECOND
-const STEP_SIZE := Vector2(96, 96)
-
 var _troop := "infantry"
-var _count := 1
-var _max := 1
 var _pending := false
 var _blocked := false
-var _troop_ids: Array = []
 var _text_key := ""
 var _job_key := ""
 var _help_note_code := ""
-var _help_button := Button.new()
+var _notice_code := ""
 ## The training speed-up under the running batch.
 var speedup := SpeedupRow.new()
-var _help_note := _label("", FONT, LACKING, true)
-var _help_note_timer := Timer.new()
-var _notice_code := ""
 
-var _title := _label("", FONT + 4, INK)
-var _home := _label("", FONT, INK, true)
-var _wounded := _label("", FONT, INK, true)
-var _job_box := VBoxContainer.new()
-var _job_label := _label("", FONT, INK, true)
-var _job_bar := ProgressBar.new()
-var _job_time := _label("", FONT, INK)
-var _select := OptionButton.new()
-var _role := _label("", FONT, MUTED, true)
-var _minus := Button.new()
-var _input := LineEdit.new()
-var _plus := Button.new()
-var _max_button := Button.new()
-var _limit := _label("", FONT, MUTED)
-var _costs := GridContainer.new()
-var _cost_labels: Dictionary = {}
-var _duration := _label("", FONT, INK)
-var _submit := Button.new()
-var _reason := _label("", FONT, LACKING, true)
+var _job_card := UiKit.card()
+var _job_icon: TextureRect
+var _job_label := UiKit.label("", UiKit.BODY, HudTheme.TEXT, true, true)
+var _job_bar := UiKit.progress_bar()
+var _job_time := UiKit.label("", UiKit.BIG, HudTheme.TEXT, true)
+var _help_button := Button.new()
+var _help_note := UiKit.label("", UiKit.BODY, HudTheme.LACKING, false, true)
+var _help_note_timer := Timer.new()
+var _tiles: Dictionary = {}
+var _title := UiKit.label("", UiKit.BODY, HudTheme.RING, true)
+var _role := UiKit.label("", UiKit.BODY, HudTheme.TEXT_SECOND, false, true)
+var _home_chip := UiKit.stat_chip("base", "")
+var _wounded_chip := UiKit.stat_chip("wounded", "")
+var _order := VBoxContainer.new()
+var _limit := UiKit.label("", UiKit.SMALL, HudTheme.TEXT_SECOND)
+var _stepper := Stepper.new()
+var _cost_chips: Dictionary = {}
+var _time_chip := UiKit.time_chip("")
+var _warning := UiKit.warning("")
+var _submit := UiKit.primary_button("")
 
 func _ready() -> void:
-	add_theme_constant_override("separation", 12)
+	add_theme_constant_override("separation", roundi(HudTheme.px(8)))
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	add_child(_title)
-	add_child(_home)
-	add_child(_wounded)
+	_build_job()
+	_build_tiles()
+	_build_order()
+	# Two lines for every troop, so the controls under it stay put when another tile is chosen (measured here, in the tree, where
+	# the label has the theme's font).
+	_role.custom_minimum_size.y = _role.get_theme_font("font").get_height(HudTheme.font(UiKit.BODY)) * 2.0 + _role.get_theme_constant("line_spacing")
+	_retranslate()
 
-	_job_box.add_theme_constant_override("separation", 8)
-	_job_bar.show_percentage = false
-	_job_bar.custom_minimum_size.y = 20
-	_job_box.add_child(_job_label)
-	_job_box.add_child(_job_bar)
-	_job_box.add_child(_job_time)
-	# The help button is only in the batch's box, so it is shown while a batch runs (and the player may ask).
+func _build_job() -> void:
+	var body := UiKit.card_body(_job_card)
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", roundi(HudTheme.px(10)))
+	_job_icon = UiKit.troop_medallion(_troop)
+	head.add_child(_job_icon)
+	_job_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_job_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_job_label.size_flags_vertical = Control.SIZE_FILL
+	head.add_child(_job_label)
+	_job_time.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	head.add_child(_job_time)
+	body.add_child(head)
+	body.add_child(_job_bar)
+	# The help button is only in the batch's card, so it is shown while a batch runs (and the player may ask).
 	_help_button.focus_mode = Control.FOCUS_NONE
-	_help_button.add_theme_font_size_override("font_size", FONT)
-	_help_button.custom_minimum_size.y = STEP_SIZE.y * 0.75
+	_help_button.add_theme_font_size_override("font_size", HudTheme.font(UiKit.BODY))
+	_help_button.custom_minimum_size.y = HudTheme.px(UiKit.TAP)
 	_help_button.visible = false
 	_help_button.pressed.connect(func() -> void: help_pressed.emit())
 	_help_note.visible = false
 	_help_note_timer.one_shot = true
 	_help_note_timer.wait_time = HELP_NOTE_S
 	_help_note_timer.timeout.connect(func() -> void: _help_note_code = "")
-	_job_box.add_child(_help_button)
-	_job_box.add_child(_help_note)
+	body.add_child(_help_button)
+	body.add_child(_help_note)
+	body.add_child(_help_note_timer)
 	speedup.kind = "training"
-	_job_box.add_child(speedup)
-	_job_box.add_child(_help_note_timer)
-	add_child(_job_box)
+	body.add_child(speedup)
+	_job_card.visible = false
+	add_child(_job_card)
 
-	_troop_ids = Balance.data()["troopIds"]
-	for id: String in _troop_ids:
-		_select.add_item("")
-	_select.item_selected.connect(func(index: int) -> void:
-		_troop = _troop_ids[index]
-		_notice_code = "")
-	_select.add_theme_font_size_override("font_size", FONT)
-	_select.custom_minimum_size.y = STEP_SIZE.y
-	for state in ["normal", "hover", "pressed", "focus"]:
-		_select.add_theme_stylebox_override(state, HudTheme.flat(Color(0, 0, 0, 0.45), 6.0, HudTheme.BRASS, HudTheme.BORDER))
-	add_child(_select)
-	add_child(_role)
+func _build_tiles() -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", roundi(HudTheme.px(4)))
+	for id: String in Balance.data()["troopIds"]:
+		var tile := TroopTile.new(id)
+		tile.pressed.connect(choose.bind(id))
+		row.add_child(tile)
+		_tiles[id] = tile
+	add_child(row)
 
-	var count_row := HBoxContainer.new()
-	count_row.add_theme_constant_override("separation", 8)
-	_minus.text = "−"
-	_plus.text = "+"
-	for b: Button in [_minus, _plus, _max_button]:
-		b.add_theme_font_size_override("font_size", FONT)
-	_minus.custom_minimum_size = STEP_SIZE
-	_plus.custom_minimum_size = STEP_SIZE
-	_input.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER
-	_input.custom_minimum_size = Vector2(160, STEP_SIZE.y)
-	_input.add_theme_font_size_override("font_size", FONT)
-	# Typing updates the count, the cost and the time at once; the field itself is only rewritten on submit or focus loss.
-	_input.text_changed.connect(func(text: String) -> void:
-		if text.is_valid_float():
-			_count = TrainingModel.clamp_count(text.to_float(), _max)
-			_refresh_buttons()
-			_update_costs(TrainingModel.quote(_troop, _count)["cost"], Fmt.lang())
-			_duration.text = Loc.t("panel.duration") + ": " + Fmt.duration(float(TrainingModel.quote(_troop, _count)["duration_ms"])))
-	_input.text_submitted.connect(func(_text: String) -> void: _set_count(_input.text.to_float()))
-	_input.focus_exited.connect(func() -> void: _set_count(_input.text.to_float()))
-	_minus.pressed.connect(func() -> void: _set_count(_count - 1))
-	_plus.pressed.connect(func() -> void: _set_count(_count + 1))
-	_max_button.pressed.connect(func() -> void: _set_count(_max))
-	count_row.add_child(_minus)
-	count_row.add_child(_input)
-	count_row.add_child(_plus)
-	count_row.add_child(_max_button)
-	add_child(count_row)
-	add_child(_limit)
-
-	_costs.columns = 2
-	_costs.add_theme_constant_override("h_separation", 24)
+func _build_order() -> void:
+	var c := UiKit.card()
+	var body := UiKit.card_body(c)
+	body.add_child(_title)
+	body.add_child(_role)
+	body.add_child(UiKit.chips([_home_chip, _wounded_chip]))
+	add_child(c)
+	_order.add_theme_constant_override("separation", roundi(HudTheme.px(8)))
+	_stepper.changed.connect(func(_value: int) -> void: _notice_code = "")
+	_order.add_child(_stepper)
+	_limit.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_order.add_child(_limit)
+	var chips: Array = []
 	for id: String in Balance.data()["resourceIds"]:
-		var label := _label("", FONT, INK)
-		_costs.add_child(label)
-		_cost_labels[id] = label
-	add_child(_costs)
-	add_child(_duration)
-
-	_submit.add_theme_font_size_override("font_size", FONT)
-	_submit.custom_minimum_size.y = STEP_SIZE.y
-	HudTheme.make_primary(_submit)
+		_cost_chips[id] = UiKit.cost_chip(id, "", false)
+		chips.append(_cost_chips[id])
+	chips.append(_time_chip)
+	var flow := UiKit.chips(chips)
+	_order.add_child(flow)
+	_warning.visible = false
+	_order.add_child(_warning)
 	_submit.pressed.connect(_on_submit)
-	add_child(_submit)
-	add_child(_reason)
-	_retranslate()
-	_refresh_buttons()
+	_order.add_child(_submit)
+	body.add_child(_order)
 
 ## Takes the state the form shows. `ctx` holds: barracks (int), troops and wounded (Dictionary), training (Dictionary or null),
 ## amounts (resources accrued to now), now_ms, lang.
@@ -158,99 +135,78 @@ func update_context(ctx: Dictionary) -> void:
 	if job_key != _job_key:
 		_job_key = job_key
 		_notice_code = ""
+	var lang := String(ctx["lang"])
 	var m := TrainingModel.view(int(ctx["barracks"]), ctx["troops"], ctx["wounded"], ctx["training"], ctx["amounts"], int(ctx["now_ms"]),
-		_troop, _count, String(ctx["lang"]), bool(ctx.get("can_help", false)))
-	_troop = m["troop"]
-	_count = m["count"]
-	_max = m["max"]
-	_home.text = "%s: %s" % [Loc.t("train.home"), m["home"]]
-	_wounded.text = "%s: %s" % [Loc.t("train.wounded"), m["wounded"]]
-	_select.select(_troop_ids.find(_troop))
-	_role.text = Loc.t("troop.%s.desc" % _troop)
-	if not _input.has_focus():
-		_input.text = str(_count)
-	_limit.text = Loc.t("train.maxBatch", {"count": Fmt.amount(String(ctx["lang"]), _max)})
-	_duration.text = Loc.t("panel.duration") + ": " + Fmt.duration(float(m["duration_ms"]))
-	_update_costs(m["cost"], String(ctx["lang"]))
-	_update_job(m["job"])
+		_troop, _stepper.value, bool(ctx.get("can_help", false)))
+	_update_job(m["job"], lang)
 	if ctx.has("speedup"):
 		speedup.update_view(ctx["speedup"])
 	_help_button.visible = m["help"]
 	_help_note.visible = _help_note_code != ""
 	_help_note.text = Loc.t("reason." + _help_note_code) if _help_note_code != "" else ""
-	_reason.text = Loc.t("reason." + m["reason"]) if m["reason"] != "" else (Loc.t("reason." + _notice_code) if _notice_code != "" else "")
-	_reason.visible = _reason.text != ""
+	for row: Dictionary in m["rows"]:
+		(_tiles[row["id"]] as TroopTile).update_row(row, lang)
+	_title.text = Loc.t("troop.%s.name" % _troop)
+	_role.text = Loc.t("troop.%s.desc" % _troop)
+	UiKit.set_chip(_home_chip, "%s %s" % [Loc.t("train.home"), Fmt.amount(lang, m["home"])])
+	UiKit.set_chip(_wounded_chip, "%s %s" % [Loc.t("train.wounded"), Fmt.amount(lang, m["wounded"])], int(m["wounded"]) > 0)
+	_order.visible = m["job"] == null
+	_stepper.set_maximum(int(m["max"]))
+	_limit.text = Loc.t("train.maxBatch", {"count": Fmt.amount(lang, m["max"])})
+	_update_costs(m, lang)
 	_blocked = m["reason"] != ""
+	var reason: String = m["reason"] if _blocked else _notice_code
+	_warning.visible = reason != ""
+	if reason != "":
+		UiKit.set_warning(_warning, Loc.t("reason." + reason))
 	_submit.disabled = _blocked or _pending
-	_refresh_buttons()
+
+## Chooses a troop (a tap on its tile).
+func choose(troop: String) -> void:
+	_troop = troop
+	_notice_code = ""
 
 ## The request is in flight: the Train button is off until the answer is applied.
 func set_pending(pending: bool) -> void:
 	_pending = pending
 	_submit.disabled = _blocked or _pending
 
-## Why the server turned the batch down (a `reason.*` code); shown under the button until the next update that changes it.
+## Why the server turned the batch down (a `reason.*` code); shown above the button until the next update that changes it.
 func set_notice(code: String) -> void:
 	_notice_code = code
-
-## The texts that do not come from the model: set once, and again when the language or the background changes.
-func _retranslate() -> void:
-	_title.text = Loc.t("train.title")
-	for i in _troop_ids.size():
-		_select.set_item_text(i, Loc.t("troop.%s.name" % _troop_ids[i]))
-	_select.tooltip_text = Loc.t("train.unit")
-	_max_button.text = Loc.t("panel.max")
-	_minus.tooltip_text = Loc.t("panel.less")
-	_plus.tooltip_text = Loc.t("panel.more")
-	_input.tooltip_text = Loc.t("train.count")
-	_submit.text = Loc.t("train.start")
-	_help_button.text = Loc.t("help.ask")
 
 ## A refusal of the help request, shown under the batch for HELP_NOTE_S seconds.
 func show_help_note(code: String) -> void:
 	_help_note_code = code
 	_help_note_timer.start()
 
-func _set_count(value: float) -> void:
-	_count = TrainingModel.clamp_count(value, _max)
-	_input.text = str(_count)
-	_notice_code = ""
-	_refresh_buttons()
+## The texts that do not come from the model: set once, and again when the language or the background changes.
+func _retranslate() -> void:
+	for id: String in _tiles:
+		(_tiles[id] as TroopTile).retranslate()
+	_stepper.retranslate(Loc.t("train.count"))
+	_submit.text = Loc.t("train.start")
+	_help_button.text = Loc.t("help.ask")
 
 func _on_submit() -> void:
 	if _blocked or _pending:
 		return
-	train_pressed.emit(_troop, _count)
+	train_pressed.emit(_troop, _stepper.value)
 
-func _refresh_buttons() -> void:
-	_minus.disabled = _count <= 1
-	_plus.disabled = _count >= _max
-	_max_button.disabled = _count >= _max
+func _update_costs(m: Dictionary, lang: String) -> void:
+	for id: String in _cost_chips:
+		(_cost_chips[id] as Control).visible = false
+	for item: Dictionary in m["cost"]:
+		var chip: PanelContainer = _cost_chips[item["id"]]
+		UiKit.set_chip(chip, Fmt.amount(lang, item["amount"]), item["lacking"])
+		chip.visible = true
+	UiKit.set_chip(_time_chip, Fmt.duration(float(m["duration_ms"])))
 
-func _update_costs(cost: Array, lang: String) -> void:
-	for id: String in _cost_labels:
-		(_cost_labels[id] as Label).visible = false
-	for item: Dictionary in cost:
-		var label: Label = _cost_labels[item["id"]]
-		label.text = "%s %s" % [Loc.t("resource." + item["id"]), Fmt.amount(lang, item["amount"])]
-		label.add_theme_color_override("font_color", LACKING if item["lacking"] else INK)
-		label.visible = true
-
-func _update_job(job: Variant) -> void:
-	_job_box.visible = job != null
+func _update_job(job: Variant, lang: String) -> void:
+	_job_card.visible = job != null
 	if job == null:
 		return
-	_job_label.text = Loc.t("train.inProgress", {"count": Fmt.amount(Fmt.lang(), job["count"]), "troop": Loc.t("troop.%s.name" % job["troop"])})
+	_job_icon.texture = UiKit.troop_texture(job["troop"])
+	_job_label.text = Loc.t("train.inProgress", {"count": Fmt.amount(lang, job["count"]), "troop": Loc.t("troop.%s.name" % job["troop"])})
 	_job_bar.value = float(job["fraction"]) * 100.0
 	_job_time.text = Fmt.duration(float(job["remaining_ms"]))
-
-static func _label(text: String, size: int, color: Color, wrap := false) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.add_theme_font_size_override("font_size", size)
-	label.add_theme_color_override("font_color", color)
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if wrap:
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	return label
