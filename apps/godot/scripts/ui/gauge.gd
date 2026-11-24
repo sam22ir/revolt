@@ -6,7 +6,7 @@ extends Control
 ## The face inside the rim, in viewport px (tools/ui/build_frames.py `gauge`): sides and top, and the foot above its lip.
 const RIM := 8.0
 const FOOT := 14.0
-## The bright line at the fill's edge.
+## The soft lit line at the fill's edge: quiet, or it reads as a letter beside the rate.
 const EDGE := 4.0
 
 var fraction := 0.0
@@ -36,7 +36,7 @@ func set_fill(to: float, tint: Color) -> void:
 	fraction = to
 	colour = tint
 	_fill.modulate = tint
-	_edge.color = Color(tint.lightened(0.45), 0.9)
+	_edge.color = Color(tint.lightened(0.3), 0.45)
 	_layout()
 
 func set_warm(warm: bool) -> void:
