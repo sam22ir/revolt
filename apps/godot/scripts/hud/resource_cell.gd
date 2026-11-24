@@ -1,69 +1,105 @@
 class_name ResourceCell
-extends PanelContainer
-## One resource in the top bar: a dark pill with the resource's icon, the amount in bold, a thin bar showing how full its store is,
-## and the `+rate/h` under it. The bar is brass while it fills, amber near the cap and gold when full; a full store also turns the
-## amount gold and says "Full" in place of the rate.
+extends Control
+## One resource in the top bar: a tray that fills with the resource's own colour as its store does, the big icon standing out of its
+## start, the amount in bold and the `+rate/h` under it. Near the cap the fill turns amber; a full store turns gold and says "Full" in
+## place of the rate. Everything is laid out by hand, so no text changes the bar's height.
 
-const NEAR := Color("e09a3a")
-## The store bar's height, in mockup px.
-const BAR := 2.0
+const COLOURS := {
+	"food": Color("7f8c2e"),
+	"materiel": Color("5a7380"),
+	"funds": Color("a5752a"),
+	"support": Color("a8503a"),
+}
+const NEAR := Color("c9772a")
+const FULL := Color("c9922c")
+## Mockup px.
+const HEIGHT := 44.0
+const ICON := 32.5
+## How far the tray starts inside the cell, so the icon stands out of it.
+const INSET := 7.0
+const AMOUNT_FONTS: Array[float] = [15.0, 14.0, 13.0, 12.0]
+const RATE_FONTS: Array[float] = [12.0, 11.0, 10.0]
 
+var _gauge := Gauge.new()
 var _icon: HudIcon
-var _amount := Label.new()
-var _rate := Label.new()
-var _fraction := 0.0
-var _bar_colour := HudTheme.BRASS
+var _amount := _text(AMOUNT_FONTS[0], HudTheme.BUTTON_TEXT)
+var _rate := _text(RATE_FONTS[0], HudTheme.TEXT)
+var _state := "normal"
+var _colour := Color.WHITE
 
 func _init(resource_id := "food") -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layout_direction = Control.LAYOUT_DIRECTION_LOCALE
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var box := HudTheme.slice("frame_cell", 28.0, 3.0, 0.0)
-	# Tight sides: the widest amount (the top storage cap, 42,000) and rate must fit four pills across a 375 px phone.
-	box.content_margin_left = HudTheme.px(3)
-	box.content_margin_right = HudTheme.px(3)
-	box.content_margin_top = 0.0
-	# The bar sits in the rate line's descender space at the bottom edge, so the pill is no taller than the plain cell was.
-	box.content_margin_bottom = 0.0
-	add_theme_stylebox_override("panel", box)
-	var row := HBoxContainer.new()
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", roundi(HudTheme.px(3)))
-	_icon = HudIcon.new(resource_id, 23.0)
-	_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(_icon)
-	var column := VBoxContainer.new()
-	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_theme_constant_override("separation", 0)
-	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	_amount.add_theme_font_override("font", load(UiKit.BOLD))
-	_amount.add_theme_font_size_override("font_size", HudTheme.font(HudTheme.FONT_BODY))
-	_rate.add_theme_font_size_override("font_size", HudTheme.font(HudTheme.FONT_SMALL - 1.0))
-	_rate.add_theme_color_override("font_color", HudTheme.TEXT_SECOND)
-	for label in [_amount, _rate]:
-		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		label.clip_text = true
-		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	column.add_child(_amount)
-	column.add_child(_rate)
-	row.add_child(column)
-	add_child(row)
+	custom_minimum_size.y = HudTheme.px(HEIGHT)
+	_colour = COLOURS.get(resource_id, HudTheme.BRASS)
+	_gauge.layout_direction = Control.LAYOUT_DIRECTION_INHERITED
+	add_child(_gauge)
+	add_child(_amount)
+	add_child(_rate)
+	_icon = HudIcon.new(resource_id, ICON)
+	add_child(_icon)
+	resized.connect(_layout)
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_LAYOUT_DIRECTION_CHANGED and _icon != null:
+		# After the children have turned too: a child laid out before that is mirrored once more.
+		_layout.call_deferred()
+
+static func _text(font_size: float, colour: Color) -> Label:
+	var label := UiKit.label("", font_size, colour, true)
+	label.add_theme_color_override("font_outline_color", HudTheme.BUTTON_INK)
+	label.add_theme_constant_override("outline_size", roundi(HudTheme.px(2.6)))
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.clip_text = true
+	return label
+
+func _layout() -> void:
+	var rtl := is_layout_rtl()
+	var inset := HudTheme.px(INSET)
+	var icon := HudTheme.px(ICON)
+	_gauge.position = Vector2(0.0 if rtl else inset, 0.0)
+	_gauge.size = Vector2(size.x - inset, size.y)
+	_icon.size = Vector2.ONE * icon
+	_icon.position = Vector2(size.x - icon if rtl else 0.0, (size.y - HudTheme.px(2.0) - icon) * 0.5)
+	# The words have the room between the icon and the tray's far rim.
+	var start := icon + HudTheme.px(1.0)
+	var room := size.x - start - Gauge.RIM - HudTheme.px(1.0)
+	var x := size.x - start - room if rtl else start
+	var top := HudTheme.px(3.0)
+	var amount_h := HudTheme.px(20.0)
+	_amount.position = Vector2(x, top)
+	_amount.size = Vector2(room, amount_h)
+	_rate.position = Vector2(x, top + amount_h - HudTheme.px(2.0))
+	_rate.size = Vector2(room, HudTheme.px(17.0))
+	_fit(_amount, AMOUNT_FONTS)
+	_fit(_rate, RATE_FONTS)
+
+## The biggest of `sizes` at which the label's text fits its room.
+func _fit(label: Label, sizes: Array[float]) -> void:
+	var font := label.get_theme_font("font")
+	for size_px in sizes:
+		var px := HudTheme.font(size_px)
+		if size_px == sizes[-1] or font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x <= label.size.x:
+			if label.get_theme_font_size("font_size") != px:
+				label.add_theme_font_size_override("font_size", px)
+			return
 
 ## `state` is "normal", "near" or "full" (HudModel.chips); `fraction` is how full the store is (0 to 1).
 func set_values(amount_text: String, rate_text: String, state: String, fraction := 0.0) -> void:
-	var full := state == "full"
+	_gauge.set_fill(fraction, bar_colour_for(state))
+	var rate := Loc.t("hud.full") if state == "full" else rate_text
+	if amount_text == _amount.text and rate == _rate.text and state == _state:
+		return
+	_state = state
 	_amount.text = amount_text
-	_rate.text = Loc.t("hud.full") if full else rate_text
-	var colour := HudTheme.GOLD if full else HudTheme.TEXT
-	_amount.add_theme_color_override("font_color", colour)
-	_rate.add_theme_color_override("font_color", HudTheme.GOLD if full else HudTheme.TEXT_SECOND)
-	var colour_now: Color = HudTheme.GOLD if full else (NEAR if state == "near" else HudTheme.BRASS)
-	fraction = clampf(fraction, 0.0, 1.0)
-	if not is_equal_approx(fraction, _fraction) or colour_now != _bar_colour:
-		_fraction = fraction
-		_bar_colour = colour_now
-		queue_redraw()
+	_rate.text = rate
+	_rate.add_theme_color_override("font_color", HudTheme.BUTTON_TEXT if state == "full" else HudTheme.TEXT)
+	_fit(_amount, AMOUNT_FONTS)
+	_fit(_rate, RATE_FONTS)
+
+func bar_colour_for(state: String) -> Color:
+	return FULL if state == "full" else (NEAR if state == "near" else _colour)
 
 func amount_text() -> String:
 	return _amount.text
@@ -72,24 +108,11 @@ func rate_text() -> String:
 	return _rate.text
 
 func is_full() -> bool:
-	return _amount.get_theme_color("font_color") == HudTheme.GOLD
+	return _state == "full"
 
-## The store bar's fill (0 to 100) and colour, for tests.
+## The store's fill (0 to 100) and colour, for tests.
 func bar_value() -> float:
-	return _fraction * 100.0
+	return _gauge.fraction * 100.0
 
 func bar_colour() -> Color:
-	return _bar_colour
-
-## The store bar along the pill's bottom edge, inside its rounded ends (drawn, so it adds no height to the top bar, under which
-## the camp is fitted). It fills from the reading start.
-func _draw() -> void:
-	var inset := HudTheme.px(7)
-	var h := HudTheme.px(BAR)
-	var y := size.y - h - HudTheme.px(1)
-	var full_width := size.x - inset * 2.0
-	draw_rect(Rect2(inset, y, full_width, h), Color(HudTheme.TEXT, 0.18))
-	var width := full_width * _fraction
-	var x := inset if not is_layout_rtl() else size.x - inset - width
-	if width > 0.0:
-		draw_rect(Rect2(x, y, width, h), _bar_colour)
+	return _gauge.colour

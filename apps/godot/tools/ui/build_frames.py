@@ -314,6 +314,31 @@ def tabbar():
     f.write()
 
 
+def topboard():
+    """The top bar's board: hanging from the screen's edge, round at the foot, with a lip there (nine-slice 44)."""
+    s = 136
+    f = Frame("topboard", s)
+    r = 34
+    f.fill(path_round(0, -60, s, s, r), INK)
+    f.shape(path_round(0, -60, s, s - 4, r - 2), "#23150b", "", 0, False)
+    f.fill(path_round(0, -60, s, s - 13, r - 2), INK)
+    f.shape(path_round(0, -60, s, s - 15.5, r - 3), "#b58a5a", "", 0, False)
+    f.shape(path_round(0, -60, s, s - 18, r - 5), f.lin(["#664630", "#5a3e29", "#4b3522", "#432d1c"], 0, 0, 0, s - 18), "", 0, False)
+    f.write()
+
+
+def gauge():
+    """A tray that fills with colour, plain and with an amber rim, and its fill: a pale glossy bar that the game tints."""
+    dark = ["#120a05", "#1d120a", "#291a0f"]
+    rounded("gauge", 88, 84, 27, ("#6b4a2e", "#c69a66", "#1f130a"), dark, 5)
+    rounded("gauge_warm", 88, 84, 27, ("#c4892f", "#ffe2a4", "#5a380d"), dark, 5)
+    f = Frame("gauge_fill", 72, 62)
+    f.shape(rect(0, 0, 72, 62, 19), f.lin(["#ffffff", "#dedede", "#b4b4b4", "#949494"], 0, 0, 0, 62), "", 0, False)
+    f.fill(rect(3, 3, 66, 20, 14), f.alpha("#ffffff", 0, 3, 0, 23, .55, .05))
+    f.fill(rect(0, 52, 72, 10, 8), "#000000", .12)
+    f.write()
+
+
 def toggle():
     """A sliding switch's track, off and on (nine-slice 34), and its knob."""
     for name, rim, face in (("switch_off", "#4c3320", ["#150c06", "#241810"]), ("switch_on", "#3c551a", ["#4f6c24", "#7ea23c"])):
@@ -363,7 +388,7 @@ def main():
         round_button("round", "wood", down)
         round_button("round_big", "green", down, 384)
         round_button("round_red", "red", down)
-    progress(); tabbar(); toggle()
+    progress(); tabbar(); topboard(); gauge(); toggle()
     print(f"{len(list(OUT.glob('*.svg')))} pieces, {sum(p.stat().st_size for p in OUT.glob('*.svg')) // 1024} KB")
 
 

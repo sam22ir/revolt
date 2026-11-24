@@ -1,60 +1,53 @@
 class_name QueuePill
-extends PanelContainer
-## The builders' status (ui/hud.ts) beside a hammer: "Builders idle — tap a building" with a sand rim that invites a tap,
-## or the running upgrade ("Command post → level 2") with its countdown from the server's end time and a thin bar along the
-## pill's bottom edge showing how far it is. Its structure text changes only when the job does; the countdown and the bar move
-## in place, and nothing changes the pill's height.
+extends StatusPill
+## The builders' status (ui/hud.ts): idle, an amber-rimmed tray that says so and what to do about it, its hammer swinging now and then to
+## invite a tap; with an upgrade running, what is being built, the countdown from the server's end time and the tray filling as it goes,
+## the hammer at work. The structure text changes only when the job does, and nothing changes the pill's height.
 
-const FONT := 32 # HudTheme.font(FONT_SMALL), a mockup 11 px
 ## How long a refusal stays on the pill (Phaser's NOTE_MS in ui/hud.ts).
 const NOTE_S := 4.0
+const WORKING := Color("6f8a2f")
+## The idle text's two halves are joined by this in every language.
+const SPLIT := " — "
+## The hammer's swing, in degrees, and the rest between two swings (idle, at work).
+const SWING := 16.0
+const REST_IDLE_S := 3.2
+const REST_BUSY_S := 0.5
 
 signal help_pressed
 
-var _label := Label.new()
-var _time := Label.new()
-var _box: FrameBox
 var _text_key := ""
 var _help := Button.new()
 var _note_code := ""
 var _note_timer := Timer.new()
-var _fraction := 0.0
+var _idle_detail := ""
+## "→ Level 2", before the countdown.
+var _target := ""
+var _compact := false
 var _busy := false
+var _swing: Tween
 
 func _init() -> void:
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layout_direction = Control.LAYOUT_DIRECTION_LOCALE
-	_box = HudTheme.panel(9.0, 4.0)
-	add_theme_stylebox_override("panel", _box)
-	var row := HBoxContainer.new()
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", 16)
-	# No taller than the text line (the top bar must not grow: the camp is fitted under it), and the SVG so it reads at this size.
-	var hammer := HudIcon.new("hammer", 20.0)
-	hammer.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(hammer)
-	_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	# One line only: a longer text must not make the top box taller, because the base is fitted below it.
-	_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	_label.clip_text = true
-	for label in [_label, _time]:
-		label.add_theme_font_size_override("font_size", FONT)
-		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# The help button always takes its place in the row (a button is taller than a label), and only shows when it is offered:
-	# hidden by alpha and input, not by `visible`, so the pill keeps one height and the base is never refitted when it appears.
-	_help.add_theme_font_size_override("font_size", FONT)
+	super("hammer")
+	# The help button is hidden by alpha and input, not by `visible`: it keeps its height, and its room is given only when it shows.
 	_help.focus_mode = Control.FOCUS_NONE
 	HudTheme.dress(_help, "blue", "", true)
+	_help.custom_minimum_size = Vector2(44.0, 38.0) * HudTheme.SCALE
+	var hands := HudIcon.new("alliance", 24.0)
+	hands.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, roundi(HudTheme.px(5)))
+	hands.offset_bottom -= HudTheme.LIP * 0.6
+	_help.add_child(hands)
 	_help.pressed.connect(func() -> void: help_pressed.emit())
+	trailing = _help
+	add_child(_help)
 	_set_help_shown(false)
 	_note_timer.one_shot = true
 	_note_timer.wait_time = NOTE_S
 	_note_timer.timeout.connect(func() -> void: _note_code = "")
 	add_child(_note_timer)
-	row.add_child(_label)
-	row.add_child(_time)
-	row.add_child(_help)
-	add_child(row)
+
+func _ready() -> void:
+	_start_swing()
 
 func _set_help_shown(shown: bool) -> void:
 	_help.modulate.a = 1.0 if shown else 0.0
@@ -71,38 +64,55 @@ func update_model(m: Dictionary, background: String) -> void:
 	visible = m["visible"]
 	if not visible:
 		return
-	var key := "%s|%s|%s|%s|%s" % [m["busy"], m["building"], m["level"], TranslationServer.get_locale(), background]
-	if key != _text_key:
+	# Beside the marches there is no room for the help button; the base has it.
+	var help: bool = m["help"] and not _compact
+	var key := "%s|%s|%s|%s|%s|%s" % [m["busy"], m["building"], m["level"], help, TranslationServer.get_locale(), background]
+	var changed := key != _text_key
+	if changed:
 		_text_key = key
-		if m["busy"]:
-			_label.text = Loc.t("queue.busy", {"building": Loc.t("building.%s.name" % m["building"], {}, background), "level": Fmt.amount(Fmt.lang(), m["level"])})
+		var was_busy := _busy
+		_busy = m["busy"]
+		if _busy:
+			title.text = Loc.t("building.%s.name" % m["building"], {}, background)
+			_target = "%s %s" % [UiKit.arrow(), Loc.t("panel.level", {"level": Fmt.amount(Fmt.lang(), m["level"])})]
 		else:
-			_label.text = Loc.t("queue.idle")
-		# Idle builders are an invitation: a gold rim.
-		_box = HudTheme.panel(9.0, 4.0, not m["busy"])
-		add_theme_stylebox_override("panel", _box)
-	_set_help_shown(m["help"])
-	# A lone space keeps the row's height (an empty button is shorter) but gives its width to the text beside it.
-	_help.text = Loc.t("help.ask") if m["help"] else " "
-	_busy = m["busy"]
-	var fraction := float(m.get("fraction", 0.0)) if _busy else 0.0
-	if not is_equal_approx(fraction, _fraction):
-		_fraction = fraction
-		queue_redraw()
+			var halves := Loc.t("queue.idle").split(SPLIT, true, 1)
+			title.text = halves[0]
+			_idle_detail = halves[1] if halves.size() > 1 else ""
+		_help.tooltip_text = Loc.t("help.ask")
+		_set_help_shown(help)
+		# Idle builders are an invitation: an amber rim.
+		gauge.set_warm(not _busy)
+		detail.add_theme_color_override("font_color", HudTheme.GOLD if _busy else HudTheme.TEXT)
+		if was_busy != _busy and is_inside_tree():
+			_start_swing()
+	gauge.set_fill(float(m.get("fraction", 0.0)) if _busy else 0.0, WORKING)
+	var line := _idle_detail
 	if _note_code != "":
-		_time.text = Loc.t("reason." + _note_code)
-	else:
-		_time.text = Fmt.duration(float(m["remainingMs"])) if m["busy"] else ""
+		line = Loc.t("reason." + _note_code)
+	elif _busy:
+		var left := Fmt.duration(float(m["remainingMs"]))
+		line = left if _compact else "%s · %s" % [_target, left]
+	var had := detail.text != ""
+	detail.text = line
+	if changed or had != (line != ""):
+		layout()
 
-## The running upgrade's progress: a gold line along the bottom edge, inside the rounded corners.
-func _draw() -> void:
-	if not _busy or _fraction <= 0.0:
-		return
-	var inset := HudTheme.px(10)
-	var h := HudTheme.px(2.5)
-	var width := (size.x - inset * 2.0) * _fraction
-	var x := inset if not is_layout_rtl() else size.x - inset - width
-	draw_rect(Rect2(x, size.y - h - HudTheme.px(2), width, h), HudTheme.GOLD)
+## Shares the row with the marches.
+func set_compact(compact: bool) -> void:
+	_compact = compact
+
+## The hammer swings back and strikes, then rests: now and then while idle, steadily at work. Only for show.
+func _start_swing() -> void:
+	if _swing != null:
+		_swing.kill()
+	icon.rotation = 0.0
+	var way := -1.0 if is_layout_rtl() else 1.0
+	_swing = create_tween().set_loops()
+	_swing.tween_property(icon, "rotation", deg_to_rad(-SWING * way), 0.28).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_swing.tween_property(icon, "rotation", deg_to_rad(SWING * 0.55 * way), 0.11).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	_swing.tween_property(icon, "rotation", 0.0, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_swing.tween_interval(REST_BUSY_S if _busy else REST_IDLE_S)
 
 func progress() -> float:
-	return _fraction
+	return gauge.fraction

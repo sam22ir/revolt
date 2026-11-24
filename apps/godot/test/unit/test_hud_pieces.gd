@@ -20,12 +20,70 @@ func test_the_store_bar_fills_and_changes_colour_near_and_at_the_cap() -> void:
 	var cell: ResourceCell = add_child_autofree(ResourceCell.new("funds"))
 	cell.set_values("1,000", "+10/h", "normal", 0.25)
 	assert_almost_eq(cell.bar_value(), 25.0, 0.01)
-	assert_eq(cell.bar_colour(), HudTheme.BRASS)
+	assert_eq(cell.bar_colour(), ResourceCell.COLOURS["funds"], "its own colour")
 	cell.set_values("4,700", "+10/h", "near", 0.94)
 	assert_eq(cell.bar_colour(), ResourceCell.NEAR)
 	cell.set_values("5,500", "+10/h", "full", 1.4)
 	assert_almost_eq(cell.bar_value(), 100.0, 0.01, "clamped")
-	assert_eq(cell.bar_colour(), HudTheme.GOLD)
+	assert_eq(cell.bar_colour(), ResourceCell.FULL)
+
+func test_the_widest_numbers_fit_their_tray_on_a_phone() -> void:
+	for lang in ["en", "ar"]:
+		TranslationServer.set_locale(lang)
+		var top: HudTop = add_child_autofree(HudTop.new())
+		top.size.x = 1080.0
+		top.cells["food"].set_values(Fmt.amount(lang, 42000), Loc.t("hud.rate", {"amount": Fmt.amount(lang, 1200)}), "normal", 0.5)
+		await wait_process_frames(3)
+		var cell: ResourceCell = top.cells["food"]
+		for label: Label in [cell._amount, cell._rate]:
+			var width := label.get_theme_font("font").get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, label.get_theme_font_size("font_size")).x
+			assert_lte(width, label.size.x, "%s %s" % [lang, label.text])
+			assert_gte(label.get_theme_font_size("font_size"), HudTheme.font(10.0))
+
+func test_the_top_bar_keeps_its_height_whatever_it_shows() -> void:
+	var top: HudTop = add_child_autofree(HudTop.new())
+	top.size.x = 1080.0
+	await wait_process_frames(2)
+	assert_eq(top.get_combined_minimum_size().y, HudTop.HEIGHT)
+	top.show_context("map")
+	top.pill.update_model(HudModel.pill({"building": "farm", "toLevel": 2, "startedAt": 0, "endsAt": 100_000}, 10_000, "map", true), "")
+	await wait_process_frames(2)
+	assert_eq(top.get_combined_minimum_size().y, HudTop.HEIGHT)
+	assert_lt(top.marches.size.x, top.pill.size.x, "the marches make room for the running upgrade")
+
+func test_the_running_upgrade_reads_in_full_beside_the_marches_and_with_the_help_button() -> void:
+	for lang in ["en", "ar"]:
+		TranslationServer.set_locale(lang)
+		for screen in ["base", "map"]:
+			var top: HudTop = add_child_autofree(HudTop.new())
+			top.size.x = 1080.0
+			top.show_context(screen)
+			for i in 2:
+				top.pill.update_model(HudModel.pill({"building": "hq", "toLevel": 2, "startedAt": 0, "endsAt": 100_000}, 10_000, screen, true), "algeria")
+				await wait_process_frames(2)
+			for label: Label in [top.pill.title, top.pill.detail]:
+				var width := label.get_theme_font("font").get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, label.get_theme_font_size("font_size")).x
+				assert_lte(width, label.size.x, "%s %s %s" % [lang, screen, label.text])
+			assert_eq(top.pill._help.modulate.a > 0.0, screen == "base")
+
+func test_a_gauge_fills_from_the_reading_start() -> void:
+	var gauge: Gauge = add_child_autofree(Gauge.new())
+	gauge.size = Vector2(400, 120)
+	gauge.set_fill(0.25, Color.RED)
+	var width := (400.0 - Gauge.RIM * 2.0) * 0.25
+	assert_almost_eq(gauge._clip.size.x, width, 0.1)
+	assert_almost_eq(gauge._clip.position.x, Gauge.RIM, 0.1)
+	gauge.layout_direction = Control.LAYOUT_DIRECTION_RTL
+	await wait_process_frames(1)
+	assert_almost_eq(gauge._clip.position.x, 400.0 - Gauge.RIM - width, 0.1)
+
+func test_the_idle_builders_say_what_to_do_on_a_second_line() -> void:
+	for lang in ["en", "ar", "fr"]:
+		TranslationServer.set_locale(lang)
+		var pill: QueuePill = add_child_autofree(QueuePill.new())
+		pill.update_model(HudModel.pill(null, 0, "base"), "")
+		assert_ne(pill.detail.text, "", lang)
+		assert_true(pill.gauge.is_warm())
 
 func test_the_switch_shows_where_it_goes() -> void:
 	var bottom: HudBottom = add_child_autofree(HudBottom.new())
