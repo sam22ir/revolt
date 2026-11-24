@@ -40,10 +40,9 @@ func _title_band(icon_name: String) -> Control:
 	_back.focus_mode = Control.FOCUS_NONE
 	HudTheme.dress(_back, "wood")
 	_back.pressed.connect(func() -> void: back_pressed.emit())
-	_back_icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, roundi(HudTheme.px(9)))
-	# The face sits above the button's lip.
-	_back_icon.offset_bottom -= HudTheme.LIP * 0.7
-	_back_icon.offset_top -= HudTheme.LIP * 0.3
+	_back.button_down.connect(_place_back_icon.bind(true))
+	_back.button_up.connect(_place_back_icon.bind(false))
+	_place_back_icon(false)
 	_back.add_child(_back_icon)
 	row.add_child(_back)
 	if icon_name != "":
@@ -55,6 +54,13 @@ func _title_band(icon_name: String) -> Control:
 	_title.clip_text = true
 	row.add_child(_title)
 	return band
+
+## Keeps the arrow on the button's face: above the lip, or lower while it is pressed.
+func _place_back_icon(down: bool) -> void:
+	_back_icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, roundi(HudTheme.px(9)))
+	var shift := (HudTheme.PRESS if down else 0.0) - HudTheme.LIP * 0.5
+	_back_icon.offset_top += shift
+	_back_icon.offset_bottom += shift
 
 func set_title(text: String, back_hint: String) -> void:
 	_title.text = text

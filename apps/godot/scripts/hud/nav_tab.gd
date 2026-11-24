@@ -70,6 +70,8 @@ func _layout() -> void:
 	var inset := HudTheme.px(2.0)
 	_slab.position = Vector2(inset, -rise)
 	_slab.size = Vector2(size.x - inset * 2.0, size.y + rise - HudTheme.px(2.0))
+	# The raised part takes taps too, or they would fall through to the camp.
+	_button.offset_top = -rise if raised else 0.0
 	# The slab has a lip under its face, so what stands on it sits a little higher.
 	var foot := size.y - HudTheme.px(8.0 if raised else 5.0)
 	_label.position = Vector2(0.0, foot - label_h)

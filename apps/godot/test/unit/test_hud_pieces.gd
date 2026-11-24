@@ -78,15 +78,29 @@ func test_the_open_pages_tab_is_raised_and_the_switch_always_is() -> void:
 	assert_true(bottom.buttons["reports"].slab_shown())
 	assert_false(bottom.buttons["heroes"].slab_shown())
 
-func test_the_tab_bar_fits_its_height_and_a_raised_tab_changes_no_size() -> void:
+func _bar() -> HudBottom:
 	var bottom: HudBottom = add_child_autofree(HudBottom.new())
 	bottom.size = Vector2(1080, HudBottom.HEIGHT - HudTheme.px(HudBottom.INSET_BOTTOM))
-	await wait_process_frames(2)
-	assert_lte(bottom.get_combined_minimum_size().y, float(HudBottom.HEIGHT))
-	var before: Vector2 = bottom.buttons["alliance"].size
 	bottom.set_screen("alliance")
+	return bottom
+
+func test_a_tabs_name_and_icon_stay_on_the_bar_and_a_raised_slab_stands_above_it() -> void:
+	var bottom := _bar()
 	await wait_process_frames(2)
-	assert_eq(bottom.buttons["alliance"].size, before)
+	for tab: NavTab in [bottom.switch, bottom.buttons["alliance"], bottom.buttons["heroes"]]:
+		assert_almost_eq(tab.size.y, bottom.size.y, 1.0, "a tab fills the bar")
+		assert_lte(tab._label.position.y + tab._label.size.y, tab.size.y)
+		assert_lte(tab._icon.position.y + tab._icon.size.y, tab._label.position.y + 2.0, "the icon is over its name")
+	assert_almost_eq(bottom.switch._slab.position.y, -HudTheme.px(NavTab.RISE), 0.5)
+
+func test_the_raised_part_of_a_tab_takes_taps_and_a_flat_tab_does_not_reach_above_the_bar() -> void:
+	var bottom := _bar()
+	await wait_process_frames(2)
+	for tab: NavTab in [bottom.switch, bottom.buttons["alliance"], bottom.buttons["heroes"]]:
+		var above := tab.get_global_rect().position + Vector2(tab.size.x * 0.5, -HudTheme.px(NavTab.RISE) * 0.5)
+		assert_eq(tab.button().get_global_rect().has_point(above), tab.slab_shown())
+	bottom.set_screen("base")
+	assert_eq(bottom.buttons["alliance"].button().position.y, 0.0, "flat again")
 
 func test_a_tabs_dot_shows_and_changes_side_with_the_language() -> void:
 	var tab: NavTab = add_child_autofree(NavTab.new("alliance"))
