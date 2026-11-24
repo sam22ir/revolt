@@ -6,7 +6,7 @@
 
 ## 1. The idea
 
-A hidden mountain camp in full daylight, seen from above: sunlit sandstone, packed earth, whitewash and terracotta, dense enough to feel lived in. The interface is dark weathered metal with bronze edges, so it stays calm and readable over the busy painting.
+A hidden mountain camp in full daylight, seen from above: sunlit sandstone, packed earth, whitewash and terracotta, dense enough to feel lived in. The interface is a campaign chest: dark walnut and stitched leather in engraved brass, the icons' own materials, so it stays calm and readable over the busy painting.
 
 ## 2. Decisions
 
@@ -15,7 +15,7 @@ A hidden mountain camp in full daylight, seen from above: sunlit sandstone, pack
 | Lighting | Daylight everywhere: base camp and world map |
 | Base | One painting of the whole camp with every building and prop in it, so everything matches, shown in 3D: the buildings are blocks with the painting projected onto them. See §5 |
 | Animated things | Left out of the painting: people and animals stand among the 3D buildings (hidden when behind one); smoke and flags are drawn on top |
-| HUD | Painted bronze frames, with a full-width header and nav band. No text baked in |
+| HUD and every screen | The campaign chest (24 Nov, replaces the painted bronze frames): walnut, stitched leather and parchment in engraved brass. No text baked in |
 | Bottom nav | Round buttons from the start edge, the big Base/Map switch at the end edge |
 | Fire | On colonial targets only (GDD §5, §6) |
 
@@ -25,7 +25,7 @@ The constants in `apps/godot/scripts/hud/hud_theme.gd` are the source of truth.
 
 | Constant | Hex | Use |
 |---|---|---|
-| `PANEL` | `#282723` at 92% | Flat gunmetal panels inside the frames |
+| `PANEL` | `#282723` at 92% | The brightness the materials stay near |
 | `BRASS` | `#A8834F` | Bronze hairlines |
 | `RING` | `#E2C07A` | A hairline that marks something active |
 | `TEXT` | `#E8D5B0` | Body text, numbers |
@@ -68,7 +68,7 @@ Art and its limits: `apps/godot/art/camp/README.md`. Tap outlines and name posit
 
 Icons (24 Nov 2026): full-colour illustrated SVGs on a 256 px grid with a dark outline, lit from the top left, in the camp's materials (brass, steel, wood, parchment, whitewash, terracotta). All are drawn by `apps/godot/tools/icons/build_icons.py` into `apps/godot/art/icons/`; change the script, not the SVGs. They are never tinted. No gold star on red (it reads as a flag).
 
-Pieces and source: `apps/godot/art/hud/`. Nine-slice margins: `HudTheme`. Frames must look right mirrored for Arabic, so no one-sided detail.
+Pieces: `apps/godot/art/kit/`, made by our own scripts (`apps/godot/tools/ui/build_fills.py` for the seamless materials, `build_frames.py` for the brass frames); change the scripts, not the files. `HudTheme` hands them out as `FrameBox`es, which tile the material and repeat the frame's edges, so nothing is stretched; full pages stand on a `PageBackdrop`. `test_hud_theme.gd` checks text contrast on every material. The earlier painted bronze pieces stay in `apps/godot/art/hud/`, unused except the medallions. Frames must look right mirrored for Arabic, so no one-sided detail.
 
 ## 7. Content rules for art
 

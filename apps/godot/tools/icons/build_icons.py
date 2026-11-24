@@ -1066,6 +1066,7 @@ def chevron():
     arrow("chevron", out, inn, [(84, 50), (166, 128), (84, 206)], ["M96 62L150 116", "M96 194L150 140"])
 
 
-for draw in (food, materiel, funds, support, heroes, alliance, map_icon, base, reports, settings, upgrade, info, train, hammer, builders, power, marches, wounded, avatar, back, chevron):
-    draw()
-print(f"wrote {len(list(OUT.glob('*.svg')))} icons, {sum(f.stat().st_size for f in OUT.glob('*.svg')) // 1024} KB")
+if __name__ == "__main__":
+    for draw in (food, materiel, funds, support, heroes, alliance, map_icon, base, reports, settings, upgrade, info, train, hammer, builders, power, marches, wounded, avatar, back, chevron):
+        draw()
+    print(f"wrote {len(list(OUT.glob('*.svg')))} icons, {sum(f.stat().st_size for f in OUT.glob('*.svg')) // 1024} KB")

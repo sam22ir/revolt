@@ -7,12 +7,12 @@ extends Control
 
 signal closed
 
-const MARGIN := 24
+const MARGIN := 34
 const FONT := 30
 const SMALL := 26
 const PAPER := Color8(0xf4, 0xea, 0xd6)
 const INK := Color8(0x2b, 0x2a, 0x24)
-const MUTED := Color8(0x9a, 0x92, 0x7a)
+const MUTED := HudTheme.TEXT_SECOND
 const LACKING := Color8(0xe0, 0x7a, 0x62)
 const RARITY_COLORS := {
 	"common": Color8(0x9a, 0x92, 0x7a),
@@ -32,12 +32,8 @@ var _amounts := {}
 var _recruit_note: Variant = null
 
 func _ready() -> void:
-	var bg := ColorRect.new()
-	bg.color = INK
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bg)
-	_scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(PageBackdrop.new())
+	_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, PageBackdrop.RIM)
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(_scroll)
 	var margin := MarginContainer.new()
@@ -157,15 +153,9 @@ func _card(c: Dictionary) -> Control:
 	var rarity: String = c["def"]["rarity"]
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color(1, 1, 1, 0.06)
-	box.border_color = RARITY_COLORS[rarity]
-	box.set_border_width_all(3)
-	box.set_corner_radius_all(14)
-	box.content_margin_left = 16
-	box.content_margin_right = 16
-	box.content_margin_top = 12
-	box.content_margin_bottom = 12
+	# The rarity colours the card's brass.
+	var box := HudTheme.card(14.0, 12.0)
+	box.frame_tint = (RARITY_COLORS[rarity] as Color).lerp(Color.WHITE, 0.35) * 1.25
 	panel.add_theme_stylebox_override("panel", box)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 6)

@@ -10,10 +10,9 @@ signal sound_toggled(kind: String, on: bool)
 
 const LANGS: Array[String] = ["en", "ar", "fr"]
 const SOUNDS: Array[String] = ["music", "effects"]
-const BACKGROUND := Color("241b14")
 
 var _back := Button.new()
-var _back_icon := HudIcon.new("back", 24.0)
+var _back_icon := HudIcon.new("back", 20.0)
 var _title := Label.new()
 var _guest := Label.new()
 var _guest_note := Label.new()
@@ -33,17 +32,13 @@ func _init() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	layout_direction = Control.LAYOUT_DIRECTION_LOCALE
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	var fill := ColorRect.new()
-	fill.color = BACKGROUND
-	fill.set_anchors_preset(Control.PRESET_FULL_RECT)
-	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(fill)
+	add_child(PageBackdrop.new())
 	var page := VBoxContainer.new()
 	page.set_anchors_preset(Control.PRESET_FULL_RECT)
-	page.offset_left = HudTheme.px(12)
-	page.offset_right = -HudTheme.px(12)
-	page.offset_top = HudTheme.px(12)
-	page.offset_bottom = -HudTheme.px(12)
+	page.offset_left = HudTheme.px(PageBackdrop.MARGIN)
+	page.offset_right = -HudTheme.px(PageBackdrop.MARGIN)
+	page.offset_top = HudTheme.px(PageBackdrop.MARGIN)
+	page.offset_bottom = -HudTheme.px(PageBackdrop.MARGIN)
 	page.add_theme_constant_override("separation", roundi(HudTheme.px(10)))
 	add_child(page)
 	page.add_child(_title_bar())
@@ -64,14 +59,14 @@ func _init() -> void:
 
 func _title_bar() -> Control:
 	var bar := PanelContainer.new()
-	bar.add_theme_stylebox_override("panel", HudTheme.panel(HudTheme.RADIUS, 6.0, 4.0))
+	bar.add_theme_stylebox_override("panel", HudTheme.panel(6.0, 4.0))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", roundi(HudTheme.px(10)))
 	bar.add_child(row)
 	_back.focus_mode = Control.FOCUS_NONE
 	_back.custom_minimum_size = Vector2.ONE * HudTheme.px(40)
 	_back.pressed.connect(func() -> void: back_pressed.emit())
-	_back_icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_back_icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, roundi(HudTheme.px(7)))
 	_back.add_child(_back_icon)
 	row.add_child(_back)
 	_title.add_theme_font_override("font", load("res://fonts/IBMPlexSansArabic-Bold.ttf"))
@@ -88,7 +83,7 @@ func _section(title: Label) -> VBoxContainer:
 	box.add_theme_constant_override("separation", roundi(HudTheme.px(4)))
 	box.add_child(title)
 	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", HudTheme.panel(HudTheme.RADIUS, 10.0, 10.0))
+	panel.add_theme_stylebox_override("panel", HudTheme.card(12.0, 11.0))
 	box.add_child(panel)
 	var inner := VBoxContainer.new()
 	inner.add_theme_constant_override("separation", roundi(HudTheme.px(8)))
@@ -140,7 +135,7 @@ func _language_section() -> Control:
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		for state in ["normal", "hover", "pressed", "focus"]:
 			var on: bool = state == "pressed"
-			b.add_theme_stylebox_override(state, HudTheme.flat(HudTheme.OLIVE if on else Color(1, 1, 1, 0.06), 8.0, HudTheme.BRASS if on else Color(HudTheme.BRASS, 0.5), 1.0))
+			b.add_theme_stylebox_override(state, HudTheme.segment(on))
 		b.pressed.connect(func() -> void: language_selected.emit(lang))
 		row.add_child(b)
 		_lang_buttons[lang] = b
@@ -171,7 +166,7 @@ func _style_toggle(kind: String) -> void:
 	var toggle: Button = _sound_rows[kind]["toggle"]
 	var on: bool = _sound_on[kind]
 	for state in ["normal", "hover", "pressed", "focus"]:
-		toggle.add_theme_stylebox_override(state, HudTheme.flat(HudTheme.OLIVE if on else Color(1, 1, 1, 0.06), 14.0, HudTheme.BRASS if on else Color(HudTheme.BRASS, 0.5), 1.0))
+		toggle.add_theme_stylebox_override(state, HudTheme.segment(on))
 	toggle.text = Loc.t("settings.on" if on else "settings.off")
 
 func _about_section() -> Control:

@@ -36,6 +36,8 @@ Built once, used by every screen. Each is a small Control with its look from `Hu
 
 ## Screens, in order
 
+**Backgrounds (24 Nov, user's ask):** every surface of the game moved to the campaign-chest kit: HUD bands, cards, pills, buttons, fields, pages, the map's surround and the loading screen. The screens' layouts are still the old ones until their step below.
+
 **Icons (24 Nov, user's ask):** every SVG icon was redrawn as a detailed full-colour illustration; see `design-system.md` §6.
 
 The kit grows with the screens: each component is built when the first screen needs it, and each migrated screen moves to the

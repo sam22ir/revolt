@@ -15,13 +15,7 @@ func _ready() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	add_theme_font_size_override("font_size", FONT)
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color8(0x2b, 0x2a, 0x24, 235)
-	box.set_corner_radius_all(18)
-	box.content_margin_left = 22
-	box.content_margin_right = 22
-	box.content_margin_top = 10
-	box.content_margin_bottom = 10
+	var box := HudTheme.panel(11.0, 6.0, true)
 	add_theme_stylebox_override("normal", box)
 	add_theme_stylebox_override("hover", box)
 	add_theme_stylebox_override("pressed", box)

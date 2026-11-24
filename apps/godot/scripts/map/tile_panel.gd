@@ -41,16 +41,7 @@ func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	layout_direction = Control.LAYOUT_DIRECTION_LOCALE
 	visible = false
-	var box := StyleBoxFlat.new()
-	box.bg_color = PAPER
-	box.border_color = GOLD
-	box.set_border_width_all(3)
-	box.set_corner_radius_all(18)
-	box.content_margin_left = 20
-	box.content_margin_right = 20
-	box.content_margin_top = 14
-	box.content_margin_bottom = 14
-	add_theme_stylebox_override("panel", box)
+	add_theme_stylebox_override("panel", HudTheme.parchment())
 	_body.add_theme_constant_override("separation", 8)
 	add_child(_body)
 

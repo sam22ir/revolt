@@ -13,7 +13,7 @@ signal help_pressed
 
 var _label := Label.new()
 var _time := Label.new()
-var _box: StyleBoxFlat
+var _box: FrameBox
 var _text_key := ""
 var _help := Button.new()
 var _note_code := ""
@@ -24,7 +24,7 @@ var _busy := false
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layout_direction = Control.LAYOUT_DIRECTION_LOCALE
-	_box = HudTheme.panel(14.0, 9.0, 4.0)
+	_box = HudTheme.panel(9.0, 4.0)
 	add_theme_stylebox_override("panel", _box)
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -77,9 +77,9 @@ func update_model(m: Dictionary, background: String) -> void:
 			_label.text = Loc.t("queue.busy", {"building": Loc.t("building.%s.name" % m["building"], {}, background), "level": Fmt.amount(Fmt.lang(), m["level"])})
 		else:
 			_label.text = Loc.t("queue.idle")
-		# Idle builders are an invitation: a gold rim, twice as wide.
-		_box.border_color = HudTheme.BRASS if m["busy"] else HudTheme.GOLD
-		_box.set_border_width_all(maxi(1, roundi(HudTheme.px(HudTheme.BORDER))) * (1 if m["busy"] else 2))
+		# Idle builders are an invitation: a gold rim.
+		_box = HudTheme.panel(9.0, 4.0, not m["busy"])
+		add_theme_stylebox_override("panel", _box)
 	_set_help_shown(m["help"])
 	# A lone space keeps the row's height (an empty button is shorter) but gives its width to the text beside it.
 	_help.text = Loc.t("help.ask") if m["help"] else " "

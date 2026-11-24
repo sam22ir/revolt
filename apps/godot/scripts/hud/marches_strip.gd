@@ -9,7 +9,7 @@ var _count := -1
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layout_direction = Control.LAYOUT_DIRECTION_LOCALE
-	add_theme_stylebox_override("panel", HudTheme.panel(14.0, 8.0, 4.0))
+	add_theme_stylebox_override("panel", HudTheme.panel(8.0, 4.0))
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_theme_constant_override("separation", roundi(HudTheme.px(6)))

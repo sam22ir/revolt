@@ -29,6 +29,7 @@ var _top := HudTop.new()
 var _bottom := HudBottom.new()
 var _settings := SettingsPage.new()
 var _offline_badge := PanelContainer.new()
+var _loading_layer := CanvasLayer.new()
 var _loaded := false
 var _base := BaseScreen.new()
 var _reports_screen := ReportsScreen.new()
@@ -52,6 +53,10 @@ func _ready() -> void:
 		return
 	GroundStyle.set_active(UrlParam.value("ground"))
 	RenderingServer.set_default_clear_color(GroundFrame.BACKGROUND)
+	# Under everything until the first state is in, so loading is not an empty screen.
+	_loading_layer.layer = -10
+	_loading_layer.add_child(PageBackdrop.new())
+	add_child(_loading_layer)
 	_api.base_url = Api.resolve_base_url()
 	add_child(_api)
 	_setup_sockets()
@@ -92,6 +97,7 @@ func _start() -> void:
 	_top.chip.set_tag(HudModel.guest_tag(_api.token))
 	# The base needs only the state, so it is ready (and the default screen) before the heavy map build.
 	_base.build()
+	_loading_layer.queue_free()
 	_debug_time("base ready", started_ms)
 	_refit()
 	_refresh_status()
@@ -445,6 +451,8 @@ func _build_hud() -> void:
 	_hud_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_hud_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hud_root.layout_direction = Control.LAYOUT_DIRECTION_LOCALE
+	# Every screen is under this root, so the stock buttons and fields take the kit's look everywhere.
+	_hud_root.theme = HudTheme.build()
 	layer.add_child(_hud_root)
 
 	# The top (resource bar, player chip, context strip) and the bottom (round buttons, Base/Map switch) use the bronze HUD theme;
@@ -585,13 +593,8 @@ func _build_offline_badge() -> void:
 	_offline_badge.offset_bottom = -NAV_HEIGHT - 12
 	_offline_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_offline_badge.layout_direction = Control.LAYOUT_DIRECTION_LOCALE
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color8(0x8a, 0x2f, 0x24, 230)
-	box.set_corner_radius_all(18)
-	box.content_margin_left = 20
-	box.content_margin_right = 20
-	box.content_margin_top = 8
-	box.content_margin_bottom = 8
+	var box := HudTheme.panel(10.0, 5.0)
+	box.fill_tint = Color(2.6, 0.75, 0.6)
 	_offline_badge.add_theme_stylebox_override("panel", box)
 	var label := Label.new()
 	label.add_theme_font_size_override("font_size", FONT_SIZE - 2)

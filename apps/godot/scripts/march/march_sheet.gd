@@ -11,13 +11,13 @@ signal closed
 ## A march left: the sheet has closed itself.
 signal sent
 
-const MARGIN := 24
+const MARGIN := 34
 const FONT := 30
 const SMALL := 26
 const ROW_HEIGHT := 72
 const PAPER := Color8(0xf4, 0xea, 0xd6)
 const INK := Color8(0x2b, 0x2a, 0x24)
-const MUTED := Color8(0x9a, 0x92, 0x7a)
+const MUTED := HudTheme.TEXT_SECOND
 const LACKING := Color8(0xe0, 0x7a, 0x62)
 
 var _session: Session
@@ -52,11 +52,10 @@ var _submit: Button
 func _ready() -> void:
 	layout_direction = Control.LAYOUT_DIRECTION_LOCALE
 	visible = false
-	var bg := ColorRect.new()
-	bg.color = INK
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
-	_scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var backdrop := PageBackdrop.new()
+	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(backdrop)
+	_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, PageBackdrop.RIM)
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(_scroll)
 	var margin := MarginContainer.new()

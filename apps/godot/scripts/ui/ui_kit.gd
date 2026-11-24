@@ -15,9 +15,6 @@ const BOLD := "res://fonts/IBMPlexSansArabic-Bold.ttf"
 ## The painted icon set (art/hud/icons/, cut from art/hud/source/icons-1.jpg): round bronze medallions.
 const ICONS := "res://art/hud/icons/"
 const TROOPS := "res://art/troops/"
-## A card is a dark inset in the bronze sheet.
-const CARD_FILL := Color(0.08, 0.07, 0.05, 0.55)
-const CHIP_FILL := Color(0.0, 0.0, 0.0, 0.35)
 ## The painting around a building's outline that its portrait also shows, in painting px.
 const PORTRAIT_PAD := 24.0
 
@@ -35,14 +32,10 @@ static func label(text: String, size := BODY, color := HudTheme.TEXT, bold := fa
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return l
 
-## A dark inset section with a bronze hairline. Add rows to the returned card's first child (a VBoxContainer).
+## A stitched leather section. Add rows to the returned card's first child (a VBoxContainer).
 static func card(title := "") -> PanelContainer:
 	var c := PanelContainer.new()
-	var box := HudTheme.flat(CARD_FILL, 8.0, Color(HudTheme.BRASS, 0.55), 1.0)
-	box.content_margin_left = HudTheme.px(12)
-	box.content_margin_right = HudTheme.px(12)
-	box.content_margin_top = HudTheme.px(10)
-	box.content_margin_bottom = HudTheme.px(12)
+	var box := HudTheme.card()
 	c.add_theme_stylebox_override("panel", box)
 	var body := VBoxContainer.new()
 	body.add_theme_constant_override("separation", roundi(HudTheme.px(8)))
@@ -95,11 +88,7 @@ static func stat_chip(icon_name: String, text: String) -> PanelContainer:
 
 static func _chip(icon: Control, value: Label) -> PanelContainer:
 	var chip := PanelContainer.new()
-	var box := HudTheme.flat(CHIP_FILL, 14.0)
-	box.content_margin_left = HudTheme.px(8)
-	box.content_margin_right = HudTheme.px(10)
-	box.content_margin_top = HudTheme.px(4)
-	box.content_margin_bottom = HudTheme.px(4)
+	var box := HudTheme.pill()
 	chip.add_theme_stylebox_override("panel", box)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", roundi(HudTheme.px(5)))
@@ -157,16 +146,8 @@ static func progress_bar() -> ProgressBar:
 	bar.show_percentage = false
 	bar.custom_minimum_size.y = HudTheme.px(12)
 	bar.value = 0.0
-	var track := StyleBoxFlat.new()
-	track.bg_color = Color(0, 0, 0, 0.5)
-	track.border_color = Color(HudTheme.BRASS, 0.6)
-	track.set_border_width_all(1)
-	track.set_corner_radius_all(roundi(HudTheme.px(6)))
-	var fill := StyleBoxFlat.new()
-	fill.bg_color = HudTheme.GOLD
-	fill.set_corner_radius_all(roundi(HudTheme.px(6)))
-	bar.add_theme_stylebox_override("background", track)
-	bar.add_theme_stylebox_override("fill", fill)
+	bar.add_theme_stylebox_override("background", HudTheme.progress_track())
+	bar.add_theme_stylebox_override("fill", HudTheme.progress_fill())
 	return bar
 
 ## A short warning line with a lock: why an action is blocked.
@@ -191,8 +172,7 @@ static func set_warning(warning_line: PanelContainer, text: String) -> void:
 ## The building as it is painted in the camp, framed: a square cut of the painting around its traced outline.
 static func portrait(id: String, size := 64.0) -> PanelContainer:
 	var frame := PanelContainer.new()
-	var box := HudTheme.flat(Color(0, 0, 0, 0.4), 10.0, HudTheme.BRASS, 1.5)
-	box.set_content_margin_all(HudTheme.px(2))
+	var box := StyleBoxEmpty.new()
 	frame.add_theme_stylebox_override("panel", box)
 	var pic := TextureRect.new()
 	pic.texture = portrait_texture(id)
@@ -201,6 +181,11 @@ static func portrait(id: String, size := 64.0) -> PanelContainer:
 	pic.custom_minimum_size = Vector2.ONE * HudTheme.px(size)
 	pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	frame.add_child(pic)
+	# The brass frame goes over the picture's edge.
+	var rim := Panel.new()
+	rim.add_theme_stylebox_override("panel", HudTheme.framed("frame_portrait", 34.0, "", 0.0, 0.0))
+	rim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(rim)
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return frame
 

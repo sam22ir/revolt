@@ -12,7 +12,7 @@ func _init() -> void:
 	layout_direction = Control.LAYOUT_DIRECTION_LOCALE
 	focus_mode = Control.FOCUS_NONE
 	for state in ["normal", "hover", "pressed", "focus"]:
-		add_theme_stylebox_override(state, HudTheme.panel(HudTheme.RADIUS, 6.0, 4.0))
+		add_theme_stylebox_override(state, HudTheme.panel(6.0, 4.0))
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_theme_constant_override("separation", roundi(HudTheme.px(7)))

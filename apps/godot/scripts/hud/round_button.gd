@@ -60,11 +60,7 @@ func set_label(text: String) -> void:
 
 ## The label on a dark plate with a bronze hairline, in bold: for buttons over the busy camp painting (the action ring).
 func use_plate() -> void:
-	var plate := HudTheme.flat(Color(HudTheme.PANEL, 0.95), 9.0, HudTheme.BRASS, 1.0)
-	plate.content_margin_left = HudTheme.px(7)
-	plate.content_margin_right = HudTheme.px(7)
-	plate.content_margin_top = HudTheme.px(1)
-	plate.content_margin_bottom = HudTheme.px(2)
+	var plate := HudTheme.tag(HudTheme.px(7), HudTheme.px(2))
 	_label.add_theme_stylebox_override("normal", plate)
 	_label.add_theme_constant_override("outline_size", 0)
 	_label.add_theme_font_override("font", load(UiKit.BOLD))

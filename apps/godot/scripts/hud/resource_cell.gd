@@ -18,7 +18,7 @@ func _init(resource_id := "food") -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layout_direction = Control.LAYOUT_DIRECTION_LOCALE
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var box := HudTheme.flat(Color(0, 0, 0, 0.35), 9.0, Color(HudTheme.BRASS, 0.45), 1.0)
+	var box := HudTheme.slice("frame_cell", 28.0, 3.0, 0.0)
 	# Tight sides: the widest amount (the top storage cap, 42,000) and rate must fit four pills across a 375 px phone.
 	box.content_margin_left = HudTheme.px(3)
 	box.content_margin_right = HudTheme.px(3)

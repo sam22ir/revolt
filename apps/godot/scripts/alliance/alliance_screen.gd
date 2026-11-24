@@ -4,12 +4,12 @@ extends Control
 ## holds and sends the player's intents through it; the server decides (names, tags, texts, who may leave). Four tabs: Members,
 ## Chat, Help and Rallies. Fills the area between the HUD and the nav bar and is hidden on the other screens.
 
-const MARGIN := 24
+const MARGIN := 34
 const FONT := 30
 const SMALL := 26
 const PAPER := Color8(0xf4, 0xea, 0xd6)
 const INK := Color8(0x2b, 0x2a, 0x24)
-const MUTED := Color8(0x9a, 0x92, 0x7a)
+const MUTED := HudTheme.TEXT_SECOND
 const GOLD := Color8(0xe0, 0xb8, 0x5a)
 const NOTE_COLOR := Color8(0xe0, 0x7a, 0x62)
 const NOTE_SECONDS := 4.0
@@ -88,13 +88,9 @@ var _no_button := Button.new()
 var _offset_min := 0
 
 func _ready() -> void:
-	var bg := ColorRect.new()
-	bg.color = INK
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bg)
+	add_child(PageBackdrop.new())
 	var margin := MarginContainer.new()
-	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, PageBackdrop.RIM)
 	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
 		margin.add_theme_constant_override(side, MARGIN)
 	add_child(margin)

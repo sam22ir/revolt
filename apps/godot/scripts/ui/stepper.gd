@@ -31,8 +31,10 @@ func _init() -> void:
 	_input.add_theme_font_size_override("font_size", HudTheme.font(UiKit.BIG))
 	_input.add_theme_font_override("font", load(UiKit.BOLD))
 	_input.add_theme_color_override("font_color", HudTheme.TEXT)
-	_input.add_theme_stylebox_override("normal", HudTheme.flat(Color(0, 0, 0, 0.45), 6.0, HudTheme.BRASS, HudTheme.BORDER))
-	_input.add_theme_stylebox_override("focus", HudTheme.flat(Color(0, 0, 0, 0.45), 6.0, HudTheme.RING, HudTheme.BORDER))
+	_input.add_theme_stylebox_override("normal", HudTheme.inset())
+	var focus := HudTheme.inset()
+	focus.frame_tint = Color(1.35, 1.25, 1.0)
+	_input.add_theme_stylebox_override("focus", focus)
 	_input.text_changed.connect(func(text: String) -> void:
 		if text.is_valid_float():
 			_keep(text.to_float()))

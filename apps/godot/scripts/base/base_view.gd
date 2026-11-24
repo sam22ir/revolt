@@ -81,15 +81,7 @@ func _make_label() -> Label:
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", LABEL_FONT)
 	label.add_theme_color_override("font_color", HudTheme.TEXT)
-	var plate := StyleBoxFlat.new()
-	plate.bg_color = Color(HudTheme.PANEL, 0.9)
-	plate.border_color = HudTheme.BRASS
-	plate.set_border_width_all(3)
-	plate.set_corner_radius_all(18)
-	plate.content_margin_left = 18.0
-	plate.content_margin_right = 18.0
-	plate.content_margin_top = 4.0
-	plate.content_margin_bottom = 4.0
+	var plate := HudTheme.tag(18.0, 5.0)
 	label.add_theme_stylebox_override("normal", plate)
 	return label
 
