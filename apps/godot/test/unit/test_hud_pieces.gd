@@ -161,3 +161,14 @@ func test_rates_follow_the_levels_and_the_liberation_bonus() -> void:
 	var levels := {"hq": 1, "farm": 1, "armory": 1, "treasury": 1, "barracks": 1, "hero_hall": 1}
 	var plain := HudModel.rates(levels, [], 0)
 	assert_eq(plain, Balance.production_per_hour(levels, 1.0))
+
+func test_a_round_buttons_icon_sinks_with_the_press_and_comes_back_even_after_a_resize() -> void:
+	var button: RoundButton = add_child_autofree(RoundButton.new("map", HudTheme.SWITCH, true))
+	await wait_process_frames(2)
+	var rest := button.icon_lift()
+	button.button().button_down.emit()
+	assert_gt(button.icon_lift(), rest)
+	button.size += Vector2(60, 60)
+	await wait_process_frames(2)
+	button.button().button_up.emit()
+	assert_almost_eq(button.icon_lift(), rest, 0.01)

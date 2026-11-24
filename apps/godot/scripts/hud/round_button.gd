@@ -28,15 +28,13 @@ func _init(icon_name := "", diameter := 44.0, big := false) -> void:
 	_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_button.pressed.connect(func() -> void: pressed.emit())
 	# The icon rides on the face: it sinks with it.
-	_button.button_down.connect(func() -> void: _icon.position.y += _sink())
-	_button.button_up.connect(func() -> void: _icon.position.y -= _sink())
+	_button.button_down.connect(_place_icon.bind(true))
+	_button.button_up.connect(_place_icon.bind(false))
 	_icon = HudIcon.new(icon_name, diameter * (0.6 if big else 0.64))
 	_icon.set_anchors_preset(Control.PRESET_CENTER)
 	_icon.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_icon.grow_vertical = Control.GROW_DIRECTION_BOTH
-	# The face sits above its lip, so its middle is a little above the button's.
-	_icon.offset_top -= HudTheme.px(diameter) * 9.0 / 256.0
-	_icon.offset_bottom -= HudTheme.px(diameter) * 9.0 / 256.0
+	_place_icon(false)
 	_button.add_child(_icon)
 	_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_dot.custom_minimum_size = Vector2.ONE * HudTheme.px(11)
@@ -55,8 +53,17 @@ func _init(icon_name := "", diameter := 44.0, big := false) -> void:
 	_apply_style()
 	place_dot("en")
 
-func _sink() -> float:
-	return HudTheme.px(_diameter) * 10.0 / 256.0
+## Puts the icon on the face's middle: above the lip, or where the pressed face sinks to (the piece's 256 px drawing). Set whole, never
+## nudged, so a relayout during a press can't leave it off its place.
+func _place_icon(down: bool) -> void:
+	var unit := HudTheme.px(_diameter) / 256.0
+	var lift := (1.0 if down else -9.0) * unit
+	var half := _icon.custom_minimum_size.y * 0.5
+	_icon.offset_top = lift - half
+	_icon.offset_bottom = lift + half
+
+func icon_lift() -> float:
+	return (_icon.offset_top + _icon.offset_bottom) * 0.5
 
 func _apply_style() -> void:
 	HudTheme.make_round(_button, "round_big" if _big else "round")

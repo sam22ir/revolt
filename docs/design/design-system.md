@@ -32,8 +32,8 @@ The constants in `apps/godot/scripts/hud/hud_theme.gd` are the source of truth.
 | `RING` | `#E2C07A` | A hairline that marks something active |
 | `TEXT` | `#E8D5B0` | Body text, numbers |
 | `TEXT_SECOND` | `#BFA77C` | Labels, rates |
-| `GOLD` | `#F0C060` | The screen's one main button, a full store |
-| `ON_GOLD` | `#2B2A24` | Text on the gold button |
+| `GOLD` | `#F0C060` | A full store, the chosen troop's name |
+| `BUTTON_TEXT` | `#FFF3D6` | Text on every game button, with a dark outline |
 | `LACKING` | `#F0795C` | A cost the player can't pay |
 | `ALERT` | `#D9462B` | Attention dots only, with a light ring |
 
@@ -45,7 +45,7 @@ The constants in `apps/godot/scripts/hud/hud_theme.gd` are the source of truth.
 | `TEXT_SECOND` | 6.4 | Labels |
 | `GOLD` | 8.8 | Status text |
 | `LACKING` | 5.4 | Status text |
-| `ON_GOLD` on `GOLD` | 8.5 | Main button label |
+| `BUTTON_TEXT` on the button faces | 3 or more | Large bold labels with an outline (`test_hud_theme.gd`) |
 | `ALERT` | 3.5 | Fails for text: dots only |
 | `TEXT` on `BRASS` | 2.4 | Fails: never put text on a bronze rim |
 
