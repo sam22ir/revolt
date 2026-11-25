@@ -649,6 +649,8 @@ func _process(_delta: float) -> void:
 	_top.chip.set_values(int(_session.levels["hq"]), HudModel.power(_session.state.get("troops", {})))
 	_settings.set_player(int(_session.levels["hq"]), HudModel.power(_session.state.get("troops", {})))
 	_top.marches.set_count(_session.state.get("marches", []).size())
+	# A help request can run out with nothing arriving, so the dots are looked at each frame (a tab ignores what it already shows).
+	_update_dots()
 	if _alliance_screen.is_visible_in_tree():
 		_alliance_screen.tick(now, _map.snapshot.get("rallies", []))
 	if _heroes_screen.is_visible_in_tree():
