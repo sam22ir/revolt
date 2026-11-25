@@ -1,0 +1,7745 @@
+{
+  "helpable": [
+    {
+      "kind": "upgrade",
+      "job": null,
+      "now": 999,
+      "expected": null
+    },
+    {
+      "kind": "upgrade",
+      "job": null,
+      "now": 1000,
+      "expected": null
+    },
+    {
+      "kind": "upgrade",
+      "job": null,
+      "now": 1001,
+      "expected": null
+    },
+    {
+      "kind": "upgrade",
+      "job": {
+        "startedAt": 0,
+        "endsAt": 1000,
+        "building": "farm",
+        "toLevel": 2,
+        "troop": "infantry",
+        "count": 5
+      },
+      "now": 999,
+      "expected": {
+        "startedAt": 0,
+        "endsAt": 1000
+      }
+    },
+    {
+      "kind": "upgrade",
+      "job": {
+        "startedAt": 0,
+        "endsAt": 1000,
+        "building": "farm",
+        "toLevel": 2,
+        "troop": "infantry",
+        "count": 5
+      },
+      "now": 1000,
+      "expected": null
+    },
+    {
+      "kind": "upgrade",
+      "job": {
+        "startedAt": 0,
+        "endsAt": 1000,
+        "building": "farm",
+        "toLevel": 2,
+        "troop": "infantry",
+        "count": 5
+      },
+      "now": 1001,
+      "expected": null
+    },
+    {
+      "kind": "training",
+      "job": null,
+      "now": 999,
+      "expected": null
+    },
+    {
+      "kind": "training",
+      "job": null,
+      "now": 1000,
+      "expected": null
+    },
+    {
+      "kind": "training",
+      "job": null,
+      "now": 1001,
+      "expected": null
+    },
+    {
+      "kind": "training",
+      "job": {
+        "startedAt": 0,
+        "endsAt": 1000,
+        "building": "farm",
+        "toLevel": 2,
+        "troop": "infantry",
+        "count": 5
+      },
+      "now": 999,
+      "expected": {
+        "startedAt": 0,
+        "endsAt": 1000
+      }
+    },
+    {
+      "kind": "training",
+      "job": {
+        "startedAt": 0,
+        "endsAt": 1000,
+        "building": "farm",
+        "toLevel": 2,
+        "troop": "infantry",
+        "count": 5
+      },
+      "now": 1000,
+      "expected": null
+    },
+    {
+      "kind": "training",
+      "job": {
+        "startedAt": 0,
+        "endsAt": 1000,
+        "building": "farm",
+        "toLevel": 2,
+        "troop": "infantry",
+        "count": 5
+      },
+      "now": 1001,
+      "expected": null
+    }
+  ],
+  "batchPerLevel": 20,
+  "maxBatch": [
+    [1,20],
+    [2,40],
+    [3,60],
+    [5,100]
+  ],
+  "quotes": [
+    {
+      "troop": "infantry",
+      "count": 1,
+      "cost": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "durationMs": 6000
+    },
+    {
+      "troop": "infantry",
+      "count": 7,
+      "cost": {
+        "food": 140,
+        "materiel": 70,
+        "funds": 35,
+        "support": 0
+      },
+      "durationMs": 42000
+    },
+    {
+      "troop": "infantry",
+      "count": 100,
+      "cost": {
+        "food": 2000,
+        "materiel": 1000,
+        "funds": 500,
+        "support": 0
+      },
+      "durationMs": 600000
+    },
+    {
+      "troop": "scouts",
+      "count": 1,
+      "cost": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "durationMs": 5000
+    },
+    {
+      "troop": "scouts",
+      "count": 7,
+      "cost": {
+        "food": 105,
+        "materiel": 105,
+        "funds": 35,
+        "support": 0
+      },
+      "durationMs": 35000
+    },
+    {
+      "troop": "scouts",
+      "count": 100,
+      "cost": {
+        "food": 1500,
+        "materiel": 1500,
+        "funds": 500,
+        "support": 0
+      },
+      "durationMs": 500000
+    },
+    {
+      "troop": "heavy",
+      "count": 1,
+      "cost": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "durationMs": 10000
+    },
+    {
+      "troop": "heavy",
+      "count": 7,
+      "cost": {
+        "food": 210,
+        "materiel": 210,
+        "funds": 70,
+        "support": 0
+      },
+      "durationMs": 70000
+    },
+    {
+      "troop": "heavy",
+      "count": 100,
+      "cost": {
+        "food": 3000,
+        "materiel": 3000,
+        "funds": 1000,
+        "support": 0
+      },
+      "durationMs": 1000000
+    },
+    {
+      "troop": "porters",
+      "count": 1,
+      "cost": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "durationMs": 4000
+    },
+    {
+      "troop": "porters",
+      "count": 7,
+      "cost": {
+        "food": 70,
+        "materiel": 0,
+        "funds": 70,
+        "support": 0
+      },
+      "durationMs": 28000
+    },
+    {
+      "troop": "porters",
+      "count": 100,
+      "cost": {
+        "food": 1000,
+        "materiel": 0,
+        "funds": 1000,
+        "support": 0
+      },
+      "durationMs": 400000
+    }
+  ],
+  "checks": [
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "exact",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "short-food",
+      "resources": {
+        "food": 19,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 20,
+        "materiel": 9,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "exact",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 19,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 20,
+        "materiel": 9,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "exact",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "short-food",
+      "resources": {
+        "food": 19,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 20,
+        "materiel": 9,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "exact",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 19,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 20,
+        "materiel": 9,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "exact",
+      "resources": {
+        "food": 140,
+        "materiel": 70,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "short-food",
+      "resources": {
+        "food": 139,
+        "materiel": 70,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 140,
+        "materiel": 69,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 140,
+        "materiel": 70,
+        "funds": 34,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "infantry",
+      "count": 20,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 20,
+      "scenario": "exact",
+      "resources": {
+        "food": 400,
+        "materiel": 200,
+        "funds": 100,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 20,
+      "scenario": "short-food",
+      "resources": {
+        "food": 399,
+        "materiel": 200,
+        "funds": 100,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 20,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 400,
+        "materiel": 199,
+        "funds": 100,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 20,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 400,
+        "materiel": 200,
+        "funds": 99,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "infantry",
+      "count": 21,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 21,
+      "scenario": "exact",
+      "resources": {
+        "food": 420,
+        "materiel": 210,
+        "funds": 105,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 21,
+      "scenario": "short-food",
+      "resources": {
+        "food": 419,
+        "materiel": 210,
+        "funds": 105,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 21,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 420,
+        "materiel": 209,
+        "funds": 105,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "infantry",
+      "count": 21,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 420,
+        "materiel": 210,
+        "funds": 104,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "exact",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "short-food",
+      "resources": {
+        "food": 14,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 15,
+        "materiel": 14,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "exact",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 14,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 15,
+        "materiel": 14,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "exact",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "short-food",
+      "resources": {
+        "food": 14,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 15,
+        "materiel": 14,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "exact",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 14,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 15,
+        "materiel": 14,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "exact",
+      "resources": {
+        "food": 105,
+        "materiel": 105,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "short-food",
+      "resources": {
+        "food": 104,
+        "materiel": 105,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 105,
+        "materiel": 104,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 105,
+        "materiel": 105,
+        "funds": 34,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "scouts",
+      "count": 20,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 20,
+      "scenario": "exact",
+      "resources": {
+        "food": 300,
+        "materiel": 300,
+        "funds": 100,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 20,
+      "scenario": "short-food",
+      "resources": {
+        "food": 299,
+        "materiel": 300,
+        "funds": 100,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 20,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 300,
+        "materiel": 299,
+        "funds": 100,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 20,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 300,
+        "materiel": 300,
+        "funds": 99,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "scouts",
+      "count": 21,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 21,
+      "scenario": "exact",
+      "resources": {
+        "food": 315,
+        "materiel": 315,
+        "funds": 105,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 21,
+      "scenario": "short-food",
+      "resources": {
+        "food": 314,
+        "materiel": 315,
+        "funds": 105,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 21,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 315,
+        "materiel": 314,
+        "funds": 105,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "scouts",
+      "count": 21,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 315,
+        "materiel": 315,
+        "funds": 104,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "exact",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "short-food",
+      "resources": {
+        "food": 29,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 30,
+        "materiel": 29,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "exact",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 29,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 30,
+        "materiel": 29,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "exact",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "short-food",
+      "resources": {
+        "food": 29,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 30,
+        "materiel": 29,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "exact",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 29,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 30,
+        "materiel": 29,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "exact",
+      "resources": {
+        "food": 210,
+        "materiel": 210,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "short-food",
+      "resources": {
+        "food": 209,
+        "materiel": 210,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 210,
+        "materiel": 209,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 210,
+        "materiel": 210,
+        "funds": 69,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "heavy",
+      "count": 20,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 20,
+      "scenario": "exact",
+      "resources": {
+        "food": 600,
+        "materiel": 600,
+        "funds": 200,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 20,
+      "scenario": "short-food",
+      "resources": {
+        "food": 599,
+        "materiel": 600,
+        "funds": 200,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 20,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 600,
+        "materiel": 599,
+        "funds": 200,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 20,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 600,
+        "materiel": 600,
+        "funds": 199,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "heavy",
+      "count": 21,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 21,
+      "scenario": "exact",
+      "resources": {
+        "food": 630,
+        "materiel": 630,
+        "funds": 210,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 21,
+      "scenario": "short-food",
+      "resources": {
+        "food": 629,
+        "materiel": 630,
+        "funds": 210,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 21,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 630,
+        "materiel": 629,
+        "funds": 210,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "heavy",
+      "count": 21,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 630,
+        "materiel": 630,
+        "funds": 209,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "porters",
+      "count": 0,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 0,
+      "scenario": "exact",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 0,
+      "scenario": "short-food",
+      "resources": {
+        "food": 9,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 0,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "porters",
+      "count": -1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": -1,
+      "scenario": "exact",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": -1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 9,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": -1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "porters",
+      "count": 1.5,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 1.5,
+      "scenario": "exact",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 1.5,
+      "scenario": "short-food",
+      "resources": {
+        "food": 9,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 1.5,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "porters",
+      "count": 1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 1,
+      "scenario": "exact",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 9,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "porters",
+      "count": 7,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 7,
+      "scenario": "exact",
+      "resources": {
+        "food": 70,
+        "materiel": 0,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 7,
+      "scenario": "short-food",
+      "resources": {
+        "food": 69,
+        "materiel": 0,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 7,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 70,
+        "materiel": 0,
+        "funds": 69,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "porters",
+      "count": 20,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 20,
+      "scenario": "exact",
+      "resources": {
+        "food": 200,
+        "materiel": 0,
+        "funds": 200,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 20,
+      "scenario": "short-food",
+      "resources": {
+        "food": 199,
+        "materiel": 0,
+        "funds": 200,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 20,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 200,
+        "materiel": 0,
+        "funds": 199,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 1,
+      "busy": true,
+      "troop": "porters",
+      "count": 21,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 21,
+      "scenario": "exact",
+      "resources": {
+        "food": 210,
+        "materiel": 0,
+        "funds": 210,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 21,
+      "scenario": "short-food",
+      "resources": {
+        "food": 209,
+        "materiel": 0,
+        "funds": 210,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 1,
+      "busy": false,
+      "troop": "porters",
+      "count": 21,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 210,
+        "materiel": 0,
+        "funds": 209,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "exact",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "short-food",
+      "resources": {
+        "food": 19,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 20,
+        "materiel": 9,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "exact",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 19,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 20,
+        "materiel": 9,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "exact",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "short-food",
+      "resources": {
+        "food": 19,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 20,
+        "materiel": 9,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "exact",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 19,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 20,
+        "materiel": 9,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "exact",
+      "resources": {
+        "food": 140,
+        "materiel": 70,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "short-food",
+      "resources": {
+        "food": 139,
+        "materiel": 70,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 140,
+        "materiel": 69,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 140,
+        "materiel": 70,
+        "funds": 34,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "infantry",
+      "count": 40,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 40,
+      "scenario": "exact",
+      "resources": {
+        "food": 800,
+        "materiel": 400,
+        "funds": 200,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 40,
+      "scenario": "short-food",
+      "resources": {
+        "food": 799,
+        "materiel": 400,
+        "funds": 200,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 40,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 800,
+        "materiel": 399,
+        "funds": 200,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 40,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 800,
+        "materiel": 400,
+        "funds": 199,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "infantry",
+      "count": 41,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 41,
+      "scenario": "exact",
+      "resources": {
+        "food": 820,
+        "materiel": 410,
+        "funds": 205,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 41,
+      "scenario": "short-food",
+      "resources": {
+        "food": 819,
+        "materiel": 410,
+        "funds": 205,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 41,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 820,
+        "materiel": 409,
+        "funds": 205,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "infantry",
+      "count": 41,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 820,
+        "materiel": 410,
+        "funds": 204,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "exact",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "short-food",
+      "resources": {
+        "food": 14,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 15,
+        "materiel": 14,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "exact",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 14,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 15,
+        "materiel": 14,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "exact",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "short-food",
+      "resources": {
+        "food": 14,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 15,
+        "materiel": 14,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "exact",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 14,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 15,
+        "materiel": 14,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "exact",
+      "resources": {
+        "food": 105,
+        "materiel": 105,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "short-food",
+      "resources": {
+        "food": 104,
+        "materiel": 105,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 105,
+        "materiel": 104,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 105,
+        "materiel": 105,
+        "funds": 34,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "scouts",
+      "count": 40,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 40,
+      "scenario": "exact",
+      "resources": {
+        "food": 600,
+        "materiel": 600,
+        "funds": 200,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 40,
+      "scenario": "short-food",
+      "resources": {
+        "food": 599,
+        "materiel": 600,
+        "funds": 200,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 40,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 600,
+        "materiel": 599,
+        "funds": 200,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 40,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 600,
+        "materiel": 600,
+        "funds": 199,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "scouts",
+      "count": 41,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 41,
+      "scenario": "exact",
+      "resources": {
+        "food": 615,
+        "materiel": 615,
+        "funds": 205,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 41,
+      "scenario": "short-food",
+      "resources": {
+        "food": 614,
+        "materiel": 615,
+        "funds": 205,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 41,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 615,
+        "materiel": 614,
+        "funds": 205,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "scouts",
+      "count": 41,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 615,
+        "materiel": 615,
+        "funds": 204,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "exact",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "short-food",
+      "resources": {
+        "food": 29,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 30,
+        "materiel": 29,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "exact",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 29,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 30,
+        "materiel": 29,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "exact",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "short-food",
+      "resources": {
+        "food": 29,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 30,
+        "materiel": 29,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "exact",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 29,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 30,
+        "materiel": 29,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "exact",
+      "resources": {
+        "food": 210,
+        "materiel": 210,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "short-food",
+      "resources": {
+        "food": 209,
+        "materiel": 210,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 210,
+        "materiel": 209,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 210,
+        "materiel": 210,
+        "funds": 69,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "heavy",
+      "count": 40,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 40,
+      "scenario": "exact",
+      "resources": {
+        "food": 1200,
+        "materiel": 1200,
+        "funds": 400,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 40,
+      "scenario": "short-food",
+      "resources": {
+        "food": 1199,
+        "materiel": 1200,
+        "funds": 400,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 40,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 1200,
+        "materiel": 1199,
+        "funds": 400,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 40,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 1200,
+        "materiel": 1200,
+        "funds": 399,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "heavy",
+      "count": 41,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 41,
+      "scenario": "exact",
+      "resources": {
+        "food": 1230,
+        "materiel": 1230,
+        "funds": 410,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 41,
+      "scenario": "short-food",
+      "resources": {
+        "food": 1229,
+        "materiel": 1230,
+        "funds": 410,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 41,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 1230,
+        "materiel": 1229,
+        "funds": 410,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "heavy",
+      "count": 41,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 1230,
+        "materiel": 1230,
+        "funds": 409,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "porters",
+      "count": 0,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 0,
+      "scenario": "exact",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 0,
+      "scenario": "short-food",
+      "resources": {
+        "food": 9,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 0,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "porters",
+      "count": -1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": -1,
+      "scenario": "exact",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": -1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 9,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": -1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "porters",
+      "count": 1.5,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 1.5,
+      "scenario": "exact",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 1.5,
+      "scenario": "short-food",
+      "resources": {
+        "food": 9,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 1.5,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "porters",
+      "count": 1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 1,
+      "scenario": "exact",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 9,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "porters",
+      "count": 7,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 7,
+      "scenario": "exact",
+      "resources": {
+        "food": 70,
+        "materiel": 0,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 7,
+      "scenario": "short-food",
+      "resources": {
+        "food": 69,
+        "materiel": 0,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 7,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 70,
+        "materiel": 0,
+        "funds": 69,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "porters",
+      "count": 40,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 40,
+      "scenario": "exact",
+      "resources": {
+        "food": 400,
+        "materiel": 0,
+        "funds": 400,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 40,
+      "scenario": "short-food",
+      "resources": {
+        "food": 399,
+        "materiel": 0,
+        "funds": 400,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 40,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 400,
+        "materiel": 0,
+        "funds": 399,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 2,
+      "busy": true,
+      "troop": "porters",
+      "count": 41,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 41,
+      "scenario": "exact",
+      "resources": {
+        "food": 410,
+        "materiel": 0,
+        "funds": 410,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 41,
+      "scenario": "short-food",
+      "resources": {
+        "food": 409,
+        "materiel": 0,
+        "funds": 410,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 2,
+      "busy": false,
+      "troop": "porters",
+      "count": 41,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 410,
+        "materiel": 0,
+        "funds": 409,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "exact",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "short-food",
+      "resources": {
+        "food": 19,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 20,
+        "materiel": 9,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "exact",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 19,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 20,
+        "materiel": 9,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "exact",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "short-food",
+      "resources": {
+        "food": 19,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 20,
+        "materiel": 9,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "exact",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 19,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 20,
+        "materiel": 9,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "exact",
+      "resources": {
+        "food": 140,
+        "materiel": 70,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "short-food",
+      "resources": {
+        "food": 139,
+        "materiel": 70,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 140,
+        "materiel": 69,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 140,
+        "materiel": 70,
+        "funds": 34,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "infantry",
+      "count": 60,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 60,
+      "scenario": "exact",
+      "resources": {
+        "food": 1200,
+        "materiel": 600,
+        "funds": 300,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 60,
+      "scenario": "short-food",
+      "resources": {
+        "food": 1199,
+        "materiel": 600,
+        "funds": 300,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 60,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 1200,
+        "materiel": 599,
+        "funds": 300,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 60,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 1200,
+        "materiel": 600,
+        "funds": 299,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "infantry",
+      "count": 61,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 61,
+      "scenario": "exact",
+      "resources": {
+        "food": 1220,
+        "materiel": 610,
+        "funds": 305,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 61,
+      "scenario": "short-food",
+      "resources": {
+        "food": 1219,
+        "materiel": 610,
+        "funds": 305,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 61,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 1220,
+        "materiel": 609,
+        "funds": 305,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "infantry",
+      "count": 61,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 1220,
+        "materiel": 610,
+        "funds": 304,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "exact",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "short-food",
+      "resources": {
+        "food": 14,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 15,
+        "materiel": 14,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "exact",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 14,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 15,
+        "materiel": 14,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "exact",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "short-food",
+      "resources": {
+        "food": 14,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 15,
+        "materiel": 14,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "exact",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 14,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 15,
+        "materiel": 14,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "exact",
+      "resources": {
+        "food": 105,
+        "materiel": 105,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "short-food",
+      "resources": {
+        "food": 104,
+        "materiel": 105,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 105,
+        "materiel": 104,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 105,
+        "materiel": 105,
+        "funds": 34,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "scouts",
+      "count": 60,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 60,
+      "scenario": "exact",
+      "resources": {
+        "food": 900,
+        "materiel": 900,
+        "funds": 300,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 60,
+      "scenario": "short-food",
+      "resources": {
+        "food": 899,
+        "materiel": 900,
+        "funds": 300,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 60,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 900,
+        "materiel": 899,
+        "funds": 300,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 60,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 900,
+        "materiel": 900,
+        "funds": 299,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "scouts",
+      "count": 61,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 61,
+      "scenario": "exact",
+      "resources": {
+        "food": 915,
+        "materiel": 915,
+        "funds": 305,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 61,
+      "scenario": "short-food",
+      "resources": {
+        "food": 914,
+        "materiel": 915,
+        "funds": 305,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 61,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 915,
+        "materiel": 914,
+        "funds": 305,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "scouts",
+      "count": 61,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 915,
+        "materiel": 915,
+        "funds": 304,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "exact",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "short-food",
+      "resources": {
+        "food": 29,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 30,
+        "materiel": 29,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "exact",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 29,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 30,
+        "materiel": 29,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "exact",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "short-food",
+      "resources": {
+        "food": 29,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 30,
+        "materiel": 29,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "exact",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 29,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 30,
+        "materiel": 29,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "exact",
+      "resources": {
+        "food": 210,
+        "materiel": 210,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "short-food",
+      "resources": {
+        "food": 209,
+        "materiel": 210,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 210,
+        "materiel": 209,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 210,
+        "materiel": 210,
+        "funds": 69,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "heavy",
+      "count": 60,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 60,
+      "scenario": "exact",
+      "resources": {
+        "food": 1800,
+        "materiel": 1800,
+        "funds": 600,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 60,
+      "scenario": "short-food",
+      "resources": {
+        "food": 1799,
+        "materiel": 1800,
+        "funds": 600,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 60,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 1800,
+        "materiel": 1799,
+        "funds": 600,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 60,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 1800,
+        "materiel": 1800,
+        "funds": 599,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "heavy",
+      "count": 61,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 61,
+      "scenario": "exact",
+      "resources": {
+        "food": 1830,
+        "materiel": 1830,
+        "funds": 610,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 61,
+      "scenario": "short-food",
+      "resources": {
+        "food": 1829,
+        "materiel": 1830,
+        "funds": 610,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 61,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 1830,
+        "materiel": 1829,
+        "funds": 610,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "heavy",
+      "count": 61,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 1830,
+        "materiel": 1830,
+        "funds": 609,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "porters",
+      "count": 0,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 0,
+      "scenario": "exact",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 0,
+      "scenario": "short-food",
+      "resources": {
+        "food": 9,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 0,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "porters",
+      "count": -1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": -1,
+      "scenario": "exact",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": -1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 9,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": -1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "porters",
+      "count": 1.5,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 1.5,
+      "scenario": "exact",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 1.5,
+      "scenario": "short-food",
+      "resources": {
+        "food": 9,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 1.5,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "porters",
+      "count": 1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 1,
+      "scenario": "exact",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 9,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "porters",
+      "count": 7,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 7,
+      "scenario": "exact",
+      "resources": {
+        "food": 70,
+        "materiel": 0,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 7,
+      "scenario": "short-food",
+      "resources": {
+        "food": 69,
+        "materiel": 0,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 7,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 70,
+        "materiel": 0,
+        "funds": 69,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "porters",
+      "count": 60,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 60,
+      "scenario": "exact",
+      "resources": {
+        "food": 600,
+        "materiel": 0,
+        "funds": 600,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 60,
+      "scenario": "short-food",
+      "resources": {
+        "food": 599,
+        "materiel": 0,
+        "funds": 600,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 60,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 600,
+        "materiel": 0,
+        "funds": 599,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 3,
+      "busy": true,
+      "troop": "porters",
+      "count": 61,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 61,
+      "scenario": "exact",
+      "resources": {
+        "food": 610,
+        "materiel": 0,
+        "funds": 610,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 61,
+      "scenario": "short-food",
+      "resources": {
+        "food": 609,
+        "materiel": 0,
+        "funds": 610,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 3,
+      "busy": false,
+      "troop": "porters",
+      "count": 61,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 610,
+        "materiel": 0,
+        "funds": 609,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "exact",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "short-food",
+      "resources": {
+        "food": 19,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 20,
+        "materiel": 9,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 0,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "exact",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 19,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 20,
+        "materiel": 9,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": -1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "exact",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "short-food",
+      "resources": {
+        "food": 19,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 20,
+        "materiel": 9,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1.5,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "exact",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 19,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 20,
+        "materiel": 9,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "exact",
+      "resources": {
+        "food": 140,
+        "materiel": 70,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "short-food",
+      "resources": {
+        "food": 139,
+        "materiel": 70,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 140,
+        "materiel": 69,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 7,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 140,
+        "materiel": 70,
+        "funds": 34,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "infantry",
+      "count": 100,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 100,
+      "scenario": "exact",
+      "resources": {
+        "food": 2000,
+        "materiel": 1000,
+        "funds": 500,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 100,
+      "scenario": "short-food",
+      "resources": {
+        "food": 1999,
+        "materiel": 1000,
+        "funds": 500,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 100,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 2000,
+        "materiel": 999,
+        "funds": 500,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 100,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 2000,
+        "materiel": 1000,
+        "funds": 499,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "infantry",
+      "count": 101,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 101,
+      "scenario": "exact",
+      "resources": {
+        "food": 2020,
+        "materiel": 1010,
+        "funds": 505,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 101,
+      "scenario": "short-food",
+      "resources": {
+        "food": 2019,
+        "materiel": 1010,
+        "funds": 505,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 101,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 2020,
+        "materiel": 1009,
+        "funds": 505,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "infantry",
+      "count": 101,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 2020,
+        "materiel": 1010,
+        "funds": 504,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "exact",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "short-food",
+      "resources": {
+        "food": 14,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 15,
+        "materiel": 14,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 0,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "exact",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 14,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 15,
+        "materiel": 14,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": -1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "exact",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "short-food",
+      "resources": {
+        "food": 14,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 15,
+        "materiel": 14,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1.5,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "exact",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 14,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 15,
+        "materiel": 14,
+        "funds": 5,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 4,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "exact",
+      "resources": {
+        "food": 105,
+        "materiel": 105,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "short-food",
+      "resources": {
+        "food": 104,
+        "materiel": 105,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 105,
+        "materiel": 104,
+        "funds": 35,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 7,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 105,
+        "materiel": 105,
+        "funds": 34,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "scouts",
+      "count": 100,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 100,
+      "scenario": "exact",
+      "resources": {
+        "food": 1500,
+        "materiel": 1500,
+        "funds": 500,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 100,
+      "scenario": "short-food",
+      "resources": {
+        "food": 1499,
+        "materiel": 1500,
+        "funds": 500,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 100,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 1500,
+        "materiel": 1499,
+        "funds": 500,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 100,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 1500,
+        "materiel": 1500,
+        "funds": 499,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "scouts",
+      "count": 101,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 101,
+      "scenario": "exact",
+      "resources": {
+        "food": 1515,
+        "materiel": 1515,
+        "funds": 505,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 101,
+      "scenario": "short-food",
+      "resources": {
+        "food": 1514,
+        "materiel": 1515,
+        "funds": 505,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 101,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 1515,
+        "materiel": 1514,
+        "funds": 505,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "scouts",
+      "count": 101,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 1515,
+        "materiel": 1515,
+        "funds": 504,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "exact",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "short-food",
+      "resources": {
+        "food": 29,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 30,
+        "materiel": 29,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 0,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "exact",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 29,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 30,
+        "materiel": 29,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": -1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "exact",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "short-food",
+      "resources": {
+        "food": 29,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 30,
+        "materiel": 29,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1.5,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "exact",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 29,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 30,
+        "materiel": 29,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "exact",
+      "resources": {
+        "food": 210,
+        "materiel": 210,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "short-food",
+      "resources": {
+        "food": 209,
+        "materiel": 210,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 210,
+        "materiel": 209,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 7,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 210,
+        "materiel": 210,
+        "funds": 69,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "heavy",
+      "count": 100,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 100,
+      "scenario": "exact",
+      "resources": {
+        "food": 3000,
+        "materiel": 3000,
+        "funds": 1000,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 100,
+      "scenario": "short-food",
+      "resources": {
+        "food": 2999,
+        "materiel": 3000,
+        "funds": 1000,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 100,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 3000,
+        "materiel": 2999,
+        "funds": 1000,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 100,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 3000,
+        "materiel": 3000,
+        "funds": 999,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "heavy",
+      "count": 101,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 101,
+      "scenario": "exact",
+      "resources": {
+        "food": 3030,
+        "materiel": 3030,
+        "funds": 1010,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 101,
+      "scenario": "short-food",
+      "resources": {
+        "food": 3029,
+        "materiel": 3030,
+        "funds": 1010,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 101,
+      "scenario": "short-materiel",
+      "resources": {
+        "food": 3030,
+        "materiel": 3029,
+        "funds": 1010,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "heavy",
+      "count": 101,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 3030,
+        "materiel": 3030,
+        "funds": 1009,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "porters",
+      "count": 0,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 0,
+      "scenario": "exact",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 0,
+      "scenario": "short-food",
+      "resources": {
+        "food": 9,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 0,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "porters",
+      "count": -1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": -1,
+      "scenario": "exact",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": -1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 9,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": -1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "porters",
+      "count": 1.5,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 1.5,
+      "scenario": "exact",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 1.5,
+      "scenario": "short-food",
+      "resources": {
+        "food": 9,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 1.5,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "porters",
+      "count": 1,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 1,
+      "scenario": "exact",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 1,
+      "scenario": "short-food",
+      "resources": {
+        "food": 9,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 1,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 9,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "porters",
+      "count": 7,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 7,
+      "scenario": "exact",
+      "resources": {
+        "food": 70,
+        "materiel": 0,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 7,
+      "scenario": "short-food",
+      "resources": {
+        "food": 69,
+        "materiel": 0,
+        "funds": 70,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 7,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 70,
+        "materiel": 0,
+        "funds": 69,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "porters",
+      "count": 100,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "training_busy"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 100,
+      "scenario": "exact",
+      "resources": {
+        "food": 1000,
+        "materiel": 0,
+        "funds": 1000,
+        "support": 0
+      },
+      "reason": ""
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 100,
+      "scenario": "short-food",
+      "resources": {
+        "food": 999,
+        "materiel": 0,
+        "funds": 1000,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 100,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 1000,
+        "materiel": 0,
+        "funds": 999,
+        "support": 0
+      },
+      "reason": "insufficient"
+    },
+    {
+      "barracks": 5,
+      "busy": true,
+      "troop": "porters",
+      "count": 101,
+      "scenario": "rich",
+      "resources": {
+        "food": 1000000000,
+        "materiel": 1000000000,
+        "funds": 1000000000,
+        "support": 1000000000
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 101,
+      "scenario": "exact",
+      "resources": {
+        "food": 1010,
+        "materiel": 0,
+        "funds": 1010,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 101,
+      "scenario": "short-food",
+      "resources": {
+        "food": 1009,
+        "materiel": 0,
+        "funds": 1010,
+        "support": 0
+      },
+      "reason": "bad_count"
+    },
+    {
+      "barracks": 5,
+      "busy": false,
+      "troop": "porters",
+      "count": 101,
+      "scenario": "short-funds",
+      "resources": {
+        "food": 1010,
+        "materiel": 0,
+        "funds": 1009,
+        "support": 0
+      },
+      "reason": "bad_count"
+    }
+  ],
+  "troopCases": [
+    {
+      "infantry": 0,
+      "scouts": 0,
+      "heavy": 0,
+      "porters": 0
+    },
+    {
+      "infantry": 4,
+      "scouts": 3,
+      "heavy": 0,
+      "porters": 0
+    },
+    {
+      "infantry": 1,
+      "scouts": 0,
+      "heavy": 0,
+      "porters": 12345
+    },
+    {
+      "infantry": 10,
+      "scouts": 20,
+      "heavy": 30,
+      "porters": 40
+    }
+  ],
+  "troopList": {
+    "en": ["None","4 Infantry, 3 Scouts","1 Infantry, 12,345 Porters","10 Infantry, 20 Scouts, 30 Heavy troops, 40 Porters"],
+    "ar": ["لا أحد","4 المشاة، 3 المستطلعون","1 المشاة، 12.345 الحمّالون","10 المشاة، 20 المستطلعون، 30 القوات الثقيلة، 40 الحمّالون"]
+  }
+}

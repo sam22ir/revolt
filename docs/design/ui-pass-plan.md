@@ -1,0 +1,113 @@
+# UI pass plan
+
+*Started 23 Nov 2026. Goal from the user: the whole UI, one screen at a time. Problems named: too much plain text, looks cheap,
+hard to use on a phone, inconsistent.* Look and tokens stay as in `design-system.md` (daylight camp, bronze HUD); this plan is
+about structure, components and art in the screens.
+
+## Audit (375×812, en, mock server)
+
+- **Text is too small.** Pages and sheets use 11–12 mockup px; labels 10. Below the 12 px floor for Arabic and hard on a phone.
+- **Screens are text lists.** The building sheet is lines of text ("Provisions 80 Arms 80 Funds 60", "Time 1 min"); costs have no
+  icons; the training form is a stack of plain rows. Reports and Alliance are bare lists on a dark page.
+- **No page structure.** Pages have no title bar or back button of their own, no framed body, no section cards; empty states
+  are one grey line ("No battle reports yet.").
+- **Buttons don't read as buttons.** A disabled Upgrade looks like the panel; secondary buttons (Join, Max) are flat text.
+- **Inconsistent.** The HUD and nav are painted bronze; everything between them is flat gunmetal with hairlines.
+- **Art we already own but don't use in Godot:** building portraits, troop art, painted resource icons, hero frames (common,
+  rare, legendary), map markers, all in `apps/client/public/art/`.
+
+## The kit (`apps/godot/scripts/ui/`)
+
+Built once, used by every screen. Each is a small Control with its look from `HudTheme`, plus a pure model where it has logic.
+
+| Component | What it is |
+|---|---|
+| `UiTheme` scale | Font floor: body 14, small 12, title 18, big numbers 20 mockup px. Tap targets at least 44 px. |
+| `PageFrame` | Full page: bronze title band (back button at the start edge, title, optional action), framed scrolling body. |
+| `Card` | A bronze-framed section with an optional header (icon or portrait + title + trailing value). |
+| `CostRow` | Resource icons with amounts; a lacking amount in `LACKING` with the missing quantity. Time with a clock icon. |
+| `StatRow` | Icon, label, value, optional "→ next value" for upgrades (+100/h → +150/h). |
+| `Buttons` | Primary (gold, one per screen), secondary (bronze), disabled (dimmed with the reason under it), small icon button. |
+| `Tabs` | Bronze segmented tabs with a ring on the active one and an optional dot. |
+| `ListRow` | Portrait or icon, title, subtitle, trailing value or button; the one row for members, reports, alliances, heroes. |
+| `EmptyState` | Icon, one line, and the action that fills it ("No reports yet. Send a march from the map."). |
+| `Stepper` | − / value / + / Max for counts, big enough for a thumb. |
+| `ProgressBar` | Bronze-trimmed bar with time left on it. |
+
+## Screens, in order
+
+**Backgrounds (24 Nov, user's ask):** every surface of the game moved to the camp kit (plain surfaces, rounded borders, lashed poles round the big panels and game buttons; the user found the first brass version too fancy and the plank and leather textures too busy): HUD bands, cards, pills, buttons, fields, pages, the loading screen and the map's frontier. The screens' layouts are still the old ones until their step below.
+
+**Icons (24 Nov, user's ask):** every SVG icon was redrawn as a detailed full-colour illustration; see `design-system.md` §6.
+
+The kit grows with the screens: each component is built when the first screen needs it, and each migrated screen moves to the
+kit's font sizes then (no global font change, which would reflow every screen and the HUD heights the base fit depends on).
+
+1. **Building sheet, first, as the look test.** Card, CostRow, StatRow and the button states, in the real game; its en and ar
+   screenshots are the mockup the user approves before the rest. Portrait header (cut from the painting, name, level),
+   "now → next" stat rows, cost chips with icons, time, the requirement as a warning line (its lock icon waits for the painted
+   set), one gold Upgrade button; the speed-up row at kit sizes. *Built 23 Nov.*
+   **Then the bottom sheet was replaced (user's choice, 23 Nov):** a tap on a building outlines it and brings up an **action
+   ring** of round bronze buttons over it (Upgrade and Info on every building, Train on the barracks, Heroes on the hero hall;
+   own SVG icons). It sits above the building, or below it under the top HUD, kept on screen, reversed in Arabic. Upgrade, Info
+   and Train open the building as a **centred card** on a dim backdrop (a tap outside or × closes it and deselects); Heroes
+   opens the Heroes page.
+2. **Barracks training.** *Built 24 Nov.* Four troop tiles (the Phaser medallions, name, number at home, wounded in red; a gold
+   ring on the chosen one), then one card: the troop's role line with its strength and weakness, home and wounded chips, a
+   `Stepper` (`scripts/ui/stepper.gd`), cost and time chips, Train. A running batch is its own card on top (medallion, bar,
+   countdown, help, speed-up), and the order is hidden until it ends, because the barracks trains one batch at a time.
+3. **Top and bottom bars.** *Built 23 Nov.* Top: each resource in a dark pill with a store bar along its bottom edge (brass,
+   amber near the cap, gold when full); the player chip as a round avatar with a gold level badge, the guest name and power by
+   the painted sword; the builders pill with the painted hammer, a gold rim when idle and a progress line while building. The
+   top bar keeps its height (313 px), so the camp's fit is unchanged. Bottom: five even slots, Heroes, Alliance, the big
+   Base/Map switch in the middle, Reports and a new Settings button (own gear SVG). The ask-for-help button keeps its place.
+   *Top bar redone 25 Nov:* gauge trays (`scripts/ui/gauge.gd`), bigger outlined numbers, the player without a box, and a two-line
+   builders' tray; the help button is an icon there and shows on the base only.
+4. **Settings.** *Built 24 Nov.* `PageFrame` (`scripts/ui/page_frame.gd`: title band with the back button and the page's icon, scrolling
+   body), cards headed by an icon for account (avatar, guest tag, level and power, Link Google as later), language, sound (sliding
+   `GameSwitch`) and about. Fits a phone without scrolling. Help and privacy are named but lead nowhere yet. **The tab bar was redone
+   with it** (step 3's round buttons replaced by `NavTab`s; the bar now shows on Settings too).
+5. **Reports.** *Built 25 Nov* on `PageFrame`. The list: a `ListRow` per report (the target's medallion, name, level and time, the loot
+   with icons, the result as a coloured badge and rim) or an `EmptyState` with a button to the map. A report: a banner in the result's
+   colour, loot, the troops sent as a `SegmentBar` each (survived, wounded, lost; zeros left out), the defenders the same way, heroes.
+   Back goes to the list, then home. Icons: the three results and the four colonial targets (objects only, on a red medallion).
+6. **Alliance.** *Built 25 Nov* on `PageFrame`, scrolling inside its own parts so the tabs and the chat's input stay put. Without an
+   alliance: a search card, a `ListRow` per alliance with its member bar and Join, and the Found form as a card. In one: its name, tag and
+   member count in the band; four icon tabs; members as rows with rank badges (a leader's actions open under a tapped row); chat as
+   bubbles (`ChatBubble`); help and rallies as rows with bars, countdowns and their buttons. Leave and the leader's actions ask in a
+   `KitDialog`. A row with its own buttons is not `tappable`. A card, row or tile passes its drags on, so lists scroll under the finger.
+7. **Heroes.** *Built 25 Nov* on `PageFrame`. A recruit card (cost, Recruit, who the last draw brought, the odds and the guarantee as bars
+   over their sentences) over a two-column grid of `HeroTile`s, recruited heroes first: portrait, name, rarity, shards, an arrow when there
+   is a level to take. A tap opens the hero: portrait, rarity, level, specialty, the "inspired by" line, shards and Level up, skills. Back
+   goes to the grid where it was scrolled, then home. `HeroPortrait` frames `art/icons/hero_<id>.svg` (eight, own SVG: the face in plain
+   shade, the role's tools, a place; no flags, insignia or relief emblems) in the rarity's colour: grey, blue, copper. Reports' hero chips
+   use the same portraits.
+8. **Map sheets.** *Built 25 Nov.* The tile panel: the pole card with the medallion of what is there, its level badge, defenders or a
+   site's figures as chips, a warning for a rally-only target, and the buttons side by side. The march sheet on `PageFrame`: the target, a
+   count per troop (medallion, −, field, +, Max), the gathering time as amber buttons, the heroes as three portrait places that open a
+   `HeroPicker`, a harvest's figures; under the scrolling part, travel and carry, the reason (its room is always kept) and Cancel and
+   Send. The marches list: a card with a row per march; only Recall takes touches. (Rallies came with step 6.)
+9. **Toasts and badges.** *Built 25 Nov.* The report toast: a card under the top bar with the result's icon, rim and badge and the target;
+   it slides in, the marches list makes room under it, a tap opens the report. `OfflineBadge`: a dark red plate with the cut-signal icon
+   over the tab bar. `StatusCard`: the hourglass or the cut signal in the middle while there is nothing to show (also at start). The tab
+   dots pop in; the Chat tab's unread count is at its end in each language. The top bar counts marches as "Marches: n". The paper panel and
+   the dropdown styles are gone with their last users.
+
+**The pass is done (25 Nov).** Still to see on a phone: touch, scrolling and text sizes; a leader's actions; the rally sheets.
+
+Each screen: the sheet's rule of rebuilding only when its structure changes is kept (rows update text in place); Arabic is
+checked (rows follow the layout direction, the back chevron flips); models covered by GUT tests, en and ar screenshots at 375×812 looked at before the commit, one commit per screen.
+
+## Art
+
+- **Building portraits come from the camp painting itself**, cropped around each building's outline (CampModels), so the
+  sheet shows the building the player just tapped. The old `art/buildings/*.webp` are from the earlier base and don't match.
+- **Phaser art** (`apps/client/public/art/`: troop art, resource icons, hero frames, markers) is reused only where it matches
+  the bronze kit side by side; some of it predates the kit.
+- **Needs new art (who makes it is the user's call: Google Flow by the user, or a paid generator within the budget) (generated in Google Flow with the bronze kit as reference, no text):** a page title band, card corners
+  if the bronze panel doesn't stretch well, small icons (clock, lock, sword, shield, people), empty-state vignettes. Listed per
+  screen as it comes up.
+
+## Not in this pass
+
+New features, new numbers, the base painting and map look, the night-era `art/ui/` pieces (not used).

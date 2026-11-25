@@ -1,3 +1,4 @@
+import type { World } from "./liberation.ts";
 import { advance } from "./advance.ts";
 import type { BaseState, MapPoint, MarchOutcome, MarchState } from "./base-state.ts";
 import { MAX_MARCHES } from "./data/map.ts";
@@ -64,9 +65,10 @@ export const startMarch = (
   state: BaseState,
   march: Omit<MarchState, "outcome" | "heroes">,
   now: number,
+  world: World,
   loadout: HeroLoadout | null = null,
 ): MarchStartResult => {
-  const s = advance(state, now);
+  const s = advance(state, now, world);
   const reason = checkMarch(s, march.troops, loadout);
   if (reason !== null) return { ok: false, reason, state: s };
   const heroes = loadout === null ? undefined : snapshotHeroes(s.heroes, loadout);

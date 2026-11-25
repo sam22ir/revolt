@@ -1,0 +1,2022 @@
+{
+  "resourceIds": ["food","materiel","funds","support"],
+  "buildingIds": ["hq","farm","armory","treasury","barracks","hero_hall"],
+  "troopIds": ["infantry","scouts","heavy","porters"],
+  "combatTroopIds": ["infantry","scouts","heavy"],
+  "cosmeticIds": ["skin_olive","skin_sand","skin_slate","banner_plain","banner_stripes","banner_dawn","march_dust","march_lantern","outfit_field","outfit_scarf","outfit_coat"],
+  "maxBuildingLevel": 10,
+  "liberation": {
+    "bonusPerRegion": 0.01,
+    "bonusCap": 0.2
+  },
+  "buildings": {
+    "hq": {
+      "produces": "support",
+      "levels": [
+        {
+          "cost": {
+            "food": 0,
+            "materiel": 0,
+            "funds": 0,
+            "support": 0
+          },
+          "durationSec": 0,
+          "ratePerHour": 20
+        },
+        {
+          "cost": {
+            "food": 200,
+            "materiel": 200,
+            "funds": 300,
+            "support": 0
+          },
+          "durationSec": 60,
+          "ratePerHour": 30
+        },
+        {
+          "cost": {
+            "food": 500,
+            "materiel": 500,
+            "funds": 700,
+            "support": 50
+          },
+          "durationSec": 600,
+          "ratePerHour": 40
+        },
+        {
+          "cost": {
+            "food": 1000,
+            "materiel": 1000,
+            "funds": 1500,
+            "support": 100
+          },
+          "durationSec": 1800,
+          "ratePerHour": 55
+        },
+        {
+          "cost": {
+            "food": 2000,
+            "materiel": 2000,
+            "funds": 3000,
+            "support": 200
+          },
+          "durationSec": 3600,
+          "ratePerHour": 70
+        },
+        {
+          "cost": {
+            "food": 3500,
+            "materiel": 3500,
+            "funds": 5000,
+            "support": 300
+          },
+          "durationSec": 7200,
+          "ratePerHour": 90
+        },
+        {
+          "cost": {
+            "food": 6000,
+            "materiel": 6000,
+            "funds": 8500,
+            "support": 450
+          },
+          "durationSec": 14400,
+          "ratePerHour": 110
+        },
+        {
+          "cost": {
+            "food": 9500,
+            "materiel": 9500,
+            "funds": 13000,
+            "support": 650
+          },
+          "durationSec": 28800,
+          "ratePerHour": 135
+        },
+        {
+          "cost": {
+            "food": 14000,
+            "materiel": 14000,
+            "funds": 19000,
+            "support": 900
+          },
+          "durationSec": 43200,
+          "ratePerHour": 160
+        },
+        {
+          "cost": {
+            "food": 20000,
+            "materiel": 20000,
+            "funds": 26000,
+            "support": 1200
+          },
+          "durationSec": 86400,
+          "ratePerHour": 190
+        }
+      ]
+    },
+    "farm": {
+      "produces": "food",
+      "levels": [
+        {
+          "cost": {
+            "food": 0,
+            "materiel": 0,
+            "funds": 0,
+            "support": 0
+          },
+          "durationSec": 0,
+          "ratePerHour": 120
+        },
+        {
+          "cost": {
+            "food": 60,
+            "materiel": 40,
+            "funds": 80,
+            "support": 0
+          },
+          "durationSec": 30,
+          "ratePerHour": 180
+        },
+        {
+          "cost": {
+            "food": 120,
+            "materiel": 90,
+            "funds": 160,
+            "support": 0
+          },
+          "durationSec": 120,
+          "ratePerHour": 260
+        },
+        {
+          "cost": {
+            "food": 240,
+            "materiel": 180,
+            "funds": 320,
+            "support": 0
+          },
+          "durationSec": 600,
+          "ratePerHour": 360
+        },
+        {
+          "cost": {
+            "food": 480,
+            "materiel": 360,
+            "funds": 640,
+            "support": 0
+          },
+          "durationSec": 1800,
+          "ratePerHour": 480
+        },
+        {
+          "cost": {
+            "food": 900,
+            "materiel": 700,
+            "funds": 1200,
+            "support": 0
+          },
+          "durationSec": 3600,
+          "ratePerHour": 640
+        },
+        {
+          "cost": {
+            "food": 1600,
+            "materiel": 1250,
+            "funds": 2200,
+            "support": 0
+          },
+          "durationSec": 7200,
+          "ratePerHour": 840
+        },
+        {
+          "cost": {
+            "food": 2800,
+            "materiel": 2200,
+            "funds": 3800,
+            "support": 0
+          },
+          "durationSec": 14400,
+          "ratePerHour": 1080
+        },
+        {
+          "cost": {
+            "food": 4800,
+            "materiel": 3800,
+            "funds": 6500,
+            "support": 0
+          },
+          "durationSec": 28800,
+          "ratePerHour": 1380
+        },
+        {
+          "cost": {
+            "food": 8000,
+            "materiel": 6400,
+            "funds": 11000,
+            "support": 0
+          },
+          "durationSec": 57600,
+          "ratePerHour": 1740
+        }
+      ]
+    },
+    "armory": {
+      "produces": "materiel",
+      "levels": [
+        {
+          "cost": {
+            "food": 0,
+            "materiel": 0,
+            "funds": 0,
+            "support": 0
+          },
+          "durationSec": 0,
+          "ratePerHour": 100
+        },
+        {
+          "cost": {
+            "food": 70,
+            "materiel": 30,
+            "funds": 90,
+            "support": 0
+          },
+          "durationSec": 30,
+          "ratePerHour": 150
+        },
+        {
+          "cost": {
+            "food": 150,
+            "materiel": 70,
+            "funds": 180,
+            "support": 0
+          },
+          "durationSec": 120,
+          "ratePerHour": 220
+        },
+        {
+          "cost": {
+            "food": 300,
+            "materiel": 140,
+            "funds": 360,
+            "support": 0
+          },
+          "durationSec": 600,
+          "ratePerHour": 300
+        },
+        {
+          "cost": {
+            "food": 600,
+            "materiel": 280,
+            "funds": 720,
+            "support": 0
+          },
+          "durationSec": 1800,
+          "ratePerHour": 400
+        },
+        {
+          "cost": {
+            "food": 1100,
+            "materiel": 550,
+            "funds": 1350,
+            "support": 0
+          },
+          "durationSec": 3600,
+          "ratePerHour": 530
+        },
+        {
+          "cost": {
+            "food": 1950,
+            "materiel": 1000,
+            "funds": 2400,
+            "support": 0
+          },
+          "durationSec": 7200,
+          "ratePerHour": 700
+        },
+        {
+          "cost": {
+            "food": 3400,
+            "materiel": 1750,
+            "funds": 4200,
+            "support": 0
+          },
+          "durationSec": 14400,
+          "ratePerHour": 900
+        },
+        {
+          "cost": {
+            "food": 5800,
+            "materiel": 3000,
+            "funds": 7100,
+            "support": 0
+          },
+          "durationSec": 28800,
+          "ratePerHour": 1150
+        },
+        {
+          "cost": {
+            "food": 9600,
+            "materiel": 5000,
+            "funds": 12000,
+            "support": 0
+          },
+          "durationSec": 57600,
+          "ratePerHour": 1450
+        }
+      ]
+    },
+    "treasury": {
+      "produces": "funds",
+      "levels": [
+        {
+          "cost": {
+            "food": 0,
+            "materiel": 0,
+            "funds": 0,
+            "support": 0
+          },
+          "durationSec": 0,
+          "ratePerHour": 110
+        },
+        {
+          "cost": {
+            "food": 70,
+            "materiel": 60,
+            "funds": 40,
+            "support": 0
+          },
+          "durationSec": 30,
+          "ratePerHour": 165
+        },
+        {
+          "cost": {
+            "food": 150,
+            "materiel": 130,
+            "funds": 90,
+            "support": 0
+          },
+          "durationSec": 120,
+          "ratePerHour": 240
+        },
+        {
+          "cost": {
+            "food": 300,
+            "materiel": 260,
+            "funds": 180,
+            "support": 0
+          },
+          "durationSec": 600,
+          "ratePerHour": 330
+        },
+        {
+          "cost": {
+            "food": 600,
+            "materiel": 520,
+            "funds": 360,
+            "support": 0
+          },
+          "durationSec": 1800,
+          "ratePerHour": 440
+        },
+        {
+          "cost": {
+            "food": 1150,
+            "materiel": 1000,
+            "funds": 700,
+            "support": 0
+          },
+          "durationSec": 3600,
+          "ratePerHour": 580
+        },
+        {
+          "cost": {
+            "food": 2000,
+            "materiel": 1750,
+            "funds": 1250,
+            "support": 0
+          },
+          "durationSec": 7200,
+          "ratePerHour": 760
+        },
+        {
+          "cost": {
+            "food": 3500,
+            "materiel": 3050,
+            "funds": 2200,
+            "support": 0
+          },
+          "durationSec": 14400,
+          "ratePerHour": 980
+        },
+        {
+          "cost": {
+            "food": 6000,
+            "materiel": 5200,
+            "funds": 3800,
+            "support": 0
+          },
+          "durationSec": 28800,
+          "ratePerHour": 1250
+        },
+        {
+          "cost": {
+            "food": 10000,
+            "materiel": 8700,
+            "funds": 6400,
+            "support": 0
+          },
+          "durationSec": 57600,
+          "ratePerHour": 1580
+        }
+      ]
+    },
+    "barracks": {
+      "produces": null,
+      "levels": [
+        {
+          "cost": {
+            "food": 0,
+            "materiel": 0,
+            "funds": 0,
+            "support": 0
+          },
+          "durationSec": 0,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 80,
+            "materiel": 80,
+            "funds": 60,
+            "support": 0
+          },
+          "durationSec": 60,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 160,
+            "materiel": 160,
+            "funds": 120,
+            "support": 0
+          },
+          "durationSec": 300,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 320,
+            "materiel": 320,
+            "funds": 240,
+            "support": 0
+          },
+          "durationSec": 900,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 640,
+            "materiel": 640,
+            "funds": 480,
+            "support": 0
+          },
+          "durationSec": 1800,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 1200,
+            "materiel": 1200,
+            "funds": 900,
+            "support": 0
+          },
+          "durationSec": 3600,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 2100,
+            "materiel": 2100,
+            "funds": 1600,
+            "support": 0
+          },
+          "durationSec": 7200,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 3600,
+            "materiel": 3600,
+            "funds": 2700,
+            "support": 0
+          },
+          "durationSec": 14400,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 6000,
+            "materiel": 6000,
+            "funds": 4500,
+            "support": 0
+          },
+          "durationSec": 28800,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 10000,
+            "materiel": 10000,
+            "funds": 7500,
+            "support": 0
+          },
+          "durationSec": 57600,
+          "ratePerHour": 0
+        }
+      ]
+    },
+    "hero_hall": {
+      "produces": null,
+      "levels": [
+        {
+          "cost": {
+            "food": 0,
+            "materiel": 0,
+            "funds": 0,
+            "support": 0
+          },
+          "durationSec": 0,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 100,
+            "materiel": 60,
+            "funds": 150,
+            "support": 0
+          },
+          "durationSec": 90,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 240,
+            "materiel": 150,
+            "funds": 340,
+            "support": 0
+          },
+          "durationSec": 420,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 480,
+            "materiel": 300,
+            "funds": 680,
+            "support": 0
+          },
+          "durationSec": 1200,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 900,
+            "materiel": 580,
+            "funds": 1280,
+            "support": 0
+          },
+          "durationSec": 2400,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 1600,
+            "materiel": 1050,
+            "funds": 2300,
+            "support": 0
+          },
+          "durationSec": 4800,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 2700,
+            "materiel": 1800,
+            "funds": 3900,
+            "support": 0
+          },
+          "durationSec": 9000,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 4400,
+            "materiel": 2950,
+            "funds": 6300,
+            "support": 0
+          },
+          "durationSec": 16200,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 6900,
+            "materiel": 4650,
+            "funds": 9800,
+            "support": 0
+          },
+          "durationSec": 28800,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 10500,
+            "materiel": 7100,
+            "funds": 15000,
+            "support": 0
+          },
+          "durationSec": 57600,
+          "ratePerHour": 0
+        }
+      ]
+    }
+  },
+  "storageCaps": [
+    {
+      "food": 2000,
+      "materiel": 2000,
+      "funds": 2000,
+      "support": 300
+    },
+    {
+      "food": 3500,
+      "materiel": 3500,
+      "funds": 3500,
+      "support": 500
+    },
+    {
+      "food": 5500,
+      "materiel": 5500,
+      "funds": 5500,
+      "support": 800
+    },
+    {
+      "food": 8000,
+      "materiel": 8000,
+      "funds": 8000,
+      "support": 1100
+    },
+    {
+      "food": 11000,
+      "materiel": 11000,
+      "funds": 11000,
+      "support": 1500
+    },
+    {
+      "food": 15000,
+      "materiel": 15000,
+      "funds": 15000,
+      "support": 2000
+    },
+    {
+      "food": 20000,
+      "materiel": 20000,
+      "funds": 20000,
+      "support": 2600
+    },
+    {
+      "food": 26000,
+      "materiel": 26000,
+      "funds": 26000,
+      "support": 3300
+    },
+    {
+      "food": 33000,
+      "materiel": 33000,
+      "funds": 33000,
+      "support": 4100
+    },
+    {
+      "food": 42000,
+      "materiel": 42000,
+      "funds": 42000,
+      "support": 5000
+    }
+  ],
+  "start": {
+    "levels": {
+      "hq": 1,
+      "farm": 1,
+      "armory": 1,
+      "treasury": 1,
+      "barracks": 1,
+      "hero_hall": 1
+    },
+    "resources": {
+      "food": 500,
+      "materiel": 500,
+      "funds": 500,
+      "support": 0
+    },
+    "troops": {
+      "infantry": 10,
+      "scouts": 0,
+      "heavy": 0,
+      "porters": 0
+    }
+  },
+  "troops": {
+    "infantry": {
+      "tier": 1,
+      "cost": {
+        "food": 20,
+        "materiel": 10,
+        "funds": 5,
+        "support": 0
+      },
+      "trainSecPerUnit": 6,
+      "attack": 10,
+      "hp": 30,
+      "speed": 2,
+      "carry": 10,
+      "counters": "scouts"
+    },
+    "scouts": {
+      "tier": 1,
+      "cost": {
+        "food": 15,
+        "materiel": 15,
+        "funds": 5,
+        "support": 0
+      },
+      "trainSecPerUnit": 5,
+      "attack": 8,
+      "hp": 20,
+      "speed": 4,
+      "carry": 5,
+      "counters": "heavy"
+    },
+    "heavy": {
+      "tier": 1,
+      "cost": {
+        "food": 30,
+        "materiel": 30,
+        "funds": 10,
+        "support": 0
+      },
+      "trainSecPerUnit": 10,
+      "attack": 14,
+      "hp": 45,
+      "speed": 1,
+      "carry": 15,
+      "counters": "infantry"
+    },
+    "porters": {
+      "tier": 1,
+      "cost": {
+        "food": 10,
+        "materiel": 0,
+        "funds": 10,
+        "support": 0
+      },
+      "trainSecPerUnit": 4,
+      "attack": 0,
+      "hp": 15,
+      "speed": 1.5,
+      "carry": 60,
+      "counters": null
+    }
+  },
+  "trainingBatchPerLevel": 20,
+  "battle": {
+    "counterBonus": 1.5,
+    "lostShare": 0.2,
+    "maxRounds": 4
+  },
+  "heroes": {
+    "mountain_guide": {
+      "rarity": "common",
+      "specialty": "scouts",
+      "command": {
+        "id": "ridge_signal",
+        "stat": "attack",
+        "value": 0.15
+      },
+      "passives": [
+        {
+          "id": "night_march",
+          "stat": "defense",
+          "value": 0.05
+        },
+        {
+          "id": "local_knowledge",
+          "stat": "attack",
+          "value": 0.05
+        }
+      ]
+    },
+    "dock_foreman": {
+      "rarity": "common",
+      "specialty": "infantry",
+      "command": {
+        "id": "crowd_rush",
+        "stat": "attack",
+        "value": 0.15
+      },
+      "passives": [
+        {
+          "id": "union_discipline",
+          "stat": "defense",
+          "value": 0.05
+        },
+        {
+          "id": "steady_hands",
+          "stat": "attack",
+          "value": 0.05
+        }
+      ]
+    },
+    "iron_quartermaster": {
+      "rarity": "rare",
+      "specialty": "heavy",
+      "command": {
+        "id": "breach_charge",
+        "stat": "attack",
+        "value": 0.25
+      },
+      "passives": [
+        {
+          "id": "shield_wall",
+          "stat": "defense",
+          "value": 0.08
+        },
+        {
+          "id": "heavy_stock",
+          "stat": "attack",
+          "value": 0.05
+        }
+      ]
+    },
+    "hill_commander": {
+      "rarity": "legendary",
+      "specialty": "infantry",
+      "command": {
+        "id": "last_stand",
+        "stat": "attack",
+        "value": 0.35
+      },
+      "passives": [
+        {
+          "id": "iron_line",
+          "stat": "defense",
+          "value": 0.1
+        },
+        {
+          "id": "veteran_drill",
+          "stat": "attack",
+          "value": 0.1
+        }
+      ]
+    },
+    "trail_scout": {
+      "rarity": "common",
+      "specialty": "scouts",
+      "command": {
+        "id": "jungle_signal",
+        "stat": "attack",
+        "value": 0.15
+      },
+      "passives": [
+        {
+          "id": "paddy_cover",
+          "stat": "defense",
+          "value": 0.05
+        },
+        {
+          "id": "tunnel_sense",
+          "stat": "attack",
+          "value": 0.05
+        }
+      ]
+    },
+    "field_medic": {
+      "rarity": "common",
+      "specialty": "infantry",
+      "command": {
+        "id": "stretcher_run",
+        "stat": "defense",
+        "value": 0.1
+      },
+      "passives": [
+        {
+          "id": "field_dressing",
+          "stat": "defense",
+          "value": 0.05
+        },
+        {
+          "id": "calm_under_fire",
+          "stat": "attack",
+          "value": 0.05
+        }
+      ]
+    },
+    "porter_chief": {
+      "rarity": "rare",
+      "specialty": "heavy",
+      "command": {
+        "id": "bearer_march",
+        "stat": "attack",
+        "value": 0.25
+      },
+      "passives": [
+        {
+          "id": "load_sharing",
+          "stat": "defense",
+          "value": 0.08
+        },
+        {
+          "id": "river_crossing",
+          "stat": "attack",
+          "value": 0.05
+        }
+      ]
+    },
+    "column_commander": {
+      "rarity": "legendary",
+      "specialty": "infantry",
+      "command": {
+        "id": "forward_command",
+        "stat": "attack",
+        "value": 0.35
+      },
+      "passives": [
+        {
+          "id": "dug_in",
+          "stat": "defense",
+          "value": 0.1
+        },
+        {
+          "id": "campaign_drill",
+          "stat": "attack",
+          "value": 0.1
+        }
+      ]
+    }
+  },
+  "heroesByBackground": {
+    "algeria": ["mountain_guide","dock_foreman","iron_quartermaster","hill_commander"],
+    "vietnam": ["trail_scout","field_medic","porter_chief","column_commander"]
+  },
+  "defaultBackground": "algeria",
+  "heroProgression": {
+    "maxLevel": 10,
+    "levelsPerHallLevel": 2,
+    "shardsPerLevel": [2,3,4,6,8,11,14,18,23],
+    "levelEffectStep": 0.03,
+    "minDamageTaken": 0.5,
+    "maxDeputies": 2,
+    "shardsPerDuplicate": 4,
+    "drawMinHall": 2,
+    "drawCost": {
+      "food": 0,
+      "materiel": 0,
+      "funds": 200,
+      "support": 0
+    },
+    "drawOdds": {
+      "common": 700,
+      "rare": 220,
+      "legendary": 80
+    },
+    "pityDraws": 10
+  },
+  "hqRanks": ["leader"],
+  "rally": {
+    "gatherOptionsMs": [60000,300000,900000],
+    "speed": 2,
+    "startRanks": ["leader","officer"]
+  },
+  "npcLevels": [
+    {
+      "level": 1,
+      "kind": "patrol",
+      "defenders": {
+        "infantry": 4,
+        "scouts": 3,
+        "heavy": 0,
+        "porters": 0
+      },
+      "loot": {
+        "food": 300,
+        "materiel": 200,
+        "funds": 150,
+        "support": 0
+      },
+      "rallyOnly": false
+    },
+    {
+      "level": 2,
+      "kind": "convoy",
+      "defenders": {
+        "infantry": 12,
+        "scouts": 8,
+        "heavy": 6,
+        "porters": 0
+      },
+      "loot": {
+        "food": 800,
+        "materiel": 600,
+        "funds": 400,
+        "support": 0
+      },
+      "rallyOnly": false
+    },
+    {
+      "level": 3,
+      "kind": "outpost",
+      "defenders": {
+        "infantry": 30,
+        "scouts": 20,
+        "heavy": 25,
+        "porters": 0
+      },
+      "loot": {
+        "food": 2000,
+        "materiel": 1500,
+        "funds": 1000,
+        "support": 0
+      },
+      "rallyOnly": false
+    },
+    {
+      "level": 4,
+      "kind": "fortified_line",
+      "defenders": {
+        "infantry": 60,
+        "scouts": 40,
+        "heavy": 50,
+        "porters": 0
+      },
+      "loot": {
+        "food": 6000,
+        "materiel": 4500,
+        "funds": 3000,
+        "support": 0
+      },
+      "rallyOnly": true
+    }
+  ],
+  "npcRespawnMs": 600000,
+  "map": {
+    "size": 64,
+    "regionCell": 16,
+    "marchRescueGraceMs": 3600000,
+    "maxMarches": 2,
+    "npcCountByLevel": [16,10,6,0],
+    "placementSpacing": 2
+  },
+  "story": {
+    "algeria": [
+      {
+        "id": "ch1",
+        "scenes": 2,
+        "objectives": [
+          {
+            "kind": "building_level",
+            "building": "hq",
+            "level": 2
+          }
+        ],
+        "reward": {
+          "resources": {
+            "food": 100,
+            "materiel": 100,
+            "funds": 300,
+            "support": 30
+          },
+          "shards": 10
+        },
+        "reviewed": false
+      },
+      {
+        "id": "ch2",
+        "scenes": 2,
+        "objectives": [
+          {
+            "kind": "hero_recruited",
+            "hero": null
+          },
+          {
+            "kind": "troops_owned",
+            "count": 20
+          }
+        ],
+        "reward": {
+          "resources": {
+            "food": 200,
+            "materiel": 200,
+            "funds": 200,
+            "support": 20
+          },
+          "shards": 20
+        },
+        "reviewed": false
+      },
+      {
+        "id": "ch3",
+        "scenes": 2,
+        "objectives": [
+          {
+            "kind": "victories",
+            "count": 1
+          },
+          {
+            "kind": "hero_level",
+            "hero": null,
+            "level": 2
+          }
+        ],
+        "reward": {
+          "resources": {
+            "food": 400,
+            "materiel": 400,
+            "funds": 400,
+            "support": 40
+          },
+          "shards": 10
+        },
+        "reviewed": false
+      }
+    ],
+    "vietnam": [
+      {
+        "id": "ch1",
+        "scenes": 2,
+        "objectives": [
+          {
+            "kind": "building_level",
+            "building": "hq",
+            "level": 2
+          }
+        ],
+        "reward": {
+          "resources": {
+            "food": 100,
+            "materiel": 100,
+            "funds": 300,
+            "support": 30
+          },
+          "shards": 10
+        },
+        "reviewed": false
+      },
+      {
+        "id": "ch2",
+        "scenes": 2,
+        "objectives": [
+          {
+            "kind": "hero_recruited",
+            "hero": null
+          },
+          {
+            "kind": "troops_owned",
+            "count": 20
+          }
+        ],
+        "reward": {
+          "resources": {
+            "food": 200,
+            "materiel": 200,
+            "funds": 200,
+            "support": 20
+          },
+          "shards": 20
+        },
+        "reviewed": false
+      },
+      {
+        "id": "ch3",
+        "scenes": 2,
+        "objectives": [
+          {
+            "kind": "victories",
+            "count": 1
+          },
+          {
+            "kind": "hero_level",
+            "hero": null,
+            "level": 2
+          }
+        ],
+        "reward": {
+          "resources": {
+            "food": 400,
+            "materiel": 400,
+            "funds": 400,
+            "support": 40
+          },
+          "shards": 10
+        },
+        "reviewed": false
+      }
+    ]
+  },
+  "events": {
+    "supply_route": {
+      "anchor": 1767571200000,
+      "periodMs": 604800000,
+      "durationMs": 604800000,
+      "backgrounds": ["algeria","vietnam"],
+      "pointsPerLevel": 10,
+      "cleanBonus": 5,
+      "needsReview": false,
+      "tiers": [
+        {
+          "score": 50,
+          "reward": {
+            "resources": {
+              "food": 300,
+              "materiel": 300,
+              "funds": 300
+            }
+          }
+        },
+        {
+          "score": 200,
+          "reward": {
+            "resources": {
+              "food": 800,
+              "materiel": 800,
+              "funds": 800
+            },
+            "speedupTokens": 2
+          }
+        },
+        {
+          "score": 600,
+          "reward": {
+            "resources": {
+              "food": 1500,
+              "materiel": 1500,
+              "funds": 1500
+            },
+            "shards": 4,
+            "speedupTokens": 3
+          }
+        }
+      ]
+    },
+    "convoy_hunt": {
+      "anchor": 1767571200000,
+      "periodMs": 259200000,
+      "durationMs": 172800000,
+      "backgrounds": ["algeria","vietnam"],
+      "pointsPerLevel": 15,
+      "cleanBonus": 5,
+      "needsReview": false,
+      "tiers": [
+        {
+          "score": 40,
+          "reward": {
+            "resources": {
+              "food": 200,
+              "materiel": 200,
+              "funds": 200
+            }
+          }
+        },
+        {
+          "score": 150,
+          "reward": {
+            "resources": {
+              "food": 600,
+              "materiel": 600,
+              "funds": 600
+            },
+            "speedupTokens": 1
+          }
+        },
+        {
+          "score": 400,
+          "reward": {
+            "shards": 3,
+            "speedupTokens": 2,
+            "cosmetic": "outfit_scarf"
+          }
+        }
+      ]
+    },
+    "seasonal_campaign": {
+      "anchor": 1767571200000,
+      "periodMs": 2419200000,
+      "durationMs": 1814400000,
+      "backgrounds": ["algeria"],
+      "pointsPerLevel": 12,
+      "cleanBonus": 6,
+      "needsReview": true,
+      "tiers": [
+        {
+          "score": 100,
+          "reward": {
+            "resources": {
+              "food": 500,
+              "materiel": 500,
+              "funds": 500
+            }
+          }
+        },
+        {
+          "score": 500,
+          "reward": {
+            "resources": {
+              "food": 1500,
+              "materiel": 1500,
+              "funds": 1500
+            },
+            "shards": 4,
+            "speedupTokens": 3
+          }
+        },
+        {
+          "score": 1500,
+          "reward": {
+            "shards": 8,
+            "speedupTokens": 5,
+            "cosmetic": "skin_sand"
+          }
+        }
+      ]
+    },
+    "vietnam_seasonal_placeholder": {
+      "anchor": 1767571200000,
+      "periodMs": 2419200000,
+      "durationMs": 1814400000,
+      "backgrounds": ["vietnam"],
+      "pointsPerLevel": 12,
+      "cleanBonus": 6,
+      "needsReview": true,
+      "tiers": [
+        {
+          "score": 100,
+          "reward": {
+            "resources": {
+              "food": 500,
+              "materiel": 500,
+              "funds": 500
+            }
+          }
+        },
+        {
+          "score": 500,
+          "reward": {
+            "resources": {
+              "food": 1500,
+              "materiel": 1500,
+              "funds": 1500
+            },
+            "shards": 4,
+            "speedupTokens": 3
+          }
+        },
+        {
+          "score": 1500,
+          "reward": {
+            "shards": 8,
+            "speedupTokens": 5,
+            "cosmetic": "banner_dawn"
+          }
+        }
+      ]
+    }
+  },
+  "passTierCount": 30,
+  "passTiers": [
+    {
+      "tier": 1,
+      "free": {
+        "resources": {
+          "food": 40,
+          "materiel": 40,
+          "funds": 40
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 20,
+          "materiel": 20,
+          "funds": 20
+        }
+      }
+    },
+    {
+      "tier": 2,
+      "free": {
+        "resources": {
+          "food": 80,
+          "materiel": 80,
+          "funds": 80
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 40,
+          "materiel": 40,
+          "funds": 40
+        }
+      }
+    },
+    {
+      "tier": 3,
+      "free": {
+        "resources": {
+          "food": 120,
+          "materiel": 120,
+          "funds": 120
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 60,
+          "materiel": 60,
+          "funds": 60
+        },
+        "speedupTokens": 1
+      }
+    },
+    {
+      "tier": 4,
+      "free": {
+        "resources": {
+          "food": 160,
+          "materiel": 160,
+          "funds": 160
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 80,
+          "materiel": 80,
+          "funds": 80
+        }
+      }
+    },
+    {
+      "tier": 5,
+      "free": {
+        "resources": {
+          "food": 200,
+          "materiel": 200,
+          "funds": 200
+        },
+        "shards": 2
+      },
+      "premium": {
+        "resources": {
+          "food": 100,
+          "materiel": 100,
+          "funds": 100
+        },
+        "cosmetic": "skin_olive"
+      }
+    },
+    {
+      "tier": 6,
+      "free": {
+        "resources": {
+          "food": 240,
+          "materiel": 240,
+          "funds": 240
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 120,
+          "materiel": 120,
+          "funds": 120
+        },
+        "speedupTokens": 1
+      }
+    },
+    {
+      "tier": 7,
+      "free": {
+        "resources": {
+          "food": 280,
+          "materiel": 280,
+          "funds": 280
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 140,
+          "materiel": 140,
+          "funds": 140
+        }
+      }
+    },
+    {
+      "tier": 8,
+      "free": {
+        "resources": {
+          "food": 320,
+          "materiel": 320,
+          "funds": 320
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 160,
+          "materiel": 160,
+          "funds": 160
+        }
+      }
+    },
+    {
+      "tier": 9,
+      "free": {
+        "resources": {
+          "food": 360,
+          "materiel": 360,
+          "funds": 360
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 180,
+          "materiel": 180,
+          "funds": 180
+        },
+        "speedupTokens": 1
+      }
+    },
+    {
+      "tier": 10,
+      "free": {
+        "resources": {
+          "food": 400,
+          "materiel": 400,
+          "funds": 400
+        },
+        "shards": 2,
+        "speedupTokens": 2
+      },
+      "premium": {
+        "resources": {
+          "food": 200,
+          "materiel": 200,
+          "funds": 200
+        },
+        "cosmetic": "banner_stripes"
+      }
+    },
+    {
+      "tier": 11,
+      "free": {
+        "resources": {
+          "food": 440,
+          "materiel": 440,
+          "funds": 440
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 220,
+          "materiel": 220,
+          "funds": 220
+        }
+      }
+    },
+    {
+      "tier": 12,
+      "free": {
+        "resources": {
+          "food": 480,
+          "materiel": 480,
+          "funds": 480
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 240,
+          "materiel": 240,
+          "funds": 240
+        },
+        "speedupTokens": 1
+      }
+    },
+    {
+      "tier": 13,
+      "free": {
+        "resources": {
+          "food": 520,
+          "materiel": 520,
+          "funds": 520
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 260,
+          "materiel": 260,
+          "funds": 260
+        }
+      }
+    },
+    {
+      "tier": 14,
+      "free": {
+        "resources": {
+          "food": 560,
+          "materiel": 560,
+          "funds": 560
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 280,
+          "materiel": 280,
+          "funds": 280
+        }
+      }
+    },
+    {
+      "tier": 15,
+      "free": {
+        "resources": {
+          "food": 600,
+          "materiel": 600,
+          "funds": 600
+        },
+        "shards": 2
+      },
+      "premium": {
+        "resources": {
+          "food": 300,
+          "materiel": 300,
+          "funds": 300
+        },
+        "speedupTokens": 1,
+        "cosmetic": "march_dust"
+      }
+    },
+    {
+      "tier": 16,
+      "free": {
+        "resources": {
+          "food": 640,
+          "materiel": 640,
+          "funds": 640
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 320,
+          "materiel": 320,
+          "funds": 320
+        }
+      }
+    },
+    {
+      "tier": 17,
+      "free": {
+        "resources": {
+          "food": 680,
+          "materiel": 680,
+          "funds": 680
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 340,
+          "materiel": 340,
+          "funds": 340
+        }
+      }
+    },
+    {
+      "tier": 18,
+      "free": {
+        "resources": {
+          "food": 720,
+          "materiel": 720,
+          "funds": 720
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 360,
+          "materiel": 360,
+          "funds": 360
+        },
+        "speedupTokens": 1
+      }
+    },
+    {
+      "tier": 19,
+      "free": {
+        "resources": {
+          "food": 760,
+          "materiel": 760,
+          "funds": 760
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 380,
+          "materiel": 380,
+          "funds": 380
+        }
+      }
+    },
+    {
+      "tier": 20,
+      "free": {
+        "resources": {
+          "food": 800,
+          "materiel": 800,
+          "funds": 800
+        },
+        "shards": 2,
+        "speedupTokens": 2
+      },
+      "premium": {
+        "resources": {
+          "food": 400,
+          "materiel": 400,
+          "funds": 400
+        },
+        "cosmetic": "outfit_field"
+      }
+    },
+    {
+      "tier": 21,
+      "free": {
+        "resources": {
+          "food": 840,
+          "materiel": 840,
+          "funds": 840
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 420,
+          "materiel": 420,
+          "funds": 420
+        },
+        "speedupTokens": 1
+      }
+    },
+    {
+      "tier": 22,
+      "free": {
+        "resources": {
+          "food": 880,
+          "materiel": 880,
+          "funds": 880
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 440,
+          "materiel": 440,
+          "funds": 440
+        }
+      }
+    },
+    {
+      "tier": 23,
+      "free": {
+        "resources": {
+          "food": 920,
+          "materiel": 920,
+          "funds": 920
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 460,
+          "materiel": 460,
+          "funds": 460
+        }
+      }
+    },
+    {
+      "tier": 24,
+      "free": {
+        "resources": {
+          "food": 960,
+          "materiel": 960,
+          "funds": 960
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 480,
+          "materiel": 480,
+          "funds": 480
+        },
+        "speedupTokens": 1
+      }
+    },
+    {
+      "tier": 25,
+      "free": {
+        "resources": {
+          "food": 1000,
+          "materiel": 1000,
+          "funds": 1000
+        },
+        "shards": 2
+      },
+      "premium": {
+        "resources": {
+          "food": 500,
+          "materiel": 500,
+          "funds": 500
+        },
+        "cosmetic": "banner_dawn"
+      }
+    },
+    {
+      "tier": 26,
+      "free": {
+        "resources": {
+          "food": 1040,
+          "materiel": 1040,
+          "funds": 1040
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 520,
+          "materiel": 520,
+          "funds": 520
+        }
+      }
+    },
+    {
+      "tier": 27,
+      "free": {
+        "resources": {
+          "food": 1080,
+          "materiel": 1080,
+          "funds": 1080
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 540,
+          "materiel": 540,
+          "funds": 540
+        },
+        "speedupTokens": 1
+      }
+    },
+    {
+      "tier": 28,
+      "free": {
+        "resources": {
+          "food": 1120,
+          "materiel": 1120,
+          "funds": 1120
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 560,
+          "materiel": 560,
+          "funds": 560
+        }
+      }
+    },
+    {
+      "tier": 29,
+      "free": {
+        "resources": {
+          "food": 1160,
+          "materiel": 1160,
+          "funds": 1160
+        }
+      },
+      "premium": {
+        "resources": {
+          "food": 580,
+          "materiel": 580,
+          "funds": 580
+        }
+      }
+    },
+    {
+      "tier": 30,
+      "free": {
+        "resources": {
+          "food": 1200,
+          "materiel": 1200,
+          "funds": 1200
+        },
+        "shards": 2,
+        "speedupTokens": 2
+      },
+      "premium": {
+        "resources": {
+          "food": 600,
+          "materiel": 600,
+          "funds": 600
+        },
+        "speedupTokens": 1,
+        "cosmetic": "skin_slate"
+      }
+    }
+  ],
+  "products": {
+    "pass_premium": {
+      "kind": "pass",
+      "grants": {},
+      "passPremium": true,
+      "priceHintUsdCents": 499
+    },
+    "bundle_small": {
+      "kind": "bundle",
+      "grants": {
+        "resources": {
+          "food": 500,
+          "materiel": 500,
+          "funds": 500
+        },
+        "speedupTokens": 2
+      },
+      "dailyLimit": 3,
+      "priceHintUsdCents": 199
+    },
+    "bundle_large": {
+      "kind": "bundle",
+      "grants": {
+        "resources": {
+          "food": 2000,
+          "materiel": 2000,
+          "funds": 2000
+        },
+        "speedupTokens": 8
+      },
+      "dailyLimit": 3,
+      "priceHintUsdCents": 799
+    },
+    "speedup_pack_small": {
+      "kind": "speedup",
+      "grants": {
+        "speedupTokens": 5
+      },
+      "dailyLimit": 5,
+      "priceHintUsdCents": 99
+    },
+    "speedup_pack_large": {
+      "kind": "speedup",
+      "grants": {
+        "speedupTokens": 25
+      },
+      "dailyLimit": 3,
+      "priceHintUsdCents": 399
+    },
+    "cosmetic_banner_plain": {
+      "kind": "cosmetic",
+      "grants": {
+        "cosmetic": "banner_plain"
+      },
+      "priceHintUsdCents": 149
+    },
+    "cosmetic_march_lantern": {
+      "kind": "cosmetic",
+      "grants": {
+        "cosmetic": "march_lantern"
+      },
+      "priceHintUsdCents": 149
+    },
+    "cosmetic_outfit_coat": {
+      "kind": "cosmetic",
+      "grants": {
+        "cosmetic": "outfit_coat"
+      },
+      "priceHintUsdCents": 249
+    }
+  },
+  "sites": {
+    "kinds": ["farmland","quarry"],
+    "levels": [1,2,3],
+    "maxHarvestMs": 28800000,
+    "siteResource": {
+      "farmland": "food",
+      "quarry": "materiel"
+    },
+    "ratePerHour": {
+      "farmland": {
+        "1": 300,
+        "2": 600,
+        "3": 1000
+      },
+      "quarry": {
+        "1": 200,
+        "2": 400,
+        "3": 700
+      }
+    }
+  }
+}

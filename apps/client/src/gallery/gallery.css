@@ -1,0 +1,187 @@
+/* Dev-only style gallery. Logical properties throughout, so the page mirrors in RTL. */
+
+:root {
+  --stage-bg: #0d0d0b;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--stage-bg);
+  color: var(--paper, #f4ead6);
+  font: 14px/1.45 system-ui, sans-serif;
+}
+
+#gallery {
+  box-sizing: border-box;
+  max-inline-size: 960px;
+  margin-inline: auto;
+  padding: 16px;
+  overflow-wrap: anywhere;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+h2 {
+  margin: 0 0 6px;
+  padding-block-end: 4px;
+  font-size: 18px;
+  border-block-end: 1px solid #ffffff22;
+}
+
+h3 {
+  margin: 14px 0 6px;
+  font-size: 14px;
+  color: var(--gold, #e0b040);
+}
+
+section {
+  margin-block: 24px;
+  min-inline-size: 0;
+}
+
+.note {
+  margin: 4px 0 8px;
+  opacity: 0.8;
+}
+
+.dim {
+  opacity: 0.7;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+code {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.controls .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block-end: 6px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  padding: 6px 10px;
+  border: 1px solid #ffffff44;
+  border-radius: 6px;
+  background: #00000040;
+  cursor: pointer;
+}
+
+button[aria-pressed="true"] {
+  outline: 2px solid var(--gold, #e0b040);
+  outline-offset: 1px;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  inline-size: 110px;
+  min-inline-size: 0;
+}
+
+.swatch .chip {
+  inline-size: 100%;
+  block-size: 40px;
+  border-radius: 4px;
+  border: 1px solid #0006;
+}
+
+.cells {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 6px;
+  min-inline-size: 0;
+  border: 1px solid #ffffff1f;
+  border-radius: 6px;
+}
+
+.cell figcaption {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 96px;
+  padding: 4px;
+  border-radius: 4px;
+  background: var(--stage-bg);
+}
+
+.stage img {
+  display: block;
+  max-inline-size: 100%;
+  max-block-size: 140px;
+  block-size: auto;
+  inline-size: auto;
+}
+
+.badge {
+  margin-inline-start: 0;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: #b03a2e;
+  color: #fff;
+  font-size: 11px;
+}
+
+.frames {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.frame-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin: 0;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.frame {
+  display: block;
+  max-inline-size: 100%;
+  block-size: auto;
+  border: 1px solid #ffffff1f;
+  background: var(--stage-bg);
+}
+
+.patch {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  max-inline-size: 100%;
+  border: 1px solid #ffffff1f;
+  background: var(--stage-bg);
+}

@@ -1,0 +1,228 @@
+{
+  "_comment": "Captured from the mock server: POST /v1/intent {type:recruit} for a guest at hero hall 2 (a first hero, then a duplicate), {type:hero_level, hero:dock_foreman} with 4 shards (accepted) and again with 2 (refused). Not generated.",
+  "recruit_first": {
+    "ok": true,
+    "state": {
+      "resources": {
+        "food": 191.40577222222242,
+        "materiel": 500.8917638888884,
+        "funds": 330.1980999999994,
+        "support": 490.31117777777774
+      },
+      "levels": {
+        "hq": 3,
+        "farm": 3,
+        "armory": 2,
+        "treasury": 1,
+        "barracks": 3,
+        "hero_hall": 2
+      },
+      "queue": null,
+      "troops": {
+        "infantry": 106,
+        "scouts": 0,
+        "heavy": 0,
+        "porters": 0
+      },
+      "wounded": {
+        "infantry": 0,
+        "scouts": 0,
+        "heavy": 0,
+        "porters": 0
+      },
+      "training": null,
+      "heroes": {
+        "owned": {
+          "dock_foreman": {
+            "level": 1,
+            "shards": 0
+          }
+        },
+        "pity": 1
+      },
+      "story": {
+        "chapter": 0,
+        "victories": 0
+      },
+      "marches": [],
+      "lastUpdated": 1792881513891
+    },
+    "liberations": [],
+    "now": 1792881513891,
+    "draw": {
+      "heroId": "dock_foreman",
+      "rarity": "common",
+      "duplicate": false,
+      "forced": false
+    }
+  },
+  "recruit_duplicate": {
+    "ok": true,
+    "state": {
+      "resources": {
+        "food": 5353.946633333333,
+        "materiel": 3479.2807222222214,
+        "funds": 2114.350002777777,
+        "support": 800
+      },
+      "levels": {
+        "hq": 3,
+        "farm": 3,
+        "armory": 2,
+        "treasury": 1,
+        "barracks": 3,
+        "hero_hall": 2
+      },
+      "queue": null,
+      "troops": {
+        "infantry": 106,
+        "scouts": 0,
+        "heavy": 0,
+        "porters": 0
+      },
+      "wounded": {
+        "infantry": 0,
+        "scouts": 0,
+        "heavy": 0,
+        "porters": 0
+      },
+      "training": null,
+      "heroes": {
+        "owned": {
+          "dock_foreman": {
+            "level": 1,
+            "shards": 4
+          },
+          "mountain_guide": {
+            "level": 1,
+            "shards": 0
+          }
+        },
+        "pity": 3
+      },
+      "story": {
+        "chapter": 0,
+        "victories": 0
+      },
+      "marches": [],
+      "lastUpdated": 1792952995226
+    },
+    "liberations": [],
+    "now": 1792952995226,
+    "draw": {
+      "heroId": "dock_foreman",
+      "rarity": "common",
+      "duplicate": true,
+      "forced": false
+    }
+  },
+  "level_up_ok": {
+    "ok": true,
+    "state": {
+      "resources": {
+        "food": 5353.946633333333,
+        "materiel": 3479.2807222222214,
+        "funds": 2114.350002777777,
+        "support": 800
+      },
+      "levels": {
+        "hq": 3,
+        "farm": 3,
+        "armory": 2,
+        "treasury": 1,
+        "barracks": 3,
+        "hero_hall": 2
+      },
+      "queue": null,
+      "troops": {
+        "infantry": 106,
+        "scouts": 0,
+        "heavy": 0,
+        "porters": 0
+      },
+      "wounded": {
+        "infantry": 0,
+        "scouts": 0,
+        "heavy": 0,
+        "porters": 0
+      },
+      "training": null,
+      "heroes": {
+        "owned": {
+          "dock_foreman": {
+            "level": 2,
+            "shards": 2
+          },
+          "mountain_guide": {
+            "level": 1,
+            "shards": 0
+          }
+        },
+        "pity": 3
+      },
+      "story": {
+        "chapter": 0,
+        "victories": 0
+      },
+      "marches": [],
+      "lastUpdated": 1792952995226
+    },
+    "liberations": [],
+    "now": 1792953010834
+  },
+  "level_up_refused": {
+    "ok": false,
+    "reason": "not_enough_shards",
+    "state": {
+      "resources": {
+        "food": 5353.946633333333,
+        "materiel": 3479.2807222222214,
+        "funds": 2114.350002777777,
+        "support": 800
+      },
+      "levels": {
+        "hq": 3,
+        "farm": 3,
+        "armory": 2,
+        "treasury": 1,
+        "barracks": 3,
+        "hero_hall": 2
+      },
+      "queue": null,
+      "troops": {
+        "infantry": 106,
+        "scouts": 0,
+        "heavy": 0,
+        "porters": 0
+      },
+      "wounded": {
+        "infantry": 0,
+        "scouts": 0,
+        "heavy": 0,
+        "porters": 0
+      },
+      "training": null,
+      "heroes": {
+        "owned": {
+          "dock_foreman": {
+            "level": 2,
+            "shards": 2
+          },
+          "mountain_guide": {
+            "level": 1,
+            "shards": 0
+          }
+        },
+        "pity": 3
+      },
+      "story": {
+        "chapter": 0,
+        "victories": 0
+      },
+      "marches": [],
+      "lastUpdated": 1792952995226
+    },
+    "liberations": [],
+    "now": 1792953043709
+  }
+}

@@ -2,25 +2,84 @@
 
 [hidden] { display: none !important; }
 
-.hud-nav { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+/* Bottom nav bar: fixed to the bottom edge, thumb-sized equal buttons, 520px max so it is a phone column on desktop. */
+.hud-nav {
+  position: fixed;
+  /* A plain square-cornered tray beside the corner medallion: four equal slots from the medallion outwards, two filled so far. */
+  inset-inline-start: 96px;
+  inset-inline-end: 8px;
+  inset-block-end: calc(6px + env(safe-area-inset-bottom));
+  z-index: 15;
+  box-sizing: border-box;
+  block-size: 58px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  justify-items: center;
+  align-items: center;
+  gap: 2px;
+  padding: 0 4px;
+  border: 2px solid var(--bronze);
+  border-radius: 0;
+  background: var(--frame-bg);
+  pointer-events: none;
+}
+.hud-nav > * { pointer-events: auto; }
 
 .nav-btn {
   position: relative;
+  min-inline-size: 0;
+  min-block-size: 46px;
+  padding-inline: 4px;
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--paper);
-  background: rgb(43 42 36 / 0.82);
-  border: 1px solid rgb(244 234 214 / 0.3);
-  border-radius: var(--radius);
-  padding-block: 8px;
-  padding-inline: 14px;
-  min-block-size: 40px;
-  display: inline-flex;
+  color: var(--bronze-hi);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 0;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.65));
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 0;
   cursor: pointer;
 }
+.nav-btn:active { color: var(--paper); transform: translateY(1px); }
+.nav-icon { flex: none; inline-size: 30px; block-size: 30px; object-fit: contain; pointer-events: none; }
+.nav-label {
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 13px;
+}
+/* The base/map switch: just the dark inner disc of its medallion (no bronze rim), sunk into the bottom inline-start corner and clipped by the screen edge. */
+.nav-corner {
+  position: fixed;
+  /* A 64px box (its disc reads about as big as the neighbouring icons) centred 47px from the inline-start edge and 35px from the bottom, level with them. */
+  inset-inline-start: 15px;
+  inset-block-end: 3px;
+  z-index: 16;
+  inline-size: 64px;
+  block-size: 64px;
+  min-block-size: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  filter: drop-shadow(0 3px 5px rgb(0 0 0 / 0.7));
+}
+.nav-corner:active { transform: scale(0.97); }
+/* The rim is the outer ~26% of the art's radius: clip to the disc inside it. */
+.nav-corner .nav-icon { inline-size: 100%; block-size: 100%; clip-path: circle(37%); }
+.nav-corner > .badge { inset-block-start: 0; inset-inline-end: 0; }
+/* The label stays for screen readers only. */
+.nav-corner .nav-label { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* Badges sit on the button's top inline-end corner, clear of the label. */
+.nav-btn > .badge { position: absolute; inset-block-start: -6px; inset-inline-end: -4px; }
 .badge {
   min-inline-size: 20px;
   block-size: 20px;
@@ -34,40 +93,47 @@
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
+/* A dot with no number: "builders idle" on the map toggle. */
+.badge.dot { min-inline-size: 12px; block-size: 12px; padding: 0; border-radius: 50%; }
 
+/* A small tab hanging from the middle of the resources bar. */
 .coord-pill {
   align-self: center;
-  padding-block: 4px;
-  padding-inline: 14px;
-  border-radius: 999px;
-  font-size: 13px;
+  margin-block-start: -4px;
+  padding-block: 1px 2px;
+  padding-inline: 10px;
+  border-radius: 0 0 6px 6px;
+  font-size: 11px;
+  line-height: 14px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  background: rgb(43 42 36 / 0.7);
+  background: var(--frame-bg);
   color: var(--paper);
   pointer-events: none;
   unicode-bidi: plaintext;
 }
 
 /* Marches under the queue pill */
-.marches { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; align-items: stretch; }
+.marches { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; align-items: stretch; max-inline-size: 100%; }
+/* One line per march: target, phase and countdown, each truncated rather than wrapped. */
 .march-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  column-gap: 8px;
-  padding-block: 5px;
-  padding-inline: 12px;
-  border-radius: 10px;
-  font-size: 13px;
-  background: rgb(43 42 36 / 0.78);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 28px;
+  padding-block: 4px;
+  padding-inline: 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: var(--frame-bg);
+  border: var(--frame-border);
   color: var(--paper);
 }
 .march-row[data-stage="fighting"] { background: rgb(181 64 47 / 0.9); }
 .march-row[data-stage="returning"] { background: rgb(79 122 58 / 0.9); }
-.march-target { font-weight: 700; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.march-time { font-variant-numeric: tabular-nums; white-space: nowrap; text-align: end; }
-.march-stage { grid-column: 1; opacity: 0.9; }
-.march-time { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+.march-target { flex: 0 1 auto; font-weight: 700; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.march-stage { flex: 0 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0.9; }
+.march-time { flex: none; margin-inline-start: auto; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* Tile panel and shared small controls */
 .tile-coords { font-variant-numeric: tabular-nums; unicode-bidi: plaintext; }
@@ -93,7 +159,9 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  /* Leave room for the bottom nav bar so dialogs sit above it. */
   padding: var(--gutter);
+  padding-block-end: calc(var(--gutter) + var(--nav-h) + env(safe-area-inset-bottom));
   background: rgb(0 0 0 / 0.5);
   pointer-events: auto;
 }
@@ -101,9 +169,12 @@
   inline-size: min(100%, 440px);
   max-block-size: 100%;
   overflow-y: auto;
-  padding: 14px 16px 16px;
-  border-radius: 16px;
-  background: var(--paper);
+  /* The panel frame around a paper sheet: 12px border under the painted bar, as on .panel. */
+  padding: 10px 14px 12px;
+  border: 12px solid transparent;
+  border-image: var(--frame-panel-image);
+  border-radius: 0;
+  background: var(--paper) padding-box;
   /* Not box-shadow: on a scrolling element above the WebGL canvas it made headless Chromium paint the canvas
      area above the panel solid white/black. drop-shadow renders the same and does not. */
   filter: drop-shadow(0 -4px 12px rgb(0 0 0 / 0.35));
@@ -210,7 +281,8 @@
 /* New-report notice, under the HUD */
 .report-toast {
   position: fixed;
-  inset-block-start: 150px;
+  /* Just under the top bar and status row (see HUD_TOP in scene/base-scene.ts). */
+  inset-block-start: calc(112px + env(safe-area-inset-top));
   inset-inline: 0;
   margin-inline: auto;
   inline-size: max-content;
@@ -235,3 +307,203 @@
 .toast-result { font-weight: 600; opacity: 0.8; }
 .toast-btn.result-victory { background: #9ec27a; }
 .toast-btn.result-defeat { background: #e0907f; }
+
+/* The overview of the whole map. Placed with logical properties; its picture is physical and never mirrored in Arabic. */
+.minimap {
+  position: fixed;
+  inset-inline-start: 10px;
+  inset-block-end: calc(var(--nav-h) + env(safe-area-inset-bottom) + 10px);
+  inline-size: 112px;
+  block-size: 56px;
+  padding: 0;
+  border: 1px solid transparent;
+  /* Drawn 6px outside the box so the painted bar does not cover the map picture. */
+  border-image: var(--art-frame-plate) 48 60 / 10px 13px / 6px stretch;
+  border-radius: 0;
+  background: var(--frame-bg);
+  overflow: hidden;
+  cursor: pointer;
+}
+.minimap[hidden] { display: none; }
+.minimap canvas { display: block; inline-size: 100%; block-size: 100%; }
+
+/* "My base": a round home button just past the minimap (its inline-start edge is 10 + 112 + 8 px), centred on it. */
+.my-base-btn {
+  position: fixed;
+  inset-inline-start: 130px;
+  inset-block-end: calc(var(--nav-h) + env(safe-area-inset-bottom) + 18px);
+  display: grid;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  /* The painted round button (art/ui/button_round); gold while pressed. */
+  background: var(--art-button-round) center / 100% 100% no-repeat, var(--frame-bg);
+  color: var(--paper);
+  cursor: pointer;
+}
+.my-base-btn:active { background-image: var(--art-button-round-active); }
+.my-base-btn[hidden] { display: none; }
+.my-base-btn:disabled { opacity: 0.45; cursor: default; }
+.my-base-btn .home-icon { display: block; inline-size: 22px; block-size: 22px; }
+
+/* Account: a round icon beside the resources bar, at the top inline-end corner. */
+.account-open {
+  order: -2;
+  flex: none;
+  align-self: flex-start;
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.65));
+  cursor: pointer;
+}
+.account-open .nav-icon { inline-size: 40px; block-size: 40px; }
+
+/* Search: a round button beside the home button; it opens the target sheet above the minimap row. */
+.search-open-btn {
+  position: fixed;
+  inset-inline-start: 178px;
+  inset-block-end: calc(var(--nav-h) + env(safe-area-inset-bottom) + 18px);
+  display: grid;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--art-button-round) center / 100% 100% no-repeat, var(--frame-bg);
+  color: var(--paper);
+  cursor: pointer;
+}
+.search-open-btn:active { background-image: var(--art-button-round-active); }
+.search-open-btn[hidden] { display: none; }
+.search-open-btn .home-icon { display: block; inline-size: 22px; block-size: 22px; }
+
+/* "Find a target": the sheet's level buttons and Search. */
+.target-search {
+  position: fixed;
+  inset-inline: 10px;
+  inset-block-end: calc(var(--nav-h) + env(safe-area-inset-bottom) + 76px);
+  max-inline-size: 500px;
+  margin-inline: auto;
+  padding: 10px;
+  background: var(--frame-bg);
+  border: 1px solid transparent;
+  border-image: var(--frame-panel-image);
+  z-index: 14;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.target-search[hidden] { display: none; }
+.target-label { flex: 0 0 100%; font-size: 0.85em; font-weight: 600; color: var(--paper); text-shadow: 0 1px 2px rgb(0 0 0 / 0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.target-levels { display: flex; gap: 4px; }
+.target-level, .target-go {
+  min-block-size: 36px;
+  padding-inline: 12px;
+  border: 1px solid transparent;
+  border-image: var(--frame-plate-image);
+  border-radius: 3px;
+  background: var(--frame-bg) padding-box;
+  color: var(--paper);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.target-level { position: relative; inline-size: 64px; min-block-size: 44px; padding: 2px; display: grid; place-items: center; }
+.target-level-icon { inline-size: 38px; block-size: 38px; object-fit: contain; pointer-events: none; }
+/* The level number on the picture's corner, like the map's level badge. */
+.target-level-num {
+  position: absolute;
+  inset-block-end: -4px;
+  inset-inline-end: -4px;
+  min-inline-size: 18px;
+  block-size: 18px;
+  border-radius: 9px;
+  border: 1.5px solid #c8964a;
+  background: #2b2219;
+  color: var(--paper);
+  font-size: 11px;
+  line-height: 15px;
+  text-align: center;
+}
+.target-level[aria-pressed="true"] { border-image: var(--frame-button-active-image); }
+.target-go { margin-inline-start: auto; }
+.target-go:disabled { border-image: var(--frame-button-disabled-image); color: rgb(244 234 214 / 0.55); cursor: default; }
+.target-note { flex: 0 1 auto; margin: 0; padding: 4px 12px; border-radius: 3px; background: var(--frame-bg) padding-box; border: 1px solid transparent; border-image: var(--frame-plate-image); font-size: 13px; color: var(--paper); }
+.target-note[hidden] { display: none; }
+
+/* Name plates and the arrow home over the map canvas (ui/map-labels.ts). The map never mirrors, so this layer is placed
+   in physical px from the camera and is dir="ltr"; each handle carries its own dir="auto". It sits first in #ui and is
+   clipped to the free band, so the header and sheets stay on top of it. */
+#ui > .map-labels { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.map-labels[hidden] { display: none; }
+.map-plate {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 170px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border-bottom: 2px solid var(--plate-edge, rgb(240 228 200 / 0.7));
+  background: rgb(28 22 16 / 0.78);
+  color: var(--paper);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+  will-change: transform;
+}
+.map-plate bdi { overflow: hidden; text-overflow: ellipsis; }
+.map-plate-tag { color: #f2d48a; }
+.map-plate.rel-own { --plate-edge: var(--gold); }
+.map-plate.rel-ally { --plate-edge: var(--alliance-own); }
+.map-plate.rel-ally .map-plate-tag { color: #9fe3d6; }
+.map-plate.rel-other { --plate-edge: var(--alliance-other); }
+.map-plate.rel-other .map-plate-tag { color: #c9b8f2; }
+.base-arrow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 1px solid rgb(244 234 214 / 0.4);
+  border-radius: 50%;
+  background: rgb(28 22 16 / 0.8);
+  color: var(--paper);
+  pointer-events: auto;
+  cursor: pointer;
+  /* Above the name plates, which are added after it. */
+  z-index: 1;
+}
+.base-arrow[hidden] { display: none; }
+.base-arrow-head {
+  position: absolute;
+  inset: 0;
+}
+/* A small triangle on the ring's rim, rotated toward the base by the inline transform. */
+.base-arrow-head::after {
+  content: "";
+  position: absolute;
+  right: -7px;
+  top: 50%;
+  margin-top: -7px;
+  border: 7px solid transparent;
+  border-left: 9px solid var(--gold);
+  border-right: 0;
+}
+.base-arrow-distance { font-size: 11px; font-weight: 700; line-height: 1.1; text-align: center; padding: 0 3px; }

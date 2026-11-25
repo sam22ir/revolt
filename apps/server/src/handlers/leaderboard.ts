@@ -1,3 +1,4 @@
+import { loadWorld } from "../db/liberations.ts";
 import {
   activeEvents,
   advance,
@@ -29,7 +30,8 @@ export const getLeaderboard = async (ctx: Ctx): Promise<Response> => {
   const board = url.searchParams.get("board") ?? "power";
   if (!isLeaderboardId(board)) throw new HttpError("bad_request");
   const stored = await loadBase(ctx.env.DB, account.id);
-  if (stored !== null) await syncSnapshot(ctx, account, advance(stored.state, ctx.now));
+  const world = await loadWorld(ctx.env.DB, account.server);
+  if (stored !== null) await syncSnapshot(ctx, account, advance(stored.state, ctx.now, world));
   const bg = backgroundOf(account);
   let query: BoardQuery;
   let meId = account.id;

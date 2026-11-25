@@ -33,7 +33,7 @@ export {
   type TrainingJob,
   type UpgradeJob,
 } from "./base-state.ts";
-export { counterFactor, resolveBattle, takeLoot, type BattleResult, type BattleRound } from "./battle.ts";
+export { carryCapacity, counterFactor, resolveBattle, takeLoot, type BattleResult, type BattleRound } from "./battle.ts";
 export { BUILDING_IDS, type BuildingId } from "./building-id.ts";
 export { heroBattleModifier, checkLoadout, heroesOnMarch, parseHeroLoadout, HERO_LOADOUT_BLOCK_REASONS, loadoutIds, MAX_DEPUTIES, snapshotHeroes, type HeroLoadout, type HeroLoadoutBlockReason } from "./hero-loadout.ts";
 export { drawHero, HERO_DRAW_BLOCK_REASONS, isPityDraw, recruitHero, type HeroDraw, type HeroDrawBlockReason, type HeroRecruitResult } from "./hero-draw.ts";
@@ -44,7 +44,7 @@ export { HEROES, type HeroDef, type SkillDef } from "./data/heroes.ts";
 export * from "./data/hero-progression.ts";
 export { NO_BATTLE_MODIFIER, type BattleModifier } from "./battle.ts";
 export { BUILDINGS, MAX_BUILDING_LEVEL, type BuildingDef, type BuildingLevel } from "./data/buildings.ts";
-export { MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING } from "./data/map.ts";
+export { MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING, REGION_CELL } from "./data/map.ts";
 export { MAX_NPC_LEVEL, NPC_KINDS, NPC_LEVELS, NPC_RESPAWN_MS, type NpcKind, type NpcLevelDef } from "./data/npcs.ts";
 export { STORAGE_CAPS } from "./data/storage.ts";
 export { START_LEVELS, START_RESOURCES, START_TROOPS } from "./data/start.ts";
@@ -65,12 +65,49 @@ export {
   type MarchStartResult,
   type MarchTiming,
 } from "./march.ts";
+export {
+  checkHarvest,
+  harvestCarry,
+  harvestedAt,
+  harvestTiming,
+  HARVEST_BLOCK_REASONS,
+  placeSites,
+  recallTiming,
+  type HarvestBlockReason,
+  type HarvestTiming,
+  type MapSite,
+  type RecallResult,
+} from "./sites.ts";
+export {
+  SITE_KINDS,
+  SITE_LEVEL_BANDS,
+  SITE_LEVEL_FALLBACK,
+  SITE_LEVELS,
+  SITE_MAX_HARVEST_MS,
+  SITE_MIN_SPACING,
+  SITE_RATE_PER_HOUR,
+  SITE_RESOURCE,
+  SITE_TILES_PER_SITE,
+  type SiteKind,
+  type SiteLevel,
+} from "./data/sites.ts";
 export { migrateBaseState } from "./migrate-state.ts";
 export { fightNpc, npcLevel, targetGone } from "./npc-battle.ts";
 export { RESOURCE_IDS, type ResourceId } from "./resource-id.ts";
 export { canAfford, ZERO_RESOURCES, type Resources } from "./resources.ts";
 export { hash32, isSeed, seededRng } from "./rng.ts";
-export { isOnMap, terrainAt, TERRAIN_IDS, type TerrainId } from "./terrain.ts";
+export { isOnMap, terrainAt, TERRAIN_IDS, valueNoise, type TerrainId } from "./terrain.ts";
+export { fertilityAt, GEO_BANK, GEO_OASIS, GEO_OASIS_RING, GEO_OASIS_SHORE, GEO_ROAD, GEO_WADI, geographyOf, type GeoTile, type Geography } from "./geography.ts";
+export {
+  isRegionBorder,
+  regionAt,
+  regionGrid,
+  regionNeighbors,
+  regionSite,
+  regionsOf,
+  type Region,
+  type RegionId,
+} from "./regions.ts";
 export {
   checkTraining,
   maxTrainingBatch,
@@ -119,6 +156,8 @@ export {
   type RallyView,
   type MapBaseView,
   type MapMarchView,
+  type MapSiteView,
+  type LiberationView,
   type MapNpcView,
   type MapServerMessage,
   type MapSnapshot,
@@ -215,3 +254,5 @@ export {
   type SpeedUpResult,
   type StoreBlockReason,
 } from "./store.ts";
+export { LIBERATION_BONUS_CAP, LIBERATION_BONUS_PER_REGION } from "./data/liberation.ts";
+export { liberatedCount, liberatedRegions, multiplierBreakpoints, NO_WORLD, productionMultiplier, strongholdTile, type Liberation, type TakenTile, type World } from "./liberation.ts";

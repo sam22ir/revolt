@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { NO_WORLD } from "../src/index.ts";
 import {
   advance,
   createBaseState,
@@ -61,45 +62,45 @@ describe("claiming chapters", () => {
   });
 
   test("an unmet chapter is refused and nothing changes", () => {
-    const r = claimChapter(createBaseState(T0), T0);
+    const r = claimChapter(createBaseState(T0), T0, NO_WORLD);
     expect(r).toMatchObject({ ok: false, reason: "objectives_unmet" });
     expect(r.state.story.chapter).toBe(0);
   });
 
   test("chapter 1 is finished with the start resources and 60 seconds", () => {
-    const up = startUpgrade(createBaseState(T0), "hq", T0);
+    const up = startUpgrade(createBaseState(T0), "hq", T0, NO_WORLD);
     if (!up.ok) throw new Error(up.reason);
-    expect(chapterStatus(advance(up.state, T0 + 59 * SEC))).toBe("in_progress");
-    const done = advance(up.state, T0 + 60 * SEC);
+    expect(chapterStatus(advance(up.state, T0 + 59 * SEC, NO_WORLD))).toBe("in_progress");
+    const done = advance(up.state, T0 + 60 * SEC, NO_WORLD);
     expect(chapterStatus(done)).toBe("ready");
-    const claim = claimChapter(done, T0 + 60 * SEC);
+    const claim = claimChapter(done, T0 + 60 * SEC, NO_WORLD);
     if (!claim.ok) throw new Error(claim.reason);
     expect(claim.state.story.chapter).toBe(1);
   });
 
   test("the chapter 1 reward covers a recruit draw in funds, so no other source is needed", () => {
-    const up = startUpgrade(createBaseState(T0), "hq", T0);
+    const up = startUpgrade(createBaseState(T0), "hq", T0, NO_WORLD);
     if (!up.ok) throw new Error(up.reason);
-    const claim = claimChapter(up.state, T0 + 60 * SEC);
+    const claim = claimChapter(up.state, T0 + 60 * SEC, NO_WORLD);
     if (!claim.ok) throw new Error(claim.reason);
     expect(claim.state.resources.funds).toBeGreaterThanOrEqual(HERO_DRAW_COST.funds);
   });
 
   test("chapter shards go to the first owned hero of the background, and nowhere if none is owned", () => {
-    const owned = claimChapter(withHeroes(withReady(1), { dock_foreman: { level: 1, shards: 0 }, mountain_guide: { level: 1, shards: 1 } }), T0);
+    const owned = claimChapter(withHeroes(withReady(1), { dock_foreman: { level: 1, shards: 0 }, mountain_guide: { level: 1, shards: 1 } }), T0, NO_WORLD);
     if (!owned.ok) throw new Error(owned.reason);
     expect(owned.state.heroes.owned.mountain_guide?.shards).toBe(1 + chapters[1]!.reward.shards);
     expect(owned.state.heroes.owned.dock_foreman?.shards).toBe(0);
-    const none = claimChapter(withReady(0), T0);
+    const none = claimChapter(withReady(0), T0, NO_WORLD);
     if (!none.ok) throw new Error(none.reason);
     expect(Object.keys(none.state.heroes.owned)).toHaveLength(0);
   });
 
   test("claiming the same chapter twice is refused: it advances once", () => {
-    const first = claimChapter(withReady(0), T0);
+    const first = claimChapter(withReady(0), T0, NO_WORLD);
     if (!first.ok) throw new Error(first.reason);
     expect(first.state.story.chapter).toBe(1);
-    expect(claimChapter(first.state, T0).ok).toBe(false);
+    expect(claimChapter(first.state, T0, NO_WORLD).ok).toBe(false);
     expect(Object.keys(first.state.heroes.owned)).toHaveLength(0);
   });
 
@@ -107,20 +108,20 @@ describe("claiming chapters", () => {
     let s = withReady(0);
     for (let i = 0; i < chapters.length; i++) {
       s = withReady(i, s);
-      const r = claimChapter(s, T0);
+      const r = claimChapter(s, T0, NO_WORLD);
       if (!r.ok) throw new Error(`chapter ${i + 1}: ${r.reason}`);
       expect(r.state.story.chapter).toBe(i + 1);
       s = r.state;
     }
     expect(currentChapter(s)).toBeNull();
     expect(chapterStatus(s)).toBe("complete");
-    expect(claimChapter(s, T0)).toMatchObject({ ok: false, reason: "story_complete" });
+    expect(claimChapter(s, T0, NO_WORLD)).toMatchObject({ ok: false, reason: "story_complete" });
   });
 
   test("rewards fill storage only up to the cap and never lower an amount already above it", () => {
     const cap = storageCap(2);
     const nearFull = { ...withReady(0), resources: { food: cap.food - 10, materiel: cap.materiel + 500, funds: 0, support: 0 } };
-    const r = claimChapter(nearFull, nearFull.lastUpdated);
+    const r = claimChapter(nearFull, nearFull.lastUpdated, NO_WORLD);
     if (!r.ok) throw new Error(r.reason);
     expect(r.state.resources.food).toBe(cap.food);
     expect(r.state.resources.materiel).toBe(cap.materiel + 500);
@@ -129,10 +130,10 @@ describe("claiming chapters", () => {
 
   test("a claim with the clock going backwards or after a very long gap behaves", () => {
     const s = withReady(0);
-    const back = claimChapter(s, T0 - DAY);
+    const back = claimChapter(s, T0 - DAY, NO_WORLD);
     if (!back.ok) throw new Error(back.reason);
     expect(back.state.lastUpdated).toBe(s.lastUpdated);
-    const far = claimChapter(s, T0 + 1000 * DAY);
+    const far = claimChapter(s, T0 + 1000 * DAY, NO_WORLD);
     if (!far.ok) throw new Error(far.reason);
     expect(far.state.resources.food).toBeLessThanOrEqual(storageCap(2).food);
   });
@@ -140,7 +141,7 @@ describe("claiming chapters", () => {
   test("the claim does not mutate its input", () => {
     const s = withReady(0);
     const copy = JSON.stringify(s);
-    claimChapter(s, T0);
+    claimChapter(s, T0, NO_WORLD);
     expect(JSON.stringify(s)).toBe(copy);
   });
 });

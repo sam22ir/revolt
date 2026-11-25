@@ -11,7 +11,9 @@ import type { CosmeticId, CosmeticSlot } from "./data/cosmetics.ts";
 import type { EventId } from "./data/events.ts";
 import type { ProductKind, ProductSku } from "./data/store.ts";
 import type { LeaderboardId } from "./leaderboard.ts";
+import type { Liberation } from "./liberation.ts";
 import type { Resources } from "./resources.ts";
+import type { SiteKind, SiteLevel } from "./data/sites.ts";
 import type { Troops } from "./troops.ts";
 
 export interface MapBaseView extends MapPoint {
@@ -48,10 +50,28 @@ export interface MapNpcView extends MapPoint {
   readonly id: string;
   readonly kind: NpcKind;
   readonly level: number;
+  /** The region this stronghold liberates when cleared; null for ordinary targets. */
+  readonly region: number | null;
+}
+
+/** A region held by the movement (GDD §4.5), with the alliance credited for it. */
+export interface LiberationView extends Liberation {
+  /** Tag of the credited alliance; null if it is no longer known. */
+  readonly alliance: string | null;
 }
 
 export const MARCH_PHASES = ["outbound", "returning"] as const;
 export type MarchPhase = (typeof MARCH_PHASES)[number];
+
+/** A resource site (docs/resource-sites-plan.md). `occupied` if any march holds it; `mine` if the viewer's. */
+export interface MapSiteView extends MapPoint {
+  /** `${kind}:${index}`, stable for a map's seed. */
+  readonly id: string;
+  readonly kind: SiteKind;
+  readonly level: SiteLevel;
+  readonly occupied: boolean;
+  readonly mine: boolean;
+}
 
 export interface MapMarchView {
   readonly id: string;
@@ -61,6 +81,10 @@ export interface MapMarchView {
   readonly departAt: number;
   readonly arriveAt: number;
   readonly returnAt: number;
+  /** A harvest march: the site it holds. Absent for battle marches. */
+  readonly siteId?: string;
+  /** A harvest march: when it leaves the site (the window's end, or the recall). Epoch ms. */
+  readonly leaveSiteAt?: number;
 }
 
 export interface MapSnapshot {
@@ -71,8 +95,12 @@ export interface MapSnapshot {
   readonly bases: readonly MapBaseView[];
   readonly npcs: readonly MapNpcView[];
   readonly marches: readonly MapMarchView[];
+  /** Resource sites on the map. Optional so clients built before sites still read the snapshot. */
+  readonly sites?: readonly MapSiteView[];
   readonly hqs: readonly MapHqView[];
   readonly rallies: readonly RallyView[];
+  /** Regions held now or earlier this season; the server-wide production bonus follows from these. */
+  readonly liberations: readonly LiberationView[];
   /** Server time, epoch ms. */
   readonly now: number;
 }

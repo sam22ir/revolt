@@ -69,6 +69,8 @@ export interface MarchState {
   readonly returnAt: number;
   /** The rally this march belongs to, if it joined one. Its timing is the rally's. */
   readonly rallyId?: string;
+  /** A harvest march: the resource site it holds (`target.npcId` is then the site id too, `target.level` is 0). */
+  readonly siteId?: string;
   /** Heroes leading the march, if any. Their battle effects use the levels recorded here. */
   readonly heroes?: MarchHeroes;
   /** Set by the map server when the march arrives; the march comes home lazily at `returnAt`. */

@@ -5,7 +5,7 @@ import { syncSnapshot } from "./live-support.ts";
 /** GET /v1/state — the base as the server computes it at its own `now`. */
 export const getState = async (ctx: Ctx): Promise<Response> => {
   const { account } = await authenticate(ctx);
-  const { state } = await currentBase(ctx, account.id);
+  const { state, world } = await currentBase(ctx, account);
   await syncSnapshot(ctx, account, state);
-  return json({ account: accountView(account), state, now: ctx.now });
+  return json({ account: accountView(account), state, liberations: world.liberations, now: ctx.now });
 };

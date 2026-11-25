@@ -22,6 +22,8 @@ pnpm --filter @revolt/server dev:mock
 
 and start the client with `VITE_GOOGLE_MOCK=1 pnpm dev`. The account panel then shows a "test Google account" email field.
 
+The mock config keeps its own local database, so apply the migrations to it once before the first run (`cd apps/server && npx wrangler d1 migrations apply DB --local --config wrangler.e2e.jsonc`). Its CORS list allows the client on ports 5173, 4173 and 4174; `.claude/launch.json` has `server-mock` and `client-mock` entries (client on 4174) for the preview browser.
+
 ## API
 
 All JSON. The device sends `Authorization: Bearer <token>`; every answer carries the server's `now` (epoch ms).
@@ -55,7 +57,7 @@ Each server has one map, owned by one `WorldMap` Durable Object (`src/map/world-
 - **Seeds** stay on the server until the battle is over; the report then includes the seed, so anyone can replay it with `fightNpc`.
 - **WebSocket.** Browsers cannot set headers on a WebSocket, so the client offers `Sec-WebSocket-Protocol: revolt.v1, auth.<token>`. The Worker checks the token and the `Origin` (CORS does not cover WebSockets), and the DO answers with `revolt.v1` only. Sockets use the hibernation API, so idle connections cost no duration. Messages: `map` (full snapshot, on connect and on every change; fine at M3 size, diffs later), `report` (to its owner), `base_changed` (fetch `/v1/state` again).
 - **Free-tier budget.** DO requests count HTTP, RPC, WebSocket messages and alarms (100,000 a day on the Free plan). Each map change sends one message per connected client, so watch this as players grow.
-- **Test clock.** In the e2e build, `POST /__test/clock` also sets the map's clock and fires its alarm, so Playwright exercises alarm → battle → push.
+- **Test clock.** In the mock Worker build, `POST /__test/clock` also sets the map's clock and fires its alarm.
 
 ## Alliances (M4): API contract
 
@@ -175,11 +177,11 @@ Why not Better Auth (1.7): its anonymous plugin links by creating a new user and
 ## Tests
 
 - `pnpm --filter @revolt/server test` runs the handlers against Miniflare's local D1 with a fake clock and a local signing key standing in for Google. The map runs in-process (`MapService` + `MapHost` on `node:sqlite`); tests fire its alarm by hand.
-- `pnpm test:e2e` starts the mock Worker on port 8788 with a fresh local D1 (`.wrangler/e2e`), builds the client against it, and drives both in Playwright. The tests set the server clock through `POST /__test/clock`, which exists only in `src/e2e-entry.ts`.
+> Historical (the Playwright e2e was removed): - `pnpm test:e2e` starts the mock Worker on port 8788 with a fresh local D1 (`.wrangler/e2e`), builds the client against it, and drives both in Playwright. The tests set the server clock through `POST /__test/clock`, which exists only in `src/e2e-entry.ts`.
 
 ## Browser quirk: panels and the canvas
 
-In headless Chromium (software GL), a `box-shadow` on an element that scrolls (`overflow-y: auto`) and sits above the WebGL canvas made the canvas area above it paint solid black or white in screenshots; `overflow: visible` hid it, which is why it looked like an overflow problem. The panels now use `filter: drop-shadow` (same look). A `filter` makes its element the containing block of `position: fixed` children, so `.alliance-panel` (which holds its confirm dialog) has no shadow instead. `e2e/zoom.spec.ts` fails if the bug returns. Not confirmed on a real phone: that check is still open for M3 and M4.
+In headless Chromium (software GL), a `box-shadow` on an element that scrolls (`overflow-y: auto`) and sits above the WebGL canvas made the canvas area above it paint solid black or white in screenshots; `overflow: visible` hid it, which is why it looked like an overflow problem. The panels now use `filter: drop-shadow` (same look). A `filter` makes its element the containing block of `position: fixed` children, so `.alliance-panel` (which holds its confirm dialog) has no shadow instead. Nothing tests for it now, so check panels over the canvas by eye. Not confirmed on a real phone: that check is still open for M3 and M4.
 
 ## On a real phone
 
@@ -190,3 +192,10 @@ adb reverse tcp:8787 tcp:8787
 ```
 
 With `adb reverse tcp:4173 tcp:4173` from `docs/device-testing.md`, the phone opens `http://localhost:4173`, which is an allowed origin. Over Wi-Fi, the page's origin (`http://<IP>:4173`) must be added to `ALLOWED_ORIGINS`, for example in `apps/server/.dev.vars`, and `wrangler dev` needs `--ip 0.0.0.0`.
+
+## Liberated regions: how it works
+
+- **One stronghold per region.** The map DO keeps a fixed level-4 NPC for every region (`npcs.region_id`, placed by `strongholdTile` in `packages/rules`), rally-only. Roaming level-4 NPCs no longer exist; an older map's are deleted when its DO starts, and a rally already marching on one comes home unharmed like for any vanished target.
+- **Clearing it liberates the region.** A rally victory records a liberation (credited to the rally's alliance) in the DO's `liberations` table and mirrors it to D1 (`liberations`, migration `0006`), D1 first, both idempotent. The cleared stronghold stays down (`respawn_at` = a never-reached sentinel); there is no season reset yet.
+- **The bonus is server-wide production.** Every call that advances a base takes a `World` (`liberations`): `accrue` integrates production piecewise across bonus changes. `from`/`until` are the time the map recorded the change, never earlier, so a base already settled past it is not paid retroactively. The Worker reads D1 (`loadWorld`); the map DO reads its own table; `/v1/state` and intent answers carry `liberations`, and the client predicts with them (map snapshots refresh them).
+- **Deploying:** migration `0006` must be applied to the remote database before the new Worker serves traffic.

@@ -2,7 +2,7 @@ import { DurableObject } from "cloudflare:workers";
 import type { HeroLoadout, MapPoint, MapSnapshot, Troops } from "@revolt/rules";
 import type { Env } from "../env.ts";
 import { MapHost, type MapSocket } from "./map-host.ts";
-import { MapService, type HqResult, type MapViewer, type SendMarchResult } from "./map-service.ts";
+import { MapService, type HqResult, type MapViewer, type RecallHarvestResult, type SendMarchResult } from "./map-service.ts";
 
 /** The subprotocol a map client asks for; the 101 answer must echo it. */
 export const MAP_PROTOCOL = "revolt.v1";
@@ -73,6 +73,20 @@ export class WorldMap extends DurableObject<Env> {
     return this.mapHost().run(now, (s) => {
       s.rememberName(map);
       return s.joinRally(viewer, rallyId, troops, now);
+    });
+  }
+
+  async startHarvest(map: string, viewer: MapViewer, siteId: string, troops: Troops, now: number): Promise<SendMarchResult> {
+    return this.mapHost().run(now, (s) => {
+      s.rememberName(map);
+      return s.startHarvest(viewer, siteId, troops, now);
+    });
+  }
+
+  async recallHarvest(map: string, viewer: MapViewer, marchId: string, now: number): Promise<RecallHarvestResult> {
+    return this.mapHost().run(now, (s) => {
+      s.rememberName(map);
+      return s.recallHarvest(viewer, marchId, now);
     });
   }
 

@@ -1,3 +1,4 @@
+import type { World } from "./liberation.ts";
 import { advance } from "./advance.ts";
 import type { BaseState } from "./base-state.ts";
 import { DEFAULT_BACKGROUND, type BackgroundId } from "./background.ts";
@@ -24,8 +25,8 @@ export const rewardHasBaseParts = (r: Reward): boolean => (r.shards ?? 0) > 0 ||
  * The base part of a reward. Like loot and chapter rewards it fills storage up to the HQ's cap and never lowers an
  * amount already above it, so paid or earned resources cannot outrun the progression gate (GDD §8).
  */
-export const grantReward = (state: BaseState, reward: Reward, now: number, background: BackgroundId = DEFAULT_BACKGROUND): BaseState => {
-  const s = advance(state, now);
+export const grantReward = (state: BaseState, reward: Reward, now: number, world: World, background: BackgroundId = DEFAULT_BACKGROUND): BaseState => {
+  const s = advance(state, now, world);
   const cap = storageCap(s.levels.hq);
   const give = reward.resources ?? {};
   const resources = mapResources((id) => Math.max(s.resources[id], Math.min(cap[id], s.resources[id] + Math.max(0, give[id] ?? 0))));

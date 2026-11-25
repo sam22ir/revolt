@@ -9,6 +9,7 @@ import {
   heroLevelCap,
   HERO_DRAW_COST,
   HERO_DRAW_MIN_HALL,
+  HERO_LEVEL_EFFECT_STEP,
   HEROES,
   levelUpHero,
   shardsToNextLevel,
@@ -24,6 +25,9 @@ import {
   type HeroLoadout,
   type StoryChapter,
 } from "@revolt/rules";
+
+/** A skill's value in whole percent at a hero level, as the card shows it. */
+export const skillPct = (value: number, level: number): number => Math.round(value * (1 + HERO_LEVEL_EFFECT_STEP * (level - 1)) * 100);
 
 /** Everything the heroes panel shows about one hero, decided by the shared rules (never by the DOM). */
 export interface HeroCard {

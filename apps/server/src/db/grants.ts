@@ -1,5 +1,6 @@
 import { grantReward, MAX_SPEEDUP_TOKENS_HELD, rewardHasBaseParts, type BackgroundId, type BaseState, type Reward } from "@revolt/rules";
 import { loadBase } from "./bases.ts";
+import { loadWorld } from "./liberations.ts";
 import type { Db, DbStatement } from "./db.ts";
 
 /**
@@ -18,6 +19,8 @@ import type { Db, DbStatement } from "./db.ts";
  */
 export interface GrantPlan {
   readonly accountId: string;
+  /** The account's server: its liberations change what the base produces when a reward is granted. */
+  readonly server: string;
   /** Unique per one-time grant, e.g. `event:supply_route:3`. */
   readonly claimKey: string;
   readonly now: number;
@@ -53,7 +56,7 @@ export const runGrant = async (db: Db, plan: GrantPlan): Promise<GrantResult> =>
     if (needsBase) {
       const stored = await loadBase(db, accountId);
       if (stored === null) return { kind: "conflict" };
-      next = grantReward(stored.state, reward, now, plan.background);
+      next = grantReward(stored.state, reward, now, await loadWorld(db, plan.server), plan.background);
       version = stored.version;
     }
     const inBatch = { sql: "EXISTS (SELECT 1 FROM claims WHERE account_id = ? AND key = ? AND granted = 2)", binds: [accountId, key] as (string | number)[] };

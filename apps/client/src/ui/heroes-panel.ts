@@ -1,9 +1,9 @@
-import { HERO_DRAW_COST, HERO_DRAW_MIN_HALL, HERO_LEVEL_EFFECT_STEP, RESOURCE_IDS, type BaseState, type HeroId, type SkillDef } from "@revolt/rules";
+import { HERO_DRAW_COST, HERO_DRAW_MIN_HALL, RESOURCE_IDS, type BaseState, type HeroId, type SkillDef } from "@revolt/rules";
 import { artUrl } from "../art/art.ts";
 import { formatAmount } from "../format.ts";
 import { currentLanguage, t } from "../i18n/i18n.ts";
 import { activeBackground } from "../state/background.ts";
-import { heroCards, recruitBlock, type HeroCard } from "../state/hero-view.ts";
+import { heroCards, recruitBlock, skillPct, type HeroCard } from "../state/hero-view.ts";
 import type { ActionOutcome } from "../state/game-store.ts";
 import { el } from "./dom.ts";
 import { resourceIcon, troopIcon } from "./icons.ts";
@@ -47,7 +47,7 @@ const structureKey = (state: BaseState, cards: readonly HeroCard[], note: Recrui
 const skillLine = (card: HeroCard, skill: SkillDef, slot: "command" | "passive"): HTMLElement => {
   const lang = currentLanguage();
   const level = card.owned?.level ?? 1;
-  const pct = Math.round(skill.value * (1 + HERO_LEVEL_EFFECT_STEP * (level - 1)) * 100);
+  const pct = skillPct(skill.value, level);
   const li = el("li", "hero-skill");
   li.dataset.slot = slot;
   const effect = skill.stat === "attack" ? t("hero.skill.attack_pct", { troop: t(`troop.${card.def.specialty}.name`), pct: formatAmount(lang, pct) }) : t("hero.skill.defense_pct", { pct: formatAmount(lang, pct) });

@@ -126,6 +126,8 @@ export const testMapApi = (tm: TestMap, server: string): MapApi => {
     sendMarch: (v, npcId, troops, heroes, now) => run(now, (s) => s.sendMarch(v, npcId, troops, heroes, now)),
     startRally: (v, npcId, troops, gatherMs, now) => run(now, (s) => s.startRally(v, npcId, troops, gatherMs, now)),
     joinRally: (v, rallyId, troops, now) => run(now, (s) => s.joinRally(v, rallyId, troops, now)),
+    startHarvest: (v, siteId, troops, now) => run(now, (s) => s.startHarvest(v, siteId, troops, now)),
+    recallHarvest: (v, marchId, now) => run(now, (s) => s.recallHarvest(v, marchId, now)),
     setHq: (v, x, y, now) => run(now, (s) => s.setHq(v, x, y, now)),
     hqOf: async (allianceId) => tm.host.service.hqOf(allianceId),
     hqAllianceIds: async () => tm.host.service.hqAllianceIds(),
@@ -243,11 +245,14 @@ const openDb = async (miniflare: boolean): Promise<{ db: Db; dispose: () => Prom
   return { db, dispose: () => mf.dispose() };
 };
 
+// RSA key generation is slow on this machine and every row starts its own server: share one signing key.
+let sharedGoogle: Promise<Keypair> | undefined;
+
 /** `miniflare: true` runs on real D1; only `miniflare-smoke.test.ts` needs it. */
 export const startServer = async (envOverrides: Partial<Env> = {}, opts: { miniflare?: boolean } = {}): Promise<Server> => {
   const { db, dispose } = await openDb(opts.miniflare ?? false);
   await migrate(db);
-  const google = await keypair("google-1");
+  const google = await (sharedGoogle ??= keypair("google-1"));
   // The DO namespace is never reached in Node tests: `deps.map` stands in for it.
   const noNamespace = { idFromName: () => { throw new Error("no DO in tests"); }, get: () => { throw new Error("no DO in tests"); } };
   const env: Env = { DB: db, WORLD_MAP: noNamespace, ALLIANCE_ROOM: noNamespace, GOOGLE_CLIENT_IDS: CLIENT_ID, ALLOWED_ORIGINS: "http://localhost:4173", ...envOverrides };

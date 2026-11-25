@@ -1,3 +1,4 @@
+import type { World } from "./liberation.ts";
 import { advance } from "./advance.ts";
 import type { BaseState } from "./base-state.ts";
 import { DAY_MS } from "./data/events.ts";
@@ -37,8 +38,8 @@ export type SpeedUpResult =
  * progression gate everything else hangs on (GDD §8); never removes more than the day's allowance; never takes a job
  * before `now` or before time already settled (`reduceJob`). Tokens are charged for the time actually removed.
  */
-export const speedUp = (state: BaseState, job: HelpKind, tokens: number, held: number, usedTodayMs: number, now: number): SpeedUpResult => {
-  const s = advance(state, now);
+export const speedUp = (state: BaseState, job: HelpKind, tokens: number, held: number, usedTodayMs: number, now: number, world: World): SpeedUpResult => {
+  const s = advance(state, now, world);
   if (!Number.isInteger(tokens) || tokens < 1 || tokens > SPEEDUP_MAX_PER_USE) return { ok: false, reason: "bad_amount", state: s };
   if (held < tokens) return { ok: false, reason: "too_few_tokens", state: s };
   const running = job === "upgrade" ? s.queue : s.training;

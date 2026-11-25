@@ -1,0 +1,864 @@
+{
+  "joins": [
+    {
+      "name": "open",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 2,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1699999999999,
+      "can_join": true
+    },
+    {
+      "name": "open",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 2,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000000000,
+      "can_join": true
+    },
+    {
+      "name": "open",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 2,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000059999,
+      "can_join": true
+    },
+    {
+      "name": "open",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 2,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000060000,
+      "can_join": false
+    },
+    {
+      "name": "open",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 2,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000060001,
+      "can_join": false
+    },
+    {
+      "name": "open",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 2,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000500000,
+      "can_join": false
+    },
+    {
+      "name": "joined",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 2,
+        "maxParticipants": 5,
+        "joined": true
+      },
+      "now": 1699999999999,
+      "can_join": false
+    },
+    {
+      "name": "joined",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 2,
+        "maxParticipants": 5,
+        "joined": true
+      },
+      "now": 1700000000000,
+      "can_join": false
+    },
+    {
+      "name": "joined",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 2,
+        "maxParticipants": 5,
+        "joined": true
+      },
+      "now": 1700000059999,
+      "can_join": false
+    },
+    {
+      "name": "joined",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 2,
+        "maxParticipants": 5,
+        "joined": true
+      },
+      "now": 1700000060000,
+      "can_join": false
+    },
+    {
+      "name": "joined",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 2,
+        "maxParticipants": 5,
+        "joined": true
+      },
+      "now": 1700000060001,
+      "can_join": false
+    },
+    {
+      "name": "joined",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 2,
+        "maxParticipants": 5,
+        "joined": true
+      },
+      "now": 1700000500000,
+      "can_join": false
+    },
+    {
+      "name": "full",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 5,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1699999999999,
+      "can_join": false
+    },
+    {
+      "name": "full",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 5,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000000000,
+      "can_join": false
+    },
+    {
+      "name": "full",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 5,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000059999,
+      "can_join": false
+    },
+    {
+      "name": "full",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 5,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000060000,
+      "can_join": false
+    },
+    {
+      "name": "full",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 5,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000060001,
+      "can_join": false
+    },
+    {
+      "name": "full",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 5,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000500000,
+      "can_join": false
+    },
+    {
+      "name": "one_short",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 4,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1699999999999,
+      "can_join": true
+    },
+    {
+      "name": "one_short",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 4,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000000000,
+      "can_join": true
+    },
+    {
+      "name": "one_short",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 4,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000059999,
+      "can_join": true
+    },
+    {
+      "name": "one_short",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 4,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000060000,
+      "can_join": false
+    },
+    {
+      "name": "one_short",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 4,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000060001,
+      "can_join": false
+    },
+    {
+      "name": "one_short",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 4,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000500000,
+      "can_join": false
+    },
+    {
+      "name": "over_full",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 6,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1699999999999,
+      "can_join": false
+    },
+    {
+      "name": "over_full",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 6,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000000000,
+      "can_join": false
+    },
+    {
+      "name": "over_full",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 6,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000059999,
+      "can_join": false
+    },
+    {
+      "name": "over_full",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 6,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000060000,
+      "can_join": false
+    },
+    {
+      "name": "over_full",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 6,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000060001,
+      "can_join": false
+    },
+    {
+      "name": "over_full",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 6,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000500000,
+      "can_join": false
+    },
+    {
+      "name": "alone_empty",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 0,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1699999999999,
+      "can_join": true
+    },
+    {
+      "name": "alone_empty",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 0,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000000000,
+      "can_join": true
+    },
+    {
+      "name": "alone_empty",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 0,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000059999,
+      "can_join": true
+    },
+    {
+      "name": "alone_empty",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 0,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000060000,
+      "can_join": false
+    },
+    {
+      "name": "alone_empty",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 0,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000060001,
+      "can_join": false
+    },
+    {
+      "name": "alone_empty",
+      "rally": {
+        "id": "r",
+        "leader": "L",
+        "target": {
+          "npcId": "n",
+          "kind": "patrol",
+          "level": 1,
+          "x": 5,
+          "y": 5
+        },
+        "gatherUntil": 1700000060000,
+        "arriveAt": 1700000120000,
+        "returnAt": 1700000180000,
+        "participants": 0,
+        "maxParticipants": 5,
+        "joined": false
+      },
+      "now": 1700000500000,
+      "can_join": false
+    }
+  ],
+  "legs": [
+    {
+      "from": {
+        "x": 43,
+        "y": 54
+      },
+      "to": {
+        "x": 32,
+        "y": 53
+      },
+      "leg_ms": 331361
+    },
+    {
+      "from": {
+        "x": 10,
+        "y": 10
+      },
+      "to": {
+        "x": 10,
+        "y": 10
+      },
+      "leg_ms": 1000
+    },
+    {
+      "from": {
+        "x": 10,
+        "y": 10
+      },
+      "to": {
+        "x": 10,
+        "y": 11
+      },
+      "leg_ms": 30000
+    },
+    {
+      "from": {
+        "x": 0,
+        "y": 0
+      },
+      "to": {
+        "x": 63,
+        "y": 63
+      },
+      "leg_ms": 2672864
+    },
+    {
+      "from": {
+        "x": 3,
+        "y": 4
+      },
+      "to": {
+        "x": 8,
+        "y": 16
+      },
+      "leg_ms": 390000
+    },
+    {
+      "from": {
+        "x": 20,
+        "y": 20
+      },
+      "to": {
+        "x": 20.0000001,
+        "y": 20
+      },
+      "leg_ms": 1000
+    }
+  ]
+}

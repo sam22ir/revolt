@@ -21,9 +21,11 @@ import {
   type HeroLoadout,
   type TroopId,
   type Troops,
+  type World,
 } from "@revolt/rules";
 import type { Account } from "../db/accounts.ts";
 import { loadBase, saveBase } from "../db/bases.ts";
+import { loadWorld } from "../db/liberations.ts";
 import { speedUpIntent } from "./speedup.ts";
 import { syncSnapshot } from "./live-support.ts";
 import { HttpError, json, readJson } from "../http.ts";
@@ -36,6 +38,8 @@ export type Intent =
   | { readonly type: "march"; readonly target: string; readonly troops: Troops; readonly heroes: HeroLoadout | null }
   | { readonly type: "rally_start"; readonly target: string; readonly troops: Troops; readonly gather: number }
   | { readonly type: "rally_join"; readonly rally: string; readonly troops: Troops }
+  | { readonly type: "harvest_start"; readonly site: string; readonly troops: Troops }
+  | { readonly type: "harvest_recall"; readonly march: string }
   | { readonly type: "recruit" }
   | { readonly type: "hero_level"; readonly hero: HeroId }
   | { readonly type: "story_claim" }
@@ -69,6 +73,13 @@ export const parseIntent = (body: Record<string, unknown>): Intent => {
     const troops = parseTroops(body.troops);
     if (troops !== null) return { type, rally: body.rally, troops };
   }
+  if (type === "harvest_start" && typeof body.site === "string" && body.site.length > 0 && body.site.length <= MAX_TARGET_ID) {
+    const troops = parseTroops(body.troops);
+    if (troops !== null) return { type, site: body.site, troops };
+  }
+  if (type === "harvest_recall" && typeof body.march === "string" && body.march.length > 0 && body.march.length <= MAX_TARGET_ID) {
+    return { type, march: body.march };
+  }
   throw new HttpError("bad_request");
 };
 
@@ -80,25 +91,28 @@ type BaseChange =
 const ATTEMPTS = 2;
 
 /** Applies a base-only intent with the shared rules at server time and saves it (compare-and-set). */
-const changeBase = async (ctx: Ctx, account: Account, apply: (s: BaseState) => BaseChange): Promise<Response> => {
+const changeBase = async (ctx: Ctx, account: Account, apply: (s: BaseState, world: World) => BaseChange): Promise<Response> => {
+  const accountId = account.id;
+  const world = await loadWorld(ctx.env.DB, account.server);
   for (let i = 0; i < ATTEMPTS; i++) {
     const stored = await loadBase(ctx.env.DB, account.id);
     if (stored === null) throw new HttpError("not_found");
-    const result = apply(stored.state);
-    if (!result.ok) return json({ ok: false, reason: result.reason, state: result.state, now: ctx.now });
-    if (await saveBase(ctx.env.DB, account.id, result.state, stored.version, ctx.now)) {
-      await syncSnapshot(ctx, account, advance(result.state, ctx.now));
-      return json({ ok: true, state: result.state, now: ctx.now, ...(result.ok ? result.extra : undefined) });
+    const result = apply(stored.state, world);
+    if (!result.ok) return json({ ok: false, reason: result.reason, state: result.state, liberations: world.liberations, now: ctx.now });
+    if (await saveBase(ctx.env.DB, accountId, result.state, stored.version, ctx.now)) {
+      await syncSnapshot(ctx, account, advance(result.state, ctx.now, world));
+      return json({ ok: true, state: result.state, liberations: world.liberations, now: ctx.now, ...(result.ok ? result.extra : undefined) });
     }
   }
   throw new HttpError("conflict");
 };
 
 /** A refusal the Worker decides itself (before the map is asked), with the player's current base state. */
-const refusedIntent = async (ctx: Ctx, accountId: string, reason: string): Promise<Response> => {
-  const stored = await loadBase(ctx.env.DB, accountId);
+const refusedIntent = async (ctx: Ctx, account: Account, reason: string): Promise<Response> => {
+  const stored = await loadBase(ctx.env.DB, account.id);
   if (stored === null) throw new HttpError("not_found");
-  return json({ ok: false, reason, state: advance(stored.state, ctx.now), now: ctx.now });
+  const world = await loadWorld(ctx.env.DB, account.server);
+  return json({ ok: false, reason, state: advance(stored.state, ctx.now, world), liberations: world.liberations, now: ctx.now });
 };
 
 /**
@@ -111,13 +125,13 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
   const intent = parseIntent(await readJson(ctx.req));
   switch (intent.type) {
     case "upgrade":
-      return changeBase(ctx, account, (s) => startUpgrade(s, intent.building, ctx.now));
+      return changeBase(ctx, account, (s, w) => startUpgrade(s, intent.building, ctx.now, w));
     case "train":
-      return changeBase(ctx, account, (s) => startTraining(s, intent.troop, intent.count, ctx.now));
+      return changeBase(ctx, account, (s, w) => startTraining(s, intent.troop, intent.count, ctx.now, w));
     case "recruit":
       // The server picks the seed, so the client never chooses the draw.
-      return changeBase(ctx, account, (s) => {
-        const r = recruitHero(s, ctx.now, seededRng(crypto.getRandomValues(new Uint32Array(1))[0]!), backgroundOfServer(account.server));
+      return changeBase(ctx, account, (s, w) => {
+        const r = recruitHero(s, ctx.now, seededRng(crypto.getRandomValues(new Uint32Array(1))[0]!), w, backgroundOfServer(account.server));
         if (!r.ok) return r;
         const { heroId, rarity, duplicate, forced } = r.draw;
         return { ok: true, state: r.state, extra: { draw: { heroId, rarity, duplicate, forced } } };
@@ -125,7 +139,7 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
     case "hero_level":
       return changeBase(ctx, account, (s) => levelUpHero(s, intent.hero));
     case "story_claim":
-      return changeBase(ctx, account, (s) => claimChapter(s, ctx.now, backgroundOfServer(account.server)));
+      return changeBase(ctx, account, (s, w) => claimChapter(s, ctx.now, w, backgroundOfServer(account.server)));
     case "speedup":
       return speedUpIntent(ctx, account, intent.job, intent.tokens);
     case "march": {
@@ -136,16 +150,28 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
     }
     case "rally_start": {
       const { viewer, membership } = await viewerFor(ctx, account);
-      if (membership === null) return refusedIntent(ctx, account.id, "not_member");
-      if (!canPerform(membership.rank, "start_rally")) return refusedIntent(ctx, account.id, "no_permission");
+      if (membership === null) return refusedIntent(ctx, account, "not_member");
+      if (!canPerform(membership.rank, "start_rally")) return refusedIntent(ctx, account, "no_permission");
       const r = await ctx.deps.map(ctx.env, account.server).startRally(viewer, intent.target, intent.troops, intent.gather, ctx.now);
       if ("error" in r) throw new HttpError(r.error);
       return json({ ...r, now: ctx.now });
     }
     case "rally_join": {
       const { viewer, membership } = await viewerFor(ctx, account);
-      if (membership === null) return refusedIntent(ctx, account.id, "not_member");
+      if (membership === null) return refusedIntent(ctx, account, "not_member");
       const r = await ctx.deps.map(ctx.env, account.server).joinRally(viewer, intent.rally, intent.troops, ctx.now);
+      if ("error" in r) throw new HttpError(r.error);
+      return json({ ...r, now: ctx.now });
+    }
+    case "harvest_start": {
+      const { viewer } = await viewerFor(ctx, account);
+      const r = await ctx.deps.map(ctx.env, account.server).startHarvest(viewer, intent.site, intent.troops, ctx.now);
+      if ("error" in r) throw new HttpError(r.error);
+      return json({ ...r, now: ctx.now });
+    }
+    case "harvest_recall": {
+      const { viewer } = await viewerFor(ctx, account);
+      const r = await ctx.deps.map(ctx.env, account.server).recallHarvest(viewer, intent.march, ctx.now);
       if ("error" in r) throw new HttpError(r.error);
       return json({ ...r, now: ctx.now });
     }

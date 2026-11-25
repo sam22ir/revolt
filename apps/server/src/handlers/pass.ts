@@ -36,6 +36,7 @@ export const postPassClaim = async (ctx: Ctx): Promise<Response> => {
   if (!r.ok) return refuse(ctx, r.reason);
   const g = await runGrant(ctx.env.DB, {
     accountId: account.id,
+    server: account.server,
     claimKey: `pass:${season}:${b.track}:${b.tier}`,
     now: ctx.now,
     background: backgroundOf(account),

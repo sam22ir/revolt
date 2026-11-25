@@ -1,5 +1,6 @@
 import type { BaseState, MarchOutcome, MarchState } from "./base-state.ts";
 import { MARCH_RESCUE_GRACE_MS } from "./data/map.ts";
+import type { World } from "./liberation.ts";
 import { accrue, storageCap } from "./production.ts";
 import { mapResources } from "./resources.ts";
 import { addTroops } from "./troops.ts";
@@ -60,8 +61,8 @@ const apply = (s: BaseState, e: Event): BaseState => {
  * training and returning marches lazily, in time order. Production before an
  * upgrade's end uses the old level, after it the new one.
  */
-export const advance = (state: BaseState, now: number): BaseState => {
+export const advance = (state: BaseState, now: number, world: World): BaseState => {
   let s = state;
-  for (let e = nextEvent(s, now); e !== null; e = nextEvent(s, now)) s = apply(accrue(s, e.at), e);
-  return accrue(s, now);
+  for (let e = nextEvent(s, now); e !== null; e = nextEvent(s, now)) s = apply(accrue(s, e.at, world), e);
+  return accrue(s, now, world);
 };

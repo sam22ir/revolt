@@ -9,11 +9,15 @@
     "dev": "pnpm --filter @revolt/client dev",
     "build": "pnpm --filter @revolt/client build",
     "preview:lan": "pnpm --filter @revolt/client build && pnpm --filter @revolt/client preview",
-    "test:e2e": "pnpm --filter @revolt/client test:e2e",
     "art:process": "node scripts/process-art.mjs",
-    "art:terrain": "node scripts/process-terrain.mjs"
+    "art:terrain": "node scripts/process-terrain.mjs",
+    "godot:export": "node scripts/export-godot.mjs",
+    "godot:web": "cd apps/godot && mkdir -p build/web && godot --headless --import && godot --headless --export-release Web build/web/index.html",
+    "godot:android": "cd apps/godot && mkdir -p build/android && godot --headless --import && godot --headless --export-debug Android build/android/revolt-debug.apk",
+    "godot:test": "cd apps/godot && godot --headless --import && godot --headless -s addons/gut/gut_cmdln.gd"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "5.0.5",
     "typescript": "7.0.2",
     "vitest": "5.0.5"
   }

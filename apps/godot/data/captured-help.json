@@ -1,0 +1,87 @@
+{
+  "_comment": "Captured from the mock server (POST /v1/help/request, GET /v1/alliance) on a fresh guest with an alliance and a running batch. Not generated.",
+  "request_ok": {
+    "ok": true,
+    "request": {
+      "id": "078d7dd2-29e4-41b4-b7d2-c7fcaf7d2c61",
+      "handle": "V98SZU",
+      "kind": "training",
+      "endsAt": 1792868541568,
+      "helps": 0,
+      "maxHelps": 5,
+      "mine": true,
+      "helped": false
+    },
+    "now": 1792868516862
+  },
+  "request_already": {
+    "ok": false,
+    "reason": "already_requested",
+    "now": 1792868517071
+  },
+  "request_no_job": {
+    "ok": false,
+    "reason": "no_job",
+    "now": 1792868517156
+  },
+  "alliance": {
+    "alliance": {
+      "id": "5e38e164-7efb-4c68-a8e3-187b449d972d",
+      "name": "Test Band",
+      "tag": "TB",
+      "myRank": "leader",
+      "members": [
+        {
+          "handle": "V98SZU",
+          "rank": "leader",
+          "joinedAt": 1792868511382,
+          "me": true
+        }
+      ],
+      "maxMembers": 30,
+      "hq": null
+    },
+    "help": [
+      {
+        "id": "078d7dd2-29e4-41b4-b7d2-c7fcaf7d2c61",
+        "handle": "V98SZU",
+        "kind": "training",
+        "endsAt": 1792868541568,
+        "helps": 0,
+        "maxHelps": 5,
+        "mine": true,
+        "helped": false
+      }
+    ],
+    "now": 1792868517234
+  },
+  "give_ok": {
+    "ok": true,
+    "request": {
+      "id": "2d362a9c-842b-4ed7-87a8-1da00b26133e",
+      "handle": "2CEM2C",
+      "kind": "upgrade",
+      "endsAt": 1792877497329,
+      "helps": 1,
+      "maxHelps": 5,
+      "mine": false,
+      "helped": true
+    },
+    "now": 1792877290151
+  },
+  "give_before": {
+    "id": "2d362a9c-842b-4ed7-87a8-1da00b26133e",
+    "handle": "2CEM2C",
+    "kind": "upgrade",
+    "endsAt": 1792877557329,
+    "helps": 0,
+    "maxHelps": 5,
+    "mine": false,
+    "helped": false
+  },
+  "give_already_helped": {
+    "ok": false,
+    "reason": "already_helped",
+    "now": 1792877290324
+  }
+}

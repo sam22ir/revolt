@@ -14,6 +14,10 @@ interface AccountDeps {
   readonly onIdToken: (idToken: string) => Promise<void>;
   /** Whether anonymous usage and crash reports may be sent. Off until the player turns it on. */
   readonly consent: { readonly get: () => boolean; readonly set: (on: boolean) => void };
+  /** The language switcher, shown in its own row above the account details. */
+  readonly settings: HTMLElement;
+  /** Told whenever the panel opens or closes, so the overlay can reopen it after a language change. */
+  readonly onOpenChange?: (open: boolean) => void;
 }
 
 /** Shows whether the base is a guest's or linked to Google, and offers Google sign-in. */
@@ -24,14 +28,21 @@ export const createAccountPanel = (deps: AccountDeps): AccountPanel => {
   root.setAttribute("aria-live", "polite");
   let key = "";
 
+  // The head and settings row are built once and never cleared, so they exist before any account data arrives.
+  const head = el("div", "panel-head");
+  const close = el("button", "panel-close", "×");
+  close.type = "button";
+  close.setAttribute("aria-label", t("panel.close"));
+  close.addEventListener("click", () => toggle(false));
+  head.append(el("h2", "panel-title", t("account.title")), close);
+  const settings = el("div", "account-settings");
+  settings.append(deps.settings);
+  // Only this body is replaced when the account changes.
+  const body = el("div", "account-body");
+  root.append(head, settings, body);
+
   const render = (account: AccountView, error: boolean): void => {
-    root.replaceChildren();
-    const head = el("div", "panel-head");
-    const close = el("button", "panel-close", "×");
-    close.type = "button";
-    close.setAttribute("aria-label", t("panel.close"));
-    close.addEventListener("click", () => toggle(false));
-    head.append(el("h2", "panel-title", t("account.title")), close);
+    body.replaceChildren();
 
     const linked = account.google;
     const status = el("p", "panel-desc");
@@ -47,13 +58,13 @@ export const createAccountPanel = (deps: AccountDeps): AccountPanel => {
     const handleValue = el("bdi", "account-email", account.handle);
     handleValue.setAttribute("dir", "ltr");
     handle.append(`${t("account.handleLabel")}: `, handleValue);
-    root.append(head, status, handle);
+    body.append(status, handle);
 
     if (deps.google === null) {
-      root.append(el("p", "panel-sub", t("account.googleUnavailable")));
+      body.append(el("p", "panel-sub", t("account.googleUnavailable")));
     } else {
       const actions = el("div", "account-actions");
-      root.append(el("p", "panel-desc", linked === null ? t("account.linkHint") : t("account.switchHint")));
+      body.append(el("p", "panel-desc", linked === null ? t("account.linkHint") : t("account.switchHint")));
       const failed = (): void => render(account, true);
       deps.google.mount(
         actions,
@@ -61,7 +72,7 @@ export const createAccountPanel = (deps: AccountDeps): AccountPanel => {
         (idToken) => void deps.onIdToken(idToken).catch(failed),
         failed,
       );
-      root.append(actions);
+      body.append(actions);
     }
     // Analytics and crash reports: off by default, one switch, and what is sent is spelled out.
     const consent = el("label", "account-consent");
@@ -75,7 +86,7 @@ export const createAccountPanel = (deps: AccountDeps): AccountPanel => {
     if (error) {
       const msg = el("p", "panel-reason", t("account.error"));
       msg.dataset.testid = "account-error";
-      root.append(msg);
+      body.append(msg);
     }
   };
 
@@ -88,8 +99,9 @@ export const createAccountPanel = (deps: AccountDeps): AccountPanel => {
     render(account, false);
   };
 
-  const toggle = (open = root.hidden): void => {
+  const toggle = (open: boolean = Boolean(root.hidden)): void => {
     root.hidden = !open;
+    deps.onOpenChange?.(open);
     if (open && last !== null) {
       key = "";
       update(last);

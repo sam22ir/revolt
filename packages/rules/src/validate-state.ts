@@ -81,6 +81,7 @@ const isMarch = (m: unknown): boolean =>
   isFiniteNumber(m.arriveAt) &&
   isFiniteNumber(m.returnAt) &&
   (m.rallyId === undefined || typeof m.rallyId === "string") &&
+  (m.siteId === undefined || typeof m.siteId === "string") &&
   isHeroes(m.heroes) &&
   isOutcome(m.outcome);
 

@@ -1,0 +1,6 @@
+{
+  "dirs": ["res://test/unit/"],
+  "should_exit": true,
+  "should_maximize": false,
+  "log_level": 1
+}

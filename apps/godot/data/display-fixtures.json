@@ -1,0 +1,845 @@
+{
+  "cases": [
+    {
+      "name": "fresh base, one hour",
+      "resources": {
+        "food": 500,
+        "materiel": 500,
+        "funds": 500,
+        "support": 0
+      },
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700003600000,
+      "liberations": [],
+      "baseRatePerHour": {
+        "food": 120,
+        "materiel": 100,
+        "funds": 110,
+        "support": 20
+      },
+      "cap": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      },
+      "liberatedCountAtLastUpdated": 0,
+      "multiplierAtLastUpdated": 1,
+      "expected": {
+        "food": 620,
+        "materiel": 600,
+        "funds": 610,
+        "support": 20
+      }
+    },
+    {
+      "name": "no time passed",
+      "resources": {
+        "food": 500,
+        "materiel": 500,
+        "funds": 500,
+        "support": 0
+      },
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700000000000,
+      "liberations": [],
+      "baseRatePerHour": {
+        "food": 120,
+        "materiel": 100,
+        "funds": 110,
+        "support": 20
+      },
+      "cap": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      },
+      "liberatedCountAtLastUpdated": 0,
+      "multiplierAtLastUpdated": 1,
+      "expected": {
+        "food": 500,
+        "materiel": 500,
+        "funds": 500,
+        "support": 0
+      }
+    },
+    {
+      "name": "time going backwards keeps the amounts",
+      "resources": {
+        "food": 500,
+        "materiel": 400,
+        "funds": 300,
+        "support": 20
+      },
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1699982000000,
+      "liberations": [],
+      "baseRatePerHour": {
+        "food": 120,
+        "materiel": 100,
+        "funds": 110,
+        "support": 20
+      },
+      "cap": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      },
+      "liberatedCountAtLastUpdated": 0,
+      "multiplierAtLastUpdated": 1,
+      "expected": {
+        "food": 500,
+        "materiel": 400,
+        "funds": 300,
+        "support": 20
+      }
+    },
+    {
+      "name": "cap reached on one resource only",
+      "resources": {
+        "food": 1990,
+        "materiel": 100,
+        "funds": 100,
+        "support": 10
+      },
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700036000000,
+      "liberations": [],
+      "baseRatePerHour": {
+        "food": 120,
+        "materiel": 100,
+        "funds": 110,
+        "support": 20
+      },
+      "cap": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      },
+      "liberatedCountAtLastUpdated": 0,
+      "multiplierAtLastUpdated": 1,
+      "expected": {
+        "food": 2000,
+        "materiel": 1100,
+        "funds": 1200,
+        "support": 210
+      }
+    },
+    {
+      "name": "amount above the cap is kept, never clamped down",
+      "resources": {
+        "food": 9000,
+        "materiel": 2500,
+        "funds": 2001,
+        "support": 400
+      },
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700010800000,
+      "liberations": [],
+      "baseRatePerHour": {
+        "food": 120,
+        "materiel": 100,
+        "funds": 110,
+        "support": 20
+      },
+      "cap": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      },
+      "liberatedCountAtLastUpdated": 0,
+      "multiplierAtLastUpdated": 1,
+      "expected": {
+        "food": 9000,
+        "materiel": 2500,
+        "funds": 2001,
+        "support": 400
+      }
+    },
+    {
+      "name": "amount exactly at the cap",
+      "resources": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      },
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700003600000,
+      "liberations": [],
+      "baseRatePerHour": {
+        "food": 120,
+        "materiel": 100,
+        "funds": 110,
+        "support": 20
+      },
+      "cap": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      },
+      "liberatedCountAtLastUpdated": 0,
+      "multiplierAtLastUpdated": 1,
+      "expected": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      }
+    },
+    {
+      "name": "ten years offline",
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "levels": {
+        "hq": 4,
+        "farm": 3,
+        "armory": 3,
+        "treasury": 3,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 2015360000000,
+      "liberations": [],
+      "baseRatePerHour": {
+        "food": 260,
+        "materiel": 220,
+        "funds": 240,
+        "support": 55
+      },
+      "cap": {
+        "food": 8000,
+        "materiel": 8000,
+        "funds": 8000,
+        "support": 1100
+      },
+      "liberatedCountAtLastUpdated": 0,
+      "multiplierAtLastUpdated": 1,
+      "expected": {
+        "food": 8000,
+        "materiel": 8000,
+        "funds": 8000,
+        "support": 1100
+      }
+    },
+    {
+      "name": "mid levels, fractional hours",
+      "resources": {
+        "food": 120.5,
+        "materiel": 80,
+        "funds": 10,
+        "support": 3
+      },
+      "levels": {
+        "hq": 5,
+        "farm": 6,
+        "armory": 4,
+        "treasury": 7,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700008532000,
+      "liberations": [],
+      "baseRatePerHour": {
+        "food": 640,
+        "materiel": 300,
+        "funds": 760,
+        "support": 70
+      },
+      "cap": {
+        "food": 11000,
+        "materiel": 11000,
+        "funds": 11000,
+        "support": 1500
+      },
+      "liberatedCountAtLastUpdated": 0,
+      "multiplierAtLastUpdated": 1,
+      "expected": {
+        "food": 1637.3,
+        "materiel": 791,
+        "funds": 1811.2,
+        "support": 168.9
+      }
+    },
+    {
+      "name": "max levels",
+      "resources": {
+        "food": 1,
+        "materiel": 2,
+        "funds": 3,
+        "support": 4
+      },
+      "levels": {
+        "hq": 10,
+        "farm": 10,
+        "armory": 10,
+        "treasury": 10,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700025200000,
+      "liberations": [],
+      "baseRatePerHour": {
+        "food": 1740,
+        "materiel": 1450,
+        "funds": 1580,
+        "support": 190
+      },
+      "cap": {
+        "food": 42000,
+        "materiel": 42000,
+        "funds": 42000,
+        "support": 5000
+      },
+      "liberatedCountAtLastUpdated": 0,
+      "multiplierAtLastUpdated": 1,
+      "expected": {
+        "food": 12181,
+        "materiel": 10152,
+        "funds": 11063,
+        "support": 1334
+      }
+    },
+    {
+      "name": "liberation held the whole span",
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "levels": {
+        "hq": 3,
+        "farm": 3,
+        "armory": 3,
+        "treasury": 3,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700007200000,
+      "liberations": [
+        {
+          "region": 1,
+          "from": 1699996400000,
+          "until": null
+        }
+      ],
+      "baseRatePerHour": {
+        "food": 260,
+        "materiel": 220,
+        "funds": 240,
+        "support": 40
+      },
+      "cap": {
+        "food": 5500,
+        "materiel": 5500,
+        "funds": 5500,
+        "support": 800
+      },
+      "liberatedCountAtLastUpdated": 1,
+      "multiplierAtLastUpdated": 1.01,
+      "expected": {
+        "food": 525.2,
+        "materiel": 444.4,
+        "funds": 484.8,
+        "support": 80.8
+      }
+    },
+    {
+      "name": "liberation starts mid-span",
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "levels": {
+        "hq": 3,
+        "farm": 3,
+        "armory": 3,
+        "treasury": 3,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700014400000,
+      "liberations": [
+        {
+          "region": 1,
+          "from": 1700003600000,
+          "until": null
+        },
+        {
+          "region": 2,
+          "from": 1700010800000,
+          "until": null
+        }
+      ],
+      "baseRatePerHour": {
+        "food": 260,
+        "materiel": 220,
+        "funds": 240,
+        "support": 40
+      },
+      "cap": {
+        "food": 5500,
+        "materiel": 5500,
+        "funds": 5500,
+        "support": 800
+      },
+      "liberatedCountAtLastUpdated": 0,
+      "multiplierAtLastUpdated": 1,
+      "expected": {
+        "food": 1050.4,
+        "materiel": 888.8,
+        "funds": 969.5999999999999,
+        "support": 161.6
+      }
+    },
+    {
+      "name": "liberation ends mid-span",
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "levels": {
+        "hq": 3,
+        "farm": 3,
+        "armory": 3,
+        "treasury": 3,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700010800000,
+      "liberations": [
+        {
+          "region": 1,
+          "from": 1699996400000,
+          "until": 1700003600000
+        }
+      ],
+      "baseRatePerHour": {
+        "food": 260,
+        "materiel": 220,
+        "funds": 240,
+        "support": 40
+      },
+      "cap": {
+        "food": 5500,
+        "materiel": 5500,
+        "funds": 5500,
+        "support": 800
+      },
+      "liberatedCountAtLastUpdated": 1,
+      "multiplierAtLastUpdated": 1.01,
+      "expected": {
+        "food": 782.6,
+        "materiel": 662.2,
+        "funds": 722.4,
+        "support": 120.4
+      }
+    },
+    {
+      "name": "time before lastUpdated is never paid retroactively",
+      "resources": {
+        "food": 10,
+        "materiel": 10,
+        "funds": 10,
+        "support": 1
+      },
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700003600000,
+      "liberations": [
+        {
+          "region": 5,
+          "from": 1699964000000,
+          "until": 1699982000000
+        }
+      ],
+      "baseRatePerHour": {
+        "food": 120,
+        "materiel": 100,
+        "funds": 110,
+        "support": 20
+      },
+      "cap": {
+        "food": 2000,
+        "materiel": 2000,
+        "funds": 2000,
+        "support": 300
+      },
+      "liberatedCountAtLastUpdated": 0,
+      "multiplierAtLastUpdated": 1,
+      "expected": {
+        "food": 130,
+        "materiel": 110,
+        "funds": 120,
+        "support": 21
+      }
+    },
+    {
+      "name": "same region liberated twice counts once",
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "levels": {
+        "hq": 3,
+        "farm": 3,
+        "armory": 3,
+        "treasury": 3,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700003600000,
+      "liberations": [
+        {
+          "region": 7,
+          "from": 1699989200000,
+          "until": 1699996400000
+        },
+        {
+          "region": 7,
+          "from": 1699992800000,
+          "until": null
+        }
+      ],
+      "baseRatePerHour": {
+        "food": 260,
+        "materiel": 220,
+        "funds": 240,
+        "support": 40
+      },
+      "cap": {
+        "food": 5500,
+        "materiel": 5500,
+        "funds": 5500,
+        "support": 800
+      },
+      "liberatedCountAtLastUpdated": 1,
+      "multiplierAtLastUpdated": 1.01,
+      "expected": {
+        "food": 262.6,
+        "materiel": 222.2,
+        "funds": 242.4,
+        "support": 40.4
+      }
+    },
+    {
+      "name": "bonus capped at many regions",
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "levels": {
+        "hq": 6,
+        "farm": 6,
+        "armory": 6,
+        "treasury": 6,
+        "barracks": 1,
+        "hero_hall": 1
+      },
+      "lastUpdated": 1700000000000,
+      "now": 1700003600000,
+      "liberations": [
+        {
+          "region": 0,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 1,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 2,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 3,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 4,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 5,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 6,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 7,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 8,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 9,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 10,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 11,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 12,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 13,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 14,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 15,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 16,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 17,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 18,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 19,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 20,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 21,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 22,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 23,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 24,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 25,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 26,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 27,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 28,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 29,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 30,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 31,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 32,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 33,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 34,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 35,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 36,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 37,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 38,
+          "from": 1699996400000,
+          "until": null
+        },
+        {
+          "region": 39,
+          "from": 1699996400000,
+          "until": null
+        }
+      ],
+      "baseRatePerHour": {
+        "food": 640,
+        "materiel": 530,
+        "funds": 580,
+        "support": 90
+      },
+      "cap": {
+        "food": 15000,
+        "materiel": 15000,
+        "funds": 15000,
+        "support": 2000
+      },
+      "liberatedCountAtLastUpdated": 40,
+      "multiplierAtLastUpdated": 1.2,
+      "expected": {
+        "food": 768,
+        "materiel": 636,
+        "funds": 696,
+        "support": 108
+      }
+    }
+  ]
+}

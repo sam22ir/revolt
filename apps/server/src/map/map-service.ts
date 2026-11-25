@@ -1,7 +1,12 @@
 import {
   advance,
   checkMarch,
+  checkHarvest,
   fightNpc,
+  geographyOf,
+  harvestCarry,
+  harvestedAt,
+  harvestTiming,
   heroBattleModifier,
   loadoutIds,
   HQ_MOVE_COOLDOWN_MS,
@@ -9,25 +14,37 @@ import {
   isOnMap,
   isTroops,
   MAP_SIZE,
+  MAX_NPC_LEVEL,
   NPC_COUNT_BY_LEVEL,
   NPC_RESPAWN_MS,
   npcLevel,
+  placeSites,
   PLACEMENT_SPACING,
   planMarch,
+  recallTiming,
+  regionsOf,
   rallyTiming,
   RALLY_MAX_PARTICIPANTS,
   resolveRally,
   settleMarch,
+  SITE_RESOURCE,
   startMarch,
+  strongholdTile,
   targetGone,
   terrainAt,
+  travelMs,
+  ZERO_RESOURCES,
   ZERO_TROOPS,
   type AllianceBlockReason,
   type BaseState,
   type BattleReport,
   type HeroId,
+  type HarvestBlockReason,
   type HeroLoadout,
+  type LiberationView,
   type MapPoint,
+  type MapSite,
+  type MapSiteView,
   type MapSnapshot,
   type MarchBlockReason,
   type MarchHeroes,
@@ -35,10 +52,12 @@ import {
   type MarchState,
   type RallyView,
   type Troops,
+  type World,
 } from "@revolt/rules";
 import { loadBase, saveBase, saveBaseStatement } from "../db/bases.ts";
 import type { Db } from "../db/db.ts";
 import { awardStatements } from "../db/live.ts";
+import { openLiberation } from "../db/liberations.ts";
 import { insertReport } from "../db/reports.ts";
 import type { MapSql } from "./map-sql.ts";
 
@@ -61,7 +80,15 @@ export interface MapViewer {
   readonly allianceTag: string | null;
 }
 
-export type SendMarchReason = MarchBlockReason | "target_gone" | AllianceBlockReason;
+export type SendMarchReason = MarchBlockReason | "target_gone" | AllianceBlockReason | HarvestBlockReason;
+
+/** Why a harvest cannot be called home: not a harvest march, not yet at the site, or its leave is already scheduled. */
+export type RecallHarvestReason = "not_harvest" | "not_at_site" | "already_leaving";
+
+export type RecallHarvestResult =
+  | { readonly ok: true; readonly state: BaseState }
+  | { readonly ok: false; readonly reason: RecallHarvestReason; readonly state: BaseState }
+  | { readonly ok: false; readonly error: "not_found" };
 
 export type SendMarchResult =
   | { readonly ok: true; readonly state: BaseState }
@@ -81,6 +108,8 @@ export interface MapServiceDeps {
 /** A march row stuck in `pending` this long (its base write never finished) is checked against the base. */
 export const PENDING_TIMEOUT_MS = 30_000;
 const CAS_ATTEMPTS = 3;
+/** `respawn_at` of a cleared stronghold: never reached by the clock. */
+const STRONGHOLD_DOWN = Number.MAX_SAFE_INTEGER;
 
 const SCHEMA = [
   "CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value)",
@@ -89,8 +118,13 @@ const SCHEMA = [
   // The Worker's last word on who a player is. Written only when it changes.
   `CREATE TABLE IF NOT EXISTS map_players (account_id TEXT PRIMARY KEY, handle TEXT NOT NULL, alliance_id TEXT, alliance_tag TEXT)`,
   // A dead NPC keeps its row until it respawns elsewhere under a new id.
+  // `region_id` marks a region's fixed stronghold. A cleared stronghold keeps `respawn_at = STRONGHOLD_DOWN`
+  // until its region is freed again, so the roaming-NPC respawn never touches it.
   `CREATE TABLE IF NOT EXISTS npcs (id TEXT PRIMARY KEY, level INTEGER NOT NULL,
-     x INTEGER NOT NULL, y INTEGER NOT NULL, respawn_at INTEGER)`,
+     x INTEGER NOT NULL, y INTEGER NOT NULL, respawn_at INTEGER, region_id INTEGER)`,
+  // The source of truth for liberations; mirrored to D1 for the Worker (see db/liberations.ts).
+  `CREATE TABLE IF NOT EXISTS liberations (region INTEGER NOT NULL, alliance_id TEXT, from_at INTEGER NOT NULL, until_at INTEGER,
+     PRIMARY KEY (region, from_at))`,
   `CREATE TABLE IF NOT EXISTS alliance_hqs (alliance_id TEXT PRIMARY KEY, tag TEXT NOT NULL,
      x INTEGER NOT NULL, y INTEGER NOT NULL, moved_at INTEGER NOT NULL)`,
   // status: open → done (fought). A rally's participants are its rows in `marches`.
@@ -106,7 +140,6 @@ const SCHEMA = [
      depart_at INTEGER NOT NULL, arrive_at INTEGER NOT NULL, return_at INTEGER NOT NULL, phase TEXT NOT NULL,
      rally_id TEXT)`,
   "CREATE INDEX IF NOT EXISTS marches_account ON marches(account_id)",
-  "CREATE INDEX IF NOT EXISTS marches_rally ON marches(rally_id)",
 ];
 
 interface MarchRow {
@@ -123,10 +156,15 @@ interface MarchRow {
   readonly depart_at: number;
   readonly arrive_at: number;
   readonly return_at: number;
-  readonly phase: "pending" | "outbound" | "returning";
+  /** `at_site`: a harvest march that has arrived and is gathering. Battle marches never use it. */
+  readonly phase: "pending" | "outbound" | "at_site" | "returning";
   readonly rally_id: string | null;
   /** JSON of the MarchHeroes snapshot the base holds for this march; null without heroes. */
   readonly heroes: string | null;
+  /** The resource site a harvest march holds; null for battle marches. */
+  readonly site_id: string | null;
+  /** When a harvest march leaves its site (window end, or the recall). Null for battle marches. */
+  readonly leave_site_at: number | null;
 }
 
 interface RallyRow {
@@ -151,6 +189,7 @@ interface NpcRow {
   readonly level: number;
   readonly x: number;
   readonly y: number;
+  readonly region_id: number | null;
 }
 
 const MAP_CHANGED: MapEvent = { type: "map_changed" };
@@ -169,6 +208,9 @@ const parseTroops = (raw: string): Troops => {
  * Every number comes from `packages/rules`; times are the caller's `now`.
  */
 export class MapService {
+  /** Resource sites of this map, placed once from the seed. Never stored: `sites()` recomputes them the same way. */
+  private sitesCache: readonly MapSite[] | null = null;
+
   constructor(private readonly deps: MapServiceDeps) {
     for (const s of SCHEMA) deps.sql.exec(s);
     // A map created before rallies has no `rally_id` column; add it once.
@@ -176,7 +218,20 @@ export class MapService {
     if (!columns.includes("rally_id")) deps.sql.exec("ALTER TABLE marches ADD COLUMN rally_id TEXT");
     // A map created before hero marches has no `heroes` column; add it once.
     if (!columns.includes("heroes")) deps.sql.exec("ALTER TABLE marches ADD COLUMN heroes TEXT");
+    // A map created before harvests has no `site_id` or `leave_site_at`. A site holds one march row, so deleting the row frees it.
+    if (!columns.includes("site_id")) deps.sql.exec("ALTER TABLE marches ADD COLUMN site_id TEXT");
+    if (!columns.includes("leave_site_at")) deps.sql.exec("ALTER TABLE marches ADD COLUMN leave_site_at INTEGER");
+    // Indexes on migrated columns come after their ALTERs: an older table has neither column yet.
+    deps.sql.exec("CREATE INDEX IF NOT EXISTS marches_rally ON marches(rally_id)");
+    deps.sql.exec("CREATE UNIQUE INDEX IF NOT EXISTS marches_site ON marches(site_id) WHERE site_id IS NOT NULL");
+    // A map created before strongholds has no `region_id` column, and holds roaming level-4 NPCs: drop them
+    // (a rally already marching on one comes home unharmed, the same as for any vanished target).
+    if (!this.rows<{ name: string }>("SELECT name FROM pragma_table_info('npcs')").some((c) => c.name === "region_id")) {
+      deps.sql.exec("ALTER TABLE npcs ADD COLUMN region_id INTEGER");
+    }
+    deps.sql.exec("DELETE FROM npcs WHERE level = ? AND region_id IS NULL", MAX_NPC_LEVEL);
     if (this.meta("terrain_seed") === null) this.setMeta("terrain_seed", this.randomU32());
+    this.ensureStrongholds();
     this.fillNpcs();
   }
 
@@ -195,17 +250,18 @@ export class MapService {
     for (const row of this.rows<MarchRow>("SELECT * FROM marches WHERE phase = 'pending' AND rally_id IS NULL AND depart_at <= ?", t - PENDING_TIMEOUT_MS)) {
       events.push(...(await this.resolvePending(row)));
     }
+    events.push(...(await this.settleHarvests(t)));
     for (;;) {
-      const march = this.rows<MarchRow>("SELECT * FROM marches WHERE phase = 'outbound' AND rally_id IS NULL AND arrive_at <= ? ORDER BY arrive_at, id LIMIT 1", t)[0];
+      const march = this.rows<MarchRow>("SELECT * FROM marches WHERE phase = 'outbound' AND rally_id IS NULL AND site_id IS NULL AND arrive_at <= ? ORDER BY arrive_at, id LIMIT 1", t)[0];
       const rally = this.rows<RallyRow>("SELECT * FROM rallies WHERE status = 'open' AND arrive_at <= ? ORDER BY arrive_at, id LIMIT 1", t)[0];
       if (march === undefined && rally === undefined) break;
       if (march !== undefined && (rally === undefined || march.arrive_at <= rally.arrive_at)) events.push(...(await this.arrive(march)));
-      else if (rally !== undefined) events.push(...(await this.arriveRally(rally)));
+      else if (rally !== undefined) events.push(...(await this.arriveRally(rally, t)));
     }
     const back = this.rows<{ account_id: string }>("DELETE FROM marches WHERE phase = 'returning' AND return_at <= ? RETURNING account_id", t);
     for (const r of back) events.push({ type: "base_changed", accountId: r.account_id }, MAP_CHANGED);
     this.rows("DELETE FROM rallies WHERE status = 'done' AND return_at <= ? RETURNING id", t);
-    const respawned = this.rows<NpcRow>("DELETE FROM npcs WHERE respawn_at IS NOT NULL AND respawn_at <= ? RETURNING id, level, x, y", t);
+    const respawned = this.rows<NpcRow>("DELETE FROM npcs WHERE region_id IS NULL AND respawn_at IS NOT NULL AND respawn_at <= ? RETURNING id, level, x, y, region_id", t);
     if (respawned.length > 0) {
       this.fillNpcs();
       events.push(MAP_CHANGED);
@@ -236,12 +292,13 @@ export class MapService {
         `SELECT b.account_id, COALESCE(p.handle, b.tag) AS tag, b.x, b.y, p.alliance_tag FROM map_bases b
          LEFT JOIN map_players p ON p.account_id = b.account_id ORDER BY b.created_at, b.account_id`,
       ).map((b) => ({ tag: b.tag, x: b.x, y: b.y, mine: b.account_id === viewerId, alliance: b.alliance_tag })),
-      npcs: this.rows<NpcRow>("SELECT id, level, x, y FROM npcs WHERE respawn_at IS NULL ORDER BY id").map((n) => ({
+      npcs: this.rows<NpcRow>("SELECT id, level, x, y, region_id FROM npcs WHERE respawn_at IS NULL ORDER BY id").map((n) => ({
         id: n.id,
         kind: npcLevel(n.level)?.kind ?? "patrol",
         level: n.level,
         x: n.x,
         y: n.y,
+        region: n.region_id,
       })),
       // The seed stays on the server until the battle is over.
       marches: this.rows<MarchRow>("SELECT * FROM marches WHERE phase != 'pending' ORDER BY depart_at, id").map((m) => ({
@@ -252,7 +309,9 @@ export class MapService {
         departAt: m.depart_at,
         arriveAt: m.arrive_at,
         returnAt: m.return_at,
+        ...(m.site_id === null || m.leave_site_at === null ? {} : { siteId: m.site_id, leaveSiteAt: m.leave_site_at }),
       })),
+      sites: this.sitesView(viewerId),
       hqs: this.rows<{ alliance_id: string; tag: string; x: number; y: number }>("SELECT alliance_id, tag, x, y FROM alliance_hqs ORDER BY alliance_id").map((h) => ({
         tag: h.tag,
         x: h.x,
@@ -261,6 +320,7 @@ export class MapService {
       })),
       // Rallies are for the alliance that called them, nobody else.
       rallies: mine === null ? [] : this.rallyViews(mine, viewerId),
+      liberations: this.liberationViews(),
       now,
     };
   }
@@ -276,8 +336,8 @@ export class MapService {
     if (placed.created) events.push(MAP_CHANGED);
     const stored = await loadBase(this.deps.db, viewer.accountId);
     if (stored === null) return { value: { ok: false, error: "not_found" }, events };
-    const npc = this.rows<NpcRow>("SELECT id, level, x, y FROM npcs WHERE id = ? AND respawn_at IS NULL", npcId)[0];
-    const advanced = advance(stored.state, now);
+    const npc = this.rows<NpcRow>("SELECT id, level, x, y, region_id FROM npcs WHERE id = ? AND respawn_at IS NULL", npcId)[0];
+    const advanced = advance(stored.state, now, this.world());
     if (npc === undefined) return { value: { ok: false, reason: "target_gone", state: advanced }, events };
     if (npcLevel(npc.level)?.rallyOnly === true) return { value: { ok: false, reason: "rally_only", state: advanced }, events };
     const reason = checkMarch(advanced, troops, heroes);
@@ -302,11 +362,11 @@ export class MapService {
     if (placed.created) events.push(MAP_CHANGED);
     const stored = await loadBase(this.deps.db, viewer.accountId);
     if (stored === null) return { value: { ok: false, error: "not_found" }, events };
-    const advanced = advance(stored.state, now);
+    const advanced = advance(stored.state, now, this.world());
     const refuse = (reason: SendMarchReason): MapOp<SendMarchResult> => ({ value: { ok: false, reason, state: advanced }, events });
     if (viewer.allianceId === null) return refuse("not_member");
     if (!isGatherOption(gatherMs)) return refuse("bad_gather");
-    const npc = this.rows<NpcRow>("SELECT id, level, x, y FROM npcs WHERE id = ? AND respawn_at IS NULL", npcId)[0];
+    const npc = this.rows<NpcRow>("SELECT id, level, x, y, region_id FROM npcs WHERE id = ? AND respawn_at IS NULL", npcId)[0];
     if (npc === undefined) return refuse("target_gone");
     const reason = checkMarch(advanced, troops);
     if (reason !== null) return refuse(reason);
@@ -333,7 +393,7 @@ export class MapService {
     if (placed.created) events.push(MAP_CHANGED);
     const stored = await loadBase(this.deps.db, viewer.accountId);
     if (stored === null) return { value: { ok: false, error: "not_found" }, events };
-    const advanced = advance(stored.state, now);
+    const advanced = advance(stored.state, now, this.world());
     const refuse = (reason: SendMarchReason): MapOp<SendMarchResult> => ({ value: { ok: false, reason, state: advanced }, events });
     if (viewer.allianceId === null) return refuse("not_member");
     const rally = this.rows<RallyRow>("SELECT * FROM rallies WHERE id = ? AND alliance_id = ?", rallyId, viewer.allianceId)[0];
@@ -361,6 +421,65 @@ export class MapService {
   }
 
   /**
+   * Sends a harvest march from the player's base to a resource site (docs/resource-sites-plan.md). The troops leave now,
+   * reach the site, gather until full or until the window ends, and come home with the load. One march holds a site at a time.
+   */
+  async startHarvest(viewer: MapViewer, siteId: string, troops: Troops, now: number): Promise<MapOp<SendMarchResult>> {
+    const events: MapEvent[] = [];
+    if (this.touchPlayer(viewer)) events.push(MAP_CHANGED);
+    const placed = this.ensureBase(viewer, now);
+    if (placed.created) events.push(MAP_CHANGED);
+    const stored = await loadBase(this.deps.db, viewer.accountId);
+    if (stored === null) return { value: { ok: false, error: "not_found" }, events };
+    const advanced = advance(stored.state, now, this.world());
+    const refuse = (reason: SendMarchReason): MapOp<SendMarchResult> => ({ value: { ok: false, reason, state: advanced }, events });
+    const site = this.visibleSites().find((s) => s.id === siteId);
+    if (site === undefined) return refuse("no_such_site");
+    const taken = new Set(this.rows<{ site_id: string }>("SELECT site_id FROM marches WHERE site_id IS NOT NULL").map((r) => r.site_id));
+    const reason = checkHarvest(advanced, troops, site, taken);
+    if (reason !== null) return refuse(reason);
+
+    const leg = travelMs(placed.at, site, troops);
+    const timing = harvestTiming(site, harvestCarry(troops), now + leg, leg);
+    const march: Omit<MarchState, "outcome"> = {
+      id: this.deps.newId(),
+      target: { npcId: site.id, level: 0, x: site.x, y: site.y },
+      from: placed.at,
+      troops,
+      siteId: site.id,
+      departAt: now,
+      arriveAt: timing.arriveAt,
+      returnAt: timing.returnAt,
+    };
+    this.insertMarchRow(march, viewer.accountId, 0, null, timing.leaveSiteAt);
+    const result = await this.commitMarch(viewer.accountId, stored, march, now, null);
+    return { value: result, events: result.ok ? [...events, MAP_CHANGED] : events };
+  }
+
+  /**
+   * Brings a harvest march home now: it leaves its site at `now` and is home one leg later. Refused before it has
+   * arrived, and once its scheduled leave has passed. The load gathered so far goes to the base with the new return time.
+   */
+  async recallHarvest(viewer: MapViewer, marchId: string, now: number): Promise<MapOp<RecallHarvestResult>> {
+    const events: MapEvent[] = [];
+    if (this.touchPlayer(viewer)) events.push(MAP_CHANGED);
+    const stored = await loadBase(this.deps.db, viewer.accountId);
+    if (stored === null) return { value: { ok: false, error: "not_found" }, events };
+    const advanced = advance(stored.state, now, this.world());
+    const row = this.rows<MarchRow>("SELECT * FROM marches WHERE id = ? AND account_id = ?", marchId, viewer.accountId)[0];
+    if (row === undefined) return { value: { ok: false, error: "not_found" }, events };
+    const refuse = (reason: RecallHarvestReason): MapOp<RecallHarvestResult> => ({ value: { ok: false, reason, state: advanced }, events });
+    if (row.site_id === null || row.leave_site_at === null) return refuse("not_harvest");
+    const timing = recallTiming(row.arrive_at, now, row.return_at - row.leave_site_at);
+    if (!timing.ok) return refuse(timing.reason);
+    if (now >= row.leave_site_at) return refuse("already_leaving");
+
+    const saved = await this.writeHarvest(viewer.accountId, row.id, this.harvestOutcome(row, timing.leaveSiteAt), timing.returnAt, now);
+    this.deps.sql.exec("UPDATE marches SET phase = 'returning', leave_site_at = ?, return_at = ? WHERE id = ?", timing.leaveSiteAt, timing.returnAt, row.id);
+    return { value: { ok: true, state: advance(saved ?? advanced, now, this.world()) }, events: [...events, MAP_CHANGED] };
+  }
+
+  /**
    * Puts the viewer's alliance HQ on a tile. The Worker has checked that the viewer is the leader. A first
    * placement is free; moving it waits out HQ_MOVE_COOLDOWN_MS.
    */
@@ -374,6 +493,7 @@ export class MapService {
       ...this.rows<MapPoint>("SELECT x, y FROM map_bases"),
       ...this.rows<MapPoint>("SELECT x, y FROM npcs"),
       ...this.rows<MapPoint>("SELECT x, y FROM alliance_hqs WHERE alliance_id != ?", viewer.allianceId),
+      ...this.sites(),
     ];
     if (others.some((p) => Math.max(Math.abs(p.x - x), Math.abs(p.y - y)) <= PLACEMENT_SPACING)) return { value: { ok: false, reason: "tile_taken" }, events: [] };
     this.deps.sql.exec(
@@ -423,9 +543,10 @@ export class MapService {
       due("SELECT MIN(arrive_at) AS due FROM marches WHERE phase = 'outbound'"),
       due("SELECT MIN(return_at) AS due FROM marches WHERE phase = 'returning'"),
       due("SELECT MIN(depart_at) + ? AS due FROM marches WHERE phase = 'pending' AND rally_id IS NULL", PENDING_TIMEOUT_MS),
+      due("SELECT MIN(leave_site_at) AS due FROM marches WHERE site_id IS NOT NULL AND phase IN ('outbound', 'at_site')"),
       due("SELECT MIN(arrive_at) AS due FROM rallies WHERE status = 'open'"),
       due("SELECT MIN(return_at) AS due FROM rallies WHERE status = 'done'"),
-      due("SELECT MIN(respawn_at) AS due FROM npcs WHERE respawn_at IS NOT NULL"),
+      due("SELECT MIN(respawn_at) AS due FROM npcs WHERE region_id IS NULL AND respawn_at IS NOT NULL"),
     ].filter((t): t is number => t !== null);
     return times.length === 0 ? null : Math.min(...times);
   }
@@ -468,12 +589,77 @@ export class MapService {
     });
   }
 
-  private insertMarchRow(m: Omit<MarchState, "outcome">, accountId: string, seed: number, rallyId: string | null): void {
+  private insertMarchRow(m: Omit<MarchState, "outcome">, accountId: string, seed: number, rallyId: string | null, leaveSiteAt: number | null = null): void {
     this.deps.sql.exec(
-      `INSERT INTO marches (id, account_id, npc_id, npc_level, from_x, from_y, to_x, to_y, troops, seed, depart_at, arrive_at, return_at, phase, rally_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`,
+      `INSERT INTO marches (id, account_id, npc_id, npc_level, from_x, from_y, to_x, to_y, troops, seed, depart_at, arrive_at, return_at, phase, rally_id, site_id, leave_site_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)`,
       m.id, accountId, m.target.npcId, m.target.level, m.from.x, m.from.y, m.target.x, m.target.y, JSON.stringify(m.troops), seed, m.departAt, m.arriveAt, m.returnAt, rallyId,
+      m.siteId ?? null, leaveSiteAt,
     );
+  }
+
+  /** The sites a player can see and send to: not those a base, HQ or stronghold stands on (live worlds may predate the site rule). */
+  private visibleSites(): MapSite[] {
+    const covered = new Set(
+      [
+        ...this.rows<MapPoint>("SELECT x, y FROM map_bases"),
+        ...this.rows<MapPoint>("SELECT x, y FROM alliance_hqs"),
+        ...this.rows<MapPoint>("SELECT x, y FROM npcs WHERE region_id IS NOT NULL"),
+      ].map((p) => `${p.x},${p.y}`),
+    );
+    return this.sites().filter((s) => !covered.has(`${s.x},${s.y}`));
+  }
+
+  /** The visible sites with their holder: `occupied` if any march holds it, `mine` if it is the viewer's. */
+  private sitesView(viewerId: string): MapSiteView[] {
+    const holders = this.rows<{ site_id: string; account_id: string }>("SELECT site_id, account_id FROM marches WHERE site_id IS NOT NULL");
+    return this.visibleSites().map((s) => {
+      const holder = holders.find((h) => h.site_id === s.id);
+      return { id: s.id, kind: s.kind, level: s.level, x: s.x, y: s.y, occupied: holder !== undefined, mine: holder?.account_id === viewerId };
+    });
+  }
+
+  /** A harvest's outcome as of `leaveAt`: the troops come home whole, carrying what the site gave up by then. */
+  private harvestOutcome(row: MarchRow, leaveAt: number): MarchOutcome {
+    const troops = parseTroops(row.troops);
+    const site = this.sites().find((s) => s.id === row.site_id);
+    const gained = site === undefined ? 0 : harvestedAt(site, harvestCarry(troops), row.arrive_at, leaveAt);
+    const loot = site === undefined ? ZERO_RESOURCES : { ...ZERO_RESOURCES, [SITE_RESOURCE[site.kind]]: gained };
+    return { result: "victory", survivors: troops, wounded: ZERO_TROOPS, lost: ZERO_TROOPS, loot };
+  }
+
+  /**
+   * Writes a harvest's outcome onto the base's march (and, on a recall, its new return time) in one compare-and-set.
+   * No battle report and no event awards: a harvest is not a fight. Idempotent: a march that already has an outcome is left
+   * alone. Null if the base no longer holds the march (its rescue already brought the troops home).
+   */
+  private async writeHarvest(accountId: string, marchId: string, outcome: MarchOutcome, returnAt: number | null, now: number): Promise<BaseState | null> {
+    const db = this.deps.db;
+    for (let i = 0; i < CAS_ATTEMPTS; i++) {
+      const stored = await loadBase(db, accountId);
+      const held = stored?.state.marches.find((m) => m.id === marchId);
+      if (stored === null || held === undefined) return null;
+      if (held.outcome !== null) return stored.state;
+      const state: BaseState = { ...stored.state, marches: stored.state.marches.map((m) => (m.id === marchId ? { ...m, outcome, returnAt: returnAt ?? m.returnAt } : m)) };
+      const [save] = (await db.batch([saveBaseStatement(db, accountId, state, stored.version, now)])) as { meta: { changes: number } }[];
+      if (save?.meta.changes === 1) return state;
+    }
+    throw new Error(`harvest ${marchId}: base kept changing`);
+  }
+
+  /**
+   * Harvest marches: one that has reached its site is marked so; one whose window has ended (or was recalled) hands its
+   * load to the base and starts home. Battle marches are not touched here.
+   */
+  private async settleHarvests(t: number): Promise<MapEvent[]> {
+    const arrived = this.rows<{ id: string }>("UPDATE marches SET phase = 'at_site' WHERE site_id IS NOT NULL AND phase = 'outbound' AND arrive_at <= ? RETURNING id", t);
+    const leaving = this.rows<MarchRow>("SELECT * FROM marches WHERE site_id IS NOT NULL AND phase = 'at_site' AND leave_site_at <= ? ORDER BY leave_site_at, id", t);
+    for (const row of leaving) {
+      const leaveAt = row.leave_site_at ?? row.arrive_at;
+      await this.writeHarvest(row.account_id, row.id, this.harvestOutcome(row, leaveAt), null, leaveAt);
+      this.deps.sql.exec("UPDATE marches SET phase = 'returning' WHERE id = ?", row.id);
+    }
+    return arrived.length + leaving.length > 0 ? [MAP_CHANGED] : [];
   }
 
   /** Step two and three of sending: write the march into the base (compare-and-set), then mark the row live. */
@@ -486,7 +672,7 @@ export class MapService {
   ): Promise<SendMarchResult> {
     let base = first;
     for (let i = 0; i < CAS_ATTEMPTS; i++) {
-      const r = startMarch(base.state, march, now, heroes);
+      const r = startMarch(base.state, march, now, this.world(), heroes);
       if (!r.ok) {
         this.dropMarchRow(march.id);
         return r;
@@ -541,7 +727,7 @@ export class MapService {
   /** A solo battle on arrival: written to the base and the report in D1 first, then the map moves on. */
   private async arrive(row: MarchRow): Promise<MapEvent[]> {
     const troops = parseTroops(row.troops);
-    const npc = this.rows<NpcRow>("SELECT id, level, x, y FROM npcs WHERE id = ? AND respawn_at IS NULL", row.npc_id)[0];
+    const npc = this.rows<NpcRow>("SELECT id, level, x, y, region_id FROM npcs WHERE id = ? AND respawn_at IS NULL", row.npc_id)[0];
     const modifier = heroBattleModifier(parseMarchHeroes(row.heroes));
     const { outcome, battle } = npc === undefined ? { outcome: targetGone(troops), battle: null } : fightNpc(troops, npc.level, row.seed, modifier);
     const report = this.reportFor(row, troops, outcome, battle, row.seed);
@@ -557,13 +743,13 @@ export class MapService {
   }
 
   /** A rally's one battle with everyone's troops; each participant gets their exact share and their own report. */
-  private async arriveRally(rally: RallyRow): Promise<MapEvent[]> {
+  private async arriveRally(rally: RallyRow, t: number): Promise<MapEvent[]> {
     for (const p of this.rows<MarchRow>("SELECT * FROM marches WHERE rally_id = ? AND phase = 'pending'", rally.id)) await this.resolvePending(p);
     const rows = this.rows<MarchRow>("SELECT * FROM marches WHERE rally_id = ? AND phase = 'outbound' ORDER BY id", rally.id);
     const events: MapEvent[] = [MAP_CHANGED];
     if (rows.length > 0) {
       const parts = rows.map((r) => ({ id: r.id, troops: parseTroops(r.troops) }));
-      const npc = this.rows<NpcRow>("SELECT id, level, x, y FROM npcs WHERE id = ? AND respawn_at IS NULL", rally.npc_id)[0];
+      const npc = this.rows<NpcRow>("SELECT id, level, x, y, region_id FROM npcs WHERE id = ? AND respawn_at IS NULL", rally.npc_id)[0];
       const fought = npc === undefined ? null : resolveRally(parts, npc.level, rally.seed);
       for (const row of rows) {
         const troops = parseTroops(row.troops);
@@ -574,7 +760,8 @@ export class MapService {
         }
       }
       if (npc !== undefined && fought?.outcome.result === "victory") {
-        this.deps.sql.exec("UPDATE npcs SET respawn_at = ? WHERE id = ?", rally.arrive_at + NPC_RESPAWN_MS, npc.id);
+        if (npc.region_id !== null) await this.liberate(npc.region_id, npc.id, rally.alliance_id, t);
+        else this.deps.sql.exec("UPDATE npcs SET respawn_at = ? WHERE id = ?", rally.arrive_at + NPC_RESPAWN_MS, npc.id);
       }
     }
     this.deps.sql.exec("UPDATE marches SET phase = 'returning' WHERE rally_id = ? AND phase = 'outbound'", rally.id);
@@ -619,16 +806,71 @@ export class MapService {
     return [];
   }
 
-  /** Tops up live NPCs to the target count per level, on free tiles. */
+  private liberationViews(): LiberationView[] {
+    return this.rows<{ region: number; alliance_id: string | null; from_at: number; until_at: number | null }>("SELECT region, alliance_id, from_at, until_at FROM liberations ORDER BY from_at, region").map((l) => ({
+      region: l.region,
+      from: l.from_at,
+      until: l.until_at,
+      alliance: l.alliance_id === null ? null : (this.rows<{ alliance_tag: string }>("SELECT alliance_tag FROM map_players WHERE alliance_id = ? AND alliance_tag IS NOT NULL LIMIT 1", l.alliance_id)[0]?.alliance_tag ?? null),
+    }));
+  }
+
+  /** The regions held, as the production rules read them. */
+  private world(): World {
+    return { liberations: this.rows<{ region: number; from_at: number; until_at: number | null }>("SELECT region, from_at, until_at FROM liberations").map((l) => ({ region: l.region, from: l.from_at, until: l.until_at })) };
+  }
+
+  /**
+   * Records a cleared stronghold's region as liberated, stamped with `t` (when the map records it, never
+   * earlier: bases already settled past `t` must not be paid for time before it). D1 first, so the Worker never
+   * lags the map; both writes are idempotent, so a retry after a crash changes nothing.
+   */
+  private async liberate(region: number, npcId: string, allianceId: string, t: number): Promise<void> {
+    await openLiberation(this.deps.db, String(this.meta("name") ?? ""), region, allianceId, t);
+    this.deps.sql.exec(
+      "INSERT INTO liberations (region, alliance_id, from_at, until_at) SELECT ?, ?, ?, NULL WHERE NOT EXISTS (SELECT 1 FROM liberations WHERE region = ? AND until_at IS NULL)",
+      region, allianceId, t, region,
+    );
+    this.deps.sql.exec("UPDATE npcs SET respawn_at = ? WHERE id = ?", STRONGHOLD_DOWN, npcId);
+  }
+
+  /** One level-4 stronghold per region, at the tile `strongholdTile` picks. Idempotent. */
+  private ensureStrongholds(): void {
+    const seed = Number(this.meta("terrain_seed"));
+    for (const { id } of regionsOf(seed)) {
+      if (this.rows("SELECT 1 FROM npcs WHERE region_id = ?", id).length > 0) continue;
+      const taken = [
+        ...this.rows<MapPoint>("SELECT x, y FROM map_bases"),
+        ...this.rows<MapPoint>("SELECT x, y FROM npcs"),
+        ...this.rows<MapPoint>("SELECT x, y FROM alliance_hqs"),
+        ...this.sites(),
+      ];
+      const at = strongholdTile(seed, id, taken, PLACEMENT_SPACING);
+      if (at === null) continue;
+      const held = this.rows("SELECT 1 FROM liberations WHERE region = ? AND until_at IS NULL", id).length > 0;
+      this.deps.sql.exec("INSERT INTO npcs (id, level, x, y, respawn_at, region_id) VALUES (?, ?, ?, ?, ?, ?)", this.deps.newId(), MAX_NPC_LEVEL, at.x, at.y, held ? STRONGHOLD_DOWN : null, id);
+    }
+  }
+
+  /** Tops up live roaming NPCs to the target count per level, on free tiles. */
   private fillNpcs(): void {
     NPC_COUNT_BY_LEVEL.forEach((target, i) => {
       const level = i + 1;
-      const have = this.rows<{ n: number }>("SELECT COUNT(*) AS n FROM npcs WHERE level = ?", level)[0]?.n ?? 0;
+      const have = this.rows<{ n: number }>("SELECT COUNT(*) AS n FROM npcs WHERE level = ? AND region_id IS NULL", level)[0]?.n ?? 0;
       for (let k = have; k < target; k++) {
         const at = this.freeTile();
-        this.deps.sql.exec("INSERT INTO npcs (id, level, x, y, respawn_at) VALUES (?, ?, ?, ?, NULL)", this.deps.newId(), level, at.x, at.y);
+        this.deps.sql.exec("INSERT INTO npcs (id, level, x, y, respawn_at, region_id) VALUES (?, ?, ?, ?, NULL, NULL)", this.deps.newId(), level, at.x, at.y);
       }
     });
+  }
+
+  /** Every resource site of the map (see `placeSites`), cached for the life of this service. */
+  private sites(): readonly MapSite[] {
+    if (this.sitesCache === null) {
+      const seed = Number(this.meta("terrain_seed"));
+      this.sitesCache = placeSites(seed, geographyOf(seed, MAP_SIZE));
+    }
+    return this.sitesCache;
   }
 
   /** A random tile away from mountains and at least PLACEMENT_SPACING from any base, NPC or HQ. */
@@ -638,6 +880,7 @@ export class MapService {
       ...this.rows<MapPoint>("SELECT x, y FROM map_bases"),
       ...this.rows<MapPoint>("SELECT x, y FROM npcs"),
       ...this.rows<MapPoint>("SELECT x, y FROM alliance_hqs"),
+      ...this.sites(),
     ];
     const free = (x: number, y: number, spacing: number): boolean =>
       terrainAt(seed, x, y) !== "mountain" && taken.every((p) => Math.max(Math.abs(p.x - x), Math.abs(p.y - y)) > spacing);

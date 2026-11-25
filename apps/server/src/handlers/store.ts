@@ -96,6 +96,7 @@ export const postRedeem = async (ctx: Ctx): Promise<Response> => {
   try {
     const g = await runGrant(db, {
       accountId: account.id,
+      server: account.server,
       claimKey: `purchase:${provider}:${txnId}`,
       now: ctx.now,
       background: backgroundOf(account),
