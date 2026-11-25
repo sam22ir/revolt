@@ -88,4 +88,3 @@ Everything animated is cosmetic and computed from the clock, so it can't drift f
 
 - Who reviews flags, vehicles and organisation names (GDD §12).
 - Vietnam's painting and palette.
-- Toasts, the offline badge and the unread dots are not yet on the kit.

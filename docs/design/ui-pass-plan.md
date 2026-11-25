@@ -87,7 +87,13 @@ kit's font sizes then (no global font change, which would reflow every screen an
    count per troop (medallion, −, field, +, Max), the gathering time as amber buttons, the heroes as three portrait places that open a
    `HeroPicker`, a harvest's figures; under the scrolling part, travel and carry, the reason (its room is always kept) and Cancel and
    Send. The marches list: a card with a row per march; only Recall takes touches. (Rallies came with step 6.)
-9. **Toasts and badges.** Report toast, unread dots, offline badge.
+9. **Toasts and badges.** *Built 25 Nov.* The report toast: a card under the top bar with the result's icon, rim and badge and the target;
+   it slides in, the marches list makes room under it, a tap opens the report. `OfflineBadge`: a dark red plate with the cut-signal icon
+   over the tab bar. `StatusCard`: the hourglass or the cut signal in the middle while there is nothing to show (also at start). The tab
+   dots pop in; the Chat tab's unread count is at its end in each language. The top bar counts marches as "Marches: n". The paper panel and
+   the dropdown styles are gone with their last users.
+
+**The pass is done (25 Nov).** Still to see on a phone: touch, scrolling and text sizes; a leader's actions; the rally sheets.
 
 Each screen: the sheet's rule of rebuilding only when its structure changes is kept (rows update text in place); Arabic is
 checked (rows follow the layout direction, the back chevron flips); models covered by GUT tests, en and ar screenshots at 375×812 looked at before the commit, one commit per screen.
