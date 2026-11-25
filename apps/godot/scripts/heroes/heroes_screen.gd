@@ -32,6 +32,7 @@ func _init() -> void:
 func _ready() -> void:
 	set_process(false)
 	back_pressed.connect(_on_back)
+	scroll.scroll_started.connect(func() -> void: set_process(false)) # a finger wins over the view being put back
 	visibility_changed.connect(func() -> void:
 		if is_visible_in_tree():
 			_open = ""
@@ -89,6 +90,7 @@ func _signature(cards: Array) -> String:
 	for c: Dictionary in cards:
 		var o: Variant = c["owned"]
 		parts.append("%s:%s:%s:%d:%s:%s" % [c["id"], o["level"] if o is Dictionary else 0, o["shards"] if o is Dictionary else 0, int(c["busy"]), c["level_up"], _notes.get(c["id"], "")])
+	parts.append(str(cards[0]["cap"]))
 	parts.append(HeroesModel.recruit_block(_session.state, _amounts))
 	parts.append(str(_session.state.get("heroes", {}).get("pity", 0)))
 	parts.append(JSON.stringify(_recruit_note))

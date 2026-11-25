@@ -1833,17 +1833,6 @@ def brim_hat(ic, colours, dark):
     ic.shape("M69 58C96 72 160 72 187 58V74C160 86 96 86 69 74z", ic.lin(colours[2:], 0, 58, 0, 84), LINE, 2, False)
 
 
-def sun_helmet(ic, colours, dark):
-    """A woven fibre helmet under a net, plain."""
-    ic.shape("M26 92C40 70 58 66 66 60C64 22 94 2 128 2C162 2 192 22 190 60C198 66 216 70 230 92C196 80 60 80 26 92z", ic.lin(colours, 40, 0, 210, 90), LINE, 2.8)
-    for x in range(58, 206, 16):
-        ic.line(f"M{x} 78Q{(x + 128) / 2 + 2:.0f} 34 128 4", dark, 1.6, .5)
-    for y in (22, 38, 54, 68):
-        ic.line(f"M{72 - (y - 22) * .5:.0f} {y + 8}Q128 {y - 12} {184 + (y - 22) * .5:.0f} {y + 8}", dark, 1.6, .5)
-    ic.line("M94 16C108 8 126 6 142 9", "#ffffff", 4, .5)
-    ic.line("M34 88C70 74 186 74 222 88", "#ffffff", 2, .45)
-
-
 def binoculars(ic):
     """Hanging on the chest, strap and all."""
     ic.line("M84 168Q92 210 104 214M172 168Q164 210 152 214", "#2b1508", 7)
@@ -1869,12 +1858,6 @@ def crate(ic, x, y, w, h):
             ic.rivet(px, py, 2.6, IRON)
 
 
-def rope(ic, d, w=9):
-    ic.line(d, "#3a2412", w + 4)
-    ic.line(d, "#c9a068", w)
-    ic.line(d, "#f6e2b8", w * .35, .7)
-
-
 def hero_save(ic):
     ic.save(cut_to=rect(2, 2, 252, 252, 30))
 
@@ -1897,8 +1880,6 @@ def hero_mountain_guide():
         ic.line(f"M{x + 8} 150L{x + 8 + (x - 120) * .35:.0f} 260", "#3a2413", 3, .6, "", c)
     neck_scarf(ic, WHITE)
     hood(ic, BROWN, "#3a2413")
-    rope(ic, "M60 186C96 214 150 236 206 258")
-    rope(ic, "M52 200C90 226 144 248 196 268")
     hero_save(ic)
 
 
@@ -1911,14 +1892,11 @@ def hero_dock_foreman():
     ic.shape("M150 150V128H244L232 156H162z", ic.lin(TERRA, 0, 128, 0, 156), LINE, 2, False)
     ic.shape("M180 128V106H216V128z", ic.lin(WHITE, 180, 0, 216, 0), LINE, 2, False)
     ic.shape("M190 106V84H204V106z", ic.lin(IRON, 190, 0, 204, 0), LINE, 2, False)
-    ic.line("M28 256V30H126", "#2a2018", 13)
-    ic.line("M28 256V30H126", "#b0713a", 8)
-    for y in range(46, 230, 22):
-        ic.line(f"M22 {y}L34 {y + 18}", "#4a2812", 2.4)
-    ic.line("M30 70L70 32", "#7c4822", 6)
-    ic.line("M112 30V74", "#2a2018", 3.4)
-    ic.line("M112 74v10c0 14 -20 12 -18 -2", "#22262b", 8)
-    ic.line("M112 74v10c0 14 -20 12 -18 -2", "#c3c4c0", 4)
+    ic.fill("M0 206H256V256H0z", ic.lin(GREY, 0, 206, 0, 256))
+    ic.line("M0 207H256", "#fffdf5", 3, .7)
+    crate(ic, -6, 164, 48, 46)
+    crate(ic, 4, 122, 40, 42)
+    crate(ic, 214, 176, 48, 40)
     ic.layer(BUST)
     bust(ic, DENIM, "#1f3344", "#cfe0ea")
     jacket_front(ic, DENIM, "#1f3344", "#cfe0ea")
@@ -2083,8 +2061,7 @@ def hero_column_commander():
     bust(ic, OLIVE, "#33391a", "#d3d795")
     jacket_front(ic, OLIVE, "#33391a", "#d3d795")
     neck_scarf(ic, JUNGLE)
-    sun_helmet(ic, OLIVE, "#33391a")
-    leaves(ic, [(92, 46, -60), (164, 44, -120)], JUNGLE, .6)
+    cap(ic, OLIVE, "#33391a")
     binoculars(ic)
     ic.layer()
     ic.shape("M14 206L62 188L84 250L36 268z", ic.lin(PAPER, 14, 190, 84, 260), LINE, 2.4)
