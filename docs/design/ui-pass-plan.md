@@ -76,7 +76,12 @@ kit's font sizes then (no global font change, which would reflow every screen an
    member count in the band; four icon tabs; members as rows with rank badges (a leader's actions open under a tapped row); chat as
    bubbles (`ChatBubble`); help and rallies as rows with bars, countdowns and their buttons. Leave and the leader's actions ask in a
    `KitDialog`. A row with its own buttons is not `tappable`. A card, row or tile passes its drags on, so lists scroll under the finger.
-7. **Heroes.** Portrait grid with rarity frames; a hero as a card with skills; recruit with odds in a card.
+7. **Heroes.** *Built 25 Nov* on `PageFrame`. A recruit card (cost, Recruit, who the last draw brought, the odds and the guarantee as bars
+   over their sentences) over a two-column grid of `HeroTile`s, recruited heroes first: portrait, name, rarity, shards, an arrow when there
+   is a level to take. A tap opens the hero: portrait, rarity, level, specialty, the "inspired by" line, shards and Level up, skills. Back
+   goes to the grid where it was scrolled, then home. `HeroPortrait` frames `art/icons/hero_<id>.svg` (eight, own SVG: the face in plain
+   shade, the role's tools, a place; no flags, insignia or relief emblems) in the rarity's colour: grey, blue, copper. Reports' hero chips
+   use the same portraits.
 8. **Map sheets.** Tile sheet, march sheet, marches list, rallies: the same kit.
 9. **Toasts and badges.** Report toast, unread dots, offline badge.
 

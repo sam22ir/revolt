@@ -142,6 +142,7 @@ static func stat_chip(icon_name: String, text: String) -> PanelContainer:
 
 static func _chip(icon: Control, value: Label) -> PanelContainer:
 	var chip := PanelContainer.new()
+	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var box := HudTheme.pill()
 	chip.add_theme_stylebox_override("panel", box)
 	var row := HBoxContainer.new()
@@ -207,6 +208,7 @@ static func progress_bar() -> ProgressBar:
 ## A short warning line with a lock: why an action is blocked.
 static func warning(text: String) -> PanelContainer:
 	var c := PanelContainer.new()
+	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var box := HudTheme.flat(Color(HudTheme.LACKING, 0.12), 6.0, Color(HudTheme.LACKING, 0.6), 1.0)
 	c.add_theme_stylebox_override("panel", box)
 	var row := HBoxContainer.new()

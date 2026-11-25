@@ -35,7 +35,7 @@ GREY = ["#e6dfd0", "#bdb29c", "#8b7f69", "#544a3a"]
 class Icon:
     def __init__(self, name):
         self.name, self.defs, self.backs, self.body, self.n = name, [], [], [], 0
-        self.layers = []
+        self.layers, self.layer_tf = [], ""
         self.rng = random.Random(name)
 
     def uid(self):
@@ -104,16 +104,17 @@ class Icon:
                 d = f"M{x:.1f} {a:.1f}Q{x + r.uniform(-wob, wob):.1f} {(a + b) / 2:.1f} {x + r.uniform(-wob / 2, wob / 2):.1f} {b:.1f}"
             self.line(d, colour, round(r.uniform(1.1, 2.4), 1), op, tf, clip)
 
-    def layer(self):
-        """Starts a new layer: what comes next has its own dark outline, over everything drawn so far."""
-        self.layers.append((self.backs, self.body))
-        self.backs, self.body = [], []
+    def layer(self, tf=""):
+        """Starts a new layer: what comes next has its own dark outline, over everything drawn so far, and is moved by `tf`."""
+        self.layers.append((self.backs, self.body, self.layer_tf))
+        self.backs, self.body, self.layer_tf = [], [], tf
 
-    def save(self, scale=1.0, dx=0, dy=0, round_clip=False):
-        """Writes the icon, drawn at `scale` about the middle and moved by (dx, dy), cut to a circle with `round_clip`."""
-        cut = f' clip-path="url(#{self.clip(circ(128, 128, 126))})"' if round_clip else ""
+    def save(self, scale=1.0, dx=0, dy=0, round_clip=False, cut_to=""):
+        """Writes the icon, drawn at `scale` about the middle and moved by (dx, dy), cut to a circle with `round_clip` or to a path."""
+        cut_to = circ(128, 128, 126) if round_clip else cut_to
+        cut = f' clip-path="url(#{self.clip(cut_to)})"' if cut_to else ""
         self.layer()
-        art = "".join(f'<g fill="{INK}" stroke="{INK}" stroke-linejoin="round" stroke-linecap="round">{"".join(backs)}</g>{"".join(body)}' for backs, body in self.layers)
+        art = "".join((f'<g transform="{tf}">' if tf else "") + f'<g fill="{INK}" stroke="{INK}" stroke-linejoin="round" stroke-linecap="round">{"".join(backs)}</g>{"".join(body)}' + ("</g>" if tf else "") for backs, body, tf in self.layers)
         svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><defs>{"".join(self.defs)}</defs><g{cut}><g transform="translate({128 * (1 - scale) + dx:.2f} {128 * (1 - scale) + dy:.2f}) scale({scale})">{art}</g></g></svg>\n'
         (OUT / f"{self.name}.svg").write_text(svg)
 
@@ -1699,8 +1700,403 @@ def hourglass():
     ic.save()
 
 
+# ------------------------------------------------------------------ heroes
+# A square portrait per hero id: a bust whose face is plain shade under the headwear, the role's tools, and a place behind. No faces,
+# flags, insignia or relief emblems; a role, not a portrait of anyone.
+
+BUST = "translate(25.6 50) scale(.8)"
+DENIM = ["#9db4c4", "#5f7f96", "#3a566c", "#1f3344"]
+BROWN = ["#cfa676", "#976c42", "#674526", "#3a2413"]
+JUNGLE = ["#9fb86a", "#5f7f3c", "#3a5628", "#1e3317"]
+
+
+def sky(ic, colours):
+    ic.fill("M0 0H256V256H0z", ic.lin(colours, 0, 0, 0, 220))
+
+
+def ridge(ic, pts, colours, light="#ffffff"):
+    d = "M0 256L" + "L".join(f"{x} {y}" for x, y in pts) + "L256 256z"
+    ic.fill(d, ic.lin(colours, 0, min(y for _, y in pts), 0, 256))
+    for (x, y), (x2, y2) in zip(pts, pts[1:]):
+        ic.line(f"M{x} {y}L{x2} {y2}", light, 2.4, .35 if y2 > y else .7)
+        if y2 > y:
+            for k in range(1, 4):
+                ic.line(f"M{x + (x2 - x) * k / 4:.0f} {y + (y2 - y) * k / 4:.0f}l{-6 - k * 2} {16 + k * 7}", "#000000", 2, .18)
+
+
+def leaves(ic, spots, colours, size=1.0):
+    for x, y, a in spots:
+        tf = f"translate({x} {y}) rotate({a}) scale({size})"
+        ic.shape("M0 0C14 -18 40 -20 62 0C40 18 14 16 0 0z", ic.lin(colours, 0, -16, 0, 16), colours[3], 2, False, tf)
+        ic.line("M4 0H56M18 0l8 -9M18 0l8 9M32 0l8 -8M32 0l8 8", "#eef5c8", 1.6, .5, tf)
+
+
+def bust(ic, cloth, dark, light):
+    """The jacket with its folds, pockets and buttons, and the neck and head, all in shade."""
+    body = "M14 262C14 190 50 166 96 156H160C206 166 242 190 242 262z"
+    ic.shape(body, ic.lin(cloth, 40, 150, 220, 256), LINE, 3)
+    c = ic.clip(body)
+    for x, q in ((46, 30), (72, 62), (186, 196), (214, 228)):
+        ic.line(f"M{x} 190Q{q} 220 {q} 258", dark, 4, .6, "", c)
+        ic.line(f"M{x - 5} 190Q{q - 6} 220 {q - 6} 258", light, 2, .6, "", c)
+    for _ in range(70):
+        x, y = ic.rng.uniform(20, 236), ic.rng.uniform(168, 254)
+        ic.line(f"M{x:.1f} {y:.1f}l3 -3", dark if ic.rng.random() < .6 else light, 1.1, .35, "", c)
+    ic.line("M60 178C76 166 92 162 104 160", light, 3.4, .6)
+    ic.shape("M98 128H158V170Q128 190 98 170z", ic.lin([SKIN[2], SKIN[3]], 0, 128, 0, 176), LINE, 2, False)
+    head(ic)
+    return c
+
+
+def head(ic):
+    for x in (72, 184):
+        ic.shape(ell(x, 104, 9, 15), ic.lin(SKIN, x - 9, 92, x + 9, 120), LINE, 2)
+    ic.shape("M74 70C70 124 94 158 128 158C162 158 186 124 182 70z", ic.lin([SKIN[0], SKIN[1], SKIN[2], SKIN[3]], 80, 80, 180, 150), LINE, 2.5)
+    ic.fill("M74 70H182C183 92 180 108 174 118C160 100 96 100 82 118C76 106 73 90 74 70z", "#1f0f06", .6)
+    ic.fill("M128 158C162 158 186 124 182 70H160C164 118 150 146 128 158z", "#2a160b", .35)
+    ic.line("M84 120C90 140 104 152 122 154", "#f2c59a", 2.4, .5)
+
+
+def jacket_front(ic, cloth, dark, light):
+    ic.line("M128 196V258", dark, 4, .9)
+    ic.line("M124 196V258", light, 1.6, .7)
+    for y in (212, 240):
+        ic.rivet(136, y, 5)
+    for x in (58, 164):
+        ic.shape(f"M{x} 220H{x + 36}V258H{x}z", ic.lin(cloth[:3], x, 218, x + 36, 256), dark, 2, False)
+        ic.shape(f"M{x - 2} 216H{x + 38}V228L{x + 18} 238L{x - 2} 228z", ic.lin(cloth[:3], x, 214, x, 236), dark, 2, False)
+        ic.rivet(x + 18, 229, 3.6)
+
+
+def neck_scarf(ic, colours):
+    ic.shape("M66 146C92 172 164 172 190 146C204 166 200 192 172 200C144 208 112 208 84 200C56 192 52 166 66 146z", ic.lin(colours, 70, 146, 180, 204), LINE, 2.6)
+    for k in range(4):
+        ic.line(f"M{68 - k} {160 + k * 9}C96 {180 + k * 8} 160 {180 + k * 8} {188 + k} {158 + k * 9}", colours[3], 2.2, .75)
+        ic.line(f"M{72 - k} {157 + k * 9}C92 {172 + k * 8} 110 {176 + k * 8} 128 {176 + k * 8}", "#fff", 1.8, .6)
+
+
+def cap(ic, colours, dark):
+    ic.shape("M66 74C58 30 92 8 128 8C164 8 198 30 190 74C164 60 92 60 66 74z", ic.lin(colours, 72, 10, 190, 76), LINE, 2.6)
+    ic.line("M128 10C122 28 122 46 126 62M92 20C84 36 82 52 84 64M164 20C172 36 174 52 172 64", dark, 2.2, .7)
+    ic.line("M98 18C112 12 128 12 142 15", "#ffffff", 4, .5)
+    ic.shape("M62 78C92 58 164 58 194 78V62C164 44 92 44 62 62z", ic.lin(colours[1:], 0, 46, 0, 78), LINE, 2.2, False)
+    ic.line("M68 68C96 52 160 52 188 68", "#ffffff", 1.6, .5)
+    ic.shape("M54 88C80 62 176 62 202 88C176 78 80 78 54 88z", ic.lin(colours[1:], 0, 66, 0, 90), LINE, 2.4)
+
+
+def flat_cap(ic, colours, dark):
+    ic.shape("M48 62C44 26 88 6 132 8C176 8 214 30 208 62C186 72 70 72 48 62z", ic.lin(colours, 60, 8, 200, 70), LINE, 2.6)
+    for x in range(64, 204, 14):
+        ic.line(f"M{x} 64Q{(x + 128) / 2 + 4:.0f} 34 {(x + 384) / 4:.0f} 14", dark, 1.6, .45)
+    for y in (30, 44, 56):
+        ic.line(f"M58 {y + 4}Q128 {y - 10} 200 {y + 4}", dark, 1.4, .4)
+    ic.line("M84 22C104 12 130 12 152 15", "#ffffff", 4, .45)
+    ic.rivet(130, 11, 5, colours)
+    ic.shape("M50 60C86 74 170 74 206 60C216 76 204 92 188 94C150 82 106 82 68 94C50 90 42 74 50 60z", ic.lin(colours[1:], 0, 60, 0, 94), LINE, 2.4)
+    ic.line("M60 78C100 66 156 66 196 78", "#ffffff", 2, .4)
+
+
+def wrap(ic, colours, dark):
+    """A cloth wound round the head."""
+    d = "M60 84C44 44 74 4 130 4C184 4 214 44 196 84C170 68 88 68 60 84z"
+    ic.shape(d, ic.lin(colours, 60, 4, 200, 84), LINE, 2.6)
+    c = ic.clip(d)
+    for k in range(5):
+        fold = f"M40 {78 - k * 15}C{90} {66 - k * 14} {160} {44 - k * 10} 220 {6 + k * 2}"
+        ic.line(fold, dark, 3, .6, "", c)
+        ic.line(fold, "#ffffff", 2, .5, "translate(0 -4)", c)
+    ic.line("M60 60C110 68 160 70 204 62", dark, 3, .5, "", c)
+    ic.shape("M176 66C196 58 208 66 206 78C200 92 184 90 176 80z", ic.lin(colours, 176, 60, 206, 90), LINE, 2.2, False)
+    ic.line("M92 16C108 9 128 7 146 10", "#ffffff", 4, .6)
+
+
+def hood(ic, colours, dark):
+    """A wool hood open round the face, its edge rolled back."""
+    inner = "M128 30C170 30 192 62 188 104C186 134 176 150 168 160L88 160C80 150 70 134 68 104C64 62 86 30 128 30z"
+    ic.fill("M66 104C62 60 86 26 128 26C170 26 194 60 190 104C188 92 178 78 128 78C78 78 68 92 66 104z", "#1f0f06", .85)
+    ic.shape("M128 -14C70 -8 40 48 46 112C48 146 60 168 78 190L90 168C80 150 70 134 68 104C64 62 86 30 128 30C170 30 192 62 188 104C186 134 176 150 166 168L178 190C196 168 208 146 210 112C216 48 186 -8 128 -14z", ic.lin(colours, 50, -10, 206, 200), LINE, 3)
+    ic.line(inner.split("L")[0], dark, 6, .8)
+    ic.line("M118 24C88 30 66 60 62 98C62 124 68 146 80 164", "#ffffff", 2.6, .5)
+    for k in range(4):
+        ic.line(f"M{108 - k * 11} {-6 + k * 9}C{76 - k * 6} {20 + k * 12} {60 - k * 3} {70 + k * 8} {58 - k} {124 + k * 8}", dark if k % 2 else "#fff3dc", 2.2, .45)
+        ic.line(f"M{148 + k * 11} {-6 + k * 9}C{180 + k * 6} {20 + k * 12} {196 + k * 3} {70 + k * 8} {198 + k} {124 + k * 8}", dark, 2.4, .45)
+
+
+def brim_hat(ic, colours, dark):
+    """A soft broad-brimmed hat."""
+    ic.shape("M20 84C40 58 92 62 128 62C164 62 216 58 236 84C216 100 170 92 128 92C86 92 40 100 20 84z", ic.lin(colours, 20, 60, 220, 100), LINE, 2.8)
+    ic.line("M34 84C70 72 186 72 222 84", dark, 2, .5)
+    ic.line("M44 74C70 66 100 66 120 66", "#ffffff", 2.6, .5)
+    ic.shape("M70 72C62 22 88 2 128 2C168 2 194 22 186 72C160 82 96 82 70 72z", ic.lin(colours, 70, 0, 190, 80), LINE, 2.6)
+    ic.line("M96 14C108 8 126 6 142 9", "#ffffff", 4, .5)
+    ic.line("M106 6C100 24 100 40 102 56M152 6C158 24 158 40 156 56", dark, 2, .5)
+    ic.shape("M69 58C96 72 160 72 187 58V74C160 86 96 86 69 74z", ic.lin(colours[2:], 0, 58, 0, 84), LINE, 2, False)
+
+
+def sun_helmet(ic, colours, dark):
+    """A woven fibre helmet under a net, plain."""
+    ic.shape("M26 92C40 70 58 66 66 60C64 22 94 2 128 2C162 2 192 22 190 60C198 66 216 70 230 92C196 80 60 80 26 92z", ic.lin(colours, 40, 0, 210, 90), LINE, 2.8)
+    for x in range(58, 206, 16):
+        ic.line(f"M{x} 78Q{(x + 128) / 2 + 2:.0f} 34 128 4", dark, 1.6, .5)
+    for y in (22, 38, 54, 68):
+        ic.line(f"M{72 - (y - 22) * .5:.0f} {y + 8}Q128 {y - 12} {184 + (y - 22) * .5:.0f} {y + 8}", dark, 1.6, .5)
+    ic.line("M94 16C108 8 126 6 142 9", "#ffffff", 4, .5)
+    ic.line("M34 88C70 74 186 74 222 88", "#ffffff", 2, .45)
+
+
+def binoculars(ic):
+    """Hanging on the chest, strap and all."""
+    ic.line("M84 168Q92 210 104 214M172 168Q164 210 152 214", "#2b1508", 7)
+    ic.line("M84 168Q92 210 104 214M172 168Q164 210 152 214", "#8a5730", 3.4)
+    for x in (88, 132):
+        ic.shape(f"M{x + 6} 204H{x + 30}L{x + 38} 250H{x - 2}z", ic.lin(IRON, x, 204, x + 36, 250), LINE, 2.4)
+        ic.shape(rect(x + 4, 198, 28, 10, 4), ic.lin(BRASS, x, 198, x + 30, 198), LINE, 2, False)
+        ic.shape(ell(x + 18, 250, 20, 9), ic.lin(STEEL, x, 242, x, 260), LINE, 2, False)
+        ic.fill(ell(x + 18, 250, 14, 6), TEAL[1])
+        ic.line(f"M{x + 10} 210L{x + 6} 238", "#ffffff", 2.4, .5)
+    ic.shape(rect(118, 214, 20, 14, 4), ic.lin(IRON, 0, 214, 0, 228), LINE, 2, False)
+
+
+def crate(ic, x, y, w, h):
+    ic.shape(rect(x, y, w, h, 3), ic.lin(WOOD, x, y, x + w, y + h), LINE, 2.4, False)
+    for k in (1, 2):
+        ic.line(f"M{x + 3} {y + h * k / 3:.0f}H{x + w - 3}", "#331a0b", 2, .6)
+    ic.grain(x + 4, y + 4, x + w - 4, y + h - 4, 12, "#4a2812", .4)
+    ic.line(f"M{x + 4} {y + 4}H{x + w - 4}", "#ffe2b4", 2, .6)
+    for px in (x + 7, x + w - 7):
+        ic.line(f"M{px} {y + 2}V{y + h - 2}", "#5e3c13", 6, .7)
+        for py in (y + 8, y + h - 8):
+            ic.rivet(px, py, 2.6, IRON)
+
+
+def rope(ic, d, w=9):
+    ic.line(d, "#3a2412", w + 4)
+    ic.line(d, "#c9a068", w)
+    ic.line(d, "#f6e2b8", w * .35, .7)
+
+
+def hero_save(ic):
+    ic.save(cut_to=rect(2, 2, 252, 252, 30))
+
+
+def hero_mountain_guide():
+    ic = Icon("hero_mountain_guide")
+    sky(ic, ["#f4c27a", "#e39a5c", "#8b6a58"])
+    ic.fill(circ(196, 62, 26), ic.rad(["#fffbe0", "#ffe29a", "#f3b765"], 196, 62, 30), .95)
+    ridge(ic, [(0, 120), (40, 74), (74, 112), (120, 56), (170, 118), (214, 90), (256, 130)], ["#9b7a68", "#6a5148"])
+    ridge(ic, [(0, 170), (50, 128), (96, 172), (170, 140), (220, 164), (256, 138)], ["#6d5634", "#3f3320"], "#e8d29a")
+    ic.layer()
+    ic.line("M30 256L64 26", "#4a2812", 13, 1, "", None, True)
+    ic.line("M30 256L64 26", "#a5713f", 9)
+    ic.line("M28 250L62 30", "#e6bd86", 2.4, .8)
+    ic.line("M60 40L70 18", "#a5713f", 10, 1, "", None, True)
+    ic.layer(BUST)
+    c = bust(ic, BROWN, "#3a2413", "#ecd0a2")
+    for x in (60, 96, 160, 196):
+        ic.line(f"M{x} 150L{x + (x - 128) * .35:.0f} 260", "#f3e2bf", 9, .75, "", c)
+        ic.line(f"M{x + 8} 150L{x + 8 + (x - 120) * .35:.0f} 260", "#3a2413", 3, .6, "", c)
+    neck_scarf(ic, WHITE)
+    hood(ic, BROWN, "#3a2413")
+    rope(ic, "M60 186C96 214 150 236 206 258")
+    rope(ic, "M52 200C90 226 144 248 196 268")
+    hero_save(ic)
+
+
+def hero_dock_foreman():
+    ic = Icon("hero_dock_foreman")
+    sky(ic, ["#bcd3d8", "#e6dcc0", "#8fa4a4"])
+    ic.fill("M0 150H256V256H0z", ic.lin(["#5f8a94", "#2f5560"], 0, 150, 0, 256))
+    for y in range(158, 250, 11):
+        ic.line(f"M{(y * 7) % 60} {y}h46M{(y * 5) % 90 + 120} {y + 4}h52", "#d7eef0", 2, .4)
+    ic.shape("M150 150V128H244L232 156H162z", ic.lin(TERRA, 0, 128, 0, 156), LINE, 2, False)
+    ic.shape("M180 128V106H216V128z", ic.lin(WHITE, 180, 0, 216, 0), LINE, 2, False)
+    ic.shape("M190 106V84H204V106z", ic.lin(IRON, 190, 0, 204, 0), LINE, 2, False)
+    ic.line("M28 256V30H126", "#2a2018", 13)
+    ic.line("M28 256V30H126", "#b0713a", 8)
+    for y in range(46, 230, 22):
+        ic.line(f"M22 {y}L34 {y + 18}", "#4a2812", 2.4)
+    ic.line("M30 70L70 32", "#7c4822", 6)
+    ic.line("M112 30V74", "#2a2018", 3.4)
+    ic.line("M112 74v10c0 14 -20 12 -18 -2", "#22262b", 8)
+    ic.line("M112 74v10c0 14 -20 12 -18 -2", "#c3c4c0", 4)
+    ic.layer(BUST)
+    bust(ic, DENIM, "#1f3344", "#cfe0ea")
+    jacket_front(ic, DENIM, "#1f3344", "#cfe0ea")
+    neck_scarf(ic, TERRA)
+    flat_cap(ic, GREY, "#544a3a")
+    ic.layer()
+    ic.line("M212 256L188 196", "#4a2812", 16, 1, "", None, True)
+    ic.line("M212 256L188 196", "#a5713f", 11)
+    ic.line("M188 196c-6 -26 14 -46 34 -38c16 8 12 30 -4 28", "#22262b", 13, 1, "", None, True, 6)
+    ic.line("M188 196c-6 -26 14 -46 34 -38c16 8 12 30 -4 28", "#b9babb", 8)
+    ic.line("M188 186c-2 -18 12 -30 26 -26", "#ffffff", 2.4, .8)
+    hero_save(ic)
+
+
+def hero_iron_quartermaster():
+    ic = Icon("hero_iron_quartermaster")
+    sky(ic, ["#4a3524", "#6b4c30", "#3a2818"])
+    for y in (66, 138):
+        ic.shape(rect(0, y, 256, 12), ic.lin(WOOD, 0, y, 0, y + 12), LINE, 2, False)
+    for x in (6, 52):
+        crate(ic, x, 28, 42, 38)
+    crate(ic, 200, 22, 48, 44)
+    crate(ic, 0, 100, 48, 38)
+    for x in (206, 234):
+        ic.shape(rect(x - 12, 98, 26, 40, 8), ic.lin([TEAL[2], TEAL[0], TEAL[2], TEAL[3]], x - 12, 0, x + 14, 0), LINE, 2, False)
+        ic.line(f"M{x - 12} 110h26M{x - 12} 128h26", "#c98f58", 3)
+    ic.fill("M0 0H256V256H0z", ic.rad(["#ffd78a", "#8a5c30", "#1a0f07"], 128, 60, 170), .32)
+    ic.layer(BUST)
+    c = bust(ic, GREY, "#544a3a", "#fffdf5")
+    apron = "M78 186H178C188 208 192 236 194 262H62C64 236 68 208 78 186z"
+    ic.shape(apron, ic.lin(DARKWOOD, 70, 186, 190, 260), LINE, 2.6, False)
+    ic.line("M82 192H174M70 256C72 232 76 208 82 194M186 256C184 232 180 208 174 194", "#e0a56e", 2.2, .7, "", c)
+    ic.line("M84 188L104 160M172 188L152 160", "#2b1508", 11)
+    ic.line("M84 188L104 160M172 188L152 160", "#8a5730", 7)
+    for x in (84, 172):
+        ic.rivet(x, 190, 6)
+    ic.shape("M98 222H158V262H98z", ic.lin(DARKWOOD[:3], 98, 222, 158, 260), "#2b1508", 2.2, False)
+    neck_scarf(ic, OCHRE)
+    cap(ic, DENIM, "#1f3344")
+    ic.layer()
+    ic.line(circ(206, 206, 24), "#3a2412", 11)
+    ic.line(circ(206, 206, 24), "#d8962a", 6)
+    for a in (40, 90, 135):
+        x, y = pol(206, 206, 24, a)
+        tf = f"translate({x:.0f} {y:.0f}) rotate({a * .4 - 36:.0f})"
+        ic.shape("M-5 0H5V26H16V34H10V40H16V46H-5z", ic.lin(STEEL, -5, 0, 14, 40), LINE, 2, True, tf, 8)
+        ic.shape(circ(0, -2, 10), ic.lin(STEEL, -8, -10, 8, 8), LINE, 2, True, tf, 8)
+        ic.fill(circ(0, -2, 4), "#3a2412", 1, tf)
+    hero_save(ic)
+
+
+def hero_hill_commander():
+    ic = Icon("hero_hill_commander")
+    sky(ic, ["#8fb0c4", "#e9d7a6", "#c79a5c"])
+    for x, y, w in ((40, 40, 60), (186, 28, 74)):
+        ic.fill(ell(x, y, w * .6, 9), "#fffaf0", .7)
+        ic.fill(ell(x + 14, y - 8, w * .34, 9), "#fffaf0", .7)
+    ridge(ic, [(0, 116), (54, 78), (110, 128), (190, 72), (256, 112)], ["#b0844a", "#7a5a30"], "#fff0c4")
+    ridge(ic, [(0, 168), (70, 140), (140, 178), (206, 138), (256, 160)], ["#7c8a44", "#42502a"], "#e9f0b4")
+    for x, y in ((8, 178), (40, 182), (-10, 200), (24, 204), (206, 176), (238, 180), (222, 200), (254, 204)):
+        ic.shape(f"M{x - 20} {y}C{x - 22} {y - 18} {x + 22} {y - 18} {x + 20} {y}C{x + 20} {y + 10} {x - 20} {y + 10} {x - 20} {y}z", ic.lin(GREY, 0, y - 16, 0, y + 10), LINE, 2.2, False)
+        ic.line(f"M{x - 13} {y - 5}Q{x} {y - 13} {x + 12} {y - 6}", "#ffffff", 2, .6)
+        ic.line(f"M{x + 15} {y - 10}v14", "#544a3a", 2, .7)
+    ic.layer(BUST)
+    bust(ic, OLIVE, "#33391a", "#d3d795")
+    jacket_front(ic, OLIVE, "#33391a", "#d3d795")
+    neck_scarf(ic, GREY)
+    wrap(ic, WHITE, "#8f7855")
+    binoculars(ic)
+    hero_save(ic)
+
+
+def hero_trail_scout():
+    ic = Icon("hero_trail_scout")
+    sky(ic, ["#dfe9a8", "#8fae5c", "#33502a"])
+    for x, w in ((22, 18), (70, 10), (198, 14), (236, 22)):
+        ic.shape(f"M{x - w / 2} 256L{x - w * .35} 0H{x + w * .35}L{x + w / 2} 256z", ic.lin(DARKWOOD, x - w / 2, 0, x + w / 2, 0), "#1e3317", 2, False)
+        ic.line(f"M{x - w * .2} 10V250", "#e0b684", 1.8, .4)
+    ic.fill("M96 256C104 200 130 170 128 120C140 170 168 210 176 256z", "#e6d09a", .7)
+    leaves(ic, [(-8, 30, 20), (20, 4, 50), (60, -4, 70), (262, 24, 158), (230, 2, 120), (200, -8, 100), (-6, 90, -10), (264, 100, 186)], JUNGLE)
+    ic.layer(BUST)
+    bust(ic, JUNGLE, "#1e3317", "#d9e8a8")
+    jacket_front(ic, JUNGLE, "#1e3317", "#d9e8a8")
+    neck_scarf(ic, BROWN)
+    brim_hat(ic, OLIVE, "#33391a")
+    leaves(ic, [(78, 62, -50), (104, 54, -75), (150, 56, -105), (172, 64, -135)], JUNGLE, .62)
+    ic.layer()
+    leaves(ic, [(-10, 226, -28), (8, 256, -50), (262, 230, 205), (246, 258, 232), (-12, 250, 0)], JUNGLE, 1.05)
+    hero_save(ic)
+
+
+def hero_field_medic():
+    ic = Icon("hero_field_medic")
+    sky(ic, ["#e9dcb4", "#cdb684", "#8f7a50"])
+    ic.shape("M0 92L128 10L256 92V256H0z", ic.lin(["#f6ecd0", "#d9c596", "#a98f5c"], 40, 20, 220, 256), LINE, 2, False)
+    for x in (32, 78, 178, 224):
+        ic.line(f"M128 12L{x} 250", "#8f7855", 2.4, .5)
+        ic.line(f"M128 12L{x + 5} 250", "#fffdf5", 2, .5)
+    ic.fill("M0 92L128 10L256 92L256 108L128 28L0 108z", ic.lin(OLIVE, 0, 20, 0, 108))
+    ic.line("M0 106L128 27L256 106", "#33391a", 3, .7)
+    ic.layer(BUST)
+    bust(ic, WHITE, "#8f7855", "#ffffff")
+    jacket_front(ic, WHITE, "#8f7855", "#ffffff")
+    neck_scarf(ic, TEAL)
+    wrap(ic, TEAL, "#153539")
+    ic.line("M60 170L206 262", "#2b1508", 18)
+    ic.line("M60 170L206 262", "#8a5730", 13)
+    ic.line("M58 166L204 257", "#dca66c", 2, .9)
+    ic.layer()
+    ic.shape(rect(152, 188, 88, 74, 10), ic.lin(WOOD, 152, 188, 240, 260), LINE, 2.6)
+    ic.shape("M150 190H242V212Q196 238 150 212z", ic.lin(DARKWOOD[:3], 150, 190, 150, 236), LINE, 2.4, False)
+    ic.line("M156 208Q196 232 236 208", "#ecb987", 2, .7)
+    ic.rivet(196, 224, 6)
+    for x, y in ((170, 178), (206, 174)):
+        ic.shape(rect(x - 14, y - 20, 34, 30, 8), ic.lin(WHITE, x - 14, 0, x + 20, 0), LINE, 2.4)
+        ic.shape(ell(x + 3, y - 20, 17, 7), ic.lin(WHITE, 0, y - 28, 0, y - 12), LINE, 2, False)
+        ic.line(f"M{x - 6} {y - 20}a9 4 0 1 1 9 4a5 2.4 0 1 1 0 -5", "#8f7855", 2)
+        ic.line(f"M{x - 12} {y - 6}h30M{x - 12} {y}h30", "#b8a47c", 1.6, .8)
+    hero_save(ic)
+
+
+def hero_porter_chief():
+    ic = Icon("hero_porter_chief")
+    sky(ic, ["#f3dca4", "#dba86a", "#7d7a5c"])
+    ridge(ic, [(0, 112), (36, 70), (66, 108), (106, 64), (150, 112), (200, 76), (256, 116)], ["#7f9468", "#4f6a48"], "#eef5c8")
+    ic.fill("M0 140C80 130 180 150 256 136V256H0z", ic.lin(["#a9c7b8", "#5f8f88", "#335c5a"], 0, 136, 0, 256))
+    for y in range(150, 250, 12):
+        ic.line(f"M{(y * 3) % 50} {y}q20 -5 40 0M{(y * 5) % 80 + 110} {y + 5}q24 -6 48 0", "#f2fbe8", 2.2, .5)
+    ic.layer()
+    ic.line("M8 182Q128 168 248 182", "#4a2812", 14, 1, "", None, True)
+    ic.line("M8 182Q128 168 248 182", "#c98f4a", 9)
+    ic.line("M12 178Q128 164 244 178", "#f3d093", 2.4, .9)
+    for x in (26, 230):
+        ic.line(f"M{x} 178L{x - 22} 210M{x} 178L{x + 22} 210", "#4a2812", 4.5)
+        ic.line(f"M{x} 178L{x - 22} 210M{x} 178L{x + 22} 210", "#d9b27a", 2)
+        ic.shape(f"M{x - 34} 206H{x + 34}L{x + 24} 262H{x - 24}z", ic.lin(OCHRE, x - 34, 198, x + 34, 252), LINE, 2.6)
+        for k in range(4):
+            ic.line(f"M{x - 31 + k * 2} {218 + k * 11}H{x + 31 - k * 2}", "#5e3c13", 2, .7)
+        for k in range(-3, 4):
+            ic.line(f"M{x + k * 9} 210L{x + k * 7} 260", "#5e3c13", 1.8, .6)
+        ic.fill(f"M{x - 30} 208C{x - 20} 188 {x + 20} 188 {x + 30} 208z", ic.lin(WHITE, 0, 180, 0, 200))
+        ic.line(f"M{x - 30} 208C{x - 20} 188 {x + 20} 188 {x + 30} 208", LINE, 2.4)
+        ic.shape(rect(x - 36, 203, 72, 10, 5), ic.lin(OCHRE, 0, 195, 0, 205), LINE, 2, False)
+    ic.layer(BUST)
+    bust(ic, DARKWOOD, "#331a0b", "#e6b88a")
+    jacket_front(ic, DARKWOOD, "#331a0b", "#e6b88a")
+    neck_scarf(ic, OLIVE)
+    wrap(ic, OCHRE, "#5e3c13")
+    hero_save(ic)
+
+
+def hero_column_commander():
+    ic = Icon("hero_column_commander")
+    sky(ic, ["#a9bcae", "#e3d49a", "#8f8a58"])
+    ridge(ic, [(0, 100), (46, 60), (92, 104), (150, 50), (204, 100), (256, 72)], ["#6f8a5c", "#43603c"], "#eef5c8")
+    ridge(ic, [(0, 150), (80, 126), (150, 152), (256, 122)], ["#57713a", "#2f4722"], "#dcecaa")
+    ic.fill("M178 124C214 148 250 150 256 190V214C232 176 196 168 168 130z", "#d9bd84", .85)
+    for x, y in ((190, 132), (206, 141), (222, 149), (238, 160), (250, 174)):
+        ic.fill(f"M{x - 4} {y + 10}L{x - 3} {y}H{x + 3}L{x + 4} {y + 10}z", "#2f2415")
+        ic.fill(ell(x, y - 2, 6, 3), "#5e4a24")
+    ic.layer(BUST)
+    bust(ic, OLIVE, "#33391a", "#d3d795")
+    jacket_front(ic, OLIVE, "#33391a", "#d3d795")
+    neck_scarf(ic, JUNGLE)
+    sun_helmet(ic, OLIVE, "#33391a")
+    leaves(ic, [(92, 46, -60), (164, 44, -120)], JUNGLE, .6)
+    binoculars(ic)
+    ic.layer()
+    ic.shape("M14 206L62 188L84 250L36 268z", ic.lin(PAPER, 14, 190, 84, 260), LINE, 2.4)
+    ic.line("M30 214Q46 220 50 206T70 214M40 244Q52 232 62 240", "#7c4822", 2.6, .8)
+    ic.line("M24 220L66 204M30 238L74 222", "#8f7855", 1.4, .6)
+    ic.line("M18 206L61 190", "#ffffff", 2.4, .8)
+    hero_save(ic)
+
+
 if __name__ == "__main__":
     for draw in (food, materiel, funds, support, heroes, alliance, map_icon, base, reports, settings, upgrade, info, train, hammer, builders, power, marches, wounded, avatar, back, chevron, clock, lock, storage, troop_infantry, troop_scouts, troop_heavy, troop_porters, music, effects, language, help_icon, link,
-                 victory, defeat, gone, npc_patrol, npc_convoy, npc_outpost, npc_fortified_line, chat, hourglass):
+                 victory, defeat, gone, npc_patrol, npc_convoy, npc_outpost, npc_fortified_line, chat, hourglass,
+               hero_mountain_guide, hero_dock_foreman, hero_iron_quartermaster, hero_hill_commander, hero_trail_scout, hero_field_medic, hero_porter_chief, hero_column_commander):
         draw()
     print(f"wrote {len(list(OUT.glob('*.svg')))} icons, {sum(f.stat().st_size for f in OUT.glob('*.svg')) // 1024} KB")

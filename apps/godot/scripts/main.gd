@@ -523,11 +523,11 @@ func _build_hud() -> void:
 	_alliance_screen.home_requested.connect(func() -> void: _show_screen(_home))
 	_alliance_screen.send_chat = _send_chat
 	_hud_root.add_child(_alliance_screen)
-	# Opened from the hero hall's sheet (not a nav item); Close returns to the base.
+	# A tab of its own, and opened from the hero hall's card too; its back button goes home.
 	_heroes_screen.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_heroes_screen.visible = false
 	_heroes_screen.setup(_session)
-	_heroes_screen.closed.connect(func() -> void: _show_screen("base"))
+	_heroes_screen.closed.connect(func() -> void: _show_screen(_home))
 	_base.heroes_requested.connect(func() -> void: _show_screen("heroes"))
 	_hud_root.add_child(_heroes_screen)
 	# The tapped tile's sheet sits above the nav bar, under the offline badge; the coordinates label hides while it shows.

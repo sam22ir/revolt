@@ -134,7 +134,7 @@ func _render_detail(d: Dictionary) -> void:
 	_add_theirs(d, lang)
 	if not (d["heroes"] as Array).is_empty():
 		var heroes := UiKit.section("heroes", Loc.t("report.heroes"))
-		var chips := (d["heroes"] as Array).map(func(id: String) -> Control: return UiKit.stat_chip("heroes", Loc.t("hero.%s.name" % id)))
+		var chips := (d["heroes"] as Array).map(func(id: String) -> Control: return UiKit.stat_chip("hero_" + id, Loc.t("hero.%s.name" % id)))
 		UiKit.card_body(heroes).add_child(UiKit.chips(chips))
 		body.add_child(heroes)
 

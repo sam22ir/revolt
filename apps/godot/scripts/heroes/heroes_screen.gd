@@ -1,51 +1,40 @@
 class_name HeroesScreen
-extends Control
-## The Heroes screen: the background's heroes with level, shards, skills and a Level up button. It draws what HeroesModel gives it
-## and sends the player's intent through the Session; the server decides. Opened from the hero hall's sheet and left with Close.
-## There are no portraits yet: rarity shows as the card's border and its label, the specialty as text. Fills the area between the
-## HUD and the nav bar and is hidden (no drawing, no input, no work) on the other screens.
+extends PageFrame
+## The Heroes page: a grid of the background's heroes under the recruit card, and a hero's own page (portrait, what they do, shards and
+## Level up, skills). It draws what HeroesModel gives it and sends the player's intent through the Session; the server decides. Back goes
+## from a hero to the grid, and from the grid announces `closed`. Fills the area between the HUD and the tab bar and is hidden (no drawing,
+## no input, no work) on the other screens.
 
 signal closed
 
-const MARGIN := 34
-const FONT := 30
-const SMALL := 26
-const PAPER := Color8(0xf4, 0xea, 0xd6)
-const INK := Color8(0x2b, 0x2a, 0x24)
-const MUTED := HudTheme.TEXT_SECOND
-const LACKING := Color8(0xe0, 0x7a, 0x62)
-const RARITY_COLORS := {
-	"common": Color8(0x9a, 0x92, 0x7a),
-	"rare": Color8(0x6a, 0xa8, 0xe0),
-	"legendary": Color8(0xe0, 0xb0, 0x40),
-}
+const COLUMNS := 2
+const MEDALLION := 40.0
 
 var _session: Session
-var _scroll := ScrollContainer.new()
-var _body := VBoxContainer.new()
+var _body := body
 var _key := ""
-## A refusal per hero, shown under the card until it is redrawn from fresh state.
+## The hero whose page is open; "" for the grid.
+var _open := ""
+## Where the grid was scrolled to when a hero's page was opened.
+var _grid_scroll := 0
+var _scroll_target := 0
+var _scroll_frames := 0
+## A refusal per hero, shown on their page until it is redrawn from fresh state.
 var _notes := {}
 ## The resources accrued to now (fed every frame by the shell while the screen shows), for the draw's affordability.
 var _amounts := {}
 ## What the last draw gave ({"kind": "drawn", ...draw}) or why it was refused ({"kind": "refused", "reason"}), until the next draw.
 var _recruit_note: Variant = null
 
+func _init() -> void:
+	super("heroes")
+
 func _ready() -> void:
-	add_child(PageBackdrop.new())
-	_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, PageBackdrop.RIM)
-	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	add_child(_scroll)
-	var margin := MarginContainer.new()
-	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
-		margin.add_theme_constant_override(side, MARGIN)
-	_scroll.add_child(margin)
-	_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_body.add_theme_constant_override("separation", 14)
-	margin.add_child(_body)
+	set_process(false)
+	back_pressed.connect(_on_back)
 	visibility_changed.connect(func() -> void:
 		if is_visible_in_tree():
+			_open = ""
 			_key = ""
 			_render())
 	_render()
@@ -65,8 +54,38 @@ func refresh() -> void:
 	_key = ""
 	_render()
 
+func is_hero_open() -> bool:
+	return _open != ""
+
+## Opens a hero's page, or the grid for "".
+func open_hero(id: String) -> void:
+	if _open == "":
+		_grid_scroll = scroll.scroll_vertical
+	_open = id
+	_render()
+	_scroll_to(0 if id != "" else _grid_scroll)
+
+## Scrolls there, again for a few frames: the new view's wrapped lines take a frame or two to have their height.
+func _scroll_to(to: int) -> void:
+	_scroll_target = to
+	_scroll_frames = 3
+	scroll.scroll_vertical = to
+	set_process(true)
+
+func _process(_delta: float) -> void:
+	scroll.scroll_vertical = _scroll_target
+	_scroll_frames -= 1
+	if _scroll_frames <= 0:
+		set_process(false)
+
+func _on_back() -> void:
+	if is_hero_open():
+		open_hero("")
+	else:
+		closed.emit()
+
 func _signature(cards: Array) -> String:
-	var parts: Array[String] = [TranslationServer.get_locale(), Loc.background_id]
+	var parts: Array[String] = [TranslationServer.get_locale(), Loc.background_id, _open]
 	for c: Dictionary in cards:
 		var o: Variant = c["owned"]
 		parts.append("%s:%s:%s:%d:%s:%s" % [c["id"], o["level"] if o is Dictionary else 0, o["shards"] if o is Dictionary else 0, int(c["busy"]), c["level_up"], _notes.get(c["id"], "")])
@@ -83,56 +102,92 @@ func _render() -> void:
 	if key == _key:
 		return
 	_key = key
-	for child in _body.get_children():
-		_body.remove_child(child)
+	for child in body.get_children():
+		body.remove_child(child)
 		child.queue_free()
-	var head := HBoxContainer.new()
-	head.add_theme_constant_override("separation", 12)
-	var title := _label(Loc.t("heroes.title"), FONT + 6, PAPER)
-	head.add_child(title)
-	var close := Button.new()
-	close.text = Loc.t("panel.close")
-	close.add_theme_font_size_override("font_size", FONT)
-	HudTheme.dress(close, "red")
-	close.pressed.connect(func() -> void: closed.emit())
-	head.add_child(close)
-	_body.add_child(head)
-	_body.add_child(_label(Loc.t("heroes.intro"), SMALL, MUTED, true))
-	_body.add_child(_label(Loc.t("heroes.hallCap", {"cap": Fmt.amount(Fmt.lang(), cards[0]["cap"])}), SMALL, MUTED, true))
-	_body.add_child(_recruit_box())
+	var shown := cards.filter(func(c: Dictionary) -> bool: return c["id"] == _open)
+	if shown.is_empty():
+		_open = ""
+		set_title(Loc.t("heroes.title"), Loc.t("settings.back"))
+		_render_grid(cards)
+	else:
+		set_title(Loc.t("hero.%s.name" % _open), Loc.t("settings.back"))
+		_render_hero(shown[0])
+
+func _render_grid(cards: Array) -> void:
+	body.add_child(_recruit_card())
+	var grid := GridContainer.new()
+	grid.columns = COLUMNS
+	grid.mouse_filter = Control.MOUSE_FILTER_PASS
+	grid.add_theme_constant_override("h_separation", roundi(HudTheme.px(7)))
+	grid.add_theme_constant_override("v_separation", roundi(HudTheme.px(7)))
 	for c: Dictionary in cards:
-		_body.add_child(_card(c))
+		var tile := HeroTile.new(c)
+		tile.pressed.connect(open_hero.bind(String(c["id"])))
+		grid.add_child(tile)
+	body.add_child(grid)
+	var about := UiKit.card()
+	UiKit.card_body(about).add_child(_line(Loc.t("heroes.hallCap", {"cap": Fmt.amount(Fmt.lang(), cards[0]["cap"])}), UiKit.BODY, HudTheme.TEXT))
+	UiKit.card_body(about).add_child(_line(Loc.t("heroes.intro"), UiKit.SMALL, HudTheme.TEXT_SECOND))
+	body.add_child(about)
+
+func _line(text: String, size: float, colour: Color) -> Label:
+	var label := UiKit.label(text, size, colour, false, true)
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return label
 
 ## The draw: its cost, the button, why it is off or what the last draw gave, and the published odds with the pity rule.
-func _recruit_box() -> Control:
+func _recruit_card() -> Control:
 	var lang := Fmt.lang()
-	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 8)
-	var costs := HFlowContainer.new()
+	var card := UiKit.section("support", Loc.t("heroes.recruit"))
+	var v := UiKit.card_body(card)
+	var gap := Control.new()
+	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiKit.section_head(card).add_child(gap)
 	for item: Dictionary in HeroesModel.recruit_cost(_amounts):
-		costs.add_child(_label("%s %s" % [Loc.t("resource." + String(item["id"])), Fmt.amount(lang, item["amount"])], FONT, LACKING if item["lacking"] else PAPER))
-	v.add_child(costs)
+		UiKit.section_head(card).add_child(UiKit.cost_chip(String(item["id"]), Fmt.amount(lang, item["amount"]), item["lacking"]))
+	if _recruit_note is Dictionary and _recruit_note["kind"] == "drawn":
+		v.add_child(_drawn_row(_recruit_note))
 	var block := HeroesModel.recruit_block(_session.state, _amounts)
-	var button := Button.new()
-	button.text = Loc.t("heroes.recruit")
-	button.add_theme_font_size_override("font_size", FONT)
+	var button := UiKit.primary_button(Loc.t("heroes.recruit"))
+	button.focus_mode = Control.FOCUS_NONE
+	button.mouse_filter = Control.MOUSE_FILTER_PASS
 	button.disabled = block != ""
-	HudTheme.dress(button, "green")
 	button.pressed.connect(_on_recruit.bind(button))
 	v.add_child(button)
 	var why := block
 	if _recruit_note is Dictionary and _recruit_note["kind"] == "refused":
 		why = String(_recruit_note["reason"])
 	if why != "":
-		v.add_child(_label(Loc.t("reason." + why, {"level": Fmt.amount(lang, HeroesModel.progression()["drawMinHall"])}), SMALL, LACKING, true))
-	if _recruit_note is Dictionary and _recruit_note["kind"] == "drawn":
-		var key := "heroes.drawnDuplicate" if _recruit_note["duplicate"] else "heroes.drawn"
-		v.add_child(_label(Loc.t(key, {"name": Loc.t("hero.%s.name" % _recruit_note["heroId"])}), SMALL, PAPER, true))
+		v.add_child(UiKit.warning(Loc.t("reason." + why, {"level": Fmt.amount(lang, HeroesModel.progression()["drawMinHall"])})))
 	var odds := HeroesModel.odds_percent()
-	v.add_child(_label(Loc.t("heroes.odds", {"common": Fmt.amount(lang, odds["common"]), "rare": Fmt.amount(lang, odds["rare"]), "legendary": Fmt.amount(lang, odds["legendary"])}), SMALL, MUTED, true))
+	var parts := ["common", "rare", "legendary"].map(func(r: String) -> Array: return [odds[r], HeroPortrait.FRAMES[r]])
+	v.add_child(SegmentBar.new(100.0, parts))
+	v.add_child(_line(Loc.t("heroes.odds", {"common": Fmt.amount(lang, odds["common"]), "rare": Fmt.amount(lang, odds["rare"]), "legendary": Fmt.amount(lang, odds["legendary"])}), UiKit.SMALL, HudTheme.TEXT_SECOND))
 	var pity := int(_session.state.get("heroes", {}).get("pity", 0))
-	v.add_child(_label(Loc.t("heroes.pity", {"count": Fmt.amount(lang, HeroesModel.progression()["pityDraws"]), "left": Fmt.amount(lang, HeroesModel.pity_left(pity))}), SMALL, MUTED, true))
-	return v
+	var run := int(HeroesModel.progression()["pityDraws"])
+	var left := HeroesModel.pity_left(pity)
+	v.add_child(SegmentBar.new(float(run), [[run - left, Color("4f86ad")]]))
+	v.add_child(_line(Loc.t("heroes.pity", {"count": Fmt.amount(lang, run), "left": Fmt.amount(lang, left)}), UiKit.SMALL, HudTheme.TEXT_SECOND))
+	return card
+
+## Who the last draw brought, by their portrait.
+func _drawn_row(note: Dictionary) -> Control:
+	var tray := PanelContainer.new()
+	tray.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tray.add_theme_stylebox_override("panel", HudTheme.inset(8.0, 8.0))
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", roundi(HudTheme.px(12)))
+	var id := String(note["heroId"])
+	var owned: Dictionary = _session.state.get("heroes", {}).get("owned", {}).get(id, {"level": 1})
+	row.add_child(HeroPortrait.new(id, Balance.data()["heroes"][id]["rarity"], 64.0, int(owned["level"])))
+	var text := _line(Loc.t("heroes.drawnDuplicate" if note["duplicate"] else "heroes.drawn", {"name": Loc.t("hero.%s.name" % id)}), UiKit.BODY + 1.0, HudTheme.TEXT)
+	text.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(text)
+	tray.add_child(row)
+	return tray
 
 func _on_recruit(button: Button) -> void:
 	if _session == null:
@@ -150,57 +205,93 @@ func _on_recruit(button: Button) -> void:
 	_key = ""
 	_render()
 
-func _card(c: Dictionary) -> Control:
+func _render_hero(c: Dictionary) -> void:
+	body.add_child(_portrait_card(c))
+	if c["owned"] is Dictionary:
+		body.add_child(_level_card(c))
+	body.add_child(_skills_card(c))
+
+func _portrait_card(c: Dictionary) -> Control:
 	var lang := Fmt.lang()
-	var rarity: String = c["def"]["rarity"]
-	var panel := PanelContainer.new()
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	# The rarity colours the card's brass.
-	var box := HudTheme.card(14.0, 12.0)
-	box.frame_tint = (RARITY_COLORS[rarity] as Color).lerp(Color.WHITE, 0.35) * 1.25
-	panel.add_theme_stylebox_override("panel", box)
-	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 6)
-	panel.add_child(v)
-	var head := HBoxContainer.new()
-	head.add_child(_label(Loc.t("hero.%s.name" % c["id"]), FONT + 2, PAPER))
-	var rarity_label := _label(Loc.t("rarity." + rarity), SMALL, RARITY_COLORS[rarity])
-	rarity_label.size_flags_horizontal = Control.SIZE_SHRINK_END
-	head.add_child(rarity_label)
-	v.add_child(head)
-	v.add_child(_label(Loc.t("hero.%s.desc" % c["id"]), SMALL, MUTED, true))
 	var owned: Variant = c["owned"]
-	var status := Loc.t("heroes.level", {"level": Fmt.amount(lang, owned["level"])}) if owned is Dictionary else Loc.t("heroes.notRecruited")
+	var card := UiKit.card()
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", roundi(HudTheme.px(14)))
+	row.add_child(HeroPortrait.new(c["id"], c["def"]["rarity"], 132.0, int(owned["level"]) if owned is Dictionary else 0))
+	var facts := VBoxContainer.new()
+	facts.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	facts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	facts.alignment = BoxContainer.ALIGNMENT_CENTER
+	facts.add_theme_constant_override("separation", roundi(HudTheme.px(5)))
+	var badges: Array = [HeroPortrait.rarity_badge(c["def"]["rarity"])]
 	if c["busy"]:
-		status += " · " + Loc.t("heroes.busy")
-	v.add_child(_label(status, SMALL, PAPER))
+		badges.append(UiKit.badge(Loc.t("heroes.busy"), Color("305561")))
+	facts.add_child(UiKit.chips(badges))
+	var status := Loc.t("heroes.level", {"level": Fmt.amount(lang, owned["level"])}) if owned is Dictionary else Loc.t("heroes.notRecruited")
+	facts.add_child(UiKit.label(status, UiKit.TITLE, HudTheme.TEXT, true))
+	var special := HBoxContainer.new()
+	special.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	special.add_theme_constant_override("separation", roundi(HudTheme.px(8)))
+	special.add_child(UiKit.troop_medallion(c["def"]["specialty"], MEDALLION))
+	var words := VBoxContainer.new()
+	words.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	words.add_theme_constant_override("separation", 0)
+	words.add_child(UiKit.label(Loc.t("heroes.specialty"), UiKit.SMALL, HudTheme.TEXT_SECOND))
+	words.add_child(_line(Loc.t("troop.%s.name" % c["def"]["specialty"]), UiKit.BODY, HudTheme.TEXT))
+	special.add_child(words)
+	facts.add_child(special)
+	row.add_child(facts)
+	UiKit.card_body(card).add_child(row)
+	UiKit.card_body(card).add_child(UiKit.divider())
+	# The description carries "inspired by" and "not a portrait of anyone real" (GDD section 6): always shown.
+	UiKit.card_body(card).add_child(_line(Loc.t("hero.%s.desc" % c["id"]), UiKit.BODY, HudTheme.TEXT))
+	return card
+
+func _level_card(c: Dictionary) -> Control:
 	var need: int = c["next_shards"]
-	if owned is Dictionary:
-		v.add_child(_label(Loc.t("heroes.shards", {"have": Fmt.amount(lang, owned["shards"]), "need": Fmt.amount(lang, need) if need > 0 else "—"}), SMALL, PAPER))
-		var bar := ProgressBar.new()
-		bar.show_percentage = false
-		bar.custom_minimum_size.y = 18
-		bar.value = (minf(1.0, float(owned["shards"]) / float(need)) if need > 0 else 1.0) * 100.0
-		v.add_child(bar)
-	v.add_child(_label("%s: %s" % [Loc.t("heroes.specialty"), Loc.t("troop.%s.name" % c["def"]["specialty"])], SMALL, MUTED))
+	var card := UiKit.section("upgrade", HeroTile.shard_text(c["owned"], need))
+	var v := UiKit.card_body(card)
+	v.add_child(HeroTile.shard_bar(c["owned"], need))
+	if need < 0:
+		return card
+	var button := UiKit.primary_button(Loc.t("heroes.levelUp"))
+	button.focus_mode = Control.FOCUS_NONE
+	button.mouse_filter = Control.MOUSE_FILTER_PASS
+	button.disabled = c["level_up"] != ""
+	button.pressed.connect(_on_level_up.bind(button, String(c["id"])))
+	v.add_child(button)
+	var why := String(_notes.get(c["id"], c["level_up"]))
+	if why != "":
+		v.add_child(UiKit.warning(Loc.t("reason." + why, {"cap": Fmt.amount(Fmt.lang(), c["cap"])})))
+	return card
+
+## A row per skill: its mark, its name, what it does, and whether it is the command skill.
+func _skills_card(c: Dictionary) -> Control:
+	var lang := Fmt.lang()
+	var card := UiKit.card()
+	var v := UiKit.card_body(card)
 	for line: Dictionary in HeroesModel.skill_lines(c):
-		var effect := Loc.t("hero.skill.attack_pct", {"troop": Loc.t("troop.%s.name" % c["def"]["specialty"]), "pct": Fmt.amount(lang, line["pct"])}) if line["stat"] == "attack" else Loc.t("hero.skill.defense_pct", {"pct": Fmt.amount(lang, line["pct"])})
-		v.add_child(_label("%s · %s: %s" % [Loc.t("hero.skill." + String(line["slot"])), Loc.t("skill.%s.name" % line["id"]), effect], SMALL, PAPER, true))
-	if owned is Dictionary:
-		if need < 0:
-			v.add_child(_label(Loc.t("heroes.maxed"), SMALL, MUTED))
-		else:
-			var button := Button.new()
-			button.text = Loc.t("heroes.levelUp")
-			button.add_theme_font_size_override("font_size", FONT)
-			button.disabled = c["level_up"] != ""
-			HudTheme.dress(button, "green")
-			button.pressed.connect(_on_level_up.bind(button, String(c["id"])))
-			v.add_child(button)
-			var why := String(_notes.get(c["id"], c["level_up"]))
-			if why != "":
-				v.add_child(_label(Loc.t("reason." + why, {"cap": Fmt.amount(lang, c["cap"])}), SMALL, LACKING, true))
-	return panel
+		if v.get_child_count() > 0:
+			v.add_child(UiKit.divider())
+		var attack: bool = line["stat"] == "attack"
+		var row := HBoxContainer.new()
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_theme_constant_override("separation", roundi(HudTheme.px(10)))
+		var icon := HudIcon.new("power" if attack else "alliance", 36.0)
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(icon)
+		var words := VBoxContainer.new()
+		words.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		words.add_theme_constant_override("separation", 0)
+		var slot := UiKit.badge(Loc.t("hero.skill." + String(line["slot"])), Color("7a4a1c") if line["slot"] == "command" else Color("575148"))
+		words.add_child(UiKit.chips([UiKit.label(Loc.t("skill.%s.name" % line["id"]), UiKit.BODY + 1.0, HudTheme.BUTTON_TEXT, true), slot]))
+		words.add_child(_line(Loc.t("hero.skill.attack_pct", {"troop": Loc.t("troop.%s.name" % c["def"]["specialty"]), "pct": Fmt.amount(lang, line["pct"])}) if attack else Loc.t("hero.skill.defense_pct", {"pct": Fmt.amount(lang, line["pct"])}), UiKit.BODY, HudTheme.GOLD))
+		row.add_child(words)
+		v.add_child(row)
+	return card
 
 func _on_level_up(button: Button, id: String) -> void:
 	if _session == null:
@@ -215,14 +306,3 @@ func _on_level_up(button: Button, id: String) -> void:
 		_notes[id] = String(verdict["reason"])
 	_key = ""
 	_render()
-
-func _label(text: String, size: int, color: Color, wrap := false) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.add_theme_font_size_override("font_size", size)
-	label.add_theme_color_override("font_color", color)
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if wrap:
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	return label
