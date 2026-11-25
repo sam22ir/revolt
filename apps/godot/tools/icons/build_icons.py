@@ -1654,8 +1654,53 @@ def npc_fortified_line():
     ic.save(.97, 0, -2)
 
 
+# ---------------------------------------------------------------- alliance
+
+def chat():
+    """Two speech bubbles with lines of writing."""
+    ic = Icon("chat")
+    ic.shape("M40 18H178C198 18 210 30 210 50V108C210 128 198 140 178 140H112L70 178V140H40C20 140 8 128 8 108V50C8 30 20 18 40 18z", ic.lin(["#fff6dc", "#f0dcae", "#d6b67c", "#a98a52"], 20, 18, 200, 160), LINE, 3.6)
+    ic.line("M34 28H182", "#fffdf4", 5, .8)
+    for y, x in ((56, 178), (80, 150), (104, 168)):
+        ic.line(f"M38 {y}H{x}", "#6b4c22", 9, .85)
+        ic.line(f"M38 {y + 3}H{x}", "#fffdf4", 2, .6)
+    ic.layer()
+    ic.shape("M108 112H220C238 112 248 122 248 140V188C248 206 238 216 220 216H206V248L168 216H108C90 216 80 206 80 188V140C80 122 90 112 108 112z", ic.lin(["#c9e088", "#8eae46", "#5f7c2c", "#34491a"], 86, 112, 240, 230), LINE, 3.6)
+    ic.line("M102 121H226", "#f2fbd0", 5, .7)
+    for x in (122, 164, 206):
+        ic.shape(circ(x, 164, 13), ic.rad(["#fffdf0", "#f6ebc8", "#d0bd88"], x - 4, 159, 18), "#34491a", 3, False)
+    ic.save()
+
+
+def hourglass():
+    """Sand running in a brass-capped hourglass."""
+    ic = Icon("hourglass")
+    for x in (62, 178):
+        ic.shape(rect(x, 34, 16, 188, 6), ic.lin([WOOD[1], WOOD[0], WOOD[1], WOOD[3]], x, 0, x + 16, 0), LINE, 2.8)
+        for y in (72, 128, 184):
+            ic.shape(rect(x - 3, y - 6, 22, 12, 4), ic.lin(BRASS, 0, y - 6, 0, y + 6), LINE, 2, False)
+    glass = "M86 44H170C170 88 150 106 138 122C134 126 134 130 138 134C150 150 170 168 170 212H86C86 168 106 150 118 134C122 130 122 126 118 122C106 106 86 88 86 44z"
+    ic.shape(glass, ic.lin(["#eaf6f4", "#b9d6d4", "#7fa5a6"], 86, 44, 170, 212), LINE, 3)
+    c = ic.clip(glass)
+    ic.fill("M80 76H176V118H80z", ic.lin(GOLD[1:], 0, 76, 0, 120), 1, "", c)
+    ic.fill("M80 76Q128 90 176 76V70H80z", "#b9d6d4", .9, "", c)
+    ic.fill("M80 214V200Q104 184 128 168Q152 184 176 200V214z", ic.lin(GOLD, 0, 168, 0, 214), 1, "", c)
+    ic.line("M128 118V172", "#f0b73e", 5, 1)
+    for _ in range(46):
+        x, y = ic.rng.uniform(88, 168), ic.rng.choice([ic.rng.uniform(86, 112), ic.rng.uniform(190, 212)])
+        ic.fill(circ(x, y, 1.6), ic.rng.choice(["#fff3c4", "#8a5212"]), .8, "", c)
+    ic.line("M98 56C98 82 108 98 118 110M98 204C98 182 106 164 114 152", "#ffffff", 6, .75)
+    for y in (20, 206):
+        ic.shape(rect(40, y, 176, 30, 10), ic.lin(BRASS, 0, y, 0, y + 30), LINE, 3.2)
+        ic.line(f"M52 {y + 7}H204", "#fffbe2", 3.4, .85)
+        ic.line(f"M52 {y + 23}H204", "#5e3b14", 2.4, .6)
+        for x in (60, 94, 128, 162, 196):
+            ic.rivet(x, y + 15, 4.6, GOLD)
+    ic.save()
+
+
 if __name__ == "__main__":
     for draw in (food, materiel, funds, support, heroes, alliance, map_icon, base, reports, settings, upgrade, info, train, hammer, builders, power, marches, wounded, avatar, back, chevron, clock, lock, storage, troop_infantry, troop_scouts, troop_heavy, troop_porters, music, effects, language, help_icon, link,
-                 victory, defeat, gone, npc_patrol, npc_convoy, npc_outpost, npc_fortified_line):
+                 victory, defeat, gone, npc_patrol, npc_convoy, npc_outpost, npc_fortified_line, chat, hourglass):
         draw()
     print(f"wrote {len(list(OUT.glob('*.svg')))} icons, {sum(f.stat().st_size for f in OUT.glob('*.svg')) // 1024} KB")

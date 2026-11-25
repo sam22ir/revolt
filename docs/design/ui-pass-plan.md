@@ -71,7 +71,11 @@ kit's font sizes then (no global font change, which would reflow every screen an
    with icons, the result as a coloured badge and rim) or an `EmptyState` with a button to the map. A report: a banner in the result's
    colour, loot, the troops sent as a `SegmentBar` each (survived, wounded, lost; zeros left out), the defenders the same way, heroes.
    Back goes to the list, then home. Icons: the three results and the four colonial targets (objects only, on a red medallion).
-6. **Alliance.** Search and found as cards; members, chat and help as `ListRow`s under `Tabs`.
+6. **Alliance.** *Built 25 Nov* on `PageFrame`, scrolling inside its own parts so the tabs and the chat's input stay put. Without an
+   alliance: a search card, a `ListRow` per alliance with its member bar and Join, and the Found form as a card. In one: its name, tag and
+   member count in the band; four icon tabs; members as rows with rank badges (a leader's actions open under a tapped row); chat as
+   bubbles (`ChatBubble`); help and rallies as rows with bars, countdowns and their buttons. Leave and the leader's actions ask in a
+   `KitDialog`. A row with its own buttons is not `tappable`. A card, row or tile passes its drags on, so lists scroll under the finger.
 7. **Heroes.** Portrait grid with rarity frames; a hero as a card with skills; recruit with odds in a card.
 8. **Map sheets.** Tile sheet, march sheet, marches list, rallies: the same kit.
 9. **Toasts and badges.** Report toast, unread dots, offline badge.

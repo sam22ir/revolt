@@ -520,6 +520,7 @@ func _build_hud() -> void:
 	_alliance_screen.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_alliance_screen.visible = false
 	_alliance_screen.setup(_session)
+	_alliance_screen.home_requested.connect(func() -> void: _show_screen(_home))
 	_alliance_screen.send_chat = _send_chat
 	_hud_root.add_child(_alliance_screen)
 	# Opened from the hero hall's sheet (not a nav item); Close returns to the base.

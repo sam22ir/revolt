@@ -6,7 +6,8 @@ extends TextureRect
 const DIR := "res://art/icons/"
 const NAMES: Array[String] = ["food", "materiel", "funds", "support", "heroes", "alliance", "reports", "map", "base", "builders", "marches", "avatar", "back", "chevron", "upgrade", "info", "train", "settings", "power", "hammer", "wounded", "clock", "lock", "storage",
 	"troop_infantry", "troop_scouts", "troop_heavy", "troop_porters", "music", "effects", "language", "help",
-	"link", "victory", "defeat", "gone", "npc_patrol", "npc_convoy", "npc_outpost", "npc_fortified_line"]
+	"link", "victory", "defeat", "gone", "npc_patrol", "npc_convoy", "npc_outpost", "npc_fortified_line",
+	"chat", "hourglass"]
 
 static var _cache := {}
 

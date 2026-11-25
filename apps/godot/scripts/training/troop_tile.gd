@@ -15,6 +15,7 @@ var _selected := false
 
 func _init(id: String) -> void:
 	troop = id
+	mouse_filter = Control.MOUSE_FILTER_PASS # a drag on it scrolls the sheet
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 0)

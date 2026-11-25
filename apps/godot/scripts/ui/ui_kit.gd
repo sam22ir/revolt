@@ -32,6 +32,7 @@ static func label(text: String, size := BODY, color := HudTheme.TEXT, bold := fa
 ## A stitched leather section. Add rows to the returned card's first child (a VBoxContainer).
 static func card(title := "") -> PanelContainer:
 	var c := PanelContainer.new()
+	c.mouse_filter = Control.MOUSE_FILTER_PASS # a drag on a card scrolls the page it is on
 	var box := HudTheme.card()
 	c.add_theme_stylebox_override("panel", box)
 	var body := VBoxContainer.new()

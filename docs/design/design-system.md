@@ -88,4 +88,4 @@ Everything animated is cosmetic and computed from the clock, so it can't drift f
 
 - Who reviews flags, vehicles and organisation names (GDD §12).
 - Vietnam's painting and palette.
-- The other sheets (Reports, Alliance, Heroes) are not yet bronze.
+- The Heroes page and the map sheets are not yet on the kit.

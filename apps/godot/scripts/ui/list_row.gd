@@ -14,7 +14,9 @@ var trailing := VBoxContainer.new()
 var _up := HudTheme.card(9.0, 8.0)
 var _down := HudTheme.card(9.0, 8.0)
 
-func _init(icon_name := "") -> void:
+## `tappable` false: a row to read, whose own buttons take the taps (the whole-card tap would lie over them).
+func _init(icon_name := "", tappable := true) -> void:
+	mouse_filter = Control.MOUSE_FILTER_PASS # a panel holds its drags otherwise, and the list would not scroll
 	_down.fill_tint = Color(0.7, 0.68, 0.66)
 	add_theme_stylebox_override("panel", _up)
 	var row := HBoxContainer.new()
@@ -31,6 +33,7 @@ func _init(icon_name := "") -> void:
 	column.add_theme_constant_override("separation", roundi(HudTheme.px(1)))
 	for label: Label in [title, subtitle]:
 		label.clip_text = true
+		label.text_direction = Control.TEXT_DIRECTION_INHERITED # a line may begin with a Latin name and still reads from the page's start
 		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		column.add_child(label)
 	extra.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -42,6 +45,8 @@ func _init(icon_name := "") -> void:
 	trailing.add_theme_constant_override("separation", roundi(HudTheme.px(6)))
 	row.add_child(trailing)
 	add_child(row)
+	if not tappable:
+		return
 	var tap := Button.new()
 	tap.focus_mode = Control.FOCUS_NONE
 	tap.mouse_filter = Control.MOUSE_FILTER_PASS

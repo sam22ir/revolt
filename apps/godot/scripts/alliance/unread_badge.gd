@@ -4,20 +4,20 @@ extends PanelContainer
 ## transparency, not by `visible`, and never takes a tap. Anchors do not follow the layout direction, so `place` puts it on the
 ## right in English and French and on the left in Arabic.
 
-const FONT := 28
+const FONT := 35 # UiKit.SMALL in viewport px
 
 var _label := Label.new()
 
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color8(0xc0, 0x39, 0x2b)
-	box.set_corner_radius_all(20)
-	box.content_margin_left = 12
-	box.content_margin_right = 12
-	box.content_margin_top = 2
-	box.content_margin_bottom = 2
+	var box := HudTheme.flat(HudTheme.ALERT, 10.0, HudTheme.TEXT, 1.5)
+	box.content_margin_left = HudTheme.px(5)
+	box.content_margin_right = HudTheme.px(5)
+	box.content_margin_top = 0.0
+	box.content_margin_bottom = HudTheme.px(1)
 	add_theme_stylebox_override("panel", box)
+	_label.add_theme_font_override("font", load(UiKit.BOLD))
+	_label.add_theme_color_override("font_color", Color.WHITE)
 	_label.add_theme_font_size_override("font_size", FONT)
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_label)
@@ -33,8 +33,8 @@ func place(lang: String) -> void:
 	var arabic := lang == "ar"
 	set_anchors_preset(Control.PRESET_TOP_LEFT if arabic else Control.PRESET_TOP_RIGHT)
 	grow_horizontal = Control.GROW_DIRECTION_END if arabic else Control.GROW_DIRECTION_BEGIN
-	offset_top = 6
-	offset_left = 8 if arabic else -8
+	offset_top = -10
+	offset_left = -4 if arabic else 4
 	offset_right = offset_left
 
 func is_shown() -> bool:

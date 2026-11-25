@@ -1,21 +1,23 @@
 class_name AllianceScreen
-extends Control
-## The Alliance screen. Without an alliance: search and join, or found one. In one: its chat and Leave. It draws what the Session
-## holds and sends the player's intents through it; the server decides (names, tags, texts, who may leave). Four tabs: Members,
-## Chat, Help and Rallies. Fills the area between the HUD and the nav bar and is hidden on the other screens.
+extends PageFrame
+## The Alliance page. Without an alliance: search and join, or found one. In one, four tabs: Members (and Leave), Chat, Help and Rallies.
+## It draws what the Session holds and sends the player's intents through it; the server decides (names, tags, texts, who may leave).
+## The joined view keeps its tabs and the chat's input in place and scrolls inside each tab. Fills the area between the HUD and the tab
+## bar and is hidden on the other screens.
 
-const MARGIN := 34
-const FONT := 30
-const SMALL := 26
-const PAPER := Color8(0xf4, 0xea, 0xd6)
-const INK := Color8(0x2b, 0x2a, 0x24)
 const MUTED := HudTheme.TEXT_SECOND
-const GOLD := Color8(0xe0, 0xb8, 0x5a)
-const NOTE_COLOR := Color8(0xe0, 0x7a, 0x62)
+const GOLD := HudTheme.GOLD
+const TAB_ICONS := {"members": "support", "chat": "chat", "help": "hourglass", "rallies": "marches"}
+const HELP_ICONS := {"upgrade": "upgrade", "training": "train"}
+const FILLED := Color("7d9a3a")
+## A rank's badge.
+const RANK_COLOURS := {"leader": Color("8f5f1c"), "officer": Color("305561"), "member": Color("575148")}
 const NOTE_SECONDS := 4.0
 ## Within this many px of the bottom the chat follows a new line.
 const STICK_SLOP := 48.0
 
+## The band's back button.
+signal home_requested
 ## Join on a rally row: the rally ({id, leader, target, gatherUntil, ...}); the shell that owns the map opens the troop sheet.
 signal rally_join_requested(rally: Dictionary)
 
@@ -37,75 +39,77 @@ var _alliance_id := ""
 var _note_key := ""
 var _note_seq := 0
 
-var _loading := Label.new()
-var _note := Label.new()
+var _loading := UiKit.label("", UiKit.BODY, MUTED)
+var _note := UiKit.label("", UiKit.BODY, HudTheme.BUTTON_TEXT, true, true)
 var _search_timer := Timer.new()
 
 var _browse_scroll := ScrollContainer.new()
-var _intro := Label.new()
+var _intro := UiKit.label("", UiKit.BODY, HudTheme.TEXT, false, true)
 var _search_input := LineEdit.new()
 var _results_box := VBoxContainer.new()
-var _create_title := Label.new()
-var _create_hint := Label.new()
-var _name_label := Label.new()
+var _create_title: Label
+var _create_hint := UiKit.label("", UiKit.SMALL, MUTED, false, true)
+var _name_label := UiKit.label("", UiKit.SMALL, HudTheme.TEXT)
 var _name_input := LineEdit.new()
-var _tag_label := Label.new()
+var _tag_label := UiKit.label("", UiKit.SMALL, HudTheme.TEXT)
 var _tag_input := LineEdit.new()
-var _create_button := Button.new()
+var _create_button := UiKit.primary_button("")
 
 var _joined := VBoxContainer.new()
-var _header := Label.new()
-var _count := Label.new()
 var _tab_buttons := {}
+var _tab_labels := {}
 var _chat_badge := UnreadBadge.new()
 var _members_scroll := ScrollContainer.new()
-var _hq_line := Label.new()
+var _hq_line := UiKit.label("", UiKit.BODY, HudTheme.TEXT, false, true)
 var _rows_box := VBoxContainer.new()
-var _leader_note := Label.new()
+var _leader_note := UiKit.warning("")
+## The member whose actions are open, by handle; "" for none.
+var _open_member := ""
 var _chat_panel := VBoxContainer.new()
 var _help_scroll := ScrollContainer.new()
 var _rallies_scroll := ScrollContainer.new()
 var _rallies_rows := VBoxContainer.new()
-var _rallies_empty := Label.new()
+var _rallies_empty := EmptyState.new("marches")
 var _rallies_key := ""
 ## rally id to its countdown label, while the Rallies tab shows it.
 var _rally_timers := {}
 var _help_rows := VBoxContainer.new()
-var _help_empty := Label.new()
+var _help_empty := EmptyState.new("hourglass")
 var _help_key := ""
 ## request id to its countdown label, while the Help tab shows it.
 var _countdowns := {}
-var _status := Label.new()
+var _status := UiKit.warning("")
 var _chat_scroll := ScrollContainer.new()
 var _chat_box := VBoxContainer.new()
 var _chat_input := LineEdit.new()
 var _send_button := Button.new()
 var _leave_button := Button.new()
-var _confirm_box := VBoxContainer.new()
-var _confirm_label := Label.new()
-var _yes_button := Button.new()
-var _no_button := Button.new()
+var _confirm_box := KitDialog.new()
+var _confirm_label := _confirm_box.message
+var _yes_button := _confirm_box.yes
+var _no_button := _confirm_box.no
 var _offset_min := 0
 
+func _init() -> void:
+	super("alliance")
+	back_pressed.connect(func() -> void: home_requested.emit())
+	# This page scrolls inside its own parts, so the tabs and the chat's input stay put.
+	scroll.visible = false
+
 func _ready() -> void:
-	add_child(PageBackdrop.new())
-	var margin := MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, PageBackdrop.RIM)
-	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
-		margin.add_theme_constant_override(side, MARGIN)
-	add_child(margin)
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 12)
-	margin.add_child(column)
-	_style(_loading, FONT, MUTED)
+	_loading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_loading.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_loading.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	column.add_child(_loading)
 	_build_browse()
 	column.add_child(_browse_scroll)
 	_build_joined()
 	column.add_child(_joined)
-	_style(_note, SMALL, NOTE_COLOR, true)
+	_note.add_theme_stylebox_override("normal", HudTheme.flat(Color("8a3426"), 8.0, HudTheme.BUTTON_INK, 1.6))
 	_note.visible = false
 	column.add_child(_note)
+	add_child(_confirm_box)
+	_confirm_box.answered.connect(_on_answered)
 	_search_timer.one_shot = true
 	_search_timer.wait_time = AllianceModel.SEARCH_DEBOUNCE_S
 	_search_timer.timeout.connect(_run_search)
@@ -158,61 +162,63 @@ func refresh() -> void:
 func _note_text() -> String:
 	return Loc.t(_note_key) if _note_key.begins_with("chat.") else Loc.t("reason." + _note_key)
 
-func _build_browse() -> void:
-	_browse_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_browse_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_browse_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+func _scroll_list(of: ScrollContainer, separation := 8.0) -> VBoxContainer:
+	of.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	of.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	of.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	var box := VBoxContainer.new()
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	box.add_theme_constant_override("separation", 14)
-	_browse_scroll.add_child(box)
-	_style(_intro, FONT, PAPER, true)
-	box.add_child(_intro)
-	_search_input.add_theme_font_size_override("font_size", FONT)
+	box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", roundi(HudTheme.px(separation)))
+	of.add_child(box)
+	return box
+
+func _field(input: LineEdit, most := 0) -> void:
+	input.max_length = most
+	input.custom_minimum_size.y = HudTheme.px(UiKit.TAP)
+	input.add_theme_font_size_override("font_size", HudTheme.font(UiKit.BODY + 1.0))
+
+func _build_browse() -> void:
+	var box := _scroll_list(_browse_scroll)
+	var find := UiKit.section("alliance")
+	UiKit.card_body(find).get_child(0).visible = false
+	UiKit.card_body(find).get_child(1).visible = false
+	UiKit.card_body(find).add_child(_intro)
+	_field(_search_input)
 	_search_input.text_changed.connect(func(_t: String) -> void: _search_timer.start())
-	box.add_child(_search_input)
-	_results_box.add_theme_constant_override("separation", 10)
+	UiKit.card_body(find).add_child(_search_input)
+	box.add_child(find)
+	_results_box.add_theme_constant_override("separation", roundi(HudTheme.px(6)))
 	box.add_child(_results_box)
-	_style(_create_title, FONT + 4, PAPER)
-	box.add_child(_create_title)
-	_style(_create_hint, SMALL, MUTED, true)
-	box.add_child(_create_hint)
-	_style(_name_label, SMALL, PAPER)
-	box.add_child(_name_label)
-	_name_input.max_length = AllianceModel.NAME_MAX
-	_name_input.add_theme_font_size_override("font_size", FONT)
-	box.add_child(_name_input)
-	_style(_tag_label, SMALL, PAPER)
-	box.add_child(_tag_label)
-	_tag_input.max_length = AllianceModel.TAG_MAX
+	var found := UiKit.section("marches")
+	_create_title = UiKit.section_title(found)
+	var form := UiKit.card_body(found)
+	form.add_child(_create_hint)
+	# The name takes the room; the tag is four letters.
+	var fields := HBoxContainer.new()
+	fields.add_theme_constant_override("separation", roundi(HudTheme.px(8)))
+	for pair: Array in [[_name_label, _name_input, AllianceModel.NAME_MAX, 2.4], [_tag_label, _tag_input, AllianceModel.TAG_MAX, 1.0]]:
+		var part := VBoxContainer.new()
+		part.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		part.size_flags_stretch_ratio = pair[3]
+		part.add_child(pair[0])
+		_field(pair[1], pair[2])
+		part.add_child(pair[1])
+		fields.add_child(part)
 	_tag_input.text_direction = Control.TEXT_DIRECTION_LTR
-	_tag_input.add_theme_font_size_override("font_size", FONT)
-	box.add_child(_tag_input)
-	_create_button.add_theme_font_size_override("font_size", FONT)
-	HudTheme.dress(_create_button, "green")
+	form.add_child(fields)
 	_create_button.pressed.connect(_on_create)
-	box.add_child(_create_button)
+	form.add_child(_create_button)
+	box.add_child(found)
 
 func _build_joined() -> void:
 	_joined.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_joined.add_theme_constant_override("separation", 10)
-	_style(_header, FONT + 6, PAPER)
-	_joined.add_child(_header)
-	_style(_count, SMALL, MUTED)
-	_joined.add_child(_count)
+	_joined.add_theme_constant_override("separation", roundi(HudTheme.px(8)))
 	var tabs := HBoxContainer.new()
-	tabs.add_theme_constant_override("separation", 6)
+	tabs.add_theme_constant_override("separation", roundi(HudTheme.px(5)))
 	var group := ButtonGroup.new()
-	for id in ["members", "chat", "help", "rallies"]:
-		var button := Button.new()
-		button.toggle_mode = true
-		button.button_group = group
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.add_theme_font_size_override("font_size", FONT)
-		HudTheme.dress(button, "wood", "amber")
-		button.pressed.connect(select_tab.bind(id))
-		tabs.add_child(button)
-		_tab_buttons[id] = button
+	for id: String in TAB_ICONS:
+		tabs.add_child(_tab_button(id, group))
 	_tab_buttons["chat"].add_child(_chat_badge)
 	_joined.add_child(tabs)
 	_build_members()
@@ -224,16 +230,41 @@ func _build_joined() -> void:
 	_build_rallies()
 	_joined.add_child(_rallies_scroll)
 
+## A tab: its icon over its name, on a game button that is amber when chosen.
+func _tab_button(id: String, group: ButtonGroup) -> Button:
+	var button := Button.new()
+	button.toggle_mode = true
+	button.button_group = group
+	button.focus_mode = Control.FOCUS_NONE
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.custom_minimum_size.y = HudTheme.px(62)
+	HudTheme.dress(button, "wood", "amber")
+	button.pressed.connect(select_tab.bind(id))
+	var face := VBoxContainer.new()
+	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	face.set_anchors_preset(Control.PRESET_FULL_RECT)
+	face.offset_bottom = -HudTheme.LIP
+	face.offset_top = 6.0
+	face.alignment = BoxContainer.ALIGNMENT_CENTER
+	face.add_theme_constant_override("separation", -roundi(HudTheme.px(2)))
+	var icon := HudIcon.new(TAB_ICONS[id], 29.0)
+	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	face.add_child(icon)
+	var label := UiKit.label("", UiKit.SMALL, HudTheme.BUTTON_TEXT, true)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.clip_text = true
+	label.add_theme_color_override("font_outline_color", HudTheme.BUTTON_INK)
+	label.add_theme_constant_override("outline_size", roundi(HudTheme.px(2.4)))
+	face.add_child(label)
+	button.add_child(face)
+	_tab_buttons[id] = button
+	_tab_labels[id] = label
+	return button
+
 func _build_help() -> void:
-	_help_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_help_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	var box := VBoxContainer.new()
-	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	box.add_theme_constant_override("separation", 12)
-	_help_scroll.add_child(box)
-	_help_rows.add_theme_constant_override("separation", 12)
+	var box := _scroll_list(_help_scroll)
+	_help_rows.add_theme_constant_override("separation", roundi(HudTheme.px(6)))
 	box.add_child(_help_rows)
-	_style(_help_empty, SMALL, MUTED, true)
 	box.add_child(_help_empty)
 
 ## Called every frame while the screen shows: the Help tab's rows are rebuilt only when what they show changes (the language, or
@@ -265,37 +296,43 @@ func _rebuild_help(open: Array) -> void:
 	_help_empty.visible = open.is_empty()
 	_help_empty.text = Loc.t("help.empty")
 	for r: Dictionary in open:
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 8)
-		var text := VBoxContainer.new()
-		text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		text.add_child(_made_label("%s · %s" % [r.get("handle", ""), Loc.t("help.kind." + String(r["kind"]))], FONT, PAPER))
-		text.add_child(_made_label(Loc.t("help.progress", {"count": Fmt.amount(lang, int(r.get("helps", 0))), "max": Fmt.amount(lang, int(r.get("maxHelps", 0)))}), SMALL, MUTED))
-		var time := _made_label("", SMALL, MUTED)
+		var row := ListRow.new(HELP_ICONS.get(String(r["kind"]), "upgrade"), false)
+		row.title.text = "%s · %s" % [r.get("handle", ""), Loc.t("help.kind." + String(r["kind"]))]
+		var helps := int(r.get("helps", 0))
+		var most := int(r.get("maxHelps", 0))
+		row.subtitle.text = Loc.t("help.progress", {"count": Fmt.amount(lang, helps), "max": Fmt.amount(lang, most)})
+		row.extra.add_child(_meter(helps, most))
+		var time := UiKit.label("", UiKit.SMALL, HudTheme.RING)
 		_countdowns[String(r["id"])] = time
-		text.add_child(time)
-		row.add_child(text)
+		row.extra.add_child(time)
 		if bool(r.get("mine", false)) or bool(r.get("helped", false)):
-			row.add_child(_made_label(Loc.t("help.yours" if r.get("mine", false) else "help.helped"), SMALL, GOLD))
-		var give := Button.new()
-		give.text = Loc.t("help.give")
-		give.add_theme_font_size_override("font_size", FONT)
+			row.trailing.add_child(UiKit.badge(Loc.t("help.yours" if r.get("mine", false) else "help.helped"), ReportsScreen.RESULT_COLOURS["victory"]))
+		var give := _row_button(Loc.t("help.give"))
 		give.disabled = not HelpModel.can_give(r)
-		HudTheme.dress(give, "green")
 		give.pressed.connect(_on_give.bind(give, String(r["id"])))
-		row.add_child(give)
+		row.trailing.add_child(give)
 		_help_rows.add_child(row)
 
+## A bar of how many of `most` there are.
+func _meter(count: int, most: int) -> SegmentBar:
+	var bar := SegmentBar.new(float(most), [[count, FILLED]])
+	bar.custom_minimum_size.x = HudTheme.px(120)
+	return bar
+
+## A row's own green button.
+func _row_button(text: String) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.focus_mode = Control.FOCUS_NONE
+	button.mouse_filter = Control.MOUSE_FILTER_PASS
+	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	HudTheme.dress(button, "green")
+	return button
+
 func _build_rallies() -> void:
-	_rallies_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_rallies_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	var box := VBoxContainer.new()
-	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	box.add_theme_constant_override("separation", 12)
-	_rallies_scroll.add_child(box)
-	_rallies_rows.add_theme_constant_override("separation", 12)
+	var box := _scroll_list(_rallies_scroll)
+	_rallies_rows.add_theme_constant_override("separation", roundi(HudTheme.px(6)))
 	box.add_child(_rallies_rows)
-	_style(_rallies_empty, SMALL, MUTED, true)
 	box.add_child(_rallies_empty)
 
 ## The Rallies tab: the alliance's rallies from the map snapshot, rebuilt only when what a row shows changes (the language, a rally's
@@ -319,29 +356,23 @@ func _rebuild_rallies(rallies: Array, now_ms: float) -> void:
 	_rallies_empty.visible = rallies.is_empty()
 	_rallies_empty.text = Loc.t("rally.empty")
 	for r: Dictionary in rallies:
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 8)
-		var text := VBoxContainer.new()
-		text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		text.add_child(_made_label(Loc.t("march.entry", {"name": Loc.t("npc.%s.name" % r["target"]["kind"]), "level": Fmt.amount(lang, int(r["target"]["level"]))}), FONT, PAPER))
+		var row := ListRow.new("npc_" + String(r["target"]["kind"]), false)
+		row.title.text = Loc.t("march.entry", {"name": Loc.t("npc.%s.name" % r["target"]["kind"]), "level": Fmt.amount(lang, int(r["target"]["level"]))})
 		# The leader's handle is player text: it goes after the translated label, never through a template.
-		text.add_child(_made_label("%s %s" % [Loc.t("rally.led"), String(r["leader"])], SMALL, MUTED))
-		var time := _made_label("", SMALL, MUTED)
+		row.subtitle.text = "%s %s" % [Loc.t("rally.led"), String(r["leader"])]
+		var time := UiKit.label("", UiKit.SMALL, HudTheme.RING, true)
 		_rally_timers[r["id"]] = time
-		text.add_child(time)
-		text.add_child(_made_label(Loc.t("rally.participants", {"count": Fmt.amount(lang, int(r["participants"])), "max": Fmt.amount(lang, int(r["maxParticipants"]))}), SMALL, MUTED))
-		row.add_child(text)
+		row.extra.add_child(time)
+		row.extra.add_child(UiKit.label(Loc.t("rally.participants", {"count": Fmt.amount(lang, int(r["participants"])), "max": Fmt.amount(lang, int(r["maxParticipants"]))}), UiKit.SMALL, MUTED))
+		row.extra.add_child(_meter(int(r["participants"]), int(r["maxParticipants"])))
 		if bool(r["joined"]):
-			var joined := _made_label(Loc.t("rally.joined"), SMALL, GOLD)
+			var joined := UiKit.label(Loc.t("rally.joined"), UiKit.BODY, GOLD, true)
 			joined.size_flags_horizontal = Control.SIZE_SHRINK_END
-			row.add_child(joined)
+			row.trailing.add_child(joined)
 		elif RallyModel.can_join(r, now_ms):
-			var join := Button.new()
-			join.text = Loc.t("rally.join")
-			join.add_theme_font_size_override("font_size", FONT)
-			HudTheme.dress(join, "green")
+			var join := _row_button(Loc.t("rally.join"))
 			join.pressed.connect(func() -> void: rally_join_requested.emit(r))
-			row.add_child(join)
+			row.trailing.add_child(join)
 		_rallies_rows.add_child(row)
 
 func _on_give(button: Button, id: String) -> void:
@@ -352,59 +383,51 @@ func _on_give(button: Button, id: String) -> void:
 		_help_key = ""
 
 func _build_members() -> void:
-	_members_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_members_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	var box := VBoxContainer.new()
-	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	box.add_theme_constant_override("separation", 12)
-	_members_scroll.add_child(box)
-	_style(_hq_line, SMALL, MUTED, true)
-	box.add_child(_hq_line)
-	_rows_box.add_theme_constant_override("separation", 8)
+	var box := _scroll_list(_members_scroll, 6.0)
+	var hq := UiKit.card()
+	var line := HBoxContainer.new()
+	line.add_theme_constant_override("separation", roundi(HudTheme.px(8)))
+	line.add_child(HudIcon.new("base", 30.0))
+	_hq_line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_hq_line.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	line.add_child(_hq_line)
+	UiKit.card_body(hq).add_child(line)
+	box.add_child(hq)
+	_rows_box.add_theme_constant_override("separation", roundi(HudTheme.px(5)))
 	box.add_child(_rows_box)
-	_leave_button.add_theme_font_size_override("font_size", SMALL)
+	box.add_child(_leader_note)
 	HudTheme.dress(_leave_button, "red")
+	_leave_button.mouse_filter = Control.MOUSE_FILTER_PASS
+	_leave_button.focus_mode = Control.FOCUS_NONE
 	_leave_button.pressed.connect(_on_leave)
 	box.add_child(_leave_button)
-	_style(_leader_note, SMALL, MUTED, true)
-	box.add_child(_leader_note)
-	_style(_confirm_label, SMALL, PAPER, true)
-	_confirm_box.add_child(_confirm_label)
-	var answers := HBoxContainer.new()
-	answers.add_theme_constant_override("separation", 8)
-	for b: Button in [_yes_button, _no_button]:
-		b.add_theme_font_size_override("font_size", FONT)
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		answers.add_child(b)
-	HudTheme.dress(_yes_button, "red")
-	_yes_button.pressed.connect(_on_confirm_yes)
-	_no_button.pressed.connect(func() -> void:
+
+func _on_answered(yes: bool) -> void:
+	if yes:
+		_on_confirm_yes()
+	else:
 		_pending = {}
-		_render_leave())
-	_confirm_box.add_child(answers)
-	_confirm_box.visible = false
-	box.add_child(_confirm_box)
+		_render_leave()
 
 func _build_chat() -> void:
 	_chat_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_chat_panel.add_theme_constant_override("separation", 10)
-	_style(_status, SMALL, NOTE_COLOR)
+	_chat_panel.add_theme_constant_override("separation", roundi(HudTheme.px(6)))
 	_chat_panel.add_child(_status)
 	_chat_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_chat_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_chat_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_chat_box.add_theme_constant_override("separation", 8)
+	_chat_box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_chat_box.add_theme_constant_override("separation", roundi(HudTheme.px(6)))
 	_chat_scroll.add_child(_chat_box)
 	_chat_scroll.get_v_scroll_bar().value_changed.connect(func(_v: float) -> void: _stick = _near_bottom())
 	_chat_panel.add_child(_chat_scroll)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	_chat_input.max_length = AllianceModel.CHAT_MAX
+	row.add_theme_constant_override("separation", roundi(HudTheme.px(6)))
+	_field(_chat_input, AllianceModel.CHAT_MAX)
 	_chat_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_chat_input.add_theme_font_size_override("font_size", FONT)
 	_chat_input.text_submitted.connect(func(_t: String) -> void: _on_send())
 	row.add_child(_chat_input)
-	_send_button.add_theme_font_size_override("font_size", FONT)
+	_send_button.focus_mode = Control.FOCUS_NONE
 	HudTheme.dress(_send_button, "green")
 	_send_button.pressed.connect(_on_send)
 	row.add_child(_send_button)
@@ -445,14 +468,14 @@ func _retranslate() -> void:
 	_name_label.text = Loc.t("alliance.nameLabel")
 	_tag_label.text = Loc.t("alliance.tagLabel")
 	_create_button.text = Loc.t("alliance.create")
-	_tab_buttons["members"].text = Loc.t("alliance.tab.members")
-	_tab_buttons["chat"].text = Loc.t("alliance.tab.chat")
-	_tab_buttons["help"].text = Loc.t("alliance.tab.help")
-	_tab_buttons["rallies"].text = Loc.t("alliance.tab.rallies")
+	_tab_labels["members"].text = Loc.t("alliance.tab.members")
+	_tab_labels["chat"].text = Loc.t("alliance.tab.chat")
+	_tab_labels["help"].text = Loc.t("alliance.tab.help")
+	_tab_labels["rallies"].text = Loc.t("alliance.tab.rallies")
 	_rallies_key = ""
 	_help_key = ""
 	_chat_badge.place(Fmt.lang())
-	_status.text = Loc.t("chat.reconnecting")
+	UiKit.set_warning(_status, Loc.t("chat.reconnecting"))
 	_chat_input.placeholder_text = Loc.t("chat.placeholder")
 	_send_button.text = Loc.t("chat.send")
 	_leave_button.text = Loc.t("alliance.leave")
@@ -467,12 +490,14 @@ func _retranslate() -> void:
 
 func _render_state() -> void:
 	if _session == null:
+		_set_band()
 		_loading.visible = true
 		_browse_scroll.visible = false
 		_joined.visible = false
 		return
 	var known := _session.alliance_known
 	var joined := known and _session.alliance != null
+	_set_band()
 	_loading.visible = not known
 	_browse_scroll.visible = known and not joined
 	_joined.visible = joined
@@ -480,12 +505,11 @@ func _render_state() -> void:
 	var id := AllianceModel.alliance_id(_session.alliance)
 	if id != _alliance_id:
 		_alliance_id = id
+		_open_member = ""
+		_members_scroll.scroll_vertical = 0
 		_pending = {}
 		_stick = true
 	if joined:
-		var a: Dictionary = _session.alliance
-		_header.text = "%s · %s" % [a["name"], a["tag"]]
-		_count.text = Loc.t("alliance.memberCount", {"count": Fmt.amount(Fmt.lang(), (a["members"] as Array).size()), "max": Fmt.amount(Fmt.lang(), int(a["maxMembers"]))})
 		_status.visible = not _connected
 		_render_members()
 		_apply_tab()
@@ -496,18 +520,28 @@ func _render_state() -> void:
 		_view = view
 	_sync_chat_open()
 
+## The band: the alliance's own name (player text, never through a template) with its tag and member count, or the page's title.
+func _set_band() -> void:
+	var a: Variant = _session.alliance if _session != null else null
+	if a is Dictionary:
+		set_title(String(a["name"]), Loc.t("settings.back"))
+		var count := Loc.t("alliance.memberCount", {"count": Fmt.amount(Fmt.lang(), (a["members"] as Array).size()), "max": Fmt.amount(Fmt.lang(), int(a["maxMembers"]))})
+		set_subtitle("[%s] · %s" % [a["tag"], count])
+	else:
+		set_title(Loc.t("alliance.title"), Loc.t("settings.back"))
+		set_subtitle("")
+
 func _update_chat_badge() -> void:
 	_chat_badge.set_count(_session.unread() if _session != null else 0, Fmt.lang())
 
 func _render_leave() -> void:
-	_leave_button.visible = _pending.is_empty()
 	_confirm_box.visible = not _pending.is_empty()
 	if not _pending.is_empty():
 		var q := AllianceModel.confirm_text(_pending)
 		_confirm_label.text = Loc.t(String(q["key"]), q["vars"])
 	var a: Variant = _session.alliance if _session != null else null
 	_leader_note.visible = a is Dictionary and AllianceModel.leave_plan(a).get("kind") == "blocked"
-	_leader_note.text = Loc.t("alliance.leaderMustTransfer")
+	UiKit.set_warning(_leader_note, Loc.t("alliance.leaderMustTransfer"))
 
 func _render_members() -> void:
 	if _session == null or not _session.alliance is Dictionary:
@@ -520,28 +554,43 @@ func _render_members() -> void:
 		_rows_box.remove_child(child)
 		child.queue_free()
 	for m: Dictionary in a["members"]:
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 8)
-		var who := VBoxContainer.new()
-		who.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var handle := _made_label(String(m["handle"]), FONT, GOLD if m.get("me", false) else PAPER)
-		who.add_child(handle)
-		var tag := Loc.t("alliance.rank." + String(m["rank"]))
-		if m.get("me", false):
-			tag += " · " + Loc.t("alliance.you")
-		who.add_child(_made_label(tag, SMALL, MUTED))
-		row.add_child(who)
-		for action: String in AllianceModel.member_actions(String(a["myRank"]), m):
-			var button := Button.new()
-			button.text = Loc.t("alliance.action." + action)
-			button.add_theme_font_size_override("font_size", SMALL)
-			button.disabled = _busy
-			if action == "kick":
-				HudTheme.dress(button, "red")
-			button.pressed.connect(_on_member_action.bind(action, String(m["handle"])))
-			row.add_child(button)
-		_rows_box.add_child(row)
+		_rows_box.add_child(_member(m, String(a["myRank"])))
 	_render_leave()
+
+## A member's row and, under it, what the player may do about them: closed until the row is tapped, so a long list stays short.
+func _member(m: Dictionary, my_rank: String) -> Control:
+	var handle := String(m["handle"])
+	var me: bool = m.get("me", false)
+	var actions := AllianceModel.member_actions(my_rank, m)
+	var group := VBoxContainer.new()
+	group.add_theme_constant_override("separation", roundi(HudTheme.px(3)))
+	var row := ListRow.new("avatar", not actions.is_empty())
+	row.title.text = handle
+	row.title.add_theme_color_override("font_color", GOLD if me else HudTheme.BUTTON_TEXT)
+	row.subtitle.text = Loc.t("alliance.you") if me else ""
+	row.subtitle.visible = me
+	var rank := String(m["rank"])
+	row.trailing.add_child(UiKit.badge(Loc.t("alliance.rank." + rank), RANK_COLOURS.get(rank, HudTheme.DISABLED)))
+	group.add_child(row)
+	if actions.is_empty():
+		return group
+	var strip := HFlowContainer.new()
+	strip.add_theme_constant_override("h_separation", roundi(HudTheme.px(6)))
+	strip.add_theme_constant_override("v_separation", roundi(HudTheme.px(4)))
+	strip.visible = _open_member == handle
+	for action: String in actions:
+		var button := Button.new()
+		button.text = Loc.t("alliance.action." + action)
+		button.focus_mode = Control.FOCUS_NONE
+		button.disabled = _busy
+		HudTheme.dress(button, "red" if action == "kick" else "wood")
+		button.pressed.connect(_on_member_action.bind(action, handle))
+		strip.add_child(button)
+	group.add_child(strip)
+	row.pressed.connect(func() -> void:
+		_open_member = "" if _open_member == handle else handle
+		_render_members())
+	return group
 
 func _on_member_action(action: String, handle: String) -> void:
 	if _busy or _session == null:
@@ -622,33 +671,27 @@ func _render_results() -> void:
 		_results_box.remove_child(child)
 		child.queue_free()
 	if _searching:
-		_results_box.add_child(_made_label(Loc.t("alliance.searching"), SMALL, MUTED))
+		_results_box.add_child(UiKit.label(Loc.t("alliance.searching"), UiKit.BODY, MUTED))
 		return
 	if _results == null:
 		if _view == "browse" and _search_seq > 0:
-			_results_box.add_child(_made_label(Loc.t("alliance.searchFailed"), SMALL, NOTE_COLOR))
+			_results_box.add_child(UiKit.warning(Loc.t("alliance.searchFailed")))
 		return
 	var rows := AllianceModel.search_rows(_results)
 	if rows.is_empty():
-		_results_box.add_child(_made_label(Loc.t("alliance.noResults"), SMALL, MUTED))
+		_results_box.add_child(UiKit.label(Loc.t("alliance.noResults"), UiKit.BODY, MUTED))
 	var lang := Fmt.lang()
 	for r: Dictionary in rows:
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 10)
-		var text := VBoxContainer.new()
-		text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		text.add_child(_made_label("%s · %s" % [r["name"], r["tag"]], FONT, PAPER))
+		var row := ListRow.new("alliance", false)
+		row.title.text = "%s · %s" % [r["name"], r["tag"]]
 		var vars: Dictionary = r["count_vars"]
-		text.add_child(_made_label(Loc.t("alliance.memberCount", {"count": Fmt.amount(lang, vars["count"]), "max": Fmt.amount(lang, vars["max"])}), SMALL, MUTED))
-		row.add_child(text)
-		var join := Button.new()
-		join.text = Loc.t("alliance.join")
-		join.add_theme_font_size_override("font_size", FONT)
+		row.subtitle.text = Loc.t("alliance.memberCount", {"count": Fmt.amount(lang, vars["count"]), "max": Fmt.amount(lang, vars["max"])})
+		row.extra.add_child(_meter(int(vars["count"]), int(vars["max"])))
+		var join := _row_button(Loc.t("alliance.join"))
 		join.disabled = not r["can_join"] or _busy
 		join.set_meta("can_join", r["can_join"])
-		HudTheme.dress(join, "green")
 		join.pressed.connect(_on_join.bind(r["id"]))
-		row.add_child(join)
+		row.trailing.add_child(join)
 		_results_box.add_child(row)
 
 func _on_send() -> void:
@@ -671,12 +714,11 @@ func _render_chat() -> void:
 	var lang := Fmt.lang()
 	var me := AllianceModel.my_handle(_session.alliance)
 	if _session.chat.is_empty():
-		_chat_box.add_child(_made_label(Loc.t("chat.empty"), SMALL, MUTED, true))
+		_chat_box.add_child(EmptyState.new("chat", Loc.t("chat.empty")))
 	for line: Dictionary in _session.chat:
 		var mine := String(line["handle"]) == me
 		var meta := "%s · %s · %s" % [line["handle"], Loc.t("alliance.rank." + String(line["rank"])), ReportTime.clock(lang, int(line["at"]), _offset_min)]
-		_chat_box.add_child(_made_label(meta, SMALL, GOLD if mine else MUTED))
-		_chat_box.add_child(_made_label(String(line["text"]), FONT, PAPER, true))
+		_chat_box.add_child(ChatBubble.new(meta, String(line["text"]), mine))
 	if stick and is_inside_tree():
 		await get_tree().process_frame
 		_chat_scroll.scroll_vertical = int(_chat_scroll.get_v_scroll_bar().max_value)
@@ -684,17 +726,3 @@ func _render_chat() -> void:
 func _near_bottom() -> bool:
 	var bar := _chat_scroll.get_v_scroll_bar()
 	return bar.max_value - (bar.value + bar.page) <= STICK_SLOP
-
-func _style(label: Label, size: int, color: Color, wrap := false) -> void:
-	label.add_theme_font_size_override("font_size", size)
-	label.add_theme_color_override("font_color", color)
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if wrap:
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-
-func _made_label(text: String, size: int, color: Color, wrap := false) -> Label:
-	var label := Label.new()
-	label.text = text
-	_style(label, size, color, wrap)
-	return label

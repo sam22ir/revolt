@@ -74,6 +74,71 @@ func test_a_line_that_could_not_be_sent_is_kept_and_reported() -> void:
 	assert_true(screen._note.visible)
 	assert_eq(screen._note.text, Loc.t("chat.notSent"))
 
+func after_each() -> void:
+	TranslationServer.set_locale("en")
+
+func test_the_band_has_the_alliances_name_tag_and_count_and_back_goes_home() -> void:
+	var pair := _screen(_view("member", 2))
+	await pair[1].refresh_alliance()
+	var screen: AllianceScreen = pair[0]
+	assert_eq(screen.title_text(), "Wolves")
+	assert_true(screen.subtitle_text().begins_with("[WLF] · "))
+	watch_signals(screen)
+	screen.back_button().pressed.emit()
+	assert_signal_emitted(screen, "home_requested")
+	var alone := _screen(null)
+	await alone[1].refresh_alliance()
+	assert_eq((alone[0] as AllianceScreen).title_text(), Loc.t("alliance.title"))
+
+func test_a_members_actions_open_under_the_row_and_the_players_own_row_has_none() -> void:
+	var pair := _screen(_view("leader", 3))
+	await pair[1].refresh_alliance()
+	var screen: AllianceScreen = pair[0]
+	var first := screen._rows_box.get_child(1)
+	assert_false((first.get_child(1) as Control).visible, "closed at first")
+	(first.get_child(0) as ListRow).pressed.emit()
+	assert_true((screen._rows_box.get_child(1).get_child(1) as Control).visible)
+	assert_false((screen._rows_box.get_child(2).get_child(1) as Control).visible)
+	(screen._rows_box.get_child(1).get_child(0) as ListRow).pressed.emit()
+	assert_false((screen._rows_box.get_child(1).get_child(1) as Control).visible, "and closes again")
+	assert_eq(screen._rows_box.get_child(0).get_child_count(), 1, "nothing to do about oneself")
+
+func test_a_line_that_begins_with_a_handle_reads_from_the_pages_start() -> void:
+	var bubble: ChatBubble = autofree(ChatBubble.new("ABC · rank", "hi", false))
+	var head := bubble.get_child(0).get_child(0).get_child(0) as Label
+	assert_eq(head.text_direction, Control.TEXT_DIRECTION_INHERITED)
+	assert_eq((autofree(ListRow.new("avatar")) as ListRow).title.text_direction, Control.TEXT_DIRECTION_INHERITED)
+
+func test_a_tap_beside_the_question_means_no() -> void:
+	var pair := _screen(_view("member", 2))
+	await pair[1].refresh_alliance()
+	var screen: AllianceScreen = pair[0]
+	screen._on_leave()
+	var tap := InputEventMouseButton.new()
+	tap.button_index = MOUSE_BUTTON_LEFT
+	tap.pressed = false
+	screen._confirm_box._gui_input(tap)
+	assert_false(screen._confirm_box.visible)
+	assert_true(screen._pending.is_empty())
+
+func test_every_view_fits_the_width_of_a_phone() -> void:
+	for lang in ["en", "ar"]:
+		TranslationServer.set_locale(lang)
+		for view: Variant in [_view("leader", 3), null]:
+			var pair := _screen(view)
+			var screen: AllianceScreen = pair[0]
+			screen.set_anchors_preset(Control.PRESET_TOP_LEFT)
+			screen.size = Vector2(1080, 1770)
+			await pair[1].refresh_alliance()
+			for tab in ["members", "chat", "help", "rallies"]:
+				screen.select_tab(tab)
+				if view != null and tab == "members":
+					screen._open_member = "m1"
+					screen._render_members()
+				screen.tick(1000, [_rally("r1")])
+				await wait_process_frames(2)
+				assert_lte(screen.column.get_combined_minimum_size().x, 1080.0 - 2.0 * HudTheme.px(PageBackdrop.MARGIN - 2.0), "%s %s" % [lang, tab])
+
 func test_leave_asks_first_and_a_leader_with_members_is_told_to_hand_over() -> void:
 	var pair := _screen(_view("member", 2))
 	await pair[1].refresh_alliance()
@@ -93,7 +158,7 @@ func test_chat_lines_are_drawn_with_their_sender() -> void:
 	await pair[1].refresh_alliance()
 	(pair[0] as AllianceScreen).select_tab("chat")
 	pair[1].apply_alliance_message({"type": "history", "messages": [{"id": 1, "at": 1792857900000, "handle": "ZED", "rank": "officer", "text": "hello <b>x</b>"}]})
-	var texts := (pair[0] as AllianceScreen)._chat_box.get_children().map(func(l: Label) -> String: return l.text)
+	var texts := _texts((pair[0] as AllianceScreen)._chat_box)
 	assert_eq(texts.size(), 2)
 	assert_true((texts[0] as String).begins_with("ZED · "))
 	assert_eq(texts[1], "hello <b>x</b>", "text is shown as typed, never as markup")

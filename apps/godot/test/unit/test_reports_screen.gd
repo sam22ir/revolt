@@ -80,6 +80,67 @@ func test_a_real_report_fits_the_width_of_a_phone_in_the_list_and_in_full() -> v
 		assert_lte(screen.body.get_combined_minimum_size().x, screen.scroll.size.x, "%s report" % lang)
 		assert_has(_texts(screen), Loc.t("hero.mountain_guide.name"))
 
+func _tap(at: Vector2) -> void:
+	for down in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = down
+		event.position = at
+		event.global_position = at
+		get_viewport().push_input(event, true)
+		await wait_process_frames(1)
+
+func test_a_rows_own_button_takes_the_tap_and_a_tappable_row_takes_it_itself() -> void:
+	var readable: ListRow = add_child_autofree(ListRow.new("alliance", false))
+	var button := Button.new()
+	button.text = "Join"
+	readable.trailing.add_child(button)
+	readable.size = Vector2(900, 200)
+	await wait_process_frames(2)
+	watch_signals(button)
+	watch_signals(readable)
+	await _tap(button.get_global_rect().get_center())
+	assert_signal_emitted(button, "pressed")
+	assert_signal_not_emitted(readable, "pressed")
+	readable.position.y = 2000
+	var row: ListRow = add_child_autofree(ListRow.new("alliance"))
+	row.size = Vector2(900, 200)
+	await wait_process_frames(2)
+	watch_signals(row)
+	await _tap(row.get_global_rect().get_center())
+	assert_signal_emitted(row, "pressed")
+
+func test_a_drag_on_a_row_or_a_card_scrolls_the_list() -> void:
+	Input.emulate_touch_from_mouse = true
+	for tall: Control in [ListRow.new("alliance", false), ListRow.new("alliance"), UiKit.card()]:
+		var list := ScrollContainer.new()
+		list.size = Vector2(900, 600)
+		add_child_autofree(list)
+		tall.custom_minimum_size = Vector2(900, 2000)
+		list.add_child(tall)
+		await wait_process_frames(2)
+		var from := Vector2(400, 500)
+		for step in 8:
+			var event: InputEventMouse = InputEventMouseButton.new() if step == 0 else InputEventMouseMotion.new()
+			event.position = from - Vector2(0, 40.0 * step)
+			event.global_position = event.position
+			event.button_mask = MOUSE_BUTTON_MASK_LEFT
+			if step == 0:
+				event.button_index = MOUSE_BUTTON_LEFT
+				event.pressed = true
+			else:
+				event.relative = Vector2(0, -40)
+				event.screen_relative = event.relative
+			get_viewport().push_input(event, true)
+			await wait_process_frames(1)
+		assert_gt(list.scroll_vertical, 0, tall.get_class())
+		var up := InputEventMouseButton.new()
+		up.button_index = MOUSE_BUTTON_LEFT
+		up.position = from
+		get_viewport().push_input(up, true)
+		list.visible = false
+	Input.emulate_touch_from_mouse = false
+
 func test_the_segment_bar_splits_from_the_reading_start() -> void:
 	var bar: SegmentBar = add_child_autofree(SegmentBar.new(10.0, [[6, Color.GREEN], [3, Color.ORANGE], [1, Color.RED]]))
 	bar.size = Vector2(108, 40)
