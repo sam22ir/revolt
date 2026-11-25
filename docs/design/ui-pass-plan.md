@@ -82,7 +82,11 @@ kit's font sizes then (no global font change, which would reflow every screen an
    goes to the grid where it was scrolled, then home. `HeroPortrait` frames `art/icons/hero_<id>.svg` (eight, own SVG: the face in plain
    shade, the role's tools, a place; no flags, insignia or relief emblems) in the rarity's colour: grey, blue, copper. Reports' hero chips
    use the same portraits.
-8. **Map sheets.** Tile sheet, march sheet, marches list, rallies: the same kit.
+8. **Map sheets.** *Built 25 Nov.* The tile panel: the pole card with the medallion of what is there, its level badge, defenders or a
+   site's figures as chips, a warning for a rally-only target, and the buttons side by side. The march sheet on `PageFrame`: the target, a
+   count per troop (medallion, −, field, +, Max), the gathering time as amber buttons, the heroes as three portrait places that open a
+   `HeroPicker`, a harvest's figures; under the scrolling part, travel and carry, the reason (its room is always kept) and Cancel and
+   Send. The marches list: a card with a row per march; only Recall takes touches. (Rallies came with step 6.)
 9. **Toasts and badges.** Report toast, unread dots, offline badge.
 
 Each screen: the sheet's rule of rebuilding only when its structure changes is kept (rows update text in place); Arabic is

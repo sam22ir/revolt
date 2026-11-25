@@ -5,10 +5,7 @@ extends PanelContainer
 ## the stage and the countdown are set in place every frame from MarchesModel. Its only input is the Recall button of a harvest at its site
 ## (`recall_requested`); the rest passes through, and it hides when there is nothing to show.
 
-const FONT := 26
-const INK := Color8(0x2b, 0x2a, 0x24)
-const PAPER := Color8(0xf4, 0xea, 0xd6)
-const MUTED := Color8(0xb8, 0xae, 0x92)
+const ICON := 42.0
 
 ## Emitted when Recall is tapped on a harvest at its site.
 signal recall_requested(march_id: String)
@@ -23,9 +20,9 @@ func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layout_direction = Control.LAYOUT_DIRECTION_LOCALE
 	visible = false
-	add_theme_stylebox_override("panel", HudTheme.panel(8.0, 5.0))
+	add_theme_stylebox_override("panel", HudTheme.card(9.0, 7.0))
 	_body.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_body.add_theme_constant_override("separation", 8)
+	_body.add_theme_constant_override("separation", roundi(HudTheme.px(6)))
 	add_child(_body)
 
 ## Call every frame while the map shows: `marches` is the base's own list, `now` the synced clock in ms. `covered` hides it while a sheet
@@ -58,30 +55,56 @@ func _rebuild(rows: Array) -> void:
 	_refs = {}
 	var lang := Fmt.lang()
 	for r: Dictionary in rows:
-		var id := String(r["id"])
-		var row := VBoxContainer.new()
-		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var title := _label(_title(r, lang), PAPER)
-		row.add_child(title)
-		if r["harvest"]:
-			row.add_child(_label(Loc.t("march.harvesting", {"resource": Loc.t("resource." + String(r["resource"]))}), MUTED))
-		elif not (r["heroes"] as Array).is_empty():
-			var names: Array = (r["heroes"] as Array).map(func(id: String) -> String: return Loc.t("hero.%s.name" % id))
-			row.add_child(_label(Loc.t("march.ledBy", {"names": ("، " if lang == "ar" else ", ").join(PackedStringArray(names))}), MUTED))
-		var status := _label("", MUTED)
-		row.add_child(status)
-		var recall: Button = null
-		if r["harvest"]:
-			recall = Button.new()
-			recall.text = Loc.t("harvest.recall")
-			recall.add_theme_font_size_override("font_size", FONT)
-			HudTheme.dress(recall, "blue")
-			recall.pressed.connect(func() -> void: recall_requested.emit(id))
-			row.add_child(recall)
-		_body.add_child(row)
-		_refs[id] = {"status": status, "recall": recall}
+		if _body.get_child_count() > 0:
+			_body.add_child(UiKit.divider())
+		_body.add_child(_row(r, lang))
 	if _notice != "":
-		_body.add_child(_label(Loc.t("reason." + _notice), Color8(0xe0, 0x7a, 0x62)))
+		_body.add_child(UiKit.warning(Loc.t("reason." + _notice)))
+	_let_touches_through(_body)
+
+## What is marched at, the title, who leads or what it brings in, the stage with its countdown, and a harvest's Recall at the end.
+func _row(r: Dictionary, lang: String) -> Control:
+	var id := String(r["id"])
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", roundi(HudTheme.px(9)))
+	var icon := HudIcon.new(_icon(r), ICON)
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(icon)
+	var words := VBoxContainer.new()
+	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	words.add_theme_constant_override("separation", -roundi(HudTheme.px(1)))
+	words.add_child(_label(_title(r, lang), UiKit.BODY, HudTheme.TEXT, true))
+	if r["harvest"]:
+		words.add_child(_label(Loc.t("march.harvesting", {"resource": Loc.t("resource." + String(r["resource"]))}), UiKit.SMALL, HudTheme.TEXT_SECOND))
+	elif not (r["heroes"] as Array).is_empty():
+		var names: Array = (r["heroes"] as Array).map(func(hero: String) -> String: return Loc.t("hero.%s.name" % hero))
+		words.add_child(_label(Loc.t("march.ledBy", {"names": ("، " if lang == "ar" else ", ").join(PackedStringArray(names))}), UiKit.SMALL, HudTheme.TEXT_SECOND))
+	var status := _label("", UiKit.SMALL, HudTheme.RING)
+	words.add_child(status)
+	row.add_child(words)
+	var recall: Button = null
+	if r["harvest"]:
+		recall = Button.new()
+		recall.text = Loc.t("harvest.recall")
+		recall.focus_mode = Control.FOCUS_NONE
+		recall.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		HudTheme.dress(recall, "blue")
+		recall.pressed.connect(func() -> void: recall_requested.emit(id))
+		row.add_child(recall)
+	_refs[id] = {"status": status, "recall": recall}
+	return row
+
+func _icon(r: Dictionary) -> String:
+	if r["harvest"]:
+		return SitesModel.kind_resource(String(r["kind"]))
+	return "npc_" + String(r["kind"]) if r["kind"] != "" else "marches"
+
+## Everything but the Recall buttons lets the map under it have the touch.
+func _let_touches_through(node: Control) -> void:
+	for child in node.find_children("*", "Control", true, false):
+		if not child is Button:
+			(child as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 ## The row's name: a site's kind for a harvest (no level, it is not in the march), else the target and level.
 func _title(r: Dictionary, lang: String) -> String:
@@ -100,12 +123,8 @@ func _fill(refs: Dictionary, r: Dictionary) -> void:
 	if refs["recall"] != null:
 		(refs["recall"] as Button).visible = r["recallable"]
 
-func _label(text: String, color: Color) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.add_theme_font_size_override("font_size", FONT)
-	label.add_theme_color_override("font_color", color)
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+func _label(text: String, size: float, colour: Color, bold := false) -> Label:
+	var label := UiKit.label(text, size, colour, bold)
 	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	label.clip_text = true
 	return label

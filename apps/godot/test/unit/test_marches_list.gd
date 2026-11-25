@@ -47,6 +47,22 @@ func test_heroes_are_named_and_the_list_takes_no_input() -> void:
 	assert_true(_texts(list).has(Loc.t("march.ledBy", {"names": Loc.t("hero.mountain_guide.name")})))
 	assert_eq(list.mouse_filter, Control.MOUSE_FILTER_IGNORE)
 
+func test_only_recall_takes_touches_the_map_has_the_rest() -> void:
+	var list: MarchesList = add_child_autofree(MarchesList.new())
+	list.show_notice("already_leaving")
+	list.update_view([_harvest(), _march("a", {"heroes": {"lead": "mountain_guide", "deputies": ["dock_foreman"], "levels": {}}})], 3000.0)
+	for c: Control in list.find_children("*", "Control", true, false):
+		if not c is Button:
+			assert_eq(c.mouse_filter, Control.MOUSE_FILTER_IGNORE, c.get_class())
+
+func test_the_list_fits_a_phone() -> void:
+	for lang in ["en", "ar"]:
+		TranslationServer.set_locale(lang)
+		var list: MarchesList = add_child_autofree(MarchesList.new())
+		list.update_view([_harvest(), _march("a", {"heroes": {"lead": "mountain_guide", "deputies": ["dock_foreman", "iron_quartermaster"], "levels": {}}})], 3000.0)
+		assert_lte(list.get_combined_minimum_size().x, 1032.0, lang)
+	TranslationServer.set_locale("en")
+
 func _markers(marches: Array) -> MarchMarkers:
 	var map: WorldMap = add_child_autofree(WorldMap.new())
 	map.snapshot = {"marches": marches}
