@@ -18,13 +18,7 @@ signal harvest_requested(site: Dictionary)
 ## Recall on your harvest march at the site, by the march's id.
 signal recall_requested(march_id: String)
 
-const FONT := 30
-const SMALL := 26
-const INK := Color8(0x2b, 0x2a, 0x24)
-const MUTED := Color8(0x4a, 0x44, 0x34)
-const GOLD := Color8(0xe0, 0xb0, 0x40)
-const PAPER := Color8(0xf4, 0xea, 0xd6)
-const LACKING := Color8(0x8a, 0x26, 0x18)
+const ICON := 56.0
 
 var _tile := Vector2i(-1, -1)
 var _key := ""
@@ -41,8 +35,8 @@ func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	layout_direction = Control.LAYOUT_DIRECTION_LOCALE
 	visible = false
-	add_theme_stylebox_override("panel", HudTheme.parchment())
-	_body.add_theme_constant_override("separation", 8)
+	add_theme_stylebox_override("panel", HudTheme.sheet(21.0, 19.0))
+	_body.add_theme_constant_override("separation", roundi(HudTheme.px(7)))
 	add_child(_body)
 
 ## Shows the panel for a tile (and forgets what was drawn).
@@ -104,93 +98,129 @@ func _render(info: Dictionary, own_alliance_name: String) -> void:
 		_body.remove_child(child)
 		child.queue_free()
 	var v := TileModel.view(info, _tile.x, _tile.y, own_alliance_name, _marches, _now)
+	_body.add_child(_head(info, v))
+	for line: String in _about(v):
+		_body.add_child(UiKit.label(line, UiKit.BODY, HudTheme.TEXT, false, true))
+	if info["kind"] == "site":
+		_body.add_child(_site_chips(info["site"], v["lines"]))
+	if v["defenders"] is Dictionary:
+		_body.add_child(UiKit.label(Loc.t("map.defenders"), UiKit.SMALL, HudTheme.RING, true))
+		_body.add_child(troop_chips(v["defenders"]))
+	if v["rally_only"]:
+		_body.add_child(UiKit.warning(Loc.t("rally.needed")))
+	if _notice != "":
+		_body.add_child(UiKit.warning(Loc.t("reason." + _notice)))
+	var actions := _actions(info, v)
+	if actions.get_child_count() > 0:
+		_body.add_child(actions)
+	else:
+		actions.free()
+
+## The medallion of what is here, its name and level, where it is, and the close button.
+func _head(info: Dictionary, v: Dictionary) -> Control:
 	var head := HBoxContainer.new()
-	head.add_theme_constant_override("separation", 12)
-	head.add_child(_label(String(v["title"]), FONT + 2, INK, true))
+	head.add_theme_constant_override("separation", roundi(HudTheme.px(11)))
+	var icon := HudIcon.new(icon_of(info), ICON)
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	head.add_child(icon)
+	var words := VBoxContainer.new()
+	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	words.add_theme_constant_override("separation", roundi(HudTheme.px(1)))
+	var title := UiKit.label(String(v["title"]), UiKit.TITLE, HudTheme.TEXT, true, true)
+	words.add_child(title)
+	var facts: Array = [UiKit.label(String(v["coords"]), UiKit.SMALL, HudTheme.TEXT_SECOND)]
 	if int(v["level"]) >= 0:
-		var level := _label(Loc.t("panel.level", {"level": Fmt.amount(Fmt.lang(), v["level"])}), SMALL, MUTED)
-		level.size_flags_horizontal = Control.SIZE_SHRINK_END
-		head.add_child(level)
+		facts.push_front(UiKit.badge(Loc.t("panel.level", {"level": Fmt.amount(Fmt.lang(), v["level"])}), Color("575148")))
+	words.add_child(UiKit.chips(facts))
+	head.add_child(words)
 	var close := Button.new()
 	close.text = "×"
 	close.tooltip_text = Loc.t("panel.close")
-	close.add_theme_font_size_override("font_size", FONT + 4)
-	close.custom_minimum_size = Vector2.ONE * HudTheme.px(40)
+	close.focus_mode = Control.FOCUS_NONE
+	close.add_theme_font_size_override("font_size", HudTheme.font(UiKit.BIG + 2.0))
+	close.custom_minimum_size = Vector2.ONE * HudTheme.px(UiKit.TAP)
+	close.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	HudTheme.make_round(close, "round_red")
 	close.pressed.connect(func() -> void: closed.emit())
 	head.add_child(close)
-	_body.add_child(head)
-	_body.add_child(_label(String(v["coords"]), SMALL, MUTED))
+	return head
+
+## What stands for the thing on a tile.
+static func icon_of(info: Dictionary) -> String:
+	match info["kind"]:
+		"own":
+			return "base"
+		"camp":
+			return "avatar"
+		"hq":
+			return "alliance"
+		"npc":
+			return "npc_" + String(info["npc"]["kind"])
+		"site":
+			return SitesModel.kind_resource(String(info["site"]["kind"]))
+	return "map"
+
+## The plain sentences: what it is, and the player's own alliance by name (player text, after the translated word, never in a template).
+func _about(v: Dictionary) -> Array:
+	var out: Array = []
 	if String(v["desc"]) != "":
-		_body.add_child(_label(String(v["desc"]), SMALL, INK, true))
-	for line: String in v["lines"]:
-		_body.add_child(_label(line, SMALL, INK, true))
+		out.append(String(v["desc"]))
 	if String(v["alliance_name"]) != "":
-		_body.add_child(_label("%s: %s" % [Loc.t("map.allianceName"), String(v["alliance_name"])], SMALL, INK, true))
-	if v["defenders"] is Dictionary:
-		_body.add_child(_label("%s: %s" % [Loc.t("map.defenders"), TrainingModel.troop_list(v["defenders"], Fmt.lang())], SMALL, INK, true))
-	if v["rally_only"]:
-		_body.add_child(_label(Loc.t("rally.needed"), SMALL, LACKING, true))
+		out.append("%s: %s" % [Loc.t("map.allianceName"), String(v["alliance_name"])])
+	return out
+
+## A site's lines (what it yields, how fast, who holds it) as chips.
+func _site_chips(site: Dictionary, lines: Array) -> Control:
+	return UiKit.chips([
+		UiKit.stat_chip(SitesModel.kind_resource(String(site["kind"])), String(lines[0])),
+		UiKit.stat_chip("clock", String(lines[1])),
+		UiKit.stat_chip("marches", String(lines[2])),
+	])
+
+## Troops as their medallions and counts, the ones there are none of left out.
+static func troop_chips(troops: Dictionary) -> HFlowContainer:
+	var out: Array = []
+	for id: String in Balance.data()["troopIds"]:
+		if int(troops.get(id, 0)) > 0:
+			out.append(UiKit.stat_chip("troop_" + id, Fmt.amount(Fmt.lang(), int(troops[id]))))
+	return UiKit.chips(out)
+
+## The buttons, side by side while they fit: the main one in green, the rest in wood.
+func _actions(info: Dictionary, v: Dictionary) -> HFlowContainer:
+	var row := HFlowContainer.new()
+	row.add_theme_constant_override("h_separation", roundi(HudTheme.px(8)))
+	row.add_theme_constant_override("v_separation", roundi(HudTheme.px(6)))
 	if v["can_march"]:
-		var send := Button.new()
-		send.text = Loc.t("map.sendMarch")
-		send.add_theme_font_size_override("font_size", FONT)
-		HudTheme.dress(send, "green")
-		send.pressed.connect(func() -> void: march_requested.emit(info["npc"]))
-		_body.add_child(send)
+		_action(row, Loc.t("map.sendMarch"), "green", func() -> void: march_requested.emit(info["npc"]))
 	if info["kind"] == "empty" and TileModel.can_place_hq(_rank):
-		var place := Button.new()
-		place.text = Loc.t(TileModel.hq_button_key(_snapshot))
-		place.add_theme_font_size_override("font_size", FONT)
-		HudTheme.dress(place, "green")
-		place.pressed.connect(func() -> void:
-			place.disabled = true
+		var place := _action(row, Loc.t(TileModel.hq_button_key(_snapshot)), "green", func() -> void:
 			_notice = ""
 			hq_requested.emit(_tile))
-		_body.add_child(place)
+		place.pressed.connect(func() -> void: place.disabled = true)
 	if v["harvest_action"] == "harvest":
-		var harvest := Button.new()
-		harvest.text = Loc.t("harvest.button")
-		harvest.add_theme_font_size_override("font_size", FONT)
-		HudTheme.dress(harvest, "green")
-		harvest.pressed.connect(func() -> void: harvest_requested.emit(info["site"]))
-		_body.add_child(harvest)
+		_action(row, Loc.t("harvest.button"), "green", func() -> void: harvest_requested.emit(info["site"]))
 	elif v["harvest_action"] == "recall":
-		var recall := Button.new()
-		recall.text = Loc.t("harvest.recall")
-		recall.add_theme_font_size_override("font_size", FONT)
 		var march := String(v["recall_march"])
-		HudTheme.dress(recall, "blue")
-		recall.pressed.connect(func() -> void:
-			recall.disabled = true
-			recall_requested.emit(march))
-		_body.add_child(recall)
-	if _notice != "":
-		_body.add_child(_label(Loc.t("reason." + _notice), SMALL, LACKING, true))
+		var recall := _action(row, Loc.t("harvest.recall"), "blue", func() -> void: recall_requested.emit(march))
+		recall.pressed.connect(func() -> void: recall.disabled = true)
 	if info["kind"] == "npc":
-		# Starting a rally is for every target (it is the only way at a rally-only one); joining, for each rally still gathering at it.
-		if RallyModel.can_start(_rank):
-			var start := Button.new()
-			start.text = Loc.t("rally.start")
-			start.add_theme_font_size_override("font_size", FONT)
-			HudTheme.dress(start, "green")
-			start.pressed.connect(func() -> void: rally_start_requested.emit(info["npc"]))
-			_body.add_child(start)
+		# Joining is for each rally still gathering at it; starting one, for every target (it is the only way at a rally-only one).
 		for r: Dictionary in RallyModel.open_at(_rallies, String(info["npc"]["id"]), _now):
-			var join := Button.new()
-			join.text = Loc.t("rally.join")
-			join.add_theme_font_size_override("font_size", FONT)
-			HudTheme.dress(join, "green")
-			join.pressed.connect(func() -> void: rally_join_requested.emit(info["npc"], r))
-			_body.add_child(join)
+			_action(row, Loc.t("rally.join"), "blue", func() -> void: rally_join_requested.emit(info["npc"], r))
+		if RallyModel.can_start(_rank):
+			_action(row, Loc.t("rally.start"), "wood" if v["can_march"] else "green", func() -> void: rally_start_requested.emit(info["npc"]))
+	return row
 
-func _label(text: String, size: int, color: Color, wrap := false) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.add_theme_font_size_override("font_size", size)
-	label.add_theme_color_override("font_color", color)
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if wrap:
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	return label
+func _action(row: Container, text: String, kind: String, then: Callable) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.focus_mode = Control.FOCUS_NONE
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.custom_minimum_size.y = HudTheme.px(UiKit.BUTTON)
+	button.add_theme_font_size_override("font_size", HudTheme.font(UiKit.BODY + 2.0))
+	button.add_theme_font_override("font", load(UiKit.BOLD))
+	HudTheme.dress(button, kind)
+	button.pressed.connect(then)
+	row.add_child(button)
+	return button

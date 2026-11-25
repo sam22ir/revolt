@@ -26,8 +26,7 @@ func test_every_framed_surface_has_a_material_and_corners_that_fit_its_frame() -
 func test_text_reads_on_every_material() -> void:
 	# The brightest texels behind light text, the darkest behind ink (99th percentile), with each surface's own tint.
 	for row: Array in [["cloth", HudTheme.TEXT_SECOND, true, 1.0], ["cloth", HudTheme.LACKING, true, 1.0], ["board", HudTheme.TEXT_SECOND, true, 1.0],
-			["paper", TilePanel.INK, false, 1.0],
-			["paper", TilePanel.MUTED, false, 1.0], ["paper", TilePanel.LACKING, false, 1.0]]:
+			["board", HudTheme.RING, true, 1.0], ["board", HudTheme.GOLD, true, 1.0]]:
 		var image: Image = (load(HudTheme.KIT + "fill_%s.webp" % row[0]) as Texture2D).get_image()
 		image.decompress()
 		var light: Array = []

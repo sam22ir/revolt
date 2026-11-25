@@ -185,3 +185,69 @@ func test_a_refusal_shows_under_the_button_and_goes_with_the_next_tile() -> void
 	panel.update_view(snap, "plain", "Wolves", "leader", 0.0)
 	texts = panel.find_children("*", "Label", true, false).map(func(l: Label) -> String: return l.text)
 	assert_false(texts.has(Loc.t("reason.tile_taken")))
+
+func test_every_kind_has_its_icon_and_fits_a_phone() -> void:
+	var name := "The Very Long Alliance N"
+	var snap := _snap_with_rallies([_rally("a", "n1"), _rally("b", "n1")])
+	snap["bases"].append({"tag": "BBBB", "x": 3, "y": 3, "mine": false, "alliance": name})
+	snap["hqs"] = [{"tag": "WLF", "x": 4, "y": 4, "mine": true}]
+	snap["sites"] = [{"id": "farmland:0", "kind": "farmland", "level": 3, "x": 5, "y": 5, "occupied": false, "mine": false}]
+	var want := {Vector2i(2, 2): "base", Vector2i(3, 3): "avatar", Vector2i(4, 4): "alliance", Vector2i(8, 8): "npc_patrol", Vector2i(11, 8): "npc_fortified_line", Vector2i(5, 5): "food", Vector2i(20, 20): "map"}
+	for lang in ["en", "ar"]:
+		TranslationServer.set_locale(lang)
+		for tile: Vector2i in want:
+			var panel: TilePanel = add_child_autofree(TilePanel.new())
+			panel.size = Vector2(1048, 0)
+			panel.show_tile(tile)
+			panel.update_view(snap, "plain", name, "leader", 0.0)
+			panel.show_notice("tile_taken")
+			panel.update_view(snap, "plain", name, "leader", 0.0)
+			await wait_process_frames(3)
+			assert_eq((panel.find_children("*", "HudIcon", true, false) + panel.find_children("*", "TextureRect", true, false))[0].get("icon_name"), want[tile])
+			assert_lte(panel.get_combined_minimum_size().x, 1048.0, "%s %s" % [lang, tile])
+			assert_lte(panel.size.y, 1400.0, "it stays under the top bar: %s %s" % [lang, tile])
+
+func test_a_target_lists_its_defenders_without_the_ones_there_are_none_of() -> void:
+	var panel: TilePanel = add_child_autofree(TilePanel.new())
+	panel.show_tile(Vector2i(8, 8))
+	panel.update_view(_snap(), "plain", "")
+	var icons: Array = panel.find_children("*", "TextureRect", true, false).map(func(i: HudIcon) -> String: return i.icon_name)
+	assert_has(icons, "troop_infantry")
+	assert_does_not_have(icons, "troop_heavy")
+
+func test_a_site_has_its_yield_rate_and_holder() -> void:
+	var panel: TilePanel = add_child_autofree(TilePanel.new())
+	var snap := _snap()
+	snap["sites"] = [{"id": "farmland:0", "kind": "farmland", "level": 1, "x": 5, "y": 5, "occupied": false, "mine": false}]
+	panel.show_tile(Vector2i(5, 5))
+	panel.update_view(snap, "plain", "")
+	for text in [Loc.t("harvest.resourceLine", {"resource": Loc.t("resource.food")}), Loc.t("harvest.rateLine", {"rate": "300"}), Loc.t("harvest.free")]:
+		assert_has(_texts(panel), text)
+	assert_true(_buttons(panel).has(Loc.t("harvest.button")))
+
+func test_a_real_tap_on_send_march_asks_for_the_sheet_and_on_the_cross_closes() -> void:
+	var panel: TilePanel = add_child_autofree(TilePanel.new())
+	panel.size = Vector2(1048, 0)
+	panel.show_tile(Vector2i(8, 8))
+	panel.update_view(_snap(), "plain", "Wolves", "leader", 0.0)
+	await wait_process_frames(3)
+	watch_signals(panel)
+	for b: Button in panel.find_children("*", "Button", true, false):
+		await _tap(b)
+	assert_signal_emit_count(panel, "march_requested", 1)
+	assert_signal_emit_count(panel, "rally_start_requested", 1)
+	assert_signal_emit_count(panel, "closed", 1)
+
+func _tap(on: Control) -> void:
+	var at := on.get_global_rect().get_center()
+	for down in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = down
+		event.position = at
+		event.global_position = at
+		get_viewport().push_input(event, true)
+		await wait_process_frames(2)
+
+func after_each() -> void:
+	TranslationServer.set_locale("en")
