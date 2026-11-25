@@ -1,9 +1,9 @@
 class_name MarchMarkers
 extends Node2D
-## The marching columns on the map: a line along each route and a medallion at the column's position, with a small arrow that points the
-## way it is going and a fight marker at the target for a few seconds after arrival (scene/world/march-layer.ts). The positions come from
-## MarchesModel for the time the caller gives, so nothing here ticks; it redraws only while there are marches to show. Medallions keep
-## a thumb's worth of screen size (30 CSS px), however far the map is zoomed.
+## The marching columns on the map: a line along each route and at the column's position a porter behind a mule on a coloured
+## disc, walking the way it is going, and a fight marker at the target for a few seconds after arrival (scene/world/march-layer.ts). The positions come from
+## MarchesModel for the time the caller gives, so nothing here ticks; it redraws only while there are marches to show. Columns keep
+## a thumb's worth of screen size (a 30 CSS px disc), however far the map is zoomed.
 
 const ROUTE_MINE := Color(0.88, 0.69, 0.25, 0.75)
 const ROUTE_OTHER := Color(0.96, 0.92, 0.84, 0.35)
@@ -11,6 +11,9 @@ const MEDALLION_MINE := Color("e0b040")
 const MEDALLION_OTHER := Color(0.96, 0.92, 0.84, 0.7)
 const MEDALLION_RETURN := Color("9fb0d0")
 const INK := Color("2b2a24")
+## The column's animals and people, front to back, how far behind its middle each walks (in disc widths) and their size.
+const COLUMN := [["mule", -0.32], ["pack", 0.42]]
+const FIGURE_DISCS := 2.1
 const BATTLE := Color("d0573a")
 ## The medallion's width on screen, in CSS pixels.
 const MEDALLION_PX := 30.0
@@ -24,6 +27,7 @@ var draw_count := 0
 
 func setup(m: WorldMap) -> void:
 	map = m
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 
 ## The time and zoom to draw at. Cheap when there is nothing to show: it redraws once to clear, then not at all.
 func tick(now_ms: float, view_zoom: float) -> void:
@@ -65,15 +69,33 @@ func _draw() -> void:
 		var at := Iso.tile_to_world(float(pos["x"]) + 0.5, float(pos["y"]) + 0.5)
 		var outbound: bool = pos["leg"] == "outbound"
 		var color := (MEDALLION_MINE if mine else MEDALLION_OTHER) if outbound else MEDALLION_RETURN
-		draw_circle(at, radius, color)
-		draw_arc(at, radius, 0.0, TAU, 24, INK, 2.0)
+		_draw_disc(at, radius, color)
 		var heading := (b - a) if outbound else (a - b)
 		if heading.length() > 0.001:
-			var dir := heading.normalized()
-			var side := Vector2(-dir.y, dir.x)
-			draw_colored_polygon(PackedVector2Array([at + dir * radius * 0.6, at - dir * radius * 0.4 + side * radius * 0.4, at - dir * radius * 0.4 - side * radius * 0.4]), INK)
+			_draw_column(at, radius, heading.normalized())
 		if MarchesModel.battle_flash(m, _now):
 			var c := b + Vector2(0, -radius * 0.8)
 			var r := radius * 0.8
 			draw_line(c + Vector2(-r, -r), c + Vector2(r, r), BATTLE, 5.0)
 			draw_line(c + Vector2(-r, r), c + Vector2(r, -r), BATTLE, 5.0)
+
+## A flat disc on the ground.
+func _draw_disc(at: Vector2, radius: float, color: Color) -> void:
+	draw_set_transform(at, 0.0, Vector2(1.0, 0.5))
+	draw_circle(Vector2.ZERO, radius * 1.25, Color(color, color.a * 0.55))
+	draw_arc(Vector2.ZERO, radius * 1.25, 0.0, TAU, 28, INK, 2.0)
+	draw_set_transform(Vector2.ZERO)
+
+## The walkers, farthest first so the nearer one covers the other.
+func _draw_column(at: Vector2, radius: float, dir: Vector2) -> void:
+	var way := CampLife.way(dir)
+	var frame := posmod(floori(_now / CampLife.STEP_MS), CampLife.STEPS)
+	var size := radius * 2.0 * FIGURE_DISCS
+	var foot := CampLife.FOOT / CampLife.CELL * size
+	var walkers := COLUMN.duplicate()
+	if dir.y < 0.0:
+		walkers.reverse()
+	walkers.reverse()
+	for w: Array in walkers:
+		var pos := at - dir * float(w[1]) * radius * 2.0
+		draw_texture_rect_region(CampLife.sheet(w[0]), Rect2(pos - foot, Vector2(size, size)), CampLife.cell(w[0], way, frame))

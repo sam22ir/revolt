@@ -48,9 +48,6 @@ var _reports_unseen := false
 var _failed := false
 
 func _ready() -> void:
-	if UrlParam.value("scene") == "camp3d":
-		add_child(Camp3dTest.new())
-		return
 	GroundStyle.set_active(UrlParam.value("ground"))
 	RenderingServer.set_default_clear_color(GroundFrame.BACKGROUND)
 	# Under everything until the map is built, so loading is not an empty screen.

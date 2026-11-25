@@ -21,11 +21,12 @@ func test_a_walker_goes_to_the_end_and_comes_back() -> void:
 
 func test_a_walker_faces_the_way_it_is_going() -> void:
 	var points := [Vector2(0, 0), Vector2(100, 0)]
-	assert_false(CampLife.along(points, 50.0)["left"])
-	assert_true(CampLife.along(points, 150.0)["left"])
-	var down_left := [Vector2(100, 0), Vector2(0, 0)]
-	assert_true(CampLife.along(down_left, 50.0)["left"])
-	assert_false(CampLife.along(down_left, 150.0)["left"])
+	assert_eq(CampLife.along(points, 50.0)["way"], 0, "right")
+	assert_eq(CampLife.along(points, 150.0)["way"], 4, "and back left")
+	assert_eq(CampLife.way(Vector2(0, -1)), 2, "away")
+	assert_eq(CampLife.way(Vector2(0, 1)), 6, "towards the viewer")
+	assert_eq(CampLife.way(Vector2(2, -1)), 1, "along a wall, away to the right")
+	assert_eq(CampLife.way(Vector2(-2, 1)), 5)
 
 func test_a_clock_that_steps_back_or_jumps_far_still_gives_a_place_on_the_route() -> void:
 	var points: Array = CampLayout.ROUTES["road"]
@@ -43,18 +44,21 @@ func test_every_route_stays_on_the_painting_and_off_the_buildings() -> void:
 		while d <= length:
 			var at: Vector2 = CampLife.along(points, d)["at"]
 			assert_true(world.has_point(at), "%s at %s" % [route, d])
-			assert_eq(CampLayout.building_at(at), "", "%s at %s" % [route, d])
+			for look in range(1, 5):
+				var looks := {}
+				for id in CampLayout.BUILDINGS:
+					looks[id] = look
+				assert_eq(CampLayout.building_at(at, looks), "", "%s at %s, look %d" % [route, d, look])
 			d += 4.0
 
 func test_every_walker_uses_a_known_route_and_every_figure_loads() -> void:
 	for w: Dictionary in CampLayout.WALKERS:
 		assert_true(CampLayout.ROUTES.has(w["route"]), str(w))
-		assert_true(CampLife.FRAMES.has(w["kind"]), str(w))
+		assert_true(CampLife.KINDS.has(w["kind"]), str(w))
 	for s: Dictionary in CampLayout.STANDING:
-		assert_true(CampLife.FRAMES.has(s["kind"]), str(s))
-	for kind: String in CampLife.FRAMES:
-		for piece: String in CampLife.FRAMES[kind]:
-			assert_not_null(load(CampLife.ART + piece + ".png"), piece)
+		assert_true(CampLife.KINDS.has(s["kind"]), str(s))
+	for kind in CampLife.KINDS:
+		assert_eq(CampLife.sheet(kind).get_size(), CampLife.CELL * Vector2(CampLife.WAYS, CampLife.STEPS), kind)
 
 func test_the_same_time_gives_the_same_scene_and_time_moves_it() -> void:
 	assert_eq(CampLife.figures(NOW), CampLife.figures(NOW))
@@ -68,19 +72,18 @@ func test_figures_are_drawn_farthest_first() -> void:
 
 func test_walkers_change_step_and_stand_still_figures_do_not() -> void:
 	var seen := {}
-	for t in range(0, 2000, 100):
+	for t in range(0, 2000, 70):
 		for f: Dictionary in CampLife.figures(NOW + t):
 			if f["kind"] == "mule":
 				seen[f["frame"]] = true
 			if f["kind"] == "guard":
 				assert_eq(f["frame"], 0)
-				assert_eq(f["lift"], 0.0)
-	assert_eq(seen.size(), 2, "both walk frames show")
+	assert_eq(seen.size(), CampLife.STEPS, "every step of the walk shows")
 
 func test_smoke_rises_fades_and_starts_again() -> void:
 	var young := CampLife.puff(0, 0)
 	var old := CampLife.puff(0, int(CampLife.SMOKE_LIFE_S * 1000.0 * 0.9))
-	assert_lt(old["at"].y, CampLayout.CHIMNEY.y - 40.0, "it has risen")
+	assert_lt(old["at"].y, -40.0, "it has risen")
 	assert_gt(old["radius"], young["radius"], "it has swelled")
 	assert_lt(old["alpha"], CampLife.SMOKE_COLOR.a * 0.2, "it has faded")
 	assert_almost_eq(float(CampLife.puff(0, int(CampLife.SMOKE_LIFE_S * 1000.0))["alpha"]), 0.0, 0.001, "and starts again")
@@ -93,7 +96,7 @@ func test_the_layer_redraws_when_told_the_time_and_not_on_its_own() -> void:
 	var before := life.draw_count
 	await wait_physics_frames(3)
 	assert_eq(life.draw_count, before, "no redraw without a tick")
-	life.tick(NOW)
+	life.tick(NOW, Vector2.ZERO)
 	await wait_physics_frames(2)
 	assert_gt(life.draw_count, before)
 

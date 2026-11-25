@@ -1,8 +1,7 @@
 class_name MapOverlay
 extends Node2D
 ## Region seams, bases, NPC targets and alliance HQs, drawn above the ground mesh (the marching columns are MarchMarkers).
-## Placeholder shapes; sizes and colours follow the Phaser map (BASE_SPAN 2 tiles, NPC 1.45 tiles, HQ ring
-## 0.62 * 48). Canvas text is limited to NPC level numbers and 2-4 character ASCII HQ tags (rule 6).
+## The pictures are MapArt's; rings and glows under them say whose they are. Canvas text is limited to NPC level numbers and 2-4 character ASCII HQ tags (rule 6).
 
 const SEAM_COLOR := Color(0.54, 0.42, 0.27, 0.55)
 const SEAM_LIBERATED_COLOR := Color(0.88, 0.69, 0.25, 0.9)
@@ -13,30 +12,16 @@ const BASE_ALLY := Color("3fae6a")
 const BASE_OTHER := Color("9fb0d0")
 const NPC_HOSTILE := Color("c2412d")
 const OUTLINE := Color(1.0, 0.95, 0.72)
-## Camp art (320x232 opaque): the ground diamond spans ~300 px and its bottom corner sits at y ~208, so scale to the
-## 2x2 footprint width and anchor that corner on the footprint's bottom corner.
-const BASE_TEXTURE := preload("res://art/map/base_camp.webp")
-const BASE_ART_WIDTH := 300.0
-const BASE_ART_ANCHOR := Vector2(156.0, 208.0)
 const NPC_SIZE := 1.45
-const NPC_COLORS := {
-	"patrol": Color("8c7a3c"),
-	"convoy": Color("b07a3a"),
-	"outpost": Color("6f6a5a"),
-	"fortified_line": Color("8a3b2e"),
-}
+const NPC_GROUND := Color(0.35, 0.12, 0.08, 0.28)
 const BADGE_FILL := Color("2b2219")
 const BADGE_RING := Color("c8964a")
 const BADGE_RING_FORTIFIED := Color("d0573a")
 const SITE_SIZE := 0.9
 const SITE_BADGE_RADIUS := 9.0
 const SITE_BADGE_FONT := 14
-const SITE_FARM := Color("c9a24a")
-const SITE_FARM_ROWS := Color("7d8a3a")
-const SITE_QUARRY := Color("8d8a80")
-const SITE_ROCK := Color("b5b1a4")
-const SITE_ROCK_SHADE := Color("6f6c64")
-const SITE_TAKEN_SHADE := Color(0.08, 0.06, 0.04, 0.45)
+const SITE_POLE := Color("6f6c64")
+const SITE_TAKEN_TINT := Color(0.62, 0.58, 0.55)
 const SITE_FLAG_OTHER := Color("9fb0d0")
 const SITE_FLAG_MINE := Color("e0b43c")
 const HQ_OWN := Color("2f9e8f")
@@ -65,6 +50,7 @@ var _tag_re := RegEx.create_from_string(TAG_PATTERN)
 
 func setup(m: WorldMap) -> void:
 	map = m
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	queue_redraw()
 
 func _draw() -> void:
@@ -115,9 +101,7 @@ func _draw_base(b: Dictionary) -> void:
 		draw_colored_polygon(_scaled(corners, centre, k), Color(0.12, 0.08, 0.04, 0.10))
 	for step in 3:
 		draw_colored_polygon(_scaled(corners, centre, 0.95 - 0.12 * step), Color(tint, 0.16))
-	var scale := Iso.TILE_W * BASE_SPAN / BASE_ART_WIDTH
-	var size := BASE_TEXTURE.get_size() * scale
-	draw_texture_rect(BASE_TEXTURE, Rect2(corners[2] - BASE_ART_ANCHOR * scale, size), false)
+	_draw_piece("base", centre)
 	_draw_badge(b, corners[2] + Vector2(0, 2), tint)
 
 ## A rounded name plate under the base in the owner colour. Canvas text stays short ASCII (rule 6): a handle in
@@ -182,10 +166,16 @@ func _draw_npc(n: Dictionary) -> void:
 	var half_w := Iso.TILE_W * 0.5 * NPC_SIZE
 	var half_h := Iso.TILE_H * 0.5 * NPC_SIZE
 	var diamond := PackedVector2Array([c + Vector2(0, -half_h), c + Vector2(half_w, 0), c + Vector2(0, half_h), c + Vector2(-half_w, 0)])
-	draw_colored_polygon(diamond, NPC_COLORS.get(kind, Color.GRAY))
-	draw_polyline(PackedVector2Array([diamond[0], diamond[1], diamond[2], diamond[3], diamond[0]]), NPC_HOSTILE, 3.0)
+	draw_colored_polygon(diamond, NPC_GROUND)
+	draw_polyline(PackedVector2Array([diamond[0], diamond[1], diamond[2], diamond[3], diamond[0]]), Color(NPC_HOSTILE, 0.7), 2.0)
+	if MapArt.has(kind):
+		_draw_piece(kind, c)
 	var ring := BADGE_RING_FORTIFIED if kind == "fortified_line" else BADGE_RING
 	_draw_level_badge(c + Vector2(half_w * 0.62, -half_h * 0.7), 11.0, str(int(n["level"])), ring, 16)
+
+## A piece's picture with its footprint's centre at `centre`.
+func _draw_piece(name: String, centre: Vector2, tint := Color.WHITE) -> void:
+	draw_texture_rect(MapArt.texture(name), MapArt.rect(name, centre), false, tint)
 
 ## A dark disc with a coloured ring and a level number: the NPC and resource site badge.
 func _draw_level_badge(at: Vector2, radius: float, text: String, ring: Color, font_size: int) -> void:
@@ -193,8 +183,7 @@ func _draw_level_badge(at: Vector2, radius: float, text: String, ring: Color, fo
 	draw_arc(at, radius, 0.0, TAU, 20, ring, 2.0)
 	_draw_text(text, at + Vector2(0, font_size * 0.375), font_size, Color("fff8e6"))
 
-## A resource site: a small isometric field (farmland, with crop rows) or a rock pile (quarry) inside its own tile, with a
-## level badge. Free sites are plain; a site another player holds is shaded with a flag; one of the viewer's has a gold glow,
+## A resource site: a field or a quarry inside its own tile, fuller with its level, with a level badge. Free sites are plain; a site another player holds is shaded with a flag; one of the viewer's has a gold glow,
 ## ring and flag (as a base does). Scenery, so it stays lighter than camps and NPCs.
 func _draw_site(site: Dictionary) -> void:
 	var c := Iso.tile_center(int(site["x"]), int(site["y"]))
@@ -205,38 +194,17 @@ func _draw_site(site: Dictionary) -> void:
 	if state == "mine":
 		for step in 2:
 			draw_colored_polygon(_scaled(diamond, c, 1.25 + 0.2 * step), Color(SITE_FLAG_MINE, 0.18))
-	if String(site["kind"]) == "quarry":
-		_draw_rock_pile(c, diamond)
-	else:
-		_draw_field(diamond)
-	if state == "taken":
-		draw_colored_polygon(diamond, SITE_TAKEN_SHADE)
+	_draw_piece(MapArt.site(String(site["kind"]), int(site["level"])), c, SITE_TAKEN_TINT if state == "taken" else Color.WHITE)
 	if state == "mine":
 		draw_polyline(PackedVector2Array([diamond[0], diamond[1], diamond[2], diamond[3], diamond[0]]), SITE_FLAG_MINE, 3.0)
 	if state != "free":
 		_draw_site_flag(c + Vector2(0, -half_h), SITE_FLAG_MINE if state == "mine" else SITE_FLAG_OTHER)
 	_draw_level_badge(c + Vector2(half_w * 0.62, -half_h * 0.7), SITE_BADGE_RADIUS, SitesModel.label(site), SITE_FLAG_MINE if state == "mine" else BADGE_RING, SITE_BADGE_FONT)
 
-## Farmland: a wheat diamond with three crop rows running along its diagonal.
-func _draw_field(diamond: PackedVector2Array) -> void:
-	draw_colored_polygon(diamond, SITE_FARM)
-	for k in [0.25, 0.5, 0.75]:
-		draw_line(diamond[0].lerp(diamond[3], k), diamond[1].lerp(diamond[2], k), SITE_FARM_ROWS, 2.0)
-	draw_polyline(PackedVector2Array([diamond[0], diamond[1], diamond[2], diamond[3], diamond[0]]), SITE_FARM_ROWS, 1.5)
-
-## Quarry: a grey diamond plate with three rocks on it.
-func _draw_rock_pile(c: Vector2, diamond: PackedVector2Array) -> void:
-	draw_colored_polygon(diamond, SITE_QUARRY)
-	var r := Iso.TILE_H * 0.12
-	for offset: Vector2 in [Vector2(-0.12, 0.02), Vector2(0.1, -0.04), Vector2(0.0, 0.1)]:
-		var at := c + Vector2(offset.x * Iso.TILE_W, offset.y * Iso.TILE_H)
-		draw_circle(at + Vector2(0, r * 0.3), r, SITE_ROCK_SHADE)
-		draw_circle(at, r, SITE_ROCK)
-
 ## A short pole with a pennant at the site's top corner.
 func _draw_site_flag(base: Vector2, color: Color) -> void:
 	var top := base + Vector2(0, -16)
-	draw_line(base, top, SITE_ROCK_SHADE, 2.0)
+	draw_line(base, top, SITE_POLE, 2.0)
 	draw_colored_polygon(PackedVector2Array([top, top + Vector2(10, 4), top + Vector2(0, 8)]), color)
 
 func _draw_hq(h: Dictionary) -> void:
@@ -245,9 +213,10 @@ func _draw_hq(h: Dictionary) -> void:
 	var r := 0.62 * Iso.TILE_H
 	draw_circle(c, r, Color(color, 0.35))
 	draw_arc(c, r, 0.0, TAU, 28, color, 4.0 if h["mine"] else 3.0)
+	_draw_piece("alliance_hq", c)
 	var tag := String(h["tag"])
 	if _tag_re.search(tag) != null:
-		_draw_text(tag, c + Vector2(0, -r - 6), 16, Color("fff8e6"))
+		_draw_text(tag, c + Vector2(0, -r - 22), 16, Color("fff8e6"))
 
 ## Outlines the selected tile, or the whole square when it is a camp's tile.
 func _draw_selection(snap: Dictionary) -> void:

@@ -35,10 +35,11 @@ write("data/map-fixtures.json", json(buildGodotMapFixtures()));
 write("data/upgrade-fixtures.json", json(buildGodotUpgradeFixtures()));
 for (const lang of PO_LANGUAGES) write(`locale/${lang}.po`, buildPo(lang));
 
-// Terrain art drawn on the map: the frame manifest and the five atlases Phaser actually draws (the ground-*.webp and
+// Terrain art drawn on the map: the frame manifest and the decals (the ground-*.webp and
 // props-terraces.webp atlases are registered there but never drawn, so they are not copied).
 copy("apps/client/src/art/terrain-manifest.json", "art/terrain-manifest.json");
-for (const name of ["decals", "props-trees", "props-rocks", "props-peaks", "props-scrub"]) copy(`apps/client/public/art/terrain/${name}.webp`, `art/terrain/${name}.webp`);
+// The props-*.webp atlases are Godot's own, rendered into the manifest's frames (apps/godot/tools/blender/map_pieces.py).
+copy("apps/client/public/art/terrain/decals.webp", "art/terrain/decals.webp");
 
 // Base screen art: the six building sprites and the ground slab, with their measured anchors (the subset of art/manifest.json).
 const artManifest = JSON.parse(readFileSync(join(root, "apps/client/src/art/manifest.json"), "utf8"));

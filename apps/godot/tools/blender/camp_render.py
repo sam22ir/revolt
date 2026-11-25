@@ -1,9 +1,14 @@
-"""Look test: the command post and its patch of cliff as full 3D models, drawn in the painting's style.
+"""Renders the camp's pictures from the models, in the painted look. Run from apps/godot:
 
-Run from apps/godot:  blender -b -P tools/blender/camp_render.py -- <level 1|4> <out.png> [render px per painting px] [shrink] [x,y,w,h]
-The camera is the painting's (30 degrees up, 45 round, 1 unit = 1 painting px), so the picture lines up with the painting's crop.
+  blender -b -P tools/blender/camp_render.py -- preview <out.png> <x,y,w,h> [scale] [id:look,...]   a look at part of the camp
+  blender -b -P tools/blender/camp_render.py -- ground                                             art/camp/ground/<col>_<row>.webp
+  blender -b -P tools/blender/camp_render.py -- looks [id:look ...]                                art/camp/buildings/, cards/, data/camp-art.json
+  ... -- figures [kind ...] | pieces [name ...] | nature [atlas ...]          art/camp/life/, art/map/, art/terrain/
+
+The camera is fixed: 30 degrees up, 45 round, 1 unit = 1 painting px, and the world's origin shows at the painting's centre.
 """
 
+import json
 import math
 import os
 import sys
@@ -11,172 +16,22 @@ import tempfile
 import time
 
 import bpy
-from mathutils import Matrix, Vector
+import numpy as np
+from mathutils import Vector
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import camp_ink  # noqa: E402
-from camp_kit import *  # noqa: E402,F403
 import camp_kit as ck  # noqa: E402
 
-CROP = (200, 0, 1000, 700)  # x, y, w, h on the painting
-CORNER = (695.0, 380.0)  # the house's front bottom corner on the painting
-TURN = -10.0
-SUN = Vector((0.66, -0.30, 0.69))
-
-
-def spots(k, points, z=0.0):
-    return [k.ground(x, y, z) for x, y in points]
-
-
-def terrain(k):
-    top = [(0, 425), (55, 402), (110, 428), (235, 452), (330, 446), (410, 438), (520, 452), (615, 440), (700, 412), (780, 378), (815, 352),
-           (835, 345), (900, 330), (1010, 285), (1010, 120), (760, 40), (400, 120), (250, 150), (110, 210), (40, 280), (10, 360)]
-    k.prism([(p.x, p.y) for p in spots(k, top)], -420, 0, ck.ROCK, None, 0.9, top=ck.SAND)
-    # Front cliff: columns under the rim, then shorter ones in front of them.
-    rim = [(-20, 430), (55, 410), (110, 432), (235, 456), (330, 452), (410, 444), (520, 458), (615, 446), (700, 420), (770, 392)]
-    line = spots(k, rim)
-    out = Vector((S45, -S45, 0))
-    d, total = 0.0, ck._length(line)
-    while d < total:
-        w = k.rng.uniform(55, 150)
-        p, turn = ck._along(line, min(d + w / 2, total))
-        h = k.rng.choice((k.rng.uniform(110, 170), k.rng.uniform(240, 380)))
-        k.rock(p + out * k.rng.uniform(-14, 6) + Vector((0, 0, -h * 0.37 - k.rng.uniform(4, 18))), (w * 1.25, w * 1.0, h), upright=0.85)
-        d += w * 0.8
-    for row, (drop, push, lo, hi) in enumerate(((-70, 30, 60, 120), (-135, 62, 80, 150), (-205, 110, 90, 190), (-290, 165, 110, 190))):
-        d = k.rng.uniform(0, 60)
-        while d < total:
-            w = k.rng.uniform(lo, hi)
-            p, _ = ck._along(line, d)
-            if k.rng.random() < 0.78:
-                k.rock(p + out * (push + k.rng.uniform(-25, 25)) + Vector((0, 0, drop - 110 + k.rng.uniform(-35, 25))),
-                       (w * 1.2, w, k.rng.uniform(200, 280)), col=ck.ROCK if row else ck.ROCK_TOP, upright=0.75)
-            d += w * 0.9
-    # Back cliff, upper right, and the boulders round the terrace's left and back.
-    for x, y, w, h in ((1010, 170, 230, 420), (930, 120, 210, 420), (840, 95, 210, 380), (760, 75, 190, 330), (680, 55, 190, 240), (600, 70, 170, 170),
-                       (530, 92, 130, 105)):
-        k.rock(k.ground(x, y) + Vector((-60, 60, h * 0.2)), (w, w, h), upright=0.85)
-    for x, y, w, h in ((395, 118, 110, 70), (300, 150, 120, 85), (215, 172, 130, 90), (125, 215, 110, 66), (55, 275, 100, 70), (20, 340, 90, 60),
-                       (460, 108, 100, 80)):
-        k.rock(k.ground(x, y) + Vector((-20, 20, h * 0.05)), (w, w * 0.9, h), upright=0.4, col=ck.ROCK_TOP)
-    # Stairs down to the lower path, and the path.
-    for i in range(8):
-        t = i / 7
-        z = -13.0 * i
-        a = k.ground(778 + 60 * t, 372 + 98 * t, z)
-        b = k.ground(846 + 64 * t, 345 + 90 * t, z)
-        depth = (b - a).normalized().cross(Vector((0, 0, 1))).normalized() * 30
-        k.prism([(q.x, q.y) for q in (a - depth * .3, b - depth * .3, b + depth, a + depth)], z - 30, z, k.shade(ck.STONE, 0.06), None, 0.8, top=ck.QUOIN)
-    low = [(835, 478), (915, 440), (1010, 395), (1010, 470), (960, 500), (900, 520)]
-    k.prism([(q.x, q.y) for q in spots(k, low, -105.0)], -420, -105, ck.ROCK, None, 0.9, top=ck.SAND)
-    for x, y, w, h in ((800, 520, 120, 200), (865, 545, 130, 160), (950, 520, 130, 160), (1000, 490, 110, 120), (760, 470, 90, 170)):
-        k.rock(k.ground(x, y, -180), (w, w, h), upright=0.75)
-    for x, y, w, h in ((850, 600, 120, 170), (910, 575, 130, 190), (975, 560, 120, 190), (1010, 600, 130, 160), (900, 640, 130, 120), (800, 610, 110, 170)):
-        k.rock(k.ground(x, y, -240), (w, w, h), upright=0.7, col=ck.ROCK_TOP)
-    for x, y, w, h in ((850, 500, 90, 170), (890, 525, 110, 150), (935, 512, 100, 180), (985, 498, 110, 160)):
-        k.rock(k.ground(x, y, -105) + Vector((0, 0, -h * 0.4)), (w, w, h), upright=0.8)
-    for x, y in ((925, 405), (970, 385), (1000, 360), (890, 385)):
-        k.rock(k.ground(x, y, -60), (80, 70, 110), upright=0.4)
-    # Trees and small plants.
-    for x, y, h in ((765, 152, 175), (868, 205, 250), (940, 215, 215), (985, 190, 150)):
-        k.pine(k.ground(x, y), h, h * 0.27)
-    k.pine(k.ground(328, 598, -215), 150, 40)
-    for x, y, z, r in ((640, 520, -70, 42), (575, 512, -70, 26), (722, 560, -95, 40), (82, 440, -6, 26), (900, 225, 0, 22), (820, 190, 0, 20)):
-        k.bush(k.ground(x, y, z), r)
-    for x, y in ((120, 400), (225, 345), (258, 338), (330, 330), (770, 300), (815, 310), (720, 300), (450, 438), (610, 262), (655, 270), (180, 300)):
-        k.tuft(k.ground(x, y))
-
-
-def yard(k, level):
-    k.dry_wall(spots(k, [(236, 428), (275, 428), (335, 419), (405, 411), (432, 428), (475, 438), (555, 436), (630, 406), (700, 381), (755, 362)]))
-    k.dry_wall(spots(k, [(140, 390), (105, 370), (78, 335), (74, 300), (105, 262), (180, 233), (262, 208), (370, 178)]), courses=4)
-    k.dry_wall(spots(k, [(842, 330), (900, 308), (1010, 264)]))
-    k.parapet(spots(k, [(436, 376), (480, 386), (530, 389), (585, 382), (640, 368), (700, 351), (753, 334)]), 48)
-    k.parapet(spots(k, [(702, 205), (780, 243), (858, 284), (850, 290)]), 52)
-    k.parapet(spots(k, [(858, 287), (790, 313)]), 52)
-    for x, y in ((160, 393), (228, 422)):
-        k.obox(k.ground(x, y), (26, 26, 78), TURN, ck.PLASTER, None, 0.8)
-        k.obox(k.ground(x, y) + Vector((0, 0, 78)), (30, 30, 6), TURN, ck.PLASTER, None, 0.8)
-    foot = k.ground(246, 334)
-    high = 432.0
-    k.rod(foot, foot + Vector((0, 0, high)), 5.5, 3.2)
-    for z in (0.62, 0.78, 0.9):
-        k.rod(foot + Vector((-9, 9, high * z)), foot + Vector((9, -9, high * z)), 2.0, 2.0, ck.IRON)
-    for x, y in ((136, 296), (200, 268), (184, 326), (350, 182), (392, 165)):
-        k.rod(k.ground(x, y), foot + Vector((0, 0, high * 0.93)), 0.8, 0.8, ck.DARK, ck.THIN, sides=5)
-        k.rod(k.ground(x, y), k.ground(x, y) + Vector((0, 0, 14)), 2.4, 2.4)
-
-
-def barrels(k, places):
-    for x, y in places:
-        k.barrel(k.ground(x, y))
-
-
-def awning(k, left, right, wall_r, wall_l, heights):
-    posts = []
-    for (x, y), h in zip((left, right), heights):
-        g = k.ground(x, y)
-        k.rod(g, g + Vector((0, 0, h + 4)), 3.4, 2.8)
-        k.rod(g + Vector((0, 0, h)), k.ground(x - 38, y + 4), 0.8, 0.8, ck.DARK, ck.THIN, sides=5)
-        posts.append(g + Vector((0, 0, h)))
-    k.canvas([posts[0], posts[1], wall_r, wall_l], sag=12)
-
-
-def level_1(k, house):
-    k.frame = house
-    k.gable_house(188, 238, 120, 52)
-    k.window("right", 55, 52)
-    k.window("right", 205, 56)
-    k.window("front", -118, 78, 18, 24)
-    k.door(132)
-    for y in (100, 168):
-        k.rod((34, y, 0), (36, y, 86), 2.4, 2.0)
-    k.canvas([(40, 94, 82), (40, 172, 82), (2, 168, 106), (2, 98, 106)], sag=5)
-    for x, sx, z in ((-60, 30, 0), (-92, 30, 0), (-124, 30, 0), (-78, 26, 24)):
-        k.crate((x, -22, z), (sx, 24, 23), 2)
-    k.crate((22, 28, 0), (26, 44, 24), 4)
-    k.crate((20, 78, 0), (28, 36, 28), -6)
-    k.frame = Matrix.Identity(4)
-    awning(k, (312, 303), (398, 342), house @ Vector((-18, -2, 108)), house @ Vector((-176, -2, 112)), (86, 86))
-    barrels(k, ((645, 260), (692, 240), (717, 238), (700, 228), (796, 258), (543, 362)))
-
-
-def level_4(k, house):
-    k.frame = house
-    # A tower behind, a longer house, and a low stone store on its left.
-    k.frame = house @ Matrix.Translation((-170, 120, 0))
-    k.box(-120, 0, 0, 120, 0, 182, ck.PLASTER, None, 0.8)
-    for x, y in ((0.0, 0.0), (0.0, 120.0), (-120.0, 0.0)):
-        k.quoins(x, y, 182)
-    k.box(-128, 8, -8, 128, 182, 192, ck.QUOIN, None, 0.8)
-    for a in range(5):
-        k.box(-126 + a * 28, -126 + a * 28 + 17, -7, 7, 192, 211, k.shade(ck.PLASTER, 0.05), None, 0.8)
-        k.box(-8, 7, -6 + a * 28, 11 + a * 28, 192, 211, k.shade(ck.PLASTER, 0.05), None, 0.8)
-    k.window("right", 60, 118, 26, 38)
-    k.window("front", -60, 118, 26, 38)
-    for x, y in ((-105, 12), (-10, 12), (-105, 110), (-10, 110)):
-        k.rod((x, y, 192), (x, y, 244), 3.6, 3.2)
-    k.canvas([(-120, 0, 244), (4, 0, 244), (4, 122, 244), (-120, 122, 244)], sag=-14)
-    k.frame = house
-    k.gable_house(204, 270, 138, 60)
-    k.window("right", 48, 62)
-    k.window("right", 215, 62)
-    k.window("front", -52, 62, 22, 32)
-    k.window("front", -150, 62, 22, 32)
-    k.door(135, 42, 80)
-    for y in (92, 180):
-        k.rod((44, y, 0), (44, y, 88), 3.2, 2.8)
-    k.canvas([(52, 84, 88), (52, 188, 88), (2, 184, 118), (2, 88, 118)], sag=6)
-    k.sandbags([Vector((62, 74, 0)), Vector((62, 18, 0)), Vector((40, -6, 0))], 4)
-    k.sandbags([Vector((62, 262, 0)), Vector((62, 200, 0))], 4)
-    for x, z in ((-70, 0), (-104, 0), (-138, 0), (-87, 25), (-121, 25)):
-        k.crate((x, -20, z), (31, 26, 24), 2)
-    k.frame = Matrix.Identity(4)
-    awning(k, (262, 285), (372, 338), house @ Vector((-18, -2, 118)), house @ Vector((-190, -2, 122)), (92, 92))
-    k.sandbags(spots(k, [(262, 385), (300, 372), (345, 372), (380, 388)]), 4)
-    k.sandbags(spots(k, [(590, 330), (640, 322), (690, 302)]), 3)
-    barrels(k, ((728, 252), (752, 262), (740, 240), (820, 280), (543, 362), (215, 300)))
-    k.crate(k.ground(330, 395), (34, 30, 22), 20)
+SIZE = (1536, 2752)
+SUN = Vector(camp_ink.SUN)
+# Final pictures: rendered at FINE px per painting px, then averaged down to OUT.
+# DRAFT=1 in the environment skips the averaging: about four times quicker, rougher edges.
+FINE, SHRINK = (1.5, 1) if os.environ.get("DRAFT") else (3, 2)
+OUT = FINE / SHRINK
+# Extra px round each render, so ink lines and soft shadows at its edges are right.
+MARGIN = 12
+ART = os.path.join(os.getcwd(), "art", "camp")
 
 
 def material():
@@ -201,17 +56,21 @@ def material():
         return m.outputs[0]
 
     pos = n.new("ShaderNodeNewGeometry").outputs["Position"]
-    # Uneven brushwork: broad patches and fine, upright strokes.
-    total = None
-    for scale, weight, stretch in ((0.016, 0.34, (1, 1, 1)), (0.06, 0.26, (1, 1, 0.35)), (0.22, 0.16, (1, 1, 0.5))):
+
+    def cloud(scale, stretch, detail):
         mapping = n.new("ShaderNodeMapping")
         mapping.inputs["Scale"].default_value = [scale * s for s in stretch]
         link.new(pos, mapping.inputs["Vector"])
         tex = n.new("ShaderNodeTexNoise")
         tex.inputs["Scale"].default_value = 1.0
-        tex.inputs["Detail"].default_value = 2.0
+        tex.inputs["Detail"].default_value = detail
         link.new(mapping.outputs[0], tex.inputs["Vector"])
-        part = math_("MULTIPLY", math_("SUBTRACT", tex.outputs[0], 0.5), weight * 2)
+        return tex.outputs[0]
+
+    # Uneven brushwork: broad patches and fine, upright strokes.
+    total = None
+    for scale, weight, stretch in ((0.016, 0.34, (1, 1, 1)), (0.06, 0.26, (1, 1, 0.35)), (0.22, 0.16, (1, 1, 0.5))):
+        part = math_("MULTIPLY", math_("SUBTRACT", cloud(scale, stretch, 2.0), 0.5), weight * 2)
         total = part if total is None else math_("ADD", total, part)
     factor = math_("ADD", math_("MULTIPLY", total, attr("tex").outputs["Fac"]), 1.0)
     mul = n.new("ShaderNodeVectorMath")
@@ -225,20 +84,10 @@ def material():
     aov = n.new("ShaderNodeOutputAOV")
     aov.aov_name = "ink"
     link.new(attr("ink").outputs["Fac"], aov.inputs["Value"])
-    # Crack lines: stretched noise (its borders are drawn) and where to keep them; only full-strength texture, the rock, has any.
-    values = []
-    for scale, stretch in ((0.024, (1, 1, 0.3)), (0.017, (1, 1, 1))):
-        mapping = n.new("ShaderNodeMapping")
-        mapping.inputs["Scale"].default_value = [scale * s for s in stretch]
-        link.new(pos, mapping.inputs["Vector"])
-        tex = n.new("ShaderNodeTexNoise")
-        tex.inputs["Scale"].default_value = 1.0
-        tex.inputs["Detail"].default_value = 1.5
-        link.new(mapping.outputs[0], tex.inputs["Vector"])
-        values.append(tex.outputs[0])
-    keep = math_("MULTIPLY", values[1], math_("GREATER_THAN", attr("tex").outputs["Fac"], 0.95))
+    # Crack lines: stretched noise (its borders are drawn) and where to keep them; only full-strength texture, rock and leaves, has any.
+    keep = math_("MULTIPLY", cloud(0.017, (1, 1, 1), 1.5), math_("GREATER_THAN", attr("tex").outputs["Fac"], 0.95))
     pair = n.new("ShaderNodeCombineXYZ")
-    link.new(values[0], pair.inputs[0])
+    link.new(cloud(0.024, (1, 1, 0.3), 1.5), pair.inputs[0])
     link.new(keep, pair.inputs[1])
     aov = n.new("ShaderNodeOutputAOV")
     aov.aov_name = "crack"
@@ -246,80 +95,375 @@ def material():
     return mat
 
 
-def scene(scale):
+def setup():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     s = bpy.context.scene
     s.render.engine = "CYCLES"
     s.cycles.device = "CPU"
-    s.cycles.samples = 10
+    s.cycles.samples = 8
     s.cycles.use_adaptive_sampling = False
     s.cycles.use_denoising = False
     s.cycles.max_bounces = 0
     s.cycles.pixel_filter_type = "BOX"
     s.cycles.filter_width = 0.01
+    s.render.use_persistent_data = True
     s.render.film_transparent = True
-    s.render.resolution_x, s.render.resolution_y = int(CROP[2] * scale), int(CROP[3] * scale)
     s.render.image_settings.media_type = "MULTI_LAYER_IMAGE"
     s.render.image_settings.file_format = "OPEN_EXR_MULTILAYER"
     s.render.image_settings.color_depth = "32"
     layer = s.view_layers[0]
     layer.use_pass_z = layer.use_pass_normal = layer.use_pass_diffuse_color = True
     layer.use_pass_diffuse_direct = layer.use_pass_ambient_occlusion = True
-    aov = layer.aovs.add()
-    aov.name, aov.type = "ink", "VALUE"
-    aov = layer.aovs.add()
-    aov.name, aov.type = "crack", "COLOR"
-    world = bpy.data.worlds.new("w")
-    s.world = world
-    world.color = (0, 0, 0)
-    world.light_settings.distance = 60.0
+    for name, kind in (("ink", "VALUE"), ("crack", "COLOR")):
+        aov = layer.aovs.add()
+        aov.name, aov.type = name, kind
+    s.world = bpy.data.worlds.new("w")
+    s.world.color = (0, 0, 0)
+    s.world.light_settings.distance = 60.0
     light = bpy.data.lights.new("sun", "SUN")
     light.energy, light.angle = 3.0, math.radians(1.5)
     sun = bpy.data.objects.new("sun", light)
     sun.rotation_euler = SUN.to_track_quat("Z", "Y").to_euler()
     s.collection.objects.link(sun)
     cam = bpy.data.cameras.new("cam")
-    cam.type = "ORTHO"
-    cam.ortho_scale = max(CROP[2], CROP[3])
-    cam.clip_end = 20000
+    cam.type, cam.clip_end = "ORTHO", 30000
     obj = bpy.data.objects.new("cam", cam)
-    right, up = Vector((S45, S45, 0)), Vector((-S45 * 0.5, S45 * 0.5, UP))
-    back = Vector((S45 * UP, -S45 * UP, 0.5))
-    dx, dy = CROP[0] + CROP[2] / 2 - CORNER[0], CORNER[1] - (CROP[1] + CROP[3] / 2)
-    obj.location = right * dx + up * dy + back * 4000
     obj.rotation_euler = (math.radians(60), 0, math.radians(45))
     s.collection.objects.link(obj)
     s.camera = obj
     return s
 
 
-def main():
-    global CROP
-    args = sys.argv[sys.argv.index("--") + 1:]
-    level, out = int(args[0]), args[1]
-    scale = float(args[2]) if len(args) > 2 else 2.0
-    shrink = int(args[3]) if len(args) > 3 else 1
-    if len(args) > 4:
-        CROP = tuple(int(v) for v in args[4].split(","))
-    bpy.ops.wm.read_factory_settings(use_empty=True)
-    house = Matrix.Rotation(math.radians(TURN), 4, "Z")
-    mat = material()
-    for name, seed, make in (("terrain", 7, terrain), ("yard", 11, lambda k: yard(k, level)),
-                             ("hq", 5, lambda k: (level_4 if level == 4 else level_1)(k, house))):
-        k = Kit(seed)
-        k.origin = (CORNER[0] - 200, CORNER[1] - 60)  # positions are traced on the painting cropped at (200, 60)
-        make(k)
-        k.build(name).data.materials.append(mat)
-    s = scene(scale)
-    t = time.time()
+def shoot(s, rect, scale, weight=1.0):
+    """The painted picture of `rect` (painting px) at `scale`, and its ink ids; renders a margin round it and cuts it off."""
+    x, y, w, h = rect
+    pad = MARGIN
+    x, y, w, h = x - pad, y - pad, w + 2 * pad, h + 2 * pad
+    s.render.resolution_x, s.render.resolution_y = int(w * scale), int(h * scale)
+    s.camera.data.ortho_scale = max(w, h)
+    right, up = Vector((ck.S45, ck.S45, 0)), Vector((-ck.S45 * 0.5, ck.S45 * 0.5, ck.UP))
+    back = Vector((ck.S45 * ck.UP, -ck.S45 * ck.UP, 0.5))
+    s.camera.location = right * (x + w / 2 - ck.CENTRE[0]) + up * (ck.CENTRE[1] - (y + h / 2)) + back * 8000
     with tempfile.TemporaryDirectory() as folder:
         s.render.filepath = os.path.join(folder, "passes.exr")
         bpy.ops.render.render(write_still=True)
-        print("RENDER %.0fs" % (time.time() - t))
-        img = camp_ink.paint(s.render.filepath, scale)
-    if shrink > 1:
-        img = camp_ink.shrink(img, shrink)
-    camp_ink.write(out, img)
-    print("DONE %.0fs %s" % (time.time() - t, out))
+        img, ids = camp_ink.paint(s.render.filepath, scale, (int(y * scale), int(x * scale)), weight=weight)
+    m = int(pad * scale)
+    cut = (slice(m, m + int(rect[3] * scale)), slice(m, m + int(rect[2] * scale)))
+    return img[cut], ids[cut]
+
+
+def add(name, kit, mat):
+    obj = kit.build(name)
+    obj.data.materials.append(mat)
+    return obj
+
+
+def ground(mat):
+    import camp_terrain
+    k = ck.Kit(7)
+    camp_terrain.build(k)
+    return add("ground", k, mat)
+
+
+def sky(rect, scale):
+    """The sky and the far hills behind the camp, as an opaque picture of `rect`."""
+    x0, y0, w, h = rect
+    sh, sw = int(h * scale), int(w * scale)
+    py = (np.arange(sh) / scale + y0)[:, None].repeat(sw, 1).astype(np.float32)
+    px = (np.arange(sw) / scale + x0)[None, :].repeat(sh, 0).astype(np.float32)
+    at = (int(y0 * scale), int(x0 * scale))
+    top, low = np.array([0.62, 0.78, 0.88]), np.array([0.83, 0.90, 0.90])
+    f = np.clip(py / 260, 0, 1)[..., None]
+    img = top * (1 - f) + low * f
+    cloud = camp_ink.noise2((sh, sw), 160 * scale, 91, at) * 0.5 + camp_ink.noise2((sh, sw), 60 * scale, 92, at) * 0.3
+    img = img + np.clip(cloud - 0.1, 0, 1)[..., None] * 0.14
+    for i, (base, amp, col) in enumerate(((95, 34, (0.62, 0.69, 0.72)), (150, 44, (0.55, 0.60, 0.60)), (235, 60, (0.53, 0.55, 0.49)), (340, 60, (0.58, 0.53, 0.41)))):
+        wave = sum(np.interp(px[0], np.arange(-400, 2400, s), np.random.default_rng(300 + i * 7 + j).uniform(-1, 1, len(np.arange(-400, 2400, s)))) * a
+                   for j, (s, a) in enumerate(((190, 1.0), (70, 0.35), (24, 0.1))))
+        ridge = (base + amp * wave)[None, :]
+        inside = py > ridge
+        depth = np.clip((py - ridge) / 160, 0, 1)
+        shade = 1 + camp_ink.noise2((sh, sw), 46 * scale, 120 + i, at) * 0.05 + depth * 0.07
+        img = np.where(inside[..., None], np.array(col) * shade[..., None], img)
+        edge = np.abs(py - ridge) < 0.8
+        img = np.where(edge[..., None], img * 0.55 + np.array([0.25, 0.27, 0.30]) * 0.45, img)
+    return np.dstack([np.clip(img, 0, 1), np.ones((sh, sw))]).astype(np.float32)
+
+
+def over(top, under):
+    a = top[..., 3:4]
+    return np.dstack([top[..., :3] * a + under[..., :3] * (1 - a), np.ones(a.shape[:2])]).astype(np.float32)
+
+
+def preview(args):
+    out, rect = args[0], [int(v) for v in args[1].split(",")]
+    scale = float(args[2]) if len(args) > 2 else 1.0
+    s, mat = setup(), material()
+    ground(mat)
+    if len(args) > 3:
+        import camp_houses
+        for item in args[3].split(","):
+            name, look_ = item.split(":")
+            add(name, camp_houses.kit(name, int(look_)), mat)
+    img, _ = shoot(s, rect, scale)
+    camp_ink.write(out, over(img, sky(rect, scale))[..., :3])
+
+
+def webp(path, img, quality=92):
+    import OpenImageIO as oiio
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    data = np.rint(np.clip(img, 0, 1) * 255).astype(np.uint8)
+    spec = oiio.ImageSpec(data.shape[1], data.shape[0], data.shape[2], "uint8")
+    spec.attribute("Compression", "webp:%d" % quality)
+    spec.attribute("oiio:UnassociatedAlpha", 1)
+    out = oiio.ImageOutput.create(path)
+    if not out.open(path, spec):
+        raise IOError(out.geterror())
+    out.write_image(np.ascontiguousarray(data))
+    out.close()
+
+
+def load(path):
+    import OpenImageIO as oiio
+    f = oiio.ImageInput.open(path)
+    data = np.asarray(f.read_image("float")).reshape(f.spec().height, f.spec().width, f.spec().nchannels)
+    f.close()
+    return data
+
+
+# The ground's tiles, in painting px.
+COLS, ROWS = 3, 4
+TILE = (SIZE[0] // COLS, SIZE[1] // ROWS)
+
+
+def tile_path(c, r):
+    return os.path.join(ART, "ground", "%d_%d.webp" % (c, r))
+
+
+def make_ground(args):
+    s, mat = setup(), material()
+    ground(mat)
+    for r in range(ROWS):
+        for c in range(COLS):
+            if os.path.exists(tile_path(c, r)) and "again" not in args:
+                continue
+            rect = (c * TILE[0], r * TILE[1], TILE[0], TILE[1])
+            img, _ = shoot(s, rect, FINE)
+            img = camp_ink.shrink(over(img, sky(rect, FINE)), SHRINK)
+            webp(tile_path(c, r), img[..., :3], 94)
+            print("TILE", c, r, flush=True)
+
+
+def ground_crop(rect):
+    """The finished ground under `rect`, from the tiles."""
+    x, y, w, h = [int(v * OUT) for v in rect]
+    tw, th = int(TILE[0] * OUT), int(TILE[1] * OUT)
+    out = np.zeros((h, w, 3), np.float32)
+    for r in range(ROWS):
+        for c in range(COLS):
+            x0, y0, x1, y1 = max(x, c * tw), max(y, r * th), min(x + w, (c + 1) * tw), min(y + h, (r + 1) * th)
+            if x0 < x1 and y0 < y1:
+                t = load(tile_path(c, r))
+                out[y0 - y:y1 - y, x0 - x:x1 - x] = t[y0 - r * th:y1 - r * th, x0 - c * tw:x1 - c * tw, :3]
+    return out
+
+
+def painting_px(p):
+    return (ck.CENTRE[0] + (p[0] + p[1]) * ck.S45, ck.CENTRE[1] - ((p[1] - p[0]) * ck.S45 * 0.5 + p[2] * ck.UP))
+
+
+def bounds(kit, pad):
+    """The even-numbered px rect round a kit's points, kept on the painting."""
+    pts = [painting_px(v) for v in kit.verts]
+    x0, x1 = min(p[0] for p in pts) - pad, max(p[0] for p in pts) + pad
+    y0, y1 = min(p[1] for p in pts) - pad, max(p[1] for p in pts) + pad
+    x0, y0 = max(0, int(x0) // 2 * 2), max(0, int(y0) // 2 * 2)
+    x1, y1 = min(SIZE[0], int(x1) // 2 * 2 + 2), min(SIZE[1], int(y1) // 2 * 2 + 2)
+    return (x0, y0, x1 - x0, y1 - y0)
+
+
+def trim(img, rect):
+    """Cuts empty edges off, in steps of 2 painting px (3 px of the picture)."""
+    full = np.argwhere(img[..., 3] > 0.004)
+    (y0, x0), (y1, x1) = full.min(0), full.max(0) + 1
+    n = int(2 * OUT)
+    x0, y0, x1, y1 = x0 // n, y0 // n, -(-x1 // n), -(-y1 // n)
+    return img[y0 * n:y1 * n, x0 * n:x1 * n], [int(v) for v in (rect[0] + x0 * 2, rect[1] + y0 * 2, (x1 - x0) * 2, (y1 - y0) * 2)]
+
+
+def hull(points):
+    """The convex hull of 2D points."""
+    pts = sorted(set(map(tuple, points)))
+
+    def half(seq):
+        out = []
+        for p in seq:
+            while len(out) > 1 and (out[-1][0] - out[-2][0]) * (p[1] - out[-2][1]) - (out[-1][1] - out[-2][1]) * (p[0] - out[-2][0]) <= 0:
+                out.pop()
+            out.append(p)
+        return out[:-1]
+    return half(pts) + half(pts[::-1])
+
+
+def manifest(key, value):
+    path = os.path.join(os.getcwd(), "data", "camp-art.json")
+    data = json.load(open(path)) if os.path.exists(path) else {}
+    data[key] = value
+    json.dump(data, open(path, "w"), indent=1, sort_keys=True)
+
+
+def resize(img, w, h):
+    import OpenImageIO as oiio
+    buf = oiio.ImageBuf(np.ascontiguousarray(img.astype(np.float32)))
+    return np.asarray(oiio.ImageBufAlgo.resize(buf, roi=oiio.ROI(0, w, 0, h, 0, 1, 0, img.shape[2])).get_pixels("float"))
+
+
+def make_looks(args):
+    """All looks (or those named "id:look"), then the scaffolds."""
+    import camp_houses
+    s, mat = setup(), material()
+    land = ground(mat)
+    wanted = [a.split(":") for a in args if ":" in a] or [(i, str(n)) for i in camp_houses.PLACES for n in (1, 2, 3, 4)]
+    for name, n in wanted:
+        n = int(n)
+        kit = camp_houses.kit(name, n)
+        obj = add("look", kit, mat)
+        rect = bounds(kit, 46)
+        img, ids = shoot(s, rect, FINE)
+        bpy.data.objects.remove(obj)
+        mask = (ids > 0.5) & (ids < 0.8)
+        grown = camp_ink.near(mask, 3) <= 3
+        whole = camp_ink.shrink(over(img, sky(rect, FINE)), SHRINK)
+        cover = camp_ink.shrink(np.dstack([img[..., :3] * 0 + 1, grown.astype(np.float32)]), SHRINK)[..., 3]
+        body, body_rect = trim(np.dstack([whole[..., :3], cover]), rect)
+        path = os.path.join(ART, "buildings", "%s_%d" % (name, n))
+        webp(path + ".webp", body, 92)
+        # What the building does to the ground round it: how much darker each px is than the bare ground.
+        bare = ground_crop(rect)
+        dark = np.array([0.13, 0.08, 0.07], np.float32)
+        a = ((bare - whole[..., :3]) / np.maximum(bare - dark, 0.05)).mean(-1)
+        a = np.where(cover > 0.6, 0, np.clip(camp_ink.blur(a.astype(np.float32), 1), 0, 0.85))
+        a = a * camp_ink.smooth(0.05, 0.12, a)
+        shade, shade_rect = trim(np.dstack([np.broadcast_to(dark, bare.shape), a]), rect)
+        webp(path + "_shade.webp", shade, 85)
+        # The tap outline: the hull of the body, in painting px.
+        pts = np.argwhere(body[::4, ::4, 3] > 0.5)[:, ::-1] * 4 / OUT + np.array(body_rect[:2])
+        ring = [[round(float(v), 1) for v in p] for p in hull(pts.tolist())]
+        # A square picture of it with its ground, for the cards.
+        x0, y0, w, h = body_rect
+        side = int(max(w, h) * 1.06) // 2 * 2
+        cx, cy = min(max(x0 + w // 2 - side // 2, rect[0]), max(rect[0], rect[0] + rect[2] - side)), min(max(y0 + h // 2 - side // 2, rect[1]), max(rect[1], rect[1] + rect[3] - side))
+        o = [int((cx - rect[0]) * OUT), int((cy - rect[1]) * OUT), int(side * OUT)]
+        card = whole[o[1]:o[1] + o[2], o[0]:o[0] + o[2], :3]
+        m = min(card.shape[:2])
+        webp(os.path.join(ART, "cards", "%s_%d.webp" % (name, n)), resize(card[:m, :m], 384, 384), 90)
+        f = camp_houses.frame(name)
+        w_, l_, _ = camp_houses.SCAFFOLD[name]
+        base = [[round(v, 1) for v in painting_px(f @ Vector(p))] for p in ((-w_, 0, 0), (0, 0, 0), (0, l_, 0))]
+        manifest("%s_%d" % (name, n), {"body": body_rect, "shade": shade_rect, "outline": ring, "base": base,
+                                                **({"chimney": [round(v, 1) for v in painting_px(f @ Vector(camp_houses.chimney(n)))]} if name == "farm" else {})})
+        print("LOOK", name, n, body_rect, flush=True)
+    if wanted and args and ":" in "".join(args):
+        return
+    land.hide_render = True
+    for name in camp_houses.PLACES:
+        kit = camp_houses.scaffold(name)
+        obj = add("scaffold", kit, mat)
+        rect = bounds(kit, 8)
+        img, _ = shoot(s, rect, FINE)
+        bpy.data.objects.remove(obj)
+        body, body_rect = trim(camp_ink.shrink(img, SHRINK), rect)
+        webp(os.path.join(ART, "buildings", name + "_scaffold.webp"), body, 92)
+        manifest(name + "_scaffold", {"body": body_rect})
+        print("SCAFFOLD", name, flush=True)
+
+
+def sprite(s, mat, kit, rect, scale, shrink, weight=1.0):
+    """A kit on its own, with its shade on flat ground, as one picture with alpha."""
+    flat = ck.Kit(1)
+    x, y, w, h = rect
+    flat.land([flat.ground(px, py) for px, py in ((x - 400, y + h + 400), (x + w + 400, y + h + 400), (x + w + 400, y - 400), (x - 400, y - 400))], ck.SAND, 0.0)
+    things = [add("flat", flat, mat), add("sprite", kit, mat)]
+    img, ids = shoot(s, rect, scale, weight)
+    for o in things:
+        bpy.data.objects.remove(o)
+    mask = (ids > 0.5) & (ids < 0.8)
+    cover = (camp_ink.near(mask, 2) <= 2).astype(np.float32)
+    bare = np.median(img[~mask][:, :3], axis=0)
+    dark = np.array([0.13, 0.08, 0.07], np.float32)
+    a = np.clip(((bare - img[..., :3]) / np.maximum(bare - dark, 0.05)).mean(-1), 0, 0.8)
+    a = camp_ink.blur(a.astype(np.float32), 2)
+    a = a * camp_ink.smooth(0.1, 0.2, a)
+    alpha = np.maximum(cover, a * (1 - cover))
+    rgb = img[..., :3] * cover[..., None] + dark * (1 - cover[..., None])
+    return camp_ink.shrink(np.dstack([rgb, alpha]).astype(np.float32), shrink)
+
+
+def make_figures(args):
+    import camp_figures as cf
+    s, mat = setup(), material()
+    for kind in args or cf.KINDS:
+        kit = cf.build(kind)
+        obj = add("figures", kit, mat)
+        img, _ = shoot(s, (0, 0, cf.CELL[0] * cf.WAYS, cf.CELL[1] * cf.STEPS), FINE, 0.62)
+        bpy.data.objects.remove(obj)
+        webp(os.path.join(ART, "life", kind + ".webp"), camp_ink.shrink(img, SHRINK), 92)
+        print("FIGURE", kind, flush=True)
+
+
+# Map pieces have 3 px per map unit, and their footprint's centre at this px of the picture.
+PIECE = 3
+
+
+def make_pieces(args):
+    import map_pieces as mp
+    s, mat = setup(), material()
+    for name in args or mp.PIECES:
+        kit = ck.Kit(sum(map(ord, name)), ck.BODY)
+        mp.PIECES[name](kit)
+        kit.frame = None
+        rect = bounds(kit, 10)
+        img = sprite(s, mat, kit, rect, PIECE * 2, 2)
+        full = np.argwhere(img[..., 3] > 0.01)
+        (y0, x0), (y1, x1) = full.min(0), full.max(0) + 1
+        centre = [(ck.CENTRE[0] - rect[0]) * PIECE - int(x0), (ck.CENTRE[1] - rect[1]) * PIECE - int(y0)]
+        webp(os.path.join(os.getcwd(), "art", "map", name + ".webp"), img[y0:y1, x0:x1], 92)
+        path = os.path.join(os.getcwd(), "data", "map-art.json")
+        data = json.load(open(path)) if os.path.exists(path) else {}
+        data[name] = {"centre": centre, "size": [int(x1 - x0), int(y1 - y0)]}
+        json.dump(data, open(path, "w"), indent=1, sort_keys=True)
+        print("PIECE", name, flush=True)
+
+
+def make_nature(args):
+    """The map's prop atlases, frame by frame, each in the frame and on the anchor the manifest already gives it."""
+    import map_pieces as mp
+    atlases = json.load(open(os.path.join(os.getcwd(), "art", "terrain-manifest.json")))["props"]
+    s, mat = setup(), material()
+    for name in args or mp.NATURE:
+        atlas = atlases[name]
+        sheet = np.zeros((atlas["h"], atlas["w"], 4), np.float32)
+        for i, f in enumerate(atlas["frames"]):
+            kit = ck.Kit(i * 13 + len(name), ck.BODY)
+            # The anchor is off the frame's middle in the old art; the thing stands in the middle.
+            mp.NATURE[name](kit, i, kit.ground(f["w"] / 2 - f["ax"], -3), f["w"], f["h"])
+            rect = (-f["ax"], -f["ay"], f["w"], f["h"])
+            img = sprite(s, mat, kit, rect, 2, 2, mp.WEIGHT[name])
+            img = img[:f["h"], :f["w"]]
+            for axis, n in ((0, img.shape[0]), (1, img.shape[1])):
+                edge = np.clip((np.minimum(np.arange(n), n - 1 - np.arange(n)) + 0.5) / 5, 0, 1).astype(np.float32)
+                img[..., 3] *= edge[:, None] if axis == 0 else edge[None, :]
+            sheet[f["y"]:f["y"] + f["h"], f["x"]:f["x"] + f["w"]] = img
+            print("FRAME", name, i, flush=True)
+        webp(os.path.join(os.getcwd(), "art", "terrain", "props-%s.webp" % name), sheet, 92)
+
+
+def main():
+    args = sys.argv[sys.argv.index("--") + 1:]
+    t = time.time()
+    {"preview": preview, "ground": make_ground, "looks": make_looks, "figures": make_figures, "pieces": make_pieces, "nature": make_nature}[args[0]](args[1:])
+    print("DONE %.0fs" % (time.time() - t))
 
 
 main()

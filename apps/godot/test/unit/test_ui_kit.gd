@@ -1,18 +1,16 @@
 extends GutTest
-## The shared screen pieces: portraits are cut around each building on the painting, chips mark a lacking cost, the arrow
+## The shared screen pieces: every building has a portrait, chips mark a lacking cost, the arrow
 ## follows the reading direction, and the sheet's model carries the next level's storage.
 
 func after_each() -> void:
 	TranslationServer.set_locale("en")
 
-func test_each_portrait_is_a_square_around_its_building_on_the_painting() -> void:
-	for id: String in CampLayout.REGIONS:
-		var region := UiKit.portrait_region(id)
-		assert_almost_eq(region.size.x, region.size.y, 0.01, id)
-		var point: Vector2 = CampLayout.REGIONS[id]["point"] * 2.0
-		assert_true(region.has_point(point), "%s holds its building" % id)
-		var tex := UiKit.portrait_texture(id) as AtlasTexture
-		assert_true(Rect2(Vector2.ZERO, CampModels.SIZE).encloses(tex.region), "%s stays on the painting" % id)
+func test_each_building_has_a_square_portrait_at_every_level() -> void:
+	for id in CampLayout.BUILDINGS:
+		for level in range(1, int(Balance.data()["buildings"][id]["levels"].size()) + 1):
+			var tex := UiKit.portrait_texture(id, level)
+			assert_not_null(tex, "%s %d" % [id, level])
+			assert_eq(tex.get_width(), tex.get_height(), id)
 
 func test_a_lacking_cost_is_marked() -> void:
 	var ok := UiKit.cost_chip("food", "70", false)

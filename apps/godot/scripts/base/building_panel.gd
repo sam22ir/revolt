@@ -189,7 +189,7 @@ func _build_info(m: Dictionary, lang: String, id: String) -> void:
 func _header(id: String, lang: String, level: int) -> HBoxContainer:
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", roundi(HudTheme.px(10)))
-	head.add_child(UiKit.portrait(id, 60.0))
+	head.add_child(UiKit.portrait(id, 60.0, level))
 	var names := VBoxContainer.new()
 	names.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	names.alignment = BoxContainer.ALIGNMENT_CENTER

@@ -4,6 +4,7 @@ hand-wobbled ink lines. Works on the arrays only, so it runs in Blender's Python
 import numpy as np
 import OpenImageIO as oiio
 
+SUN = np.array([0.2, -0.6, 0.77], np.float32)
 INK = np.array([40, 27, 21], np.float32) / 255.0
 
 
@@ -25,18 +26,25 @@ def read(path):
     return out
 
 
-def noise2(shape, size, seed):
-    """Smooth noise in -1..1 with blobs about `size` px wide."""
-    rng = np.random.default_rng(seed)
-    gh, gw = int(shape[0] / size) + 4, int(shape[1] / size) + 4
-    grid = rng.uniform(-1, 1, (gh, gw)).astype(np.float32)
-    y, x = np.arange(shape[0]) / size + 1, np.arange(shape[1]) / size + 1
-    y0, x0 = y.astype(int), x.astype(int)
-    fy, fx = (y - y0).astype(np.float32), (x - x0).astype(np.float32)
-    fy, fx = fy * fy * (3 - 2 * fy), fx * fx * (3 - 2 * fx)
-    a = grid[y0][:, x0] * (1 - fx) + grid[y0][:, x0 + 1] * fx
-    b = grid[y0 + 1][:, x0] * (1 - fx) + grid[y0 + 1][:, x0 + 1] * fx
-    return a * (1 - fy)[:, None] + b * fy[:, None]
+def noise2(shape, size, seed, at=(0, 0)):
+    """Smooth noise in -1..1 with blobs about `size` px wide. `at` is the array's corner (y, x) on the whole picture, so tiles and
+    crops of one picture get the same noise."""
+    def lattice(n, start):
+        v = (np.arange(n) + start) / size
+        i = np.floor(v).astype(np.int64)
+        f = (v - i).astype(np.float32)
+        return i, f * f * (3 - 2 * f)
+
+    def grid(iy, ix):
+        h = (iy[:, None] * 73856093) ^ (ix[None, :] * 19349663) ^ (seed * 83492791)
+        h = (h ^ (h >> 13)) * 1274126177
+        h = (h ^ (h >> 16)) & 0xFFFFFF
+        return h.astype(np.float32) / 0xFFFFFF * 2 - 1
+    iy, fy = lattice(shape[0], at[0])
+    ix, fx = lattice(shape[1], at[1])
+    top = grid(iy, ix) * (1 - fx) + grid(iy, ix + 1) * fx
+    low = grid(iy + 1, ix) * (1 - fx) + grid(iy + 1, ix + 1) * fx
+    return top * (1 - fy)[:, None] + low * fy[:, None]
 
 
 def smooth(lo, hi, v):
@@ -75,22 +83,27 @@ def near(mask, radius):
     return dist
 
 
-def warp(a, amount, size, seed):
+def warp(a, amount, size, seed, at):
     h, w = a.shape
     y, x = np.mgrid[0:h, 0:w]
-    y = np.clip(np.rint(y + noise2(a.shape, size, seed) * amount), 0, h - 1).astype(int)
-    x = np.clip(np.rint(x + noise2(a.shape, size, seed + 1) * amount), 0, w - 1).astype(int)
+    y = np.clip(np.rint(y + noise2(a.shape, size, seed, at) * amount), 0, h - 1).astype(int)
+    x = np.clip(np.rint(x + noise2(a.shape, size, seed + 1, at) * amount), 0, w - 1).astype(int)
     return a[y, x]
 
 
-def paint(path, scale, seed=3):
-    """The finished picture as sRGB + alpha in 0..1; `scale` is render px per painting px."""
+def paint(path, scale, at=(0, 0), seed=3, weight=1.0):
+    """The finished picture as sRGB + alpha in 0..1; `scale` is render px per painting px and `at` the
+    render's corner (y, x) on the whole picture. Also gives the ink ids."""
     p = read(path)
     z = np.minimum(p["Depth.Z"], 1e5)
     ids = np.rint(p["ink.X"] * 60000).astype(np.int32)
     normal = np.dstack([p["Normal." + c] for c in "XYZ"])
     albedo = np.dstack([p["Diffuse Color." + c] for c in "RGB"])
     light = p["Diffuse Direct.G"]
+    # All land is lit as if it were level: a gentle slope keeps the flat ground's colour.
+    lit = normal @ SUN
+    level = (ids >= 600) & (ids < 1200) & (normal[..., 2] > 0.4)
+    light = np.where(level, light / np.maximum(lit, 0.05) * SUN[2], light)
     ao = p["Ambient Occlusion.G"]
     alpha = np.clip(p["Combined.A"], 0, 1)
     shape = z.shape
@@ -100,21 +113,19 @@ def paint(path, scale, seed=3):
     k = scale
 
     # Light in three tones, with a slightly uneven border between them.
-    light = light / max(1e-6, np.percentile(light[alpha > 0.5], 99))
-    wobble = noise2(shape, 14 * k, seed) * 0.03 + noise2(shape, 4 * k, seed + 1) * 0.02
+    wobble = noise2(shape, 14 * k, seed, at) * 0.03 + noise2(shape, 4 * k, seed + 1, at) * 0.02
     v = blur(light, max(1, int(k * 0.6))) + wobble
-    mid, full = smooth(0.06, 0.15, v), smooth(0.45, 0.62, v)
+    mid, full = smooth(0.06, 0.15, v), smooth(0.42, 0.55, v)
     tone = (np.array([0.50, 0.43, 0.45], np.float32) * (1 - mid)[..., None]
             + np.array([0.76, 0.72, 0.71], np.float32) * (mid * (1 - full))[..., None]
             + np.array([1.0, 0.99, 0.96], np.float32) * (mid * full)[..., None])
     # Faces turned to the sky are a little paler than upright ones.
     tone = tone * (0.9 + 0.12 * smooth(0.2, 0.85, normal[..., 2]))[..., None]
     contact = blur(ao, int(1.5 * k))
-    contact = contact / max(1e-6, np.percentile(contact[alpha > 0.5], 95))
-    dark = 1 - smooth(0.15, 0.9, contact + noise2(shape, 9 * k, seed + 2) * 0.06)
+    dark = 1 - smooth(0.15, 0.9, contact + noise2(shape, 9 * k, seed + 2, at) * 0.06)
     tone = tone * (1 - dark[..., None] * np.array([0.34, 0.42, 0.44], np.float32))
     srgb = np.where(albedo <= 0.0031308, albedo * 12.92, 1.055 * np.maximum(albedo, 1e-6) ** (1 / 2.4) - 0.055)
-    wash = 1 + noise2(shape, 60 * k, seed + 4) * 0.035 + noise2(shape, 7 * k, seed + 5) * 0.02
+    wash = 1 + noise2(shape, 60 * k, seed + 4, at) * 0.035 + noise2(shape, 7 * k, seed + 5, at) * 0.02
     img = srgb * tone * wash[..., None]
 
     # Ink: heavy where something stands in front, light between touching parts, lighter still on sharp corners.
@@ -135,10 +146,11 @@ def paint(path, scale, seed=3):
     ink = np.zeros(shape, np.float32)
     fine = np.zeros(shape, np.float32)
     for i, (m, r, low) in enumerate(((heavy, 0.95, 0.95), (light_, 0.45, 0.8), (corner, 0.4, 0.7), (crack, 0.55, 0.8))):
+        r *= weight
         reach = int(np.ceil(r * k * 1.6)) + 1
-        d = warp(near(m, reach), 0.9 * k, 9 * k, seed + 20 + i)
-        width = r * k * (1 + 0.4 * noise2(shape, 16 * k, seed + 30 + i))
-        line = np.clip(width - d + 0.6, 0, 1) * (low + (1 - low) * noise2(shape, 25 * k, seed + 40 + i))
+        d = warp(near(m, reach), 0.9 * k, 9 * k, seed + 20 + i, at)
+        width = r * k * (1 + 0.4 * noise2(shape, 16 * k, seed + 30 + i, at))
+        line = np.clip(width - d + 0.6, 0, 1) * (low + (1 - low) * noise2(shape, 25 * k, seed + 40 + i, at))
         if m is heavy:
             ink = line
         else:
@@ -148,7 +160,7 @@ def paint(path, scale, seed=3):
     img = img * (1 - fine) + (INK * 0.75 + img * 0.22) * fine
     img = img * (1 - ink[..., None]) + INK * ink[..., None]
     alpha = np.maximum(alpha, ink)
-    return np.dstack([np.clip(img, 0, 1), alpha]).astype(np.float32)
+    return np.dstack([np.clip(img, 0, 1), alpha]).astype(np.float32), ids / 60000.0
 
 
 def shrink(img, n):
