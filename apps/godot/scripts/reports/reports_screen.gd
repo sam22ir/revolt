@@ -22,6 +22,8 @@ const RESULT_ICONS := {"victory": "victory", "defeat": "defeat", "target_gone": 
 const SURVIVED := Color("7d9a3a")
 const WOUNDED := Color("d29a3a")
 const LOST := Color("b04a36")
+## Defenders left standing: neither good news nor a loss.
+const STANDING := Color("8b8578")
 
 var _reports: Array = []
 var _open_id := ""
@@ -193,7 +195,7 @@ func _add_theirs(d: Dictionary, lang: String) -> void:
 	UiKit.section_value(card, Loc.t("report.rounds", {"count": Fmt.amount(lang, d["rounds"])}))
 	for m: Dictionary in d["theirs"]:
 		var standing := int(m["defenders"]) - int(m["defeated"])
-		var parts := [[standing, SURVIVED], [int(m["defeated"]), LOST]]
+		var parts := [[standing, STANDING], [int(m["defeated"]), LOST]]
 		UiKit.card_body(card).add_child(_troop(m["troop"], int(m["defenders"]), parts, [[Loc.t("report.defendersKilled"), m["defeated"], LOST]], lang))
 	body.add_child(card)
 
