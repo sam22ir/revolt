@@ -2,6 +2,8 @@
 
 Decided 25 Nov 2026: assets are modelled in Blender (scripts only, our own art), drawn in the current inked style, seen from one fixed camera (30° up, 45° round), and shown in Godot as 2D layers the player can zoom.
 
+**Status (25 Nov 2026):** all steps are in the game in draft quality (`DRAFT=1`). Open: the full-quality render, the phone check, a look at a marching column on the map, and the review of the looks below.
+
 | Step | Done when |
 |---|---|
 | 1. Style: cliffs, trees, canvas, light | The whole camp renders and reads as one picture next to the old painting |
