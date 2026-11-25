@@ -103,6 +103,37 @@ func test_a_members_actions_open_under_the_row_and_the_players_own_row_has_none(
 	assert_false((screen._rows_box.get_child(1).get_child(1) as Control).visible, "and closes again")
 	assert_eq(screen._rows_box.get_child(0).get_child_count(), 1, "nothing to do about oneself")
 
+func _tap(on: Control) -> void:
+	var at := on.get_global_rect().get_center()
+	for down in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = down
+		event.position = at
+		event.global_position = at
+		get_viewport().push_input(event, true)
+		await wait_process_frames(2)
+
+func test_a_leader_removes_a_member_with_real_taps() -> void:
+	var api := FakeApi.new()
+	var pair := _screen(_view("leader", 3), api)
+	var screen: AllianceScreen = pair[0]
+	screen.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	screen.size = Vector2(1080, 1770)
+	await pair[1].refresh_alliance()
+	screen.select_tab("members")
+	await wait_process_frames(2)
+	await _tap(screen._rows_box.get_child(1).get_child(0))
+	assert_true((screen._rows_box.get_child(1).get_child(1) as Control).visible, "the row opened")
+	var kick := _buttons(screen._rows_box.get_child(1), Loc.t("alliance.action.kick"))[0] as Button
+	await _tap(kick)
+	assert_true(screen._confirm_box.visible)
+	assert_eq(screen._confirm_label.text, Loc.t("alliance.confirmKick", {"handle": "m1"}))
+	await wait_process_frames(2)
+	await _tap(screen._yes_button)
+	assert_false(screen._confirm_box.visible)
+	assert_true(api.calls.any(func(path: String) -> bool: return path.ends_with("/kick")), str(api.calls))
+
 func test_a_line_that_begins_with_a_handle_reads_from_the_pages_start() -> void:
 	var bubble: ChatBubble = autofree(ChatBubble.new("ABC · rank", "hi", false))
 	var head := bubble.get_child(0).get_child(0).get_child(0) as Label
