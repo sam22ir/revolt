@@ -461,7 +461,7 @@ export const ar: LocaleShape = {
     rate: "+{{amount}}/سا",
     level: "م {{level}}",
     power: "القوة {{amount}}",
-    marches: "{{count}} حملات في الطريق",
+    marches: "الحملات: {{count}}",
     marchesNone: "لا حملات",
   },
   account: {

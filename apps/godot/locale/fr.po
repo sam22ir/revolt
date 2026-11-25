@@ -1376,7 +1376,7 @@ msgid "hud.power"
 msgstr "Puissance {amount}"
 
 msgid "hud.marches"
-msgstr "{count} marches en cours"
+msgstr "Marches : {count}"
 
 msgid "hud.marchesNone"
 msgstr "Aucune marche"

@@ -459,7 +459,7 @@ export const en = {
     rate: "+{{amount}}/h",
     level: "Lv {{level}}",
     power: "Power {{amount}}",
-    marches: "{{count}} marches in flight",
+    marches: "Marches: {{count}}",
     marchesNone: "No marches",
   },
   account: {

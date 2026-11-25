@@ -1376,7 +1376,7 @@ msgid "hud.power"
 msgstr "القوة {amount}"
 
 msgid "hud.marches"
-msgstr "{count} حملات في الطريق"
+msgstr "الحملات: {count}"
 
 msgid "hud.marchesNone"
 msgstr "لا حملات"

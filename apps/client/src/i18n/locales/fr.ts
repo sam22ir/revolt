@@ -464,7 +464,7 @@ export const fr: LocaleShape = {
     rate: "+{{amount}}/h",
     level: "Niv {{level}}",
     power: "Puissance {{amount}}",
-    marches: "{{count}} marches en cours",
+    marches: "Marches : {{count}}",
     marchesNone: "Aucune marche",
   },
   account: {

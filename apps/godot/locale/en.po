@@ -1376,7 +1376,7 @@ msgid "hud.power"
 msgstr "Power {amount}"
 
 msgid "hud.marches"
-msgstr "{count} marches in flight"
+msgstr "Marches: {count}"
 
 msgid "hud.marchesNone"
 msgstr "No marches"
