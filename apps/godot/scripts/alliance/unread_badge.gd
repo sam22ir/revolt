@@ -1,8 +1,8 @@
 class_name UnreadBadge
 extends PanelContainer
 ## A small red count at the top end of a button (its child, so it never changes the button's size or its row). It is hidden by
-## transparency, not by `visible`, and never takes a tap. Anchors do not follow the layout direction, so `place` puts it on the
-## right in English and French and on the left in Arabic.
+## transparency, not by `visible`, and never takes a tap. Its anchors follow the layout direction: on the right in English and French and on
+## the left in Arabic.
 
 const FONT := 35 # UiKit.SMALL in viewport px
 
@@ -22,20 +22,16 @@ func _init() -> void:
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_label)
 	modulate.a = 0.0
-	place("en")
+	set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	offset_top = -10
+	offset_left = 4
+	offset_right = 4
 
 ## The count in the language's digits; 0 hides it.
 func set_count(n: int, lang: String) -> void:
 	_label.text = Fmt.amount(lang, n)
 	modulate.a = 1.0 if n > 0 else 0.0
-
-func place(lang: String) -> void:
-	var arabic := lang == "ar"
-	set_anchors_preset(Control.PRESET_TOP_LEFT if arabic else Control.PRESET_TOP_RIGHT)
-	grow_horizontal = Control.GROW_DIRECTION_END if arabic else Control.GROW_DIRECTION_BEGIN
-	offset_top = -10
-	offset_left = -4 if arabic else 4
-	offset_right = offset_left
 
 func is_shown() -> bool:
 	return modulate.a > 0.0

@@ -474,7 +474,6 @@ func _retranslate() -> void:
 	_tab_labels["rallies"].text = Loc.t("alliance.tab.rallies")
 	_rallies_key = ""
 	_help_key = ""
-	_chat_badge.place(Fmt.lang())
 	UiKit.set_warning(_status, Loc.t("chat.reconnecting"))
 	_chat_input.placeholder_text = Loc.t("chat.placeholder")
 	_send_button.text = Loc.t("chat.send")

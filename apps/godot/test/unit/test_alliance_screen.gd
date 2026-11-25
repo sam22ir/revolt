@@ -140,6 +140,20 @@ func test_a_line_that_begins_with_a_handle_reads_from_the_pages_start() -> void:
 	assert_eq(head.text_direction, Control.TEXT_DIRECTION_INHERITED)
 	assert_eq((autofree(ListRow.new("avatar")) as ListRow).title.text_direction, Control.TEXT_DIRECTION_INHERITED)
 
+func test_the_unread_count_is_at_the_chat_tabs_end_in_each_language() -> void:
+	for lang in ["en", "ar"]:
+		TranslationServer.set_locale(lang)
+		var pair := _screen(_view("member", 2))
+		var screen: AllianceScreen = pair[0]
+		screen.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		screen.size = Vector2(1080, 1770)
+		await pair[1].refresh_alliance()
+		screen._chat_badge.set_count(3, lang)
+		await wait_process_frames(3)
+		var tab := (screen._tab_buttons["chat"] as Control).get_global_rect().get_center().x
+		var badge := screen._chat_badge.get_global_rect().get_center().x
+		assert_true(badge > tab if lang == "en" else badge < tab, lang)
+
 func test_a_tap_beside_the_question_means_no() -> void:
 	var pair := _screen(_view("member", 2))
 	await pair[1].refresh_alliance()
