@@ -5,6 +5,8 @@ import numpy as np
 import OpenImageIO as oiio
 
 SUN = np.array([0.2, -0.6, 0.77], np.float32)
+# Set to a length in render px to make every noise repeat after it, for pictures that tile.
+PERIOD = None
 INK = np.array([40, 27, 21], np.float32) / 255.0
 
 
@@ -29,6 +31,11 @@ def read(path):
 def noise2(shape, size, seed, at=(0, 0)):
     """Smooth noise in -1..1 with blobs about `size` px wide. `at` is the array's corner (y, x) on the whole picture, so tiles and
     crops of one picture get the same noise."""
+    # The lattice repeats after `wrap` cells, so the cells are fitted to the period.
+    wrap = max(1, round(PERIOD / size)) if PERIOD else 0
+    if wrap:
+        size = PERIOD / wrap
+
     def lattice(n, start):
         v = (np.arange(n) + start) / size
         i = np.floor(v).astype(np.int64)
@@ -36,6 +43,8 @@ def noise2(shape, size, seed, at=(0, 0)):
         return i, f * f * (3 - 2 * f)
 
     def grid(iy, ix):
+        if wrap:
+            iy, ix = iy % wrap, ix % wrap
         h = (iy[:, None] * 73856093) ^ (ix[None, :] * 19349663) ^ (seed * 83492791)
         h = (h ^ (h >> 13)) * 1274126177
         h = (h ^ (h >> 16)) & 0xFFFFFF

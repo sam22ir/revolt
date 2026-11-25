@@ -1,11 +1,8 @@
 class_name MapOverlay
 extends Node2D
-## Region seams, bases, NPC targets and alliance HQs, drawn above the ground mesh (the marching columns are MarchMarkers).
+## Bases, NPC targets, resource sites and alliance HQs, drawn above the ground (the marching columns are MarchMarkers).
 ## The pictures are MapArt's; rings and glows under them say whose they are. Canvas text is limited to NPC level numbers and 2-4 character ASCII HQ tags (rule 6).
 
-const SEAM_COLOR := Color(0.54, 0.42, 0.27, 0.55)
-const SEAM_LIBERATED_COLOR := Color(0.88, 0.69, 0.25, 0.9)
-const SEAM_WIDTH := 3.0
 const BASE_SPAN := 2
 const BASE_OWN := Color("e0b43c")
 const BASE_ALLY := Color("3fae6a")
@@ -36,8 +33,6 @@ const TAG_PATTERN := "^[A-Z0-9]{2,4}$"
 
 enum Mode { SEAMS, OBJECTS }
 
-const LIBERATED_WASH := Color(0.88, 0.69, 0.25, 0.24)
-
 var map: WorldMap
 ## SEAMS draws the liberation wash and region borders (under the props); OBJECTS draws bases, NPCs and HQs (above them).
 var mode := Mode.OBJECTS
@@ -58,8 +53,7 @@ func _draw() -> void:
 		return
 	draw_count += 1
 	if mode == Mode.SEAMS:
-		_draw_wash()
-		_draw_seams()
+		# The ground draws the borders and the liberated wash now (map_ground.gdshader).
 		return
 	var snap := map.snapshot
 	# Sites first: they are scenery under the camps, NPCs and HQs.
@@ -72,20 +66,6 @@ func _draw() -> void:
 	for h: Dictionary in snap["hqs"]:
 		_draw_hq(h)
 	_draw_selection(snap)
-
-func _draw_wash() -> void:
-	for i in map.liberated_tiles:
-		draw_colored_polygon(Iso.footprint(i % map.size, i / map.size, 1, 1), LIBERATED_WASH)
-
-func _draw_seams() -> void:
-	var look := GroundStyle.params()
-	for i in map.seam_liberated.size():
-		if not look.is_empty() and not map.seam_liberated[i]:
-			# The look-test ground: a faint light dashed line instead of the dark grey one.
-			draw_dashed_line(map.seam_points[i * 2], map.seam_points[i * 2 + 1], look["seam"], look["seam_width"], look["dash"])
-			continue
-		var color := SEAM_LIBERATED_COLOR if map.seam_liberated[i] else SEAM_COLOR
-		draw_line(map.seam_points[i * 2], map.seam_points[i * 2 + 1], color, SEAM_WIDTH)
 
 func _draw_base(b: Dictionary) -> void:
 	var x := int(b["x"])

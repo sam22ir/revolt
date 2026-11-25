@@ -1,7 +1,7 @@
 class_name WorldMap
 extends Node2D
-## The world map, in Phaser's layer order: GroundLayer (colour field, wash, decals, roads/wadis/oases, rim), region seams and
-## liberation wash, the frontier (Frontier) behind and before the props, props (trees, rocks, peaks, scrub), then bases, NPCs, HQs and marches. Terrain, regions, geography and
+## The world map: GroundLayer (the inked land with its roads, riverbeds, pools, region borders and the liberated wash; see
+## docs/map-ground-ink-plan.md), the frontier (Frontier) behind and before the props, props (trees, rocks, peaks, scrub), then bases, NPCs, HQs and marches. Terrain, regions, geography and
 ## decoration are all computed from `terrainSeed` (MapGrid, Geography, GroundPlan), never sent by the server.
 ## Map text is limited to short ASCII (NPC levels, HQ tags); names and menus live in the HUD controls.
 
@@ -75,8 +75,7 @@ func terrain_at_tile(x: int, y: int) -> String:
 		return ""
 	return MapGrid.TERRAIN_IDS[_terrain[y * size + x]]
 
-## Shows or hides one layer ("ground", "decals", "features", "wash", "seams", "props", "objects"). Debug aid: the page URL
-## parameter `?hide=decals,props` uses it (see main.gd).
+## Shows or hides one layer ("ground", "props", "objects"). Debug aid: the page URL parameter `?hide=props` uses it (see main.gd).
 func set_layer_visible(layer: String, visible_now: bool) -> void:
 	match layer:
 		"ground":
@@ -123,7 +122,9 @@ func build(snap: Dictionary) -> void:
 	await get_tree().process_frame
 	_plan = GroundPlan.build(terrain_seed, size, _terrain, flags, fertility, rocks, grove, _art.decal_frames_by_kind())
 	await get_tree().process_frame
-	_ground.build(size, _plan, fertility, FeatureShape.wadi_paths(geo["wadis"]), FeatureShape.road_paths(geo["roads"]), geo["oases"], _art)
+	var land := GroundField.land(size, grid["height"], _terrain, fertility, rocks, grove, flags)
+	var features := GroundField.features(size, FeatureShape.wadi_paths(geo["wadis"]), FeatureShape.road_paths(geo["roads"]), geo["oases"])
+	_ground.build(size, land, features)
 	_build_seams()
 	_props.build(size, _plan["props"], _art, occupied_tiles())
 	_build_frontier()
@@ -135,13 +136,10 @@ func build(snap: Dictionary) -> void:
 		_pending = {}
 		await apply_snapshot(next)
 
-## The land past the edge and the fences. The look-test variants have a plain surround, so no frontier.
+## The fences and towers, and the trees and rocks past the edge.
 func _build_frontier() -> void:
-	var shown := GroundStyle.params().is_empty()
 	for view: FrontierView in [_behind, _in_front]:
-		view.visible = shown
-		if shown:
-			view.setup(size, _plan["props"], _art)
+		view.setup(size, _plan["props"], _art)
 	_haze.setup(size)
 
 ## Takes a live snapshot (map socket). The ground depends only on the terrain seed, so it is never rebuilt for the same
@@ -192,6 +190,7 @@ func refresh_props() -> void:
 ## A seam is the shared edge between two tiles of different regions: right neighbour (x+1, y) and
 ## lower neighbour (x, y+1) are checked once per tile.
 func _build_seams() -> void:
+	_ground.set_regions(size, _regions, liberated)
 	seam_points = PackedVector2Array()
 	seam_liberated = []
 	liberated_tiles = PackedInt32Array()

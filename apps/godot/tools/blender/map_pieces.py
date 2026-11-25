@@ -20,6 +20,61 @@ def at(k, x, y, scale=1.0, turn=0.0):
     k.frame = Matrix.Translation((x, y, 0)) @ Matrix.Rotation(math.radians(turn), 4, "Z") @ Matrix.Scale(scale, 4)
 
 
+IRON = ck.rgb("5d5650")
+
+
+def frontier_tower(k):
+    """A steel lookout of the frontier: a braced lattice, a plank cabin, a sheet roof."""
+    k.frame = Matrix.Scale(0.62, 4)
+    h, w = 210.0, 56.0
+    legs = [(-1, -1), (1, -1), (1, 1), (-1, 1)]
+    for x, y in legs:
+        k.rod((x * w * .62, y * w * .62, 0), (x * w * .42, y * w * .42, h), 3.6, 3.0, IRON, None, 6)
+        k.obox((x * w * .62, y * w * .62, 0), (14, 14, 6), 0, ck.rgb("a39d92"))
+    for i in range(4):
+        z0, z1 = h * i / 4 + 6, h * (i + 1) / 4
+        for (ax, ay), (bx, by) in zip(legs, legs[1:] + legs[:1]):
+            r0, r1 = w * (.62 - .2 * z0 / h), w * (.62 - .2 * z1 / h)
+            k.rod((ax * r0, ay * r0, z0), (bx * r1, by * r1, z1), 1.6, 1.6, IRON, None, 5)
+            k.rod((bx * r0, by * r0, z0), (ax * r1, ay * r1, z1), 1.6, 1.6, IRON, None, 5)
+            k.rod((ax * r1, ay * r1, z1), (bx * r1, by * r1, z1), 1.8, 1.8, IRON, None, 5)
+    k.box(-34, 34, -34, 34, h, h + 5, ck.WOOD)
+    for x0, x1, y0, y1 in ((-34, 34, -34, -30), (30, 34, -34, 34), (-34, 34, 30, 34), (-34, -30, -34, 34)):
+        k.box(x0, x1, y0, y1, h + 5, h + 34, k.shade(ck.rgb("8a8178"), .06), None, .7)
+    for x, y in legs:
+        k.rod((x * 31, y * 31, h), (x * 31, y * 31, h + 62), 2.6, 2.4, IRON, None, 5)
+    k.box(-40, 40, -40, 40, h + 62, h + 66, ck.rgb("6e6a64"), None, .5)
+    k.lathe((20, -20, h + 66), [(6, 0, None), (6, 8, IRON), (8, 10, IRON), (0.1, 12, IRON)], IRON, sides=10)
+    k.frame = Matrix.Identity(4)
+
+
+def fence(k, length, along):
+    """One repeat of the frontier's iron fence, `length` units along the ground direction `along` (unit X or Y)."""
+    a = Vector(along)
+    side = a.cross(Vector((0, 0, 1)))
+    h = 40.0
+    for i in range(3):
+        p = a * (length * i / 2)
+        k.rod(p, p + Vector((0, 0, h)), 1.7, 1.5, IRON, None, 5)
+        k.rod(p + Vector((0, 0, h)), p + Vector((0, 0, h + 7)) + side * 4, 1.2, 1.2, IRON, None, 4)
+        k.obox(p, (5, 5, 3), 0, ck.rgb("a39d92"))
+    for z in (5, 12, 19, 26, 33, 40):
+        k.rod(Vector((0, 0, z)) - a * 2, a * (length + 2) + Vector((0, 0, z)), .45, .45, IRON, ck.THIN, 4)
+    # Wire mesh between the strands, and a coil along the top.
+    for i in range(int(length / 9.0) + 1):
+        x = length * i / int(length / 9.0)
+        k.rod(a * x + Vector((0, 0, 2)), a * (x + 6) + Vector((0, 0, 40)), .3, .3, IRON, ck.THIN, 3)
+        k.rod(a * (x + 6) + Vector((0, 0, 2)), a * x + Vector((0, 0, 40)), .3, .3, IRON, ck.THIN, 3)
+    turns = int(length / 3.0)
+    prev = None
+    for i in range(turns * 8 + 1):
+        ang = math.tau * i / 8
+        p = a * (length * i / (turns * 8)) + side * (2 + math.cos(ang) * 3.4) + Vector((0, 0, 44 + 3.4 * math.sin(ang)))
+        if prev is not None:
+            k.rod(prev, p, .35, .35, IRON, ck.THIN, 3)
+        prev = p
+
+
 def tent(k, w, l, h, col=ck.CANVAS):
     """A ridge tent, its door in the front (-Y) end."""
     n = 10
@@ -294,7 +349,7 @@ def crown(k, c, r, flat, n, col):
         if m % 3 == 0:
             ink = k.ink()
         pts = [p + Vector((v.x, v.y, v.z * (.5 + .5 * flat))) * s * (1 + .34 * noise.noise(Vector(v) * 4.5 + p)) for v in ck._ball()[0]]
-        k.mesh(pts, ck._ball()[1], tuple(x * (.84 + .3 * (z / (r * flat + 1) + .5)) for x in k.shade(col, .06)), ink, 1.0)
+        k.mesh(pts, ck._ball()[1], tuple(x * (.84 + .3 * (z / (r * flat + 1) + .5)) for x in k.shade(col, .06)), ink, 0.9)
 
 
 def broadleaf(k, p, h, col=None):
@@ -302,7 +357,7 @@ def broadleaf(k, p, h, col=None):
     k.rod(p, p + Vector((0, 0, z * .45)), z * .06, z * .045, ck.SHADE)
     for t in (0.4, 2.6, 4.4):
         k.rod(p + Vector((0, 0, z * .3)), p + Vector((math.cos(t) * z * .2, math.sin(t) * z * .2, z * .55)), z * .03, z * .02, ck.SHADE)
-    crown(k, p + Vector((0, 0, z * .62)), z * .37, .72, 20, col or ck.rgb("56663f"))
+    crown(k, p + Vector((0, 0, z * .62)), z * .37, .72, 20, col or ck.rgb("78824f"))
 
 
 def olive(k, p, h):
@@ -312,7 +367,7 @@ def olive(k, p, h):
         m = p + Vector((math.cos(t + 1) * z * .08, math.sin(t + 1) * z * .08, z * .28))
         k.rod(b, m, z * .055, z * .045, ck.rgb("7b6654"))
         k.rod(m, p + Vector((math.cos(t) * z * .24, math.sin(t) * z * .24, z * .52)), z * .04, z * .02, ck.rgb("7b6654"))
-    crown(k, p + Vector((0, 0, z * .64)), z * .38, .55, 18, ck.rgb("87906a"))
+    crown(k, p + Vector((0, 0, z * .64)), z * .38, .55, 18, ck.rgb("9fa37c"))
 
 
 def umbrella(k, p, h):
@@ -321,15 +376,46 @@ def umbrella(k, p, h):
     k.rod(p, m, z * .035, z * .028, ck.rgb("8a5a40"))
     for t in (0.3, 1.7, 3.4, 5.0):
         k.rod(m, m + Vector((math.cos(t) * z * .2, math.sin(t) * z * .2, z * .18)), z * .02, z * .012, ck.rgb("8a5a40"))
-    crown(k, m + Vector((0, 0, z * .22)), z * .34, .3, 16, ck.rgb("6c7a45"))
+    crown(k, m + Vector((0, 0, z * .22)), z * .34, .3, 16, ck.rgb("858d54"))
+
+
+def palm(k, p, h):
+    """A date palm: a leaning, ringed trunk and a head of drooping fronds."""
+    z = h / ck.UP
+    lean = Vector((k.rng.uniform(-.14, .14), k.rng.uniform(-.14, .14), 1.0)).normalized()
+    pts = [p]
+    for i in range(1, 7):
+        f = i / 6
+        pts.append(p + lean * z * .72 * f + Vector((0, 0, 0)) + Vector((lean.x, lean.y, 0)) * z * .1 * f * f)
+    for i, (a, b) in enumerate(zip(pts, pts[1:])):
+        k.rod(a, b, z * (.034 - .01 * i / 6), z * (.03 - .01 * i / 6), ck.rgb("8a6a4a") if i % 2 else ck.rgb("7a5c40"), None, 8)
+    top = pts[-1]
+    green = ck.rgb("7c8a48")
+    for j in range(13):
+        t = math.tau * j / 13 + k.rng.uniform(-.2, .2)
+        d = Vector((math.cos(t), math.sin(t), 0))
+        side = d.cross(Vector((0, 0, 1)))
+        length = z * k.rng.uniform(.34, .44)
+        prev_l = prev_r = None
+        ink = k.ink()
+        for s in range(6):
+            f = (s + 1) / 6
+            c = top + d * length * f + Vector((0, 0, z * (.1 * f - .3 * f * f)))
+            w = z * .05 * math.sin(math.pi * min(1, f * 1.2 + .05))
+            l, r = c + side * w, c - side * w
+            a, b = (top, top) if prev_l is None else (prev_l, prev_r)
+            k.mesh([a, b, r, l], [[0, 1, 2, 3]], k.shade(tuple(x * (.85 + .25 * f) for x in green), .08), ink, .5)
+            prev_l, prev_r = l, r
+    k.stone(top - Vector((0, 0, z * .02)), (z * .07, z * .07, z * .06), 0, ck.rgb("a4703c"), round_=1.0)
 
 
 def cedar(k, p, h):
     k.pine(p, h / ck.UP * .96, h * .3)
 
 
+# Frames 1, 5, 13 and 17 stand round pools too (GroundPlan.ORCHARD_FRAMES), so 13 and 17 are palms.
 TREES = [[umbrella], [broadleaf], [cedar], [olive], [umbrella] * 2, [broadleaf] * 3, [cedar] * 2, [olive] * 3, [broadleaf] * 2, [umbrella], [broadleaf] * 2, [cedar],
-         [olive] * 2, [broadleaf], [umbrella] * 3, [olive], [cedar] * 3, [broadleaf, olive, olive]]
+         [olive] * 2, [palm], [umbrella] * 3, [olive], [cedar] * 3, [palm, palm, olive]]
 
 
 def trees(k, i, p, w, h):
@@ -348,7 +434,7 @@ def k_px(dx, dy):
 
 
 def rocks(k, i, p, w, h):
-    col = [ck.rgb("b0764f"), ck.rgb("a49b8e"), ck.rgb("8d8068")][(0, 1, 2, 0, 0, 1, 0, 1, 2, 0, 1, 0, 0, 1, 0, 1, 0, 1)[i]]
+    col = [ck.rgb("b88a60"), ck.rgb("b3a794"), ck.rgb("a58f70")][(0, 1, 2, 0, 0, 1, 0, 1, 2, 0, 1, 0, 0, 1, 0, 1, 0, 1)[i]]
     n = 1 + (i * 7) % 4
     for j in range(n):
         f = 1.0 if j == 0 else k.rng.uniform(.4, .62)
@@ -364,7 +450,7 @@ def scrub(k, i, p, w, h):
     elif kind == "olive":
         olive(k, p + k_px(0, -4), h * .92)
     else:
-        col = {"twig": ck.rgb("7a654e"), "grass": ck.rgb("bda35e"), "fern": ck.rgb("6f8048")}[kind]
+        col = {"twig": ck.rgb("a08a66"), "grass": ck.rgb("d8bd74"), "fern": ck.rgb("93a05c")}[kind]
         ink = ck.THIN
         for _ in range(90):
             t = k.rng.uniform(0, math.tau)
@@ -378,40 +464,29 @@ def scrub(k, i, p, w, h):
 
 
 def peaks(k, i, p, w, h):
-    snow = i in (0, 3, 7, 8, 11, 14, 15)
-    n = 1 + i % 3
+    """A crag: a few tall shoulders of rock, snow on some tops."""
+    snow = i in (3, 7, 11)
+    n = 3 + i % 3
     for j in range(n):
-        r = w * (.42 if n == 1 else .27)
-        z = max(30.0, (h * (.92 if j == 0 else .74 - .1 * (j % 2)) - r * .62) / ck.UP) * 1.1
-        c = p + k_px(0 if n == 1 else (j - (n - 1) / 2) * w * .42 / max(1, n - 1), -r * .52)
-        salt = Vector((i * 7.7, j * 3.1, 0))
-        rings, seg = 16, 46
-        pts, cols = [], []
-        for a in range(rings + 1):
-            f = a / rings
-            for b in range(seg):
-                t = math.tau * b / seg
-                d = Vector((math.cos(t), math.sin(t), 0))
-                ridge = 1 - abs(noise.noise(d * 2.2 + salt + Vector((0, 0, f * .8))))
-                rr = r * f * (.78 + .3 * ridge)
-                zz = z * ((1 - f) ** 1.15) * (.82 + .24 * ridge) + 5 * noise.noise(d * 5 * f + salt)
-                pts.append(c + d * rr + Vector((0, 0, max(zz, 0) if a < rings else -2)))
-        rock = k.shade(ck.rgb("8a7360"), .06)
-        ink = k.ink()
-        for a in range(rings):
-            for b in range(seg):
-                q, u = a * seg + b, a * seg + (b + 1) % seg
-                height = (pts[q].z) / z
-                col = ck.rgb("e2e2df") if snow and height > .62 + .1 * noise.noise(pts[q] * .08) else tuple(x * (.8 + .3 * height) for x in rock)
-                k.mesh([pts[q], pts[q + seg], pts[u + seg], pts[u]], [[0, 1, 2, 3]], col, ink, 1.0)
+        f = 1.0 if j == 0 else k.rng.uniform(.45, .8)
+        off = 0.0 if j == 0 else (j - n / 2) * w * .62 / n + k.rng.uniform(-6, 6)
+        z = h * .80 * f / ck.UP
+        wide = w * k.rng.uniform(.26, .36)
+        base = p + k_px(off, -h * (.14 + (.10 if j % 2 else 0.0)))
+        k.rock(base + Vector((0, 0, z * .34)), (wide, wide * .9, z * 1.1), ck.rgb("a67c57") if j % 2 else ck.rgb("b48a62"), upright=.85, cuts=13)
+        if snow and f > .7:
+            k.rock(base + Vector((0, 0, z * .72)), (wide * .66, wide * .6, z * .3), ck.rgb("dcd8cf"), upright=.3, cuts=8)
+    for j in range(4):
+        s = k.rng.uniform(12, 24)
+        k.rock(p + k_px(k.rng.uniform(-.36, .36) * w, -s * .6 - 4) + Vector((0, 0, s * .2)), (s * 1.3, s, s), ck.ROCK_TOP, upright=.3, cuts=8)
 
 
 NATURE = {"trees": trees, "rocks": rocks, "scrub": scrub, "peaks": peaks}
 # Ink is heavier on what the map draws small.
-WEIGHT = {"trees": 1.3, "rocks": 2.2, "scrub": 1.1, "peaks": 1.2}
+WEIGHT = {"trees": 0.8, "rocks": 1.7, "scrub": 0.8, "peaks": 1.0}
 
 PIECES = {
-    "base": base, "patrol": patrol, "convoy": convoy, "outpost": outpost, "fortified_line": fortified_line, "alliance_hq": alliance_hq,
+    "base": base, "frontier_tower": frontier_tower, "patrol": patrol, "convoy": convoy, "outpost": outpost, "fortified_line": fortified_line, "alliance_hq": alliance_hq,
     **{"farmland_%d" % n: (lambda k, n=n: field(k, n)) for n in (1, 2, 3)},
     **{"quarry_%d" % n: (lambda k, n=n: quarry(k, n)) for n in (1, 2, 3)},
 }

@@ -379,7 +379,7 @@ def make_looks(args):
         print("SCAFFOLD", name, flush=True)
 
 
-def sprite(s, mat, kit, rect, scale, shrink, weight=1.0):
+def sprite(s, mat, kit, rect, scale, shrink, weight=1.0, fade=False):
     """A kit on its own, with its shade on flat ground, as one picture with alpha."""
     flat = ck.Kit(1)
     x, y, w, h = rect
@@ -395,6 +395,10 @@ def sprite(s, mat, kit, rect, scale, shrink, weight=1.0):
     a = np.clip(((bare - img[..., :3]) / np.maximum(bare - dark, 0.05)).mean(-1), 0, 0.8)
     a = camp_ink.blur(a.astype(np.float32), 2)
     a = a * camp_ink.smooth(0.1, 0.2, a)
+    if fade:
+        # The shade dies away from the foot, so a tight frame never cuts it.
+        yy, xx = np.mgrid[0:a.shape[0], 0:a.shape[1]]
+        a = a * (1 - camp_ink.smooth(0.2, 0.46, np.hypot((xx / a.shape[1] - 0.5), (yy / a.shape[0] - 0.92) * 0.8))).astype(np.float32)
     alpha = np.maximum(cover, a * (1 - cover))
     rgb = img[..., :3] * cover[..., None] + dark * (1 - cover[..., None])
     return camp_ink.shrink(np.dstack([rgb, alpha]).astype(np.float32), shrink)
@@ -424,7 +428,7 @@ def make_pieces(args):
         mp.PIECES[name](kit)
         kit.frame = None
         rect = bounds(kit, 10)
-        img = sprite(s, mat, kit, rect, PIECE * 2, 2)
+        img = sprite(s, mat, kit, rect, PIECE * 2, 2, 1.0, name == "frontier_tower")
         full = np.argwhere(img[..., 3] > 0.01)
         (y0, x0), (y1, x1) = full.min(0), full.max(0) + 1
         centre = [(ck.CENTRE[0] - rect[0]) * PIECE - int(x0), (ck.CENTRE[1] - rect[1]) * PIECE - int(y0)]
@@ -449,7 +453,7 @@ def make_nature(args):
             # The anchor is off the frame's middle in the old art; the thing stands in the middle.
             mp.NATURE[name](kit, i, kit.ground(f["w"] / 2 - f["ax"], -3), f["w"], f["h"])
             rect = (-f["ax"], -f["ay"], f["w"], f["h"])
-            img = sprite(s, mat, kit, rect, 2, 2, mp.WEIGHT[name])
+            img = sprite(s, mat, kit, rect, 2, 2, mp.WEIGHT[name], True)
             img = img[:f["h"], :f["w"]]
             for axis, n in ((0, img.shape[0]), (1, img.shape[1])):
                 edge = np.clip((np.minimum(np.arange(n), n - 1 - np.arange(n)) + 0.5) / 5, 0, 1).astype(np.float32)
@@ -459,10 +463,85 @@ def make_nature(args):
         webp(os.path.join(os.getcwd(), "art", "terrain", "props-%s.webp" % name), sheet, 92)
 
 
+def make_ground_art(args):
+    """The map ground's seamless materials, its cliff face and its noise."""
+    import map_ground as mg
+    s, mat = setup(), material()
+    out = os.path.join(os.getcwd(), "art", "ground")
+    fine, shrink = (2, 1) if os.environ.get("DRAFT") else (4, 2)
+    for name in args or list(mg.COLOURS) + ["cliff", "noise"]:
+        if name == "noise":
+            # Four fields that tile, each rough at three sizes.
+            camp_ink.PERIOD = 256
+            img = np.dstack([sum(camp_ink.noise2((256, 256), size, 700 + c * 10 + i) * a for i, (size, a) in enumerate(((64, .55), (25.6, .3), (9.8, .15)))) for c in range(4)]) * 0.5 + 0.5
+            camp_ink.write(os.path.join(out, "noise.png"), img)
+        elif name == "cliff":
+            camp_ink.PERIOD = None
+            kit = ck.Kit(31)
+            w, h, blend = 1024, 96, 64
+            mg.cliff(kit, w + blend, h)
+            obj = add("cliff", kit, mat)
+            img, _ = shoot(s, (0, 4, w + blend, h), fine, 0.55)
+            bpy.data.objects.remove(obj)
+            img = camp_ink.shrink(over(img, np.full(img.shape, 0.4, np.float32)), shrink)[..., :3]
+            b = blend * fine // shrink
+            f = np.linspace(0, 1, b, dtype=np.float32)[None, :, None]
+            img[:, :b] = img[:, -b:] * (1 - f) + img[:, :b] * f
+            webp(os.path.join(out, "cliff.webp"), img[:, :-b], 94)
+        else:
+            camp_ink.PERIOD = mg.PERIOD * fine
+            kit = ck.Kit(sum(map(ord, name)))
+            mg.material(kit, name)
+            obj = add("ground", kit, mat)
+            img, _ = shoot(s, (0, 0, mg.PERIOD, mg.PERIOD), fine, 0.6)
+            bpy.data.objects.remove(obj)
+            img = img[..., :3]
+            # Brushed tones with soft edges.
+            for i, (size, amount) in enumerate(((90, .030), (34, .022), (11, .012))):
+                n = camp_ink.noise2(img.shape[:2], size * fine, 800 + i)
+                img = img * (1 + amount * (camp_ink.smooth(-.25, .25, n) * 2 - 1))[..., None]
+            # All in one strip, for a texture array: the canvas renderer has few texture units to spare.
+            img = camp_ink.shrink(np.dstack([img, np.ones(img.shape[:2], np.float32)]), shrink)[..., :3]
+            n, path = img.shape[0], os.path.join(out, "materials.webp")
+            names = list(mg.COLOURS)
+            strip = load(path)[..., :3] if os.path.exists(path) else np.zeros((n * len(names), n, 3), np.float32)
+            at = names.index(name) * n
+            strip[at:at + n] = img
+            webp(path, strip, 94)
+        print("GROUND", name, flush=True)
+
+
+def make_fence(args):
+    """The frontier's fence: one repeat along each of the two edge directions, made upright, so it lies on a slanted quad."""
+    import map_pieces as mp
+    s, mat = setup(), material()
+    length = 2 * mp.TILE
+    for name, along, slope in (("fence_down", (1, 0, 0), 0.5), ("fence_up", (0, 1, 0), -0.5)):
+        kit = ck.Kit(77, ck.BODY)
+        mp.fence(kit, length, along)
+        obj = add("fence", kit, mat)
+        # The repeat runs 96 px across the screen and 48 px up or down; 60 px of fence stand on it.
+        top = -62 - (48 if slope > 0 else 0) + 0
+        rect = (ck.CENTRE[0] - (0 if slope > 0 else 0), ck.CENTRE[1] - 62 - (0 if slope > 0 else 48), 96, 62 + 48)
+        rect = (int(ck.CENTRE[0]), int(ck.CENTRE[1] - 62 - (0 if slope > 0 else 48)), 96, 62 + 48)
+        scale = 4
+        img, _ = shoot(s, rect, scale, 0.55)
+        bpy.data.objects.remove(obj)
+        # Shift each column so the ground line is level at the bottom.
+        h, w = img.shape[:2]
+        out = np.zeros((int(62 * scale), w, 4), np.float32)
+        for x in range(w):
+            ground = int(round((62 + (x / scale) * slope + (0 if slope > 0 else 48)) * scale))
+            col = img[max(0, ground - out.shape[0]):ground, x]
+            out[out.shape[0] - len(col):, x] = col
+        webp(os.path.join(os.getcwd(), "art", "frontier", name + ".webp"), camp_ink.shrink(out, 2), 92)
+        print("FENCE", name, flush=True)
+
+
 def main():
     args = sys.argv[sys.argv.index("--") + 1:]
     t = time.time()
-    {"preview": preview, "ground": make_ground, "looks": make_looks, "figures": make_figures, "pieces": make_pieces, "nature": make_nature}[args[0]](args[1:])
+    {"preview": preview, "ground": make_ground, "looks": make_looks, "figures": make_figures, "pieces": make_pieces, "nature": make_nature, "ground_art": make_ground_art, "fence": make_fence}[args[0]](args[1:])
     print("DONE %.0fs" % (time.time() - t))
 
 

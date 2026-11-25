@@ -69,6 +69,16 @@
    410
   ]
  },
+ "frontier_tower": {
+  "centre": [
+   111.0,
+   498.0
+  ],
+  "size": [
+   235,
+   556
+  ]
+ },
  "outpost": {
   "centre": [
    172.0,

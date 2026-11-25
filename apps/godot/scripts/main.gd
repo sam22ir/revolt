@@ -48,7 +48,6 @@ var _reports_unseen := false
 var _failed := false
 
 func _ready() -> void:
-	GroundStyle.set_active(UrlParam.value("ground"))
 	RenderingServer.set_default_clear_color(GroundFrame.BACKGROUND)
 	# Under everything until the map is built, so loading is not an empty screen.
 	_loading_layer.layer = -10
@@ -165,7 +164,7 @@ func _debug_log(text: String) -> void:
 ## Web only: `?debug=fps` prints frame rate, draw calls and object counts to the console every 3 s, and gives the page
 ## `window.revoltShow("base" | "map" | "reports")`, `window.revoltLang("en" | "ar" | "fr")`, `window.revoltRefresh()`,
 ## `window.revoltReport(json)` (a battle report as the server sends it, pushed as the map socket would), `window.revoltSheet(id)` (opens a building's sheet on the base), `window.revoltPost(path, json)` (a POST as the player, for the alliance checks) and `window.revoltHide(layer, hidden)`
-## to hide a map layer at runtime ("ground", "decals", "features", "wash", "detail", "seams", "props", "objects"), to see what each costs (debug aid).
+## to hide a map layer at runtime ("ground", "props", "objects"), to see what each costs (debug aid).
 var _js_hide: JavaScriptObject
 var _js_show: JavaScriptObject
 var _js_lang: JavaScriptObject
@@ -352,7 +351,7 @@ func _notification(what: int) -> void:
 		_map_socket.ensure_open(now)
 		_alliance_socket.ensure_open(now)
 
-## Web only: `?hide=decals,props` hides map layers, to see what each one contributes (debug aid).
+## Web only: `?hide=props` hides map layers, to see what each one contributes (debug aid).
 func _apply_hidden_layers() -> void:
 	if not OS.has_feature("web"):
 		return

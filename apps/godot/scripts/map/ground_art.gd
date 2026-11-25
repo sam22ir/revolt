@@ -1,7 +1,7 @@
 class_name GroundArt
 extends RefCounted
-## The painted terrain art Phaser draws on the map: the frame manifest (frame rectangles and ground anchors) and the five
-## atlases (decals, trees, rocks, peaks, scrub), copied by `pnpm godot:export` from apps/client.
+## The map's trees, rocks, peaks and scrub: the frame manifest (frame rectangles and ground anchors, copied by `pnpm godot:export`
+## from apps/client) and our own atlases rendered into those frames (tools/blender/map_pieces.py).
 ## Frame rectangles are in atlas pixels; props carry a ground anchor (ax, ay) inside the frame.
 
 const MANIFEST_PATH := "res://art/terrain-manifest.json"
@@ -21,7 +21,8 @@ var prop_first_frame := {}
 static func load_art() -> GroundArt:
 	var art := GroundArt.new()
 	var manifest: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(MANIFEST_PATH))
-	art.atlases["decals"] = _atlas("decals", manifest["decals"])
+	# Only the decals' frames are read (the ground plan picks frames by kind); their picture is no longer drawn.
+	art.atlases["decals"] = {"texture": null, "size": Vector2(float(manifest["decals"]["w"]), float(manifest["decals"]["h"])), "frames": manifest["decals"]["frames"]}
 	for kind in PROP_KINDS:
 		art.atlases[kind] = _atlas("props-" + kind, manifest["props"][kind])
 	art._pack_props()

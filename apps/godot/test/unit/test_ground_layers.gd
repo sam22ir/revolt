@@ -90,7 +90,6 @@ func test_the_map_builds_every_layer_and_props_hide_when_zoomed_out() -> void:
 		"npcs": [], "hqs": [], "marches": [], "rallies": [], "liberations": [],
 	}
 	await map.build(snap)
-	assert_gt(map.ground_layer().decal_count(), 100, "decals")
 	assert_gt(map.prop_layer().sprite_count(), 500, "props")
 	var occupied := map.occupied_tiles()
 	assert_true(occupied.has(30 * 64 + 30) and occupied.has(29 * 64 + 29) and occupied.has(31 * 64 + 31), "the 3x3 ring around a base is kept clear")
@@ -122,3 +121,47 @@ func test_packing_releases_the_per_kind_textures() -> void:
 		assert_null(art.atlases[kind]["texture"], "%s texture should be released after packing" % kind)
 		assert_gt(art.atlases[kind]["frames"].size(), 0)
 	assert_not_null(art.props_atlas["texture"])
+
+func test_only_mountains_with_mountains_below_them_rise() -> void:
+	# A 4 x 4 map: a mountain block in the top left, one lone mountain tile at the bottom right.
+	var size := 4
+	var terrain := PackedInt32Array([3, 3, 0, 0, 3, 3, 0, 0, 3, 3, 0, 0, 0, 0, 0, 3])
+	var height := PackedFloat32Array()
+	for i in size * size:
+		height.append(0.9 if terrain[i] == GroundPlan.T_MOUNTAIN else 0.4)
+	var up := GroundField.rising(height, terrain, size)
+	assert_almost_eq(up[0], 0.9, 1e-6, "inside the block it rises")
+	assert_almost_eq(up[1 * 4 + 1], GroundField.HELD, 1e-6, "its face would hang over plain land below")
+	assert_almost_eq(up[2 * 4 + 0], GroundField.HELD, 1e-6, "the bottom row of the block is held")
+	assert_almost_eq(up[3 * 4 + 3], 0.9, 1e-6, "the map's edge has nothing below it")
+	assert_almost_eq(up[2], 0.4, 1e-6, "low land is left as it is")
+
+func test_the_feature_field_measures_distance_to_roads_riverbeds_and_pools() -> void:
+	var road := [[2.0, 2.0, 1.0], [2.1, 2.0, 1.0], [2.2, 2.0, 1.0]]
+	var img := GroundField.features(8, [], [road], [Vector2i(6, 6)])
+	assert_eq(img.get_size(), Vector2i(8, 8) * GroundField.DETAIL)
+	var on_road := img.get_pixel(2 * GroundField.DETAIL, 2 * GroundField.DETAIL)
+	var away := img.get_pixel(5 * GroundField.DETAIL, 1 * GroundField.DETAIL)
+	assert_lt(on_road.r, 0.15, "on the road")
+	assert_eq(away.r, 1.0, "far from it")
+	assert_eq(on_road.g, 1.0, "no riverbed anywhere")
+	assert_lt(img.get_pixel(6 * GroundField.DETAIL + 4, 6 * GroundField.DETAIL + 4).b, 0.05, "the pool's middle")
+
+func test_the_land_field_keeps_roads_low_and_is_smooth_between_tiles() -> void:
+	var size := 8
+	var terrain := PackedInt32Array()
+	var height := PackedFloat32Array()
+	var fertility := PackedFloat32Array()
+	var bytes := PackedByteArray()
+	var flags := PackedByteArray()
+	for i in size * size:
+		terrain.append(GroundPlan.T_MOUNTAIN)
+		height.append(0.95)
+		fertility.append(0.5)
+		bytes.append(0)
+		flags.append(Geography.GEO_ROAD if i == 3 * size + 3 else 0)
+	var img := GroundField.land(size, height, terrain, fertility, bytes, bytes, flags)
+	assert_eq(img.get_size(), Vector2i(size, size) * GroundField.DETAIL)
+	var road := img.get_pixel(3 * GroundField.DETAIL + 4, 3 * GroundField.DETAIL + 4)
+	assert_lt(road.r, MapGrid.HILLS_FROM, "a road's tile is low")
+	assert_lt(road.g, MapGrid.MOUNTAIN_FROM, "and does not rise")

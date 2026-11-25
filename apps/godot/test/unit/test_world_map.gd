@@ -98,7 +98,6 @@ func _built_map() -> WorldMap:
 
 func test_a_live_snapshot_swaps_the_objects_without_rebuilding_the_ground() -> void:
 	var map := await _built_map()
-	var decals := map.ground_layer().decal_count()
 	var draws := map.overlay().draw_count
 	var snap := _snapshot()
 	snap["now"] = NOW + 5000
@@ -106,7 +105,6 @@ func test_a_live_snapshot_swaps_the_objects_without_rebuilding_the_ground() -> v
 	await map.apply_snapshot(snap)
 	await wait_frames(2)
 	assert_eq(map.build_count, 1, "the ground was not rebuilt")
-	assert_eq(map.ground_layer().decal_count(), decals)
 	assert_eq(map.snapshot["bases"].size(), 2)
 	assert_gt(map.overlay().draw_count, draws, "the overlay redrew")
 
