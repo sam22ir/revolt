@@ -2,7 +2,7 @@
 
 25 Nov 2026. Replaces the colour field, green wash, blotchy decals, detail overlay and flat strokes with inked land that has real height, matching the camp (docs/camp-3d-plan.md). Client only and cosmetic: terrain, geography and all rules stay as they are, and everything comes from the terrain seed.
 
-**Status (25 Nov 2026):** built: shader ground with materials, mesas and hill ledges, riverbeds, roads, pools, dunes, region borders, the raked strip, cloud shadows; the inked fence and towers; palms and lighter trees. Old ground code (colour field, wash, decals, detail overlay, stroke mesh, `?ground=` variants) removed. Open: speed on a real phone, the full-quality render of the materials, field parcels by roads (left out so they are not mistaken for resource sites).
+**Status (25 Nov 2026):** built: shader ground with materials, mesas and hill ledges, riverbeds, roads, pools, dunes, region borders, the raked strip, cloud shadows; the inked fence and towers; palms and lighter trees. Old ground code (colour field, wash, decals, detail overlay, stroke mesh, `?ground=` variants) removed. Open: speed on a real phone, the full-quality render of the materials, field parcels by roads (left out so they are not mistaken for resource sites), and lifting props that stand on a mesa top (they stand on their true tile, which is right, but nothing yet checks one is never on a face).
 
 ## What is drawn
 

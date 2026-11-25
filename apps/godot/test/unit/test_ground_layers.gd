@@ -130,7 +130,7 @@ func test_only_mountains_with_mountains_below_them_rise() -> void:
 	for i in size * size:
 		height.append(0.9 if terrain[i] == GroundPlan.T_MOUNTAIN else 0.4)
 	var up := GroundField.rising(height, terrain, size)
-	assert_almost_eq(up[0], 0.9, 1e-6, "inside the block it rises")
+	assert_almost_eq(up[0], GroundField.HELD_HIGH, 1e-6, "inside the block it rises one step: two tiles down is plain")
 	assert_almost_eq(up[1 * 4 + 1], GroundField.HELD, 1e-6, "its face would hang over plain land below")
 	assert_almost_eq(up[2 * 4 + 0], GroundField.HELD, 1e-6, "the bottom row of the block is held")
 	assert_almost_eq(up[3 * 4 + 3], 0.9, 1e-6, "the map's edge has nothing below it")
@@ -165,3 +165,19 @@ func test_the_land_field_keeps_roads_low_and_is_smooth_between_tiles() -> void:
 	var road := img.get_pixel(3 * GroundField.DETAIL + 4, 3 * GroundField.DETAIL + 4)
 	assert_lt(road.r, MapGrid.HILLS_FROM, "a road's tile is low")
 	assert_lt(road.g, MapGrid.MOUNTAIN_FROM, "and does not rise")
+
+func test_a_road_over_a_mountain_keeps_the_faces_off_it() -> void:
+	# A 6 x 6 mountain with a road along its fourth row.
+	var size := 6
+	var terrain := PackedInt32Array()
+	var height := PackedFloat32Array()
+	var flags := PackedByteArray()
+	for i in size * size:
+		terrain.append(GroundPlan.T_MOUNTAIN)
+		height.append(0.95)
+		flags.append(Geography.GEO_ROAD if i / size == 3 else 0)
+	var up := GroundField.rising(height, terrain, size, flags)
+	assert_almost_eq(up[2 * size + 2], GroundField.HELD, 1e-6, "the row above the road does not rise")
+	assert_almost_eq(up[1 * size + 2], GroundField.HELD_HIGH, 1e-6, "two rows above only one step")
+	assert_almost_eq(up[0 * size + 2], 0.95, 1e-6, "farther up it rises fully")
+	assert_almost_eq(up[5 * size + 2], 0.95, 1e-6, "below the road it rises")

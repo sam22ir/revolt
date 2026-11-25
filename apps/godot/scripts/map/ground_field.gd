@@ -9,28 +9,40 @@ const DETAIL := 8
 ## The distances the shader's NEAR and FAR stand for, in tiles.
 const NEAR := 0.8
 const FAR := 2.0
-## Mountain land that must stay low is held just under the first mountain step.
+## Where the land steps up (MapGrid's height): hills at T1 are a ledge, mountains rise at T2 and again at T3. The shader reads them.
+const T1 := MapGrid.HILLS_FROM
+const T2 := 0.735
+const T3 := 0.80
+## Mountain land that must stay low is held just under T2; land whose top step would reach two tiles down, just under T3.
 const HELD := 0.70
+const HELD_HIGH := 0.795
 
-## Height (the noise behind MapGrid's terrain) per tile, kept low where a mountain's face would hang over land that is not one: only
-## a mountain tile whose neighbours down the screen are mountains too may rise.
-static func rising(height: PackedFloat32Array, terrain: PackedInt32Array, size: int) -> PackedFloat32Array:
+## The height mountains rise by, per tile. A face hangs down the screen from a mountain's edge, so a tile may only rise as far as
+## the land below it allows: one step if the tiles next to it down the screen are mountain too, two if those two tiles down are
+## as well. Roads, riverbeds and pools count as low land even on a mountain.
+static func rising(height: PackedFloat32Array, terrain: PackedInt32Array, size: int, flags: PackedByteArray = PackedByteArray()) -> PackedFloat32Array:
 	var out := height.duplicate()
+	var low := func(x: int, y: int) -> bool:
+		if x >= size or y >= size:
+			return false
+		var j := y * size + x
+		return terrain[j] != GroundPlan.T_MOUNTAIN or (not flags.is_empty() and (flags[j] & GroundPlan.NO_DECAL) != 0)
 	for y in size:
 		for x in size:
 			var i := y * size + x
 			if terrain[i] != GroundPlan.T_MOUNTAIN:
 				continue
 			for step: Vector2i in [Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
-				var n := Vector2i(x, y) + step
-				if n.x < size and n.y < size and terrain[n.y * size + n.x] != GroundPlan.T_MOUNTAIN:
+				if low.call(x + step.x, y + step.y):
 					out[i] = minf(out[i], HELD)
-					break
+			for step: Vector2i in [Vector2i(2, 0), Vector2i(0, 2), Vector2i(2, 1), Vector2i(1, 2), Vector2i(2, 2)]:
+				if low.call(x + step.x, y + step.y):
+					out[i] = minf(out[i], HELD_HIGH)
 	return out
 
 ## The land picture, smooth between tiles. `clear` tiles (roads, riverbeds, pools) never rise.
 static func land(size: int, height: PackedFloat32Array, terrain: PackedInt32Array, fertility: PackedFloat32Array, rocks: PackedByteArray, grove: PackedByteArray, flags: PackedByteArray) -> Image:
-	var up := rising(height, terrain, size)
+	var up := rising(height, terrain, size, flags)
 	# Full floats: Godot's cubic resize leaves half floats unchanged.
 	var image := Image.create_empty(size, size, false, Image.FORMAT_RGBAF)
 	for y in size:

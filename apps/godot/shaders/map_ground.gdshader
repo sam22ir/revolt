@@ -28,10 +28,10 @@ const float NEAR = 0.8;
 const float FAR = 2.0;
 const float REPEAT = 512.0;
 const vec2 CLIFF = vec2(1024.0, 96.0);
-// Where the land steps up (height), and how far its face hangs below the edge.
-const float T1 = 0.58;
-const float T2 = 0.735;
-const float T3 = 0.80;
+// Where the land steps up (height; GroundField sets them), and how far its face hangs below the edge.
+uniform float T1 = 0.58;
+uniform float T2 = 0.735;
+uniform float T3 = 0.80;
 const vec4 DROP = vec4(0.0, 11.0, 40.0, 68.0);
 const float STEP = 4.0;
 const int STEPS = 17;
@@ -73,9 +73,11 @@ void fragment() {
 	vec4 n_mid = texture(noise_tex, world / vec2(610.0, 305.0) + 0.37);
 	vec4 n_fine = texture(noise_tex, world / vec2(150.0, 75.0) + 0.71);
 	vec2 t = tile_of(world);
-	vec2 shake = (n_mid.rg - 0.5) * 1.1 + (n_fine.rg - 0.5) * 0.16;
-	vec2 tw = t + shake;
+	// The land's steps move a little with the noise, the materials' edges a lot.
+	vec2 tw = t + (n_mid.rg - 0.5) * 0.36 + (n_fine.rg - 0.5) * 0.08;
+	vec2 tm = t + (n_mid.rg - 0.5) * 1.1 + (n_fine.rg - 0.5) * 0.16;
 	vec4 here = texture(land, place(tw));
+	vec4 soil = texture(land, place(tm));
 	vec4 feat = texture(feature, place(t + (n_fine.ba - 0.5) * 0.16));
 	float lvl = level(here);
 
@@ -127,9 +129,9 @@ void fragment() {
 	} else {
 		// ---- The ground's materials.
 		float ragged = (n_fine.r - 0.5) * 0.16 + (n_mid.b - 0.5) * 0.22;
-		float green = here.b + ragged;
-		float grove = (0.5 - here.a) * 2.0;
-		float rocks = (here.a - 0.5) * 2.0;
+		float green = soil.b + ragged;
+		float grove = (0.5 - soil.a) * 2.0;
+		float rocks = (soil.a - 0.5) * 2.0;
 		float road = feat.r * NEAR;
 		float bed = feat.g * NEAR;
 		float pool = feat.b * FAR;
@@ -140,7 +142,7 @@ void fragment() {
 		colour = sand;
 
 		// Dunes on bare, level ground.
-		float bare = (1.0 - smoothstep(0.26, 0.38, here.b)) * smoothstep(0.50, 0.60, n_wide.r) * (1.0 - smoothstep(0.05, 0.2, rocks)) * step(lvl, 0.5);
+		float bare = (1.0 - smoothstep(0.26, 0.38, soil.b)) * smoothstep(0.50, 0.60, n_wide.r) * (1.0 - smoothstep(0.05, 0.2, rocks)) * step(lvl, 0.5);
 		bare *= smoothstep(0.30, 0.55, road) * smoothstep(0.5, 0.75, bed);
 		if (bare > 0.01) {
 			float s = (world.y * 1.0 + world.x * 0.22) / 64.0 + (n_mid.r - 0.5) * 3.2 + (n_wide.g - 0.5) * 5.0;
@@ -156,14 +158,22 @@ void fragment() {
 		float steppe = smoothstep(0.50 - soft, 0.50 + soft, green);
 		float meadow = smoothstep(0.76 - soft, 0.76 + soft, green);
 		float stony = smoothstep(0.30 - soft, 0.30 + soft, rocks + ragged * 1.4 - max(green - 0.6, 0.0));
-		float wood = 1.0 - smoothstep(0.315 - soft * 0.5, 0.315 + soft * 0.5, here.r + ragged * 0.12);
-		colour = mix(colour, texture(materials, vec3(uv, STEPPE)).rgb, steppe);
-		colour = mix(colour, texture(materials, vec3(uv, GRAVEL)).rgb, stony);
-		colour = mix(colour, texture(materials, vec3(uv, MEADOW)).rgb, meadow);
-		colour = mix(colour, texture(materials, vec3(uv, FOREST)).rgb, wood);
+		float wood = 1.0 - smoothstep(0.315 - soft * 0.5, 0.315 + soft * 0.5, soil.r + ragged * 0.12);
+		if (steppe > 0.0) {
+			colour = mix(colour, texture(materials, vec3(uv, STEPPE)).rgb, steppe);
+		}
+		if (stony > 0.0) {
+			colour = mix(colour, texture(materials, vec3(uv, GRAVEL)).rgb, stony);
+		}
+		if (meadow > 0.0) {
+			colour = mix(colour, texture(materials, vec3(uv, MEADOW)).rgb, meadow);
+		}
+		if (wood > 0.0) {
+			colour = mix(colour, texture(materials, vec3(uv, FOREST)).rgb, wood);
+		}
 		// A shade just outside the greener patches, so they sit on the sand.
 		float fringe = (smoothstep(0.735, 0.758, green) - meadow) * 0.10 + (smoothstep(0.475, 0.498, green) - steppe) * 0.06;
-		fringe += max((1.0 - smoothstep(0.317, 0.335, here.r + ragged * 0.12)) - wood, 0.0) * 0.16;
+		fringe += max((1.0 - smoothstep(0.317, 0.335, soil.r + ragged * 0.12)) - wood, 0.0) * 0.16;
 		colour *= 1.0 - max(fringe, 0.0);
 		if (lvl > 0.5) {
 			vec3 up = lvl > 1.5 ? texture(materials, vec3(uv, ROCK)).rgb * (lvl > 2.5 ? 1.07 : 1.0) : colour * vec3(1.035, 1.02, 0.99);
@@ -247,7 +257,9 @@ void fragment() {
 		vec4 own = texture(regions, (cell + 0.5) / map_size);
 		float d = 9.0;
 		float gold = own.g;
-		for (int k = 0; k < 8; k++) {
+		// Only near a tile's edge can a border be.
+		float edge_near = min(min(f.x, 1.0 - f.x), min(f.y, 1.0 - f.y));
+		for (int k = 0; k < 8 && edge_near < 0.17; k++) {
 			vec2 o = vec2(float(k == 0) - float(k == 1) + float(k == 4) - float(k == 5) + float(k == 6) - float(k == 7), float(k == 2) - float(k == 3) + float(k == 4) - float(k == 5) - float(k == 6) + float(k == 7));
 			vec2 nc = cell + o;
 			if (nc.x < 0.0 || nc.y < 0.0 || nc.x >= map_size || nc.y >= map_size) {

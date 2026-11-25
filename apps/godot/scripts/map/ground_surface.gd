@@ -16,6 +16,9 @@ func _ready() -> void:
 	_mat.set_shader_parameter("materials", load(DIR + "materials.webp"))
 	_mat.set_shader_parameter("cliff_tex", load(DIR + "cliff.webp"))
 	_mat.set_shader_parameter("noise_tex", load(DIR + "noise.png"))
+	_mat.set_shader_parameter("T1", GroundField.T1)
+	_mat.set_shader_parameter("T2", GroundField.T2)
+	_mat.set_shader_parameter("T3", GroundField.T3)
 	material = _mat
 
 ## `land` and `features` are GroundField's pictures.

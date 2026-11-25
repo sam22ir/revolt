@@ -2,7 +2,7 @@
 
 # Godot visuals plan (draft for agreement)
 
-**Status (26 Oct 2026): chunk V1 (look test) is built on `godot-client`; waiting for the user to pick a ground variant.** See "V1 status" at the end.
+**Status (25 Nov 2026): the ground variants are gone; the map ground is now drawn in ink (docs/map-ground-ink-plan.md).** Earlier: chunk V1 (look test) was built on `godot-client` and waited for a ground variant. See "V1 status" at the end.
 
 Written 25 Oct 2026, branch `godot-client`, after marches chunk M5. Migration slices 5 to 7 (Google link, Android export, removing Phaser) are on hold; this comes first.
 
