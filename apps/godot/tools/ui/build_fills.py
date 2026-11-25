@@ -103,11 +103,6 @@ def board():
     return plain("board", "#4b3522", "#4d3724", "#493320")
 
 
-def paper():
-    """The light panel over the map."""
-    return plain("paper", "#ecdab2", "#eeddb7", "#ead7ad")
-
-
 def raked():
     """The frontier's no-man's-land: pale sand raked along the fence, with one pair of wheel ruts. Wraps along x only."""
     rng = random.Random("raked")
@@ -131,7 +126,7 @@ def raked():
 
 
 def main():
-    for f, q in ((cloth, 95), (board, 95), (paper, 95), (raked, 90)):
+    for f, q in ((cloth, 95), (board, 95), (raked, 90)):
         img = f()
         path = (OUT.parent / "frontier" / "raked.webp") if f is raked else (OUT / f"fill_{f.__name__}.webp")
         img.save(path, quality=q, method=6)

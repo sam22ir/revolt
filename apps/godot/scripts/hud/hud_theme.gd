@@ -106,10 +106,6 @@ static func card(margin_x := 13.0, margin_y := 12.0) -> FrameBox:
 static func panel(margin_x := 10.0, margin_y := 6.0, warm := false) -> FrameBox:
 	return framed("frame_plate_warm" if warm else "frame_plate", 26.0, "cloth", margin_x, margin_y, Color(0.82, 0.8, 0.78))
 
-## A light paper panel with ink text: the map's tile panel.
-static func parchment(margin_x := 12.0, margin_y := 10.0) -> FrameBox:
-	return framed("frame_paper", 34.0, "paper", margin_x, margin_y)
-
 ## A recess for a text field.
 static func inset(margin_x := 8.0, margin_y := 4.0) -> FrameBox:
 	return framed("frame_inset", 22.0, "cloth", margin_x, margin_y, Color(0.45, 0.42, 0.4))
@@ -197,20 +193,19 @@ static func build() -> Theme:
 	theme.set_color("font_color", "Label", TEXT)
 	theme.set_font_size("font_size", "Label", font(FONT_BODY))
 	theme.set_stylebox("panel", "PanelContainer", panel())
-	for type in ["Button", "OptionButton"]:
-		for state in ["normal", "hover"]:
-			theme.set_stylebox(state, type, button_box("wood"))
-		for state in ["pressed", "hover_pressed"]:
-			theme.set_stylebox(state, type, button_box("wood", true))
-		theme.set_stylebox("disabled", type, button_box("grey"))
-		theme.set_stylebox("focus", type, StyleBoxEmpty.new())
-		theme.set_font("font", type, load(UiKit.BOLD))
-		theme.set_color("font_outline_color", type, BUTTON_INK)
-		theme.set_constant("outline_size", type, roundi(px(2.4)))
-		for colour_name in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
-			theme.set_color(colour_name, type, BUTTON_TEXT)
-		theme.set_color("font_disabled_color", type, Color("c9bda3"))
-		theme.set_font_size("font_size", type, font(FONT_BODY))
+	for state in ["normal", "hover"]:
+		theme.set_stylebox(state, "Button", button_box("wood"))
+	for state in ["pressed", "hover_pressed"]:
+		theme.set_stylebox(state, "Button", button_box("wood", true))
+	theme.set_stylebox("disabled", "Button", button_box("grey"))
+	theme.set_stylebox("focus", "Button", StyleBoxEmpty.new())
+	theme.set_font("font", "Button", load(UiKit.BOLD))
+	theme.set_color("font_outline_color", "Button", BUTTON_INK)
+	theme.set_constant("outline_size", "Button", roundi(px(2.4)))
+	for colour_name in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
+		theme.set_color(colour_name, "Button", BUTTON_TEXT)
+	theme.set_color("font_disabled_color", "Button", Color("c9bda3"))
+	theme.set_font_size("font_size", "Button", font(FONT_BODY))
 	var focus := inset()
 	focus.frame_tint = Color(1.35, 1.25, 1.0)
 	theme.set_stylebox("normal", "LineEdit", inset())

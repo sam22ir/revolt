@@ -17,7 +17,7 @@ func test_mockup_px_scale_to_the_viewport_width() -> void:
 	assert_almost_eq(HudTheme.px(HudTheme.SWITCH), 66.0 * 1080.0 / 375.0, 1e-6)
 
 func test_every_framed_surface_has_a_material_and_corners_that_fit_its_frame() -> void:
-	for box: FrameBox in [HudTheme.band(), HudTheme.sheet(), HudTheme.card(), HudTheme.panel(), HudTheme.panel(10.0, 6.0, true), HudTheme.parchment(),
+	for box: FrameBox in [HudTheme.band(), HudTheme.sheet(), HudTheme.card(), HudTheme.panel(), HudTheme.panel(10.0, 6.0, true),
 			HudTheme.inset(), HudTheme.progress_track()]:
 		assert_not_null(box.fill)
 		assert_lt(box.edge * 2.0, box.frame.get_size().x, "there is an edge to repeat between the corners")

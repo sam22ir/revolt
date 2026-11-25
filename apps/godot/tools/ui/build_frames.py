@@ -194,13 +194,6 @@ def plate(name, warm=False):
     panel_frame(name, c, t, 18, 5, 5, colours, 3, .45).write()
 
 
-def paper():
-    """A sheet of paper: a pale wooden edge and a lip."""
-    c, t = 34, 48
-    f = panel_frame("frame_paper", c, t, 22, 6, 8, ("#9a7444", "#f0d9a8", "#3d2712"), shade=.18)
-    f.write()
-
-
 def inset():
     """A recess: text fields and progress tracks. Lit along its foot, as a hole is."""
     c, t = 22, 32
@@ -374,7 +367,7 @@ def progress():
 def main():
     for old in OUT.glob("*.svg"):
         old.unlink()
-    band(); sheet(); card(); plate("frame_plate"); plate("frame_plate_warm", True); paper(); inset(); portrait()
+    band(); sheet(); card(); plate("frame_plate"); plate("frame_plate_warm", True); inset(); portrait()
     tile("frame_tile", False); tile("frame_tile_on", True)
     dark = ["#150c06", "#241810", "#302015"]
     rim = ("#6b4a2e", "#b58a5a", "#1f130a")
