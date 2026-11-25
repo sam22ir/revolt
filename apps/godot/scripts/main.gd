@@ -594,12 +594,12 @@ func _update_dots() -> void:
 	_bottom.buttons["alliance"].set_dot(HudModel.alliance_dot(_session.unread(), HelpModel.open_requests(_session.help, now).size()))
 	_bottom.buttons["reports"].set_dot(_reports_unseen)
 
-## "Offline — reconnecting…", centred just above the nav bar. It is outside the top box, so it never moves the base.
+## "Offline — reconnecting…", centred over the tab bar, above the map's coordinates. It is outside the top box, so it never moves the base.
 func _build_offline_badge() -> void:
 	_offline_badge.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	_offline_badge.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_offline_badge.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_offline_badge.offset_bottom = -NAV_HEIGHT - HudTheme.px(NavTab.RISE) - 8.0
+	_offline_badge.offset_bottom = -NAV_HEIGHT - HudTheme.px(36.0)
 	_hud_root.add_child(_offline_badge)
 	_session.connection_changed.connect(_offline_badge.set_online)
 
