@@ -2,10 +2,11 @@ class_name MarchSheet
 extends PageFrame
 ## The send-march sheet for an NPC target: how many of each troop to send, up to three heroes (a lead and two deputies), the one-way
 ## travel time, what the force can carry and why Send is off. MarchModel works the numbers out from the base the session holds; the
-## server decides, and its refusal shows over the buttons, which stay in place under the scrolling part. Fills the area between the HUD and the nav bar and is hidden (no drawing,
-## no input) when closed. It serves three kinds of send: a solo march (with heroes), starting an alliance rally (a gathering time, no
-## heroes) and joining one that gathers (no heroes; it leaves and arrives on the rally's own times, whatever the troops). A fourth is a
-## harvest of a resource site ("harvest"): the troops, the travel and what the march will bring home (HarvestModel), no odds, no heroes.
+## server decides, and its refusal shows over the buttons, which stay in place under the scrolling part. Fills the area between the HUD
+## and the tab bar and is hidden (no drawing, no input) when closed. It serves three kinds of send: a solo march (with heroes), starting an
+## alliance rally (a gathering time, no heroes) and joining one that gathers (no heroes; it leaves and arrives on the rally's own times,
+## whatever the troops). A fourth is a harvest of a resource site ("harvest"): the troops, the travel and what the march will bring home
+## (HarvestModel), no odds, no heroes.
 
 signal closed
 ## A march left: the sheet has closed itself.
