@@ -45,11 +45,11 @@ func _step(root: Node, glyph: String, index: int) -> Button:
 func test_it_shows_the_site_and_no_heroes_or_odds() -> void:
 	var sheet: MarchSheet = _sheet(_state())[0]
 	assert_true(sheet.is_open())
-	assert_eq(sheet.find_children("*", "OptionButton", true, false).size(), 0, "no hero pickers")
+	assert_eq(sheet._slots.size(), 0, "no hero places")
 	var texts := _texts(sheet)
 	assert_true(texts.has(Loc.t("march.target", {"name": Loc.t("site.quarry.name"), "level": "1"})))
 	assert_false(texts.has(Loc.t("march.heroes")))
-	assert_false(texts.has(Loc.t("map.defenders") + ": " + TrainingModel.troop_list(TileModel.npc_def(1)["defenders"], Fmt.lang())))
+	assert_false(texts.has(Loc.t("map.defenders")))
 
 func test_send_is_off_until_a_combat_unit_is_picked() -> void:
 	var pair := _sheet(_state())

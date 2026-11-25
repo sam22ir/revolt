@@ -1,5 +1,5 @@
 extends GutTest
-## MarchSheet: the rows and pickers follow the base, Send is on only for a march the rules allow, a refusal shows under it, and a march
+## MarchSheet: the rows and hero places follow the base, Send is on only for a march the rules allow, a refusal shows under it, and a march
 ## that left closes the sheet. Runs on a fake Api; the server's verdict is the reply it is given.
 
 class FakeApi:
@@ -37,6 +37,20 @@ func _button(root: Node, text: String) -> Button:
 		if b.text == text:
 			return b
 	return null
+
+func _tap(on: Control) -> void:
+	var at := on.get_global_rect().get_center()
+	for down in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = down
+		event.position = at
+		event.global_position = at
+		get_viewport().push_input(event, true)
+		await wait_process_frames(2)
+
+func after_each() -> void:
+	TranslationServer.set_locale("en")
 
 func test_it_opens_with_nothing_picked_and_send_off() -> void:
 	var pair := _sheet(_state())
@@ -77,24 +91,100 @@ func test_all_slots_in_use_turns_send_off_with_that_reason() -> void:
 	assert_true(_button(sheet, Loc.t("march.send")).disabled)
 	assert_true(_texts(sheet).has(Loc.t("reason.too_many_marches")))
 
-func test_the_pickers_offer_the_free_heroes_and_a_hero_fills_one_slot() -> void:
+func test_a_place_offers_the_free_heroes_and_a_hero_fills_one_place() -> void:
 	var sheet: MarchSheet = _sheet(_state())[0]
-	var lead: OptionButton = sheet._pickers[0]
-	assert_eq(lead.item_count, 3, "none and two heroes")
-	sheet._on_pick(0, 1)
-	var deputy: OptionButton = sheet._pickers[1]
-	var picked := String(lead.get_item_metadata(lead.selected))
-	var other_index := -1
-	for i in deputy.item_count:
-		if deputy.get_item_metadata(i) == picked:
-			other_index = i
-	assert_true(deputy.is_item_disabled(other_index), "already the lead")
+	sheet._open_picker(0)
+	assert_true(sheet._picker.visible)
+	assert_eq(sheet._picker.rows().size(), 3, "two heroes and nobody")
+	(sheet._picker.rows()[0] as ListRow).pressed.emit()
+	assert_false(sheet._picker.visible)
+	var lead := String(sheet._picks[0])
+	assert_ne(lead, "")
+	assert_true(_texts(sheet).has(Loc.t("hero.%s.name" % lead)))
 	assert_true(_texts(sheet).any(func(t: String) -> bool: return t.begins_with(Loc.t("march.heroBonus", {"attack": "", "defense": ""}).substr(0, 8))), "the bonus line shows")
+	sheet._open_picker(1)
+	assert_eq((sheet._picker.rows()[0] as ListRow).find_children("*", "Button", true, false).size(), 0, "the lead cannot be taken again")
+	sheet._on_picked(lead)
+	assert_eq(sheet._picks[1], "", "nor by any other way")
+	sheet._open_picker(0)
+	(sheet._picker.rows()[2] as ListRow).pressed.emit()
+	assert_eq(sheet._picks[0], "", "nobody again")
 
 func test_a_hero_already_out_is_not_offered() -> void:
 	var out := {"heroes": {"lead": "hill_commander", "deputies": [], "levels": {}}}
 	var sheet: MarchSheet = _sheet(_state([out]))[0]
-	assert_eq((sheet._pickers[0] as OptionButton).item_count, 2, "none and the one hero left")
+	sheet._open_picker(0)
+	assert_eq(sheet._picker.rows().size(), 2, "the one hero left and nobody")
+
+func test_with_no_hero_to_send_the_places_cannot_be_tapped() -> void:
+	var state := _state()
+	state["heroes"]["owned"] = {}
+	var sheet: MarchSheet = _sheet(state)[0]
+	for slot: Button in sheet._slots:
+		assert_true(slot.disabled)
+
+func _sized(sheet: MarchSheet) -> void:
+	sheet.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	sheet.size = Vector2(1080, 1770)
+	await wait_process_frames(3)
+
+func test_real_taps_pick_a_hero_count_troops_and_send() -> void:
+	var api := FakeApi.new()
+	api.replies = [{"ok": true, "status": 200, "data": {"ok": true, "state": _state([{}]), "now": 9}}]
+	var sheet: MarchSheet = _sheet(_state(), api)[0]
+	await _sized(sheet)
+	await _tap(sheet._rows["infantry"]["more"])
+	await _tap(sheet._rows["infantry"]["max"])
+	await _tap(sheet._rows["infantry"]["less"])
+	assert_eq(sheet._counts["infantry"], 9)
+	sheet.scroll.scroll_vertical = 100000
+	await wait_process_frames(3)
+	await _tap(sheet._slots[0])
+	assert_true(sheet._picker.visible)
+	await wait_process_frames(2)
+	await _tap(sheet._picker.rows()[0])
+	assert_false(sheet._picker.visible)
+	assert_ne(sheet._picks[0], "")
+	await _tap(sheet._submit)
+	await wait_until(func() -> bool: return not sheet.is_open(), 5.0)
+	assert_eq(int(api.posted[0]["troops"]["infantry"]), 9)
+	assert_not_null(api.posted[0]["heroes"])
+
+func test_a_tap_beside_the_picker_changes_nothing() -> void:
+	var sheet: MarchSheet = _sheet(_state())[0]
+	sheet._picks[0] = "hill_commander"
+	sheet._open_picker(0)
+	var tap := InputEventMouseButton.new()
+	tap.button_index = MOUSE_BUTTON_LEFT
+	sheet._picker._gui_input(tap)
+	assert_false(sheet._picker.visible)
+	assert_eq(sheet._picks[0], "hill_commander")
+
+func test_back_closes_it() -> void:
+	var sheet: MarchSheet = _sheet(_state())[0]
+	sheet.back_button().pressed.emit()
+	assert_false(sheet.is_open())
+
+func test_every_kind_of_send_fits_the_width_of_a_phone_and_keeps_its_buttons_in_view() -> void:
+	for lang in ["en", "ar"]:
+		TranslationServer.set_locale(lang)
+		for mode in ["march", "rally_start", "rally_join", "harvest"]:
+			var state := _state()
+			state["troops"] = {"infantry": 12345, "scouts": 12345, "heavy": 12345, "porters": 12345}
+			var session := Session.new(FakeApi.new(), Clock.new())
+			session.apply({"state": state, "now": 5})
+			var sheet: MarchSheet = add_child_autofree(MarchSheet.new())
+			sheet.setup(session)
+			var rally := {"id": "r1", "gatherUntil": 60000.0, "arriveAt": 90000.0}
+			var target := {"id": "quarry:0", "kind": "quarry", "level": 1, "x": 13, "y": 14, "occupied": false, "mine": false} if mode == "harvest" else NPC
+			sheet.open(target, Vector2i(10, 10), mode, rally)
+			sheet._picks = ["hill_commander", "dock_foreman", ""]
+			sheet._refresh()
+			await _sized(sheet)
+			var room := 1080.0 - 2.0 * HudTheme.px(PageBackdrop.MARGIN - 2.0)
+			assert_lte(sheet.column.get_combined_minimum_size().x, room, "%s %s" % [lang, mode])
+			assert_lte(sheet._submit.get_global_rect().end.y, 1770.0, "%s %s" % [lang, mode])
+			assert_gt(sheet.scroll.size.y, 600.0, "there is room to scroll in: %s %s" % [lang, mode])
 
 func test_send_posts_the_march_and_closes_the_sheet_when_it_leaves() -> void:
 	var api := FakeApi.new()
@@ -196,13 +286,13 @@ func _rally_sheet(mode: String, api := FakeApi.new()) -> Array:
 
 func test_a_rally_sheet_has_no_heroes_and_names_its_own_title_and_button() -> void:
 	var sheet: MarchSheet = _rally_sheet("rally_start")[0]
-	assert_eq(sheet._pickers.size(), 0)
+	assert_eq(sheet._slots.size(), 0)
 	assert_false(_texts(sheet).has(Loc.t("march.heroes")))
-	assert_true(_texts(sheet).has(Loc.t("rally.startTitle")))
+	assert_eq(sheet.title_text(), Loc.t("rally.startTitle"))
 	assert_true(_texts(sheet).has(Loc.t("rally.gatherTime")))
 	assert_not_null(_button(sheet, Loc.t("rally.start")))
 	var join: MarchSheet = _rally_sheet("rally_join")[0]
-	assert_true(_texts(join).has(Loc.t("rally.joinTitle")))
+	assert_eq(join.title_text(), Loc.t("rally.joinTitle"))
 	assert_not_null(_button(join, Loc.t("rally.join")))
 	assert_false(_texts(join).has(Loc.t("rally.gatherTime")))
 
@@ -223,8 +313,8 @@ func test_start_rally_sends_the_target_troops_and_the_gathering_time() -> void:
 	var api := FakeApi.new()
 	api.replies = [{"ok": true, "status": 200, "data": {"ok": true, "state": _state([{}]), "now": 9}}]
 	var sheet: MarchSheet = _rally_sheet("rally_start", api)[0]
-	sheet._gather_picker.select(1)
-	sheet._gather_picker.item_selected.emit(1)
+	await _sized(sheet)
+	await _tap(sheet._gather_buttons[300000])
 	sheet._set_count("infantry", 4)
 	sheet._on_send()
 	await wait_until(func() -> bool: return not sheet.is_open(), 5.0)
