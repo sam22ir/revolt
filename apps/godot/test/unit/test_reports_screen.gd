@@ -161,12 +161,41 @@ func _luminance(c: Color) -> float:
 	var l := c.srgb_to_linear()
 	return 0.2126 * l.r + 0.7152 * l.g + 0.0722 * l.b
 
+func test_the_toast_takes_a_real_tap_and_fits_a_phone_in_both_languages() -> void:
+	for lang in ["en", "ar"]:
+		TranslationServer.set_locale(lang)
+		for result in ["victory", "defeat", "target_gone"]:
+			var toast: ReportToast = add_child_autofree(ReportToast.new())
+			toast.size = Vector2(1032, 0)
+			toast.show_report(_report("a", 1, result))
+			await wait_seconds(0.3)
+			toast.global_position = Vector2.ZERO # in Arabic it would start from the window's other side
+			assert_almost_eq(toast.modulate.a, 1.0, 0.01, "it has slid in")
+			assert_lte(toast._row.get_combined_minimum_size().x, 1032.0 - toast._box.content_margin_left * 2.0, "%s %s" % [lang, result])
+			assert_lte(toast._row.get_combined_minimum_size().y, toast.size.y)
+			watch_signals(toast)
+			await _tap(toast.get_global_rect().get_center())
+			assert_signal_emitted_with_parameters(toast, "opened", ["a"])
+	TranslationServer.set_locale("en")
+
+func test_a_second_report_replaces_the_first_in_the_toast() -> void:
+	var toast: ReportToast = add_child_autofree(ReportToast.new())
+	toast.show_report(_report("a", 1, "defeat"))
+	toast.show_report(_report("b", 2, "victory"))
+	assert_has(_texts(toast), Loc.t("march.result.victory"))
+	assert_does_not_have(_texts(toast), Loc.t("march.result.defeat"))
+	watch_signals(toast)
+	toast.pressed.emit()
+	assert_signal_emitted_with_parameters(toast, "opened", ["b"])
+
 func test_the_toast_shows_the_report_and_tapping_it_opens_that_report() -> void:
 	var toast: ReportToast = add_child_autofree(ReportToast.new())
 	assert_false(toast.visible)
 	toast.show_report(_report("a", 1, "defeat"))
 	assert_true(toast.visible)
-	assert_eq(toast.text, "%s · %s" % [Loc.t("report.newReport"), Loc.t("march.result.defeat")])
+	assert_has(_texts(toast), Loc.t("report.newReport"))
+	assert_has(_texts(toast), Loc.t("march.result.defeat"))
+	assert_has(_texts(toast), Loc.t("march.entry", {"name": ReportsScreen.target_name(String(ReportsModel.row(_report("a", 1, "defeat"))["target_kind"])), "level": Fmt.amount("en", ReportsModel.row(_report("a", 1, "defeat"))["level"])}))
 	watch_signals(toast)
 	toast.pressed.emit()
 	assert_signal_emitted_with_parameters(toast, "opened", ["a"])

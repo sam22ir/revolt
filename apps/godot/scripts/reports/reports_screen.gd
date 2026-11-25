@@ -100,7 +100,7 @@ func _row(report: Dictionary) -> ListRow:
 	var kind := String(m["target_kind"])
 	var row := ListRow.new(_target_icon(kind))
 	row.set_rim(RESULT_RIMS.get(result, Color.WHITE))
-	row.title.text = _target_name(kind)
+	row.title.text = target_name(kind)
 	var time := ReportTime.format(lang, int(m["at"]), _offset_min)
 	row.subtitle.text = time if kind == "" else "%s · %s" % [Loc.t("panel.level", {"level": Fmt.amount(lang, m["level"])}), time]
 	for item: Dictionary in ReportsModel.detail(report)["loot"]:
@@ -162,7 +162,7 @@ func _banner(d: Dictionary, lang: String) -> Control:
 	column.add_theme_constant_override("separation", -roundi(HudTheme.px(1)))
 	column.add_child(_outlined(Loc.t("march.result." + result), UiKit.BIG + 4.0))
 	if d["target_kind"] != "":
-		column.add_child(_outlined("%s · %s" % [_target_name(d["target_kind"]), Loc.t("panel.level", {"level": Fmt.amount(lang, d["level"])})], UiKit.BODY))
+		column.add_child(_outlined("%s · %s" % [target_name(d["target_kind"]), Loc.t("panel.level", {"level": Fmt.amount(lang, d["level"])})], UiKit.BODY))
 	column.add_child(_outlined("%s · %s" % [Loc.t("map.coords", {"x": Fmt.amount(lang, d["x"]), "y": Fmt.amount(lang, d["y"])}), ReportTime.format(lang, int(d["at"]), _offset_min)], UiKit.SMALL))
 	row.add_child(column)
 	pad.add_child(row)
@@ -239,5 +239,5 @@ func _target_icon(kind: String) -> String:
 	var icon := "npc_" + kind
 	return icon if HudIcon.NAMES.has(icon) else "gone"
 
-func _target_name(kind: String) -> String:
+static func target_name(kind: String) -> String:
 	return Loc.t("march.result.target_gone") if kind == "" else Loc.t("npc.%s.name" % kind)

@@ -1700,6 +1700,35 @@ def hourglass():
     ic.save()
 
 
+def offline():
+    """A field mast whose signal is cut: its waves grey and a red bar across them."""
+    ic = Icon("offline")
+    for r, w in ((34, 9), (58, 10), (82, 11)):
+        for s in (-1, 1):
+            (x0, y0), (x1, y1) = (128 + s * r * .77, 84 - r * .64), (128 + s * r * .77, 84 + r * .64)
+            d = f"M{x0:.1f} {y0:.1f}A{r} {r} 0 0 {1 if s > 0 else 0} {x1:.1f} {y1:.1f}"
+            ic.line(d, "#1a1109", w + 7, 1, "", None, True)
+            ic.line(d, "#8d8778", w)
+            ic.line(d, "#d8d2c2", w * .3, .7)
+    ic.shape("M118 92H138L170 236H86z", ic.lin(IRON, 90, 92, 168, 236), LINE, 3)
+    c = ic.clip("M118 92H138L170 236H86z")
+    for a, b, y0, y1 in ((122, 146, 118, 152), (134, 104, 118, 152), (108, 156, 152, 194), (150, 98, 152, 194), (96, 166, 194, 236), (160, 90, 194, 236)):
+        ic.line(f"M{a} {y0}L{b} {y1}", "#262729", 8, 1, "", c)
+        ic.line(f"M{a} {y0}L{b} {y1}", "#c9c9c4", 3, .8, "", c)
+    for y, w in ((118, 15), (152, 23), (194, 32)):
+        ic.shape(rect(128 - w, y - 4, w * 2, 8, 3), ic.lin(STEEL, 0, y - 4, 0, y + 4), LINE, 2, False)
+    ic.shape(rect(70, 230, 116, 16, 5), ic.lin(WOOD, 0, 230, 0, 246), LINE, 2.6)
+    ic.grain(74, 232, 182, 244, 8, "#4a2812", .5)
+    ic.shape(circ(128, 84, 17), ic.rad(["#fff3c4", "#d8962a", "#8a5212"], 122, 78, 24), LINE, 3)
+    ic.fill(circ(122, 78, 5), "#fff", .8)
+    ic.layer()
+    ic.line("M42 46L214 160", "#1a1109", 31, 1, "", None, True)
+    ic.line("M42 46L214 160", "#54100c", 22)
+    ic.line("M42 46L214 160", "#c13a28", 16)
+    ic.line("M44 42L212 153", "#f3a08c", 3.6, .85)
+    ic.save()
+
+
 # ------------------------------------------------------------------ heroes
 # A square portrait per hero id: a bust whose face is plain shade under the headwear, the role's tools, and a place behind. No faces,
 # flags, insignia or relief emblems; a role, not a portrait of anyone.
@@ -2073,7 +2102,7 @@ def hero_column_commander():
 
 if __name__ == "__main__":
     for draw in (food, materiel, funds, support, heroes, alliance, map_icon, base, reports, settings, upgrade, info, train, hammer, builders, power, marches, wounded, avatar, back, chevron, clock, lock, storage, troop_infantry, troop_scouts, troop_heavy, troop_porters, music, effects, language, help_icon, link,
-                 victory, defeat, gone, npc_patrol, npc_convoy, npc_outpost, npc_fortified_line, chat, hourglass,
+                 victory, defeat, gone, npc_patrol, npc_convoy, npc_outpost, npc_fortified_line, chat, hourglass, offline,
                hero_mountain_guide, hero_dock_foreman, hero_iron_quartermaster, hero_hill_commander, hero_trail_scout, hero_field_medic, hero_porter_chief, hero_column_commander):
         draw()
     print(f"wrote {len(list(OUT.glob('*.svg')))} icons, {sum(f.stat().st_size for f in OUT.glob('*.svg')) // 1024} KB")

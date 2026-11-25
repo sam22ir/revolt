@@ -160,6 +160,32 @@ func test_the_raised_part_of_a_tab_takes_taps_and_a_flat_tab_does_not_reach_abov
 	bottom.set_screen("base")
 	assert_eq(bottom.buttons["alliance"].button().position.y, 0.0, "flat again")
 
+func test_the_offline_badge_shows_only_while_offline_and_follows_the_language() -> void:
+	var badge: OfflineBadge = add_child_autofree(OfflineBadge.new())
+	assert_false(badge.visible)
+	badge.set_online(false)
+	assert_true(badge.visible)
+	for lang in ["en", "ar"]:
+		TranslationServer.set_locale(lang)
+		badge.refresh()
+		assert_eq(badge.text(), Loc.t("sync.offline"))
+		assert_lte(badge.get_combined_minimum_size().x, 1000.0, lang)
+	TranslationServer.set_locale("en")
+	badge.set_online(true)
+	assert_false(badge.visible)
+	for c: Control in badge.find_children("*", "Control", true, false):
+		assert_eq(c.mouse_filter, Control.MOUSE_FILTER_IGNORE)
+
+func test_the_status_card_says_what_it_waits_for_and_its_detail_only_when_there_is_one() -> void:
+	var card: StatusCard = add_child_autofree(StatusCard.new())
+	assert_false(card.visible)
+	card.show_status("hourglass", "Loading")
+	assert_true(card.visible)
+	assert_eq(card.text(), "Loading")
+	assert_false(card._detail.visible)
+	card.show_status("offline", "No answer", "code 0")
+	assert_true(card._detail.visible)
+
 func test_a_tabs_dot_shows_and_changes_side_with_the_language() -> void:
 	var tab: NavTab = add_child_autofree(NavTab.new("alliance"))
 	tab.size = Vector2(200, 220)

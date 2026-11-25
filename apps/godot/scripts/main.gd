@@ -11,8 +11,6 @@ const MAP_MARGIN := 480.0
 const PAGES: Array[String] = ["heroes", "alliance", "reports", "settings"]
 ## Gap between the top box and the report toast, in viewport px.
 const TOAST_GAP := 8
-## The marches list sits below the report notice, which takes the strip right under the top box.
-const MARCHES_GAP := 110
 ## The building card's gap to the screen's sides, in viewport px.
 const CARD_SIDE := 24
 
@@ -25,12 +23,12 @@ var _world := Node2D.new()
 var _map := WorldMap.new()
 var _camera := MapCamera.new()
 var _hud_root := Control.new()
-var _status := Label.new()
+var _status := StatusCard.new()
 var _coords := Label.new()
 var _top := HudTop.new()
 var _bottom := HudBottom.new()
 var _settings := SettingsPage.new()
-var _offline_badge := PanelContainer.new()
+var _offline_badge := OfflineBadge.new()
 var _loading_layer := CanvasLayer.new()
 var _loaded := false
 var _base := BaseScreen.new()
@@ -70,7 +68,6 @@ func _ready() -> void:
 	_camera.tapped.connect(_on_map_tapped)
 	_camera.moved.connect(_on_camera_moved)
 	_base.setup(_session)
-	_session.state_changed.connect(_refresh_names)
 	# Members or help requests changed on the alliance socket: the view is fetched again (see Session.refresh_alliance).
 	_session.alliance_changed.connect(func() -> void: _session.refresh_alliance())
 	# The alliance feed follows the membership, not the map build: it starts when the player is in an alliance (joined, founded or
@@ -89,7 +86,7 @@ func _ready() -> void:
 
 func _start() -> void:
 	var started_ms := Time.get_ticks_msec()
-	_status.text = Loc.t("map.loading")
+	_refresh_status()
 	var session := await _retry_start(_api.ensure_session)
 	if not session["ok"]:
 		_show_error()
@@ -371,19 +368,15 @@ func _show_error() -> void:
 	_failed = true
 	_refresh_status()
 
-## The offline badge text follows the language.
-func _refresh_names() -> void:
-	_offline_badge_label().text = Loc.t("sync.offline")
-
-## The centre text: the failure, or "Loading the map…" while the map screen waits for its build; nothing otherwise.
+## The card in the middle: the failure, or "Loading" while the base or the map waits for its first build; nothing otherwise.
 func _refresh_status() -> void:
 	if _failed:
 		# The failure's codes under the message, so a report from a phone says what went wrong.
-		_status.text = "%s\n%s" % [Loc.t("reason.unreachable"), Loc.t("reason.unreachableDetail", _api.last_failure)]
-		_status.visible = true
+		_status.show_status("offline", Loc.t("reason.unreachable"), Loc.t("reason.unreachableDetail", _api.last_failure))
+	elif _screen == "base" and not _base.is_built():
+		_status.show_status("hourglass", Loc.t("alliance.loading"))
 	elif _screen == "map" and not _loaded:
-		_status.text = Loc.t("map.loading")
-		_status.visible = true
+		_status.show_status("hourglass", Loc.t("map.loading"))
 	else:
 		_status.visible = false
 
@@ -441,9 +434,9 @@ func _refit() -> void:
 	_heroes_screen.offset_top = top
 	_heroes_screen.offset_bottom = -NAV_HEIGHT
 	_march_sheet.offset_top = top
-	_marches_list.offset_top = top + MARCHES_GAP
 	_march_sheet.offset_bottom = -NAV_HEIGHT
 	_toast.offset_top = top + TOAST_GAP
+	_place_marches_list()
 	_base.card_layer.offset_top = top
 	if not _base.is_built():
 		return
@@ -473,14 +466,12 @@ func _build_hud() -> void:
 	_top.chip_pressed.connect(_show_screen.bind("settings"))
 	_hud_root.add_child(_top)
 
-	_status.add_theme_font_size_override("font_size", FONT_SIZE + 6)
 	_status.set_anchors_preset(Control.PRESET_CENTER)
 	_status.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_status.grow_vertical = Control.GROW_DIRECTION_BOTH
-	_status.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hud_root.add_child(_status)
 
-	_coords.add_theme_font_size_override("font_size", FONT_SIZE)
+	_coords.add_theme_font_size_override("font_size", HudTheme.font(UiKit.SMALL))
 	_coords.add_theme_stylebox_override("normal", HudTheme.tag(16.0, 4.0))
 	_coords.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# In a row, so the plate is as wide as its text, at the reading start.
@@ -560,11 +551,13 @@ func _build_hud() -> void:
 	_build_offline_badge()
 
 	# Just under the top box, as the Phaser client does (`refit` moves it with the box).
-	_toast.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_toast.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_toast.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_toast.offset_left = 24
+	_toast.offset_right = -24
 	_toast.grow_vertical = Control.GROW_DIRECTION_END
-	_toast.layout_direction = Control.LAYOUT_DIRECTION_LOCALE
 	_toast.opened.connect(_open_report)
+	# The marches make room under it while it shows.
+	_toast.visibility_changed.connect(_place_marches_list)
 	_session.report_received.connect(_on_new_report)
 	_hud_root.add_child(_toast)
 
@@ -607,25 +600,19 @@ func _build_offline_badge() -> void:
 	_offline_badge.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_offline_badge.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_offline_badge.offset_bottom = -NAV_HEIGHT - HudTheme.px(NavTab.RISE) - 8.0
-	_offline_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_offline_badge.layout_direction = Control.LAYOUT_DIRECTION_LOCALE
-	var box := HudTheme.panel(10.0, 5.0)
-	box.fill_tint = Color(2.6, 0.75, 0.6)
-	_offline_badge.add_theme_stylebox_override("panel", box)
-	var label := Label.new()
-	label.add_theme_font_size_override("font_size", FONT_SIZE - 2)
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_offline_badge.add_child(label)
-	_offline_badge.visible = false
 	_hud_root.add_child(_offline_badge)
-	_session.connection_changed.connect(func(online: bool) -> void: _offline_badge.visible = not online)
+	_session.connection_changed.connect(_offline_badge.set_online)
 
-func _offline_badge_label() -> Label:
-	return _offline_badge.get_child(0) as Label
+## The player's marches float under the top bar, or under the report's notice while it shows.
+func _place_marches_list() -> void:
+	if _top_box == null:
+		return
+	var gap := TOAST_GAP + (_toast.get_combined_minimum_size().y + TOAST_GAP if _toast.visible else 0.0)
+	_marches_list.offset_top = _top_box.get_global_rect().end.y + gap
 
 func _apply_language(lang: String) -> void:
 	TranslationServer.set_locale(lang)
-	_refresh_names()
+	_offline_badge.refresh()
 	_bottom.refresh_language()
 	_bottom.set_screen(_screen)
 	_settings.set_language(lang)

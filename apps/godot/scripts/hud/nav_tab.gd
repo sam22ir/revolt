@@ -113,7 +113,15 @@ func is_active() -> bool:
 	return _active
 
 func set_dot(shown: bool) -> void:
+	if shown == is_dot_shown():
+		return
 	_dot.modulate.a = 1.0 if shown else 0.0
+	if not shown or not is_inside_tree():
+		return
+	# It pops in, to be noticed once.
+	_dot.pivot_offset = _dot.size * 0.5
+	_dot.scale = Vector2.ONE * 0.2
+	create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).tween_property(_dot, "scale", Vector2.ONE, 0.3)
 
 ## The dot sits at the icon's top end, so it changes side with the language.
 func place_dot(lang: String) -> void:
