@@ -110,8 +110,12 @@ func _start() -> void:
 	_session.apply({"now": reply["data"]["now"]})
 	_session.set_liberations(reply["data"]["liberations"], int(reply["data"]["now"]))
 	var map_started_ms := Time.get_ticks_msec()
+	# Props only round the camera: the map is too big to dress all at once on a phone.
+	_map.windowed = true
 	await _map.build(reply["data"])
 	_debug_time("map build", map_started_ms)
+	if _fps_timer != null:
+		_debug_log("[fps] map stages %s" % [_map.build_times])
 	if is_instance_valid(_loading_layer):
 		_loading_layer.queue_free()
 	# Room past the edge, so the frontier shows all round.
@@ -123,6 +127,7 @@ func _start() -> void:
 	else:
 		_camera.focus_world(Iso.tile_to_world(_map.size * 0.5, _map.size * 0.5))
 	_apply_hidden_layers()
+	_update_map_view()
 	_loaded = true
 	_refresh_status()
 	_update_coords()
@@ -656,6 +661,13 @@ func _apply_language(lang: String) -> void:
 
 func _on_camera_moved() -> void:
 	_map.set_view_zoom(_camera.view_zoom)
+	_update_map_view()
+
+## Tells the map what the camera shows, so it dresses the chunks round it.
+func _update_map_view() -> void:
+	var top_left := _camera.world_at(Vector2.ZERO)
+	var bottom_right := _camera.world_at(get_viewport().get_visible_rect().size)
+	_map.set_view(Rect2(top_left, bottom_right - top_left), _camera.view_zoom)
 
 ## Opens the Find sheet over the map, searching outward from the tile the camera looks at.
 func _open_find() -> void:
@@ -669,7 +681,8 @@ func _open_find() -> void:
 ## The phone's keyboard covers the bottom of the screen and Godot does not move the view for it: the Find sheet rises above it.
 func _lift_find_sheet() -> void:
 	var rest := _tile_panel.offset_bottom
-	var keyboard := DisplayServer.virtual_keyboard_get_height()
+	# The web's display server has no virtual keyboard (and warns on every call).
+	var keyboard := DisplayServer.virtual_keyboard_get_height() if DisplayServer.has_feature(DisplayServer.FEATURE_VIRTUAL_KEYBOARD) else 0
 	var window_h := DisplayServer.window_get_size().y
 	var lift := 0.0
 	if keyboard > 0 and window_h > 0:

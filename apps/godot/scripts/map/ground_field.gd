@@ -63,6 +63,58 @@ static func land(size: int, height: PackedFloat32Array, terrain: PackedInt32Arra
 static func detail(size: int) -> int:
 	return clampi(MAX_SIDE / maxi(size, 1), 2, DETAIL)
 
+## The distance picture drawn a part at a time, nearest a focus first (FeatureFill), for a map too big to draw at once.
+class FeatureFill extends RefCounted:
+	var size := 0
+	var _k := 0
+	var _n := 0
+	var _bytes := PackedByteArray()
+	## Stamps to do: [distance², x, y, width, channel, reach], nearest the focus first; and how many are done.
+	var _jobs: Array = []
+	var _done := 0
+
+	func _init(map_size: int, wadis: Array, roads: Array, oases: Array, focus: Vector2) -> void:
+		size = map_size
+		_k = GroundField.detail(size)
+		_n = size * _k
+		_bytes.resize(_n * _n * 4)
+		_bytes.fill(255)
+		# Each job leads with its squared distance to the focus, so the built-in sort (no script callback) puts the nearest first.
+		var add := func(x: float, y: float, width: float, channel: int, reach: float) -> void:
+			_jobs.append([Vector2(x, y).distance_squared_to(focus), x, y, width, channel, reach])
+		for pair: Array in [[roads, 0], [wadis, 1]]:
+			for path: Array in pair[0]:
+				for j in range(0, path.size(), 2):
+					var p: Array = path[j]
+					add.call(float(p[0]), float(p[1]), float(p[2]), pair[1], NEAR)
+		for o: Vector2i in oases:
+			add.call(o.x + 0.5, o.y + 0.5, 1.0, 2, FAR)
+		_jobs.sort()
+
+	## Stamps until `budget_ms` has passed (or everything is done); true when done.
+	func step(budget_ms: float) -> bool:
+		var until := Time.get_ticks_usec() + int(budget_ms * 1000.0)
+		while _done < _jobs.size():
+			var j: Array = _jobs[_done]
+			GroundField._stamp(_bytes, _n, _k, Vector2(j[1], j[2]), j[3], j[4], j[5])
+			_done += 1
+			if _done % 32 == 0 and Time.get_ticks_usec() >= until:
+				break
+		return done()
+
+	## Stamps everything within `radius` tiles of the focus given at the start (the jobs are in that order).
+	func stamp_near(radius: float) -> void:
+		while _done < _jobs.size() and float(_jobs[_done][0]) <= radius * radius:
+			var j: Array = _jobs[_done]
+			GroundField._stamp(_bytes, _n, _k, Vector2(j[1], j[2]), j[3], j[4], j[5])
+			_done += 1
+
+	func done() -> bool:
+		return _done >= _jobs.size()
+
+	func image() -> Image:
+		return Image.create_from_data(_n, _n, false, Image.FORMAT_RGBA8, _bytes)
+
 ## The distance picture.
 static func features(size: int, wadis: Array, roads: Array, oases: Array) -> Image:
 	var k := detail(size)

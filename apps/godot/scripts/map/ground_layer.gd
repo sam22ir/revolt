@@ -15,6 +15,9 @@ func build(size: int, land: Image, features: Image) -> void:
 	_surface.setup(size, land, features)
 	_frame.setup(size)
 
+func update_features(features: Image) -> void:
+	_surface.update_features(features)
+
 ## The regions and which are liberated, drawn in the ground.
 func set_regions(size: int, regions: PackedInt32Array, liberated: Dictionary) -> void:
 	_surface.set_regions(size, regions, liberated)

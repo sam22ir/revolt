@@ -21,12 +21,20 @@ func _ready() -> void:
 	_mat.set_shader_parameter("T3", GroundField.T3)
 	material = _mat
 
+var _features: ImageTexture
+
+## A newer picture of the features (the same size), while the roads and riverbeds are still being drawn in.
+func update_features(features: Image) -> void:
+	if _features != null:
+		_features.update(features)
+
 ## `land` and `features` are GroundField's pictures.
 func setup(size: int, land: Image, features: Image) -> void:
 	_size = size
 	_mat.set_shader_parameter("map_size", float(size))
 	_mat.set_shader_parameter("land", ImageTexture.create_from_image(land))
-	_mat.set_shader_parameter("feature", ImageTexture.create_from_image(features))
+	_features = ImageTexture.create_from_image(features)
+	_mat.set_shader_parameter("feature", _features)
 	_mat.set_shader_parameter("strip_from", Frontier.INNER)
 	_mat.set_shader_parameter("strip_to", Frontier.OUTER)
 	queue_redraw()

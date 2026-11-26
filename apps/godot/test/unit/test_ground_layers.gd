@@ -193,3 +193,55 @@ func test_a_road_over_a_mountain_keeps_the_faces_off_it() -> void:
 	assert_almost_eq(up[1 * size + 2], GroundField.HELD_HIGH, 1e-6, "two rows above only one step")
 	assert_almost_eq(up[0 * size + 2], 0.95, 1e-6, "farther up it rises fully")
 	assert_almost_eq(up[5 * size + 2], 0.95, 1e-6, "below the road it rises")
+
+func test_the_chunks_props_together_are_the_whole_maps() -> void:
+	var size := 64
+	var grid := MapGrid.compute(1954, size, 16)
+	var geo := Geography.build(1954, size, 16, grid["terrain"], grid["regions"])
+	var flags := Geography.with_oasis_front(geo["flags"], geo["oases"], size)
+	var fert := GroundMath.fertility_grid(1954, size)
+	var rocks := GroundMath.cluster_mask(1954, size, "rocks")
+	var grove := GroundMath.cluster_mask(1954, size, "grove")
+	var whole: Array = GroundPlan.build(1954, size, grid["terrain"], flags, fert, rocks, grove, {"sand": [0], "grass": [0], "stone": [0], "track": [0]}, true)["props"]
+	var parts: Array = []
+	for cy in 2:
+		for cx in 2:
+			parts.append_array(GroundPlan.chunk_props(size, grid["terrain"], flags, fert, rocks, grove, cx * 32, cy * 32, cx * 32 + 32, cy * 32 + 32))
+	var key := func(p: Dictionary) -> String: return "%d|%s|%s|%s" % [p["i"], p["kind"], p["pick"], p["scale"]]
+	var a := whole.map(key)
+	var b := parts.map(key)
+	a.sort()
+	b.sort()
+	assert_eq(b, a)
+	# Merged per-chunk items draw in the same order as the whole map's.
+	var art := GroundArt.load_art()
+	var lists: Array = []
+	for cy in 2:
+		for cx in 2:
+			lists.append(PropLayer.items_for(size, GroundPlan.chunk_props(size, grid["terrain"], flags, fert, rocks, grove, cx * 32, cy * 32, cx * 32 + 32, cy * 32 + 32), art))
+	var merged := PropLayer.merge(lists).map(func(it: Dictionary) -> Vector2: return it["sprite"]["pos"])
+	var direct := PropLayer.items_for(size, whole, art).map(func(it: Dictionary) -> Vector2: return it["sprite"]["pos"])
+	assert_eq(merged, direct)
+
+func test_a_windowed_map_loads_only_the_chunks_round_the_view() -> void:
+	var map := WorldMap.new()
+	map.windowed = true
+	add_child_autofree(map)
+	# 96 tiles (9 chunks): big enough to window, small enough to build fast here.
+	await map.build({"size": 96, "terrainSeed": 1954, "now": 0, "liberations": [], "marches": [], "sites": [], "hqs": [], "bases": [], "npcs": []})
+	assert_eq(map.loaded_chunks(), 0, "nothing until the camera says where it looks")
+	var centre := Iso.tile_to_world(48, 48)
+	map.set_view(Rect2(centre - Vector2(540, 960), Vector2(1080, 1920)), 1.0)
+	var some := map.loaded_chunks()
+	assert_between(some, 1, 8, "some of the 9 chunks, not all")
+	map.set_view(Rect2(centre - Vector2(500, 900), Vector2(1080, 1920)), 1.0)
+	assert_eq(map.loaded_chunks(), some, "a small pan loads nothing new")
+	map.set_view(Rect2(centre - Vector2(540, 960), Vector2(1080, 1920)), 0.2)
+	assert_eq(map.loaded_chunks(), some, "zoomed far out: props hidden, nothing loads")
+	# Chunks are worked out a slice a frame, then the batch fills: wait for both.
+	for i in 600:
+		if not map.is_filling_ground() and not map.prop_layer().is_filling():
+			break
+		await wait_frames(1)
+	assert_false(map.prop_layer().is_filling(), "the window's batch filled in the background")
+	assert_gt(map.prop_layer().sorted_sprites.size(), 0)

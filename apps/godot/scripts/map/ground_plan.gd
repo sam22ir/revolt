@@ -121,6 +121,19 @@ static func land_tint(colour: int, terrain_index: int, flags: int, fertility: fl
 		return _mix(colour, FERTILE, (fertility - 0.5) * 0.9)
 	return _mix(colour, BARE, (0.5 - fertility) * 0.8)
 
+## The props of tiles x0..x1-1, y0..y1-1 (a chunk), as `build` gives them for those tiles: each reads its neighbours on the whole map, so
+## the chunks' props together are the whole map's.
+static func chunk_props(size: int, terrain: PackedInt32Array, flags: PackedByteArray, fertility: PackedFloat32Array, rocks: PackedByteArray, grove: PackedByteArray, x0: int, y0: int, x1: int, y1: int) -> Array:
+	var props: Array = []
+	for y in range(maxi(y0, 0), mini(y1, size)):
+		for x in range(maxi(x0, 0), mini(x1, size)):
+			var i := y * size + x
+			var depth := mountain_depth(terrain, flags, size, x, y) if terrain[i] == T_MOUNTAIN else 0
+			for p: Dictionary in props_for(terrain[i], x, y, _interior(terrain, size, x, y), flags[i], fertility[i], float(rocks[i]) / 255.0, float(grove[i]) / 255.0, depth):
+				p["i"] = i
+				props.append(p)
+	return props
+
 ## Share of the eight neighbours with the same terrain; off the map counts as the same.
 static func _interior(terrain: PackedInt32Array, size: int, x: int, y: int) -> float:
 	var id := terrain[y * size + x]
