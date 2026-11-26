@@ -245,3 +245,15 @@ func test_a_windowed_map_loads_only_the_chunks_round_the_view() -> void:
 		await wait_frames(1)
 	assert_false(map.prop_layer().is_filling(), "the window's batch filled in the background")
 	assert_gt(map.prop_layer().sorted_sprites.size(), 0)
+
+func test_a_feature_fill_run_to_the_end_equals_the_whole_feature_picture() -> void:
+	var size := 192
+	var grid := MapGrid.compute(1954, size, 32)
+	var geo := Geography.build(1954, size, 32, grid["terrain"], grid["regions"])
+	var wadis := FeatureShape.wadi_paths(geo["wadis"])
+	var roads := FeatureShape.road_paths(geo["roads"])
+	var fill := GroundField.FeatureFill.new(size, wadis, roads, geo["oases"], Vector2(40, 150))
+	fill.stamp_near(24.0)
+	while not fill.step(50.0):
+		pass
+	assert_eq(fill.image().get_data(), GroundField.features(size, wadis, roads, geo["oases"]).get_data())

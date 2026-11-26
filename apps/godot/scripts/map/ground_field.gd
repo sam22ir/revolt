@@ -77,7 +77,7 @@ class FeatureFill extends RefCounted:
 	## what is drawn first.
 	var _order := PackedInt64Array()
 	var _at := PackedVector2Array()
-	var _job := PackedFloat32Array()
+	var _job := PackedFloat64Array()
 	var _done := 0
 	var _focus := Vector2()
 
