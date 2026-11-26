@@ -35,6 +35,7 @@ import { SITE_KINDS, SITE_LEVELS, SITE_MAX_HARVEST_MS, SITE_RATE_PER_HOUR, SITE_
 import { BASE_EDGE_MARGIN, BASE_MOUNTAIN_CLEARANCE, MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING, REGION_CELL } from "../data/map.ts";
 import { hash32 } from "../rng.ts";
 import { regionAt, regionSite } from "../regions.ts";
+import { baseSiteOk } from "../base-site.ts";
 import { terrainAt, valueNoise, type TerrainId } from "../terrain.ts";
 import { NPC_LEVELS, NPC_RESPAWN_MS } from "../data/npcs.ts";
 import { PASS_TIERS, PASS_TIER_COUNT } from "../data/battle-pass.ts";
@@ -282,7 +283,7 @@ const NOISE_SAMPLES: readonly (readonly [number, number, number, number])[] = [
 
 /**
  * Golden data for the client's port of the seed-derived map math (hash, value noise, terrain, regions).
- * Grids are one character per tile, row-major by y: terrain p/h/f/m, regions as a hex digit.
+ * Grids are one character per tile, row-major by y: terrain p/h/f/m, regions as a hex digit, base sites 1/0.
  */
 export const buildGodotMapFixtures = (): unknown => {
   const size = MAP_SIZE;
@@ -295,18 +296,22 @@ export const buildGodotMapFixtures = (): unknown => {
     seeds: MAP_SEEDS.map((seed) => {
       const terrain: string[] = [];
       const regions: string[] = [];
+      const baseSites: string[] = [];
       for (let y = 0; y < size; y++) {
         let t = "";
         let r = "";
+        let b = "";
         for (let x = 0; x < size; x++) {
           t += TERRAIN_LETTER[terrainAt(seed, x, y)];
           r += regionAt(seed, x, y, size).toString(16);
+          b += baseSiteOk(seed, x, y) ? "1" : "0";
         }
         terrain.push(t);
         regions.push(r);
+        baseSites.push(b);
       }
       const sites = Array.from({ length: cells * cells }, (_, id) => regionSite(seed, id, size));
-      return { seed, terrain, regions, sites };
+      return { seed, terrain, regions, baseSites, sites };
     }),
   };
 };

@@ -45,6 +45,19 @@ static func terrain_at(seed: int, x: int, y: int) -> String:
 		return "forest"
 	return "plain"
 
+## Whether a base or alliance HQ may stand on (x, y) (rules base-site.ts baseSiteOk): on the map, off its edges and clear of mountains.
+static func base_site_ok(seed: int, size: int, x: int, y: int) -> bool:
+	var m: Dictionary = Balance.data()["map"]
+	var margin := int(m["baseEdgeMargin"])
+	var clear := int(m["baseMountainClearance"])
+	if x < 0 or y < 0 or x >= size or y >= size or mini(mini(x, y), mini(size - 1 - x, size - 1 - y)) < margin:
+		return false
+	for dy in range(-clear, clear + 1):
+		for dx in range(-clear, clear + 1):
+			if terrain_at(seed, x + dx, y + dy) == "mountain":
+				return false
+	return true
+
 static func _cells_per_side(size: int, region_cell: int) -> int:
 	return int(ceil(float(size) / region_cell))
 

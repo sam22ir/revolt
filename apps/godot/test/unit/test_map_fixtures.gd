@@ -31,6 +31,17 @@ func test_terrain_grids_match_for_every_seed() -> void:
 					mismatches += 1
 		assert_eq(mismatches, 0, "terrain mismatches for seed %s" % s["seed"])
 
+func test_base_sites_match_for_every_seed() -> void:
+	var size := int(_fx["size"])
+	for s: Dictionary in _fx["seeds"]:
+		var mismatches := 0
+		for y in size:
+			var row: String = s["baseSites"][y]
+			for x in size:
+				if MapMath.base_site_ok(int(s["seed"]), size, x, y) != (row[x] == "1"):
+					mismatches += 1
+		assert_eq(mismatches, 0, "base site mismatches for seed %s" % s["seed"])
+
 func test_region_grids_match_for_every_seed() -> void:
 	var size := int(_fx["size"])
 	for s: Dictionary in _fx["seeds"]:

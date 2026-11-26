@@ -245,7 +245,13 @@ export class MapService {
       const key = table === "map_bases" ? "account_id" : "alliance_id";
       for (const r of this.rows<{ id: string; x: number; y: number }>(`SELECT ${key} AS id, x, y FROM ${table}`)) {
         if (baseSiteOk(seed, r.x, r.y)) continue;
-        const at = this.freeTile();
+        let at: MapPoint;
+        try {
+          at = this.freeTile();
+        } catch {
+          // A full map keeps the old place rather than failing to load.
+          continue;
+        }
         this.deps.sql.exec(`UPDATE ${table} SET x = ?, y = ? WHERE ${key} = ?`, at.x, at.y, r.id);
       }
     }

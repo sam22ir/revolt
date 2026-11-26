@@ -193,7 +193,7 @@ func _actions(info: Dictionary, v: Dictionary) -> HFlowContainer:
 	row.add_theme_constant_override("v_separation", roundi(HudTheme.px(6)))
 	if v["can_march"]:
 		_action(row, Loc.t("map.sendMarch"), "green", func() -> void: march_requested.emit(info["npc"]))
-	if info["kind"] == "empty" and TileModel.can_place_hq(_rank):
+	if info["kind"] == "empty" and TileModel.can_place_hq(_rank) and MapMath.base_site_ok(int(_snapshot.get("terrainSeed", 0)), int(_snapshot.get("size", 0)), _tile.x, _tile.y):
 		var place := _action(row, Loc.t(TileModel.hq_button_key(_snapshot)), "green", func() -> void:
 			_notice = ""
 			hq_requested.emit(_tile))
