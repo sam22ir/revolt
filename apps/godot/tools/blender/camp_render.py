@@ -3,7 +3,7 @@
   blender -b -P tools/blender/camp_render.py -- preview <out.png> <x,y,w,h> [scale] [id:look,...]   a look at part of the camp
   blender -b -P tools/blender/camp_render.py -- ground                                             art/camp/ground/<col>_<row>.webp
   blender -b -P tools/blender/camp_render.py -- looks [id:look ...]                                art/camp/buildings/, cards/, data/camp-art.json
-  ... -- figures [kind ...] | pieces [name ...] | nature [atlas ...]          art/camp/life/, art/map/, art/terrain/
+  ... -- figures [kind ...] | stills [name ...] | pieces [name ...] | nature [atlas ...]   art/camp/life/, art/camp/still/, art/map/, art/terrain/
 
 The camera is fixed: 30 degrees up, 45 round, 1 unit = 1 painting px, and the world's origin shows at the painting's centre.
 """
@@ -416,6 +416,18 @@ def make_figures(args):
         print("FIGURE", kind, flush=True)
 
 
+def make_stills(args):
+    """Tents, piles and the fire, each in its own picture at the figures' scale, its foot at the middle, FOOT of the way down."""
+    import camp_still as cs
+    s, mat = setup(), material()
+    for name in args or cs.STILLS:
+        w, h = cs.SIZE[name]
+        rect = (ck.CENTRE[0] - w / 2, ck.CENTRE[1] - h * cs.FOOT, w, h)
+        img = sprite(s, mat, cs.build(name), rect, FINE, SHRINK)
+        webp(os.path.join(ART, "still", name + ".webp"), img, 92)
+        print("STILL", name, flush=True)
+
+
 # Map pieces have 3 px per map unit, and their footprint's centre at this px of the picture.
 PIECE = 3
 
@@ -545,7 +557,7 @@ def make_fence(args):
 def main():
     args = sys.argv[sys.argv.index("--") + 1:]
     t = time.time()
-    {"preview": preview, "ground": make_ground, "looks": make_looks, "figures": make_figures, "pieces": make_pieces, "nature": make_nature, "ground_art": make_ground_art, "fence": make_fence}[args[0]](args[1:])
+    {"preview": preview, "ground": make_ground, "looks": make_looks, "figures": make_figures, "stills": make_stills, "pieces": make_pieces, "nature": make_nature, "ground_art": make_ground_art, "fence": make_fence}[args[0]](args[1:])
     print("DONE %.0fs" % (time.time() - t))
 
 

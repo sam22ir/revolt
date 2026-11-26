@@ -8,13 +8,11 @@ extends Node2D
 const ART := "res://art/camp/life/"
 ## A sheet has a row per step of the walk and a column per direction (tools/blender/camp_figures.py): 0 is to the right of the
 ## screen and they go anticlockwise on the ground, so 2 is away from the viewer and 6 towards.
-const KINDS: Array[String] = ["crate", "pack", "mule", "guard", "farmer"]
-## Kinds CampCast asks for that have no sheet of their own yet, drawn with another's until they are rendered.
-const STAND_IN := {"worker": "pack", "drill": "guard", "wounded": "farmer", "sitting": "farmer"}
+const KINDS: Array[String] = ["crate", "pack", "mule", "guard", "farmer", "worker", "drill", "sitting", "wounded"]
 ## Things that keep still (tents, piles, the fire): one picture each, at the sheets' scale, its foot at the bottom middle
 ## STILL_FOOT of the way down. One not rendered yet is not drawn.
 const STILL_ART := "res://art/camp/still/"
-const STILL_FOOT := 0.92
+const STILL_FOOT := 0.8
 const STEPS := 6
 const WAYS := 8
 ## One cell in sheet px, and where the feet are in it.
@@ -65,9 +63,9 @@ static func sheet(kind: String) -> Texture2D:
 		_sheets[kind] = load(ART + kind + ".webp")
 	return _sheets[kind]
 
-## The sheet a kind walks or works with: its own, a stand-in's, or "" for a thing that keeps still.
+## The sheet a kind walks or works with, or "" for a thing that keeps still.
 static func sheet_kind(kind: String) -> String:
-	return kind if KINDS.has(kind) else String(STAND_IN.get(kind, ""))
+	return kind if KINDS.has(kind) else ""
 
 ## A still thing's picture, or null while it has none.
 static func still(kind: String) -> Texture2D:
@@ -85,11 +83,9 @@ static func width_of(kind: String) -> float:
 	match kind:
 		"mule":
 			return 34.0
-		"tent":
-			return 70.0
-		"fire", "sitting", "wounded":
-			return 0.0
-	return 26.0 if kind.ends_with("_big") else 17.0
+		"sitting", "wounded":
+			return 24.0
+	return 17.0
 
 ## The direction (0 to 7) that walks the way `step` points on the screen. The ground is seen from 30° up, so away counts double.
 static func way(step: Vector2) -> int:

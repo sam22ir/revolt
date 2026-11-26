@@ -92,8 +92,9 @@ func _draw_figures(list: Array) -> void:
 		var picture: Texture2D = CampLife.still(kind) if sheet == "" else null
 		if sheet == "" and picture == null:
 			continue
+		# A still thing's picture has its shade in it.
 		var width := CampLife.width_of(kind)
-		if width > 0.0:
+		if sheet != "":
 			draw_texture_rect(_puff, Rect2(f["at"] - Vector2(width, width * 0.5) * 0.5, Vector2(width, width * 0.5)), false, CampLife.GROUND_SHADOW)
 		if sheet != "":
 			var cell := CampLife.cell(sheet, f["dir"], f["frame"])
