@@ -77,3 +77,37 @@ GDD §4.5 and §5 get the zone rules; balance numbers stay placeholders in `data
 ## Order
 
 A1 → A2 → (A3 alongside) → B1 → B2 → B3 → B4. Each step is committed alone, with `pnpm test`, `pnpm typecheck` and the Godot tests passing.
+
+## Part C: a faster world map (asked 2026-11-26)
+
+Keep what the player knows (data: the whole world, small) apart from what is drawn (only near the camera).
+
+### C1. Props near the camera only
+
+- The map is cut into 32×32-tile chunks. A chunk's props (GroundPlan) are worked out the first time the camera comes near and cached.
+- One prop batch holds only the chunks in the window (the view plus one chunk round it), in exact painter's order, so tall pieces
+  (the massif) never overlap wrongly at a chunk seam. When the window changes, the next batch is filled over a few frames in the
+  background and swapped in whole; the old one stays until then.
+- Below PROP_ZOOM no props are drawn, so no chunks load. Frontier props (mirrored past the edge) load with the edge chunks.
+- Occupied tiles stay hidden by alpha as now.
+
+### C2. The camera's area first
+
+- Build order: terrain grid and land field, then the feature field (roads, riverbeds, pools) stamped nearest-to-the-camera first:
+  the area in view synchronously, then the rest a few milliseconds per frame, the texture updated as it fills.
+- The route grid for columns is made on first use. The loading screen ends as soon as the camera's area is drawn.
+- Target: the map shows in under 1 s here at 192; no frame over ~30 ms while the rest fills in.
+
+### C3. Remember the map on the device
+
+Ground fields saved in `user://` keyed by seed, size and a version; the second load reads them.
+
+### C4. Changes, not everything
+
+The socket sends what changed (bases, targets, marches, sites, HQs, liberations) after the first snapshot; full detail for the
+viewer's area, a light summary for the rest.
+
+### C5. Alerts
+
+Events about the player wherever they happen (a harvest attacked, a rally, a column's win, a liberation, a zone fight): a notice, a
+minimap ping, the marches list, a tap to look there.
