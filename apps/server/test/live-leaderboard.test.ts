@@ -60,12 +60,13 @@ describe("power and regions boards", () => {
     // "Same instant" means the player's own snapshot time, whatever the clock did while the fighter was set up.
     const mine = await sql<{ updated_at: number }>(server, `SELECT updated_at FROM score_snapshots WHERE account_id = '${f.id}'`);
     const at = mine[0]!.updated_at;
-    await rival("AAAAAA", "algeria-1", p, 0, at);
+    // "222222" sorts before every other handle (digits come before letters), so it wins the tie whatever the player's handle is.
+    await rival("222222", "algeria-1", p, 0, at);
     await rival("MMMMMM", "algeria-1", p, 0, at + 99);
     const b = await get(server, f.token, "/v1/leaderboard?board=power");
     const names = b.entries.map((e: { name: string }) => e.name);
     expect(names[0]).toBe("ZZZZZZ");
-    expect(names.indexOf("AAAAAA")).toBeLessThan(names.indexOf(f.handle));
+    expect(names.indexOf("222222")).toBeLessThan(names.indexOf(f.handle));
     expect(names[names.length - 1]).toBe("MMMMMM");
     const rows = await sql<{ handle: string; power: number; updated_at: number }>(
       server,
