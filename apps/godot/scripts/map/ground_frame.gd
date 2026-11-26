@@ -24,11 +24,15 @@ static func outside_of(corners: PackedVector2Array) -> Array[PackedVector2Array]
 	var right := corners[1]
 	var bottom := corners[2]
 	var left := corners[3]
+	# Far past the outline whatever the map's size.
+	var far := FAR
+	for c: Vector2 in corners:
+		far = maxf(far, maxf(absf(c.x), absf(c.y)) + FAR)
 	return [
-		PackedVector2Array([Vector2(-FAR, -FAR), Vector2(top.x, -FAR), top, left, Vector2(-FAR, left.y)]),
-		PackedVector2Array([Vector2(top.x, -FAR), Vector2(FAR, -FAR), Vector2(FAR, right.y), right, top]),
-		PackedVector2Array([Vector2(-FAR, left.y), left, bottom, Vector2(bottom.x, FAR), Vector2(-FAR, FAR)]),
-		PackedVector2Array([right, Vector2(FAR, right.y), Vector2(FAR, FAR), Vector2(bottom.x, FAR), bottom]),
+		PackedVector2Array([Vector2(-far, -far), Vector2(top.x, -far), top, left, Vector2(-far, left.y)]),
+		PackedVector2Array([Vector2(top.x, -far), Vector2(far, -far), Vector2(far, right.y), right, top]),
+		PackedVector2Array([Vector2(-far, left.y), left, bottom, Vector2(bottom.x, far), Vector2(-far, far)]),
+		PackedVector2Array([right, Vector2(far, right.y), Vector2(far, far), Vector2(bottom.x, far), bottom]),
 	]
 
 func _draw() -> void:

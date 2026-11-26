@@ -1,6 +1,6 @@
 extends SceneTree
 ## Saves a picture of the world map with a made-up snapshot, for looking at the ground while working on it. Needs a display:
-##   godot --path . -s tools/map_shot.gd -- <out.png> <tile x> <tile y> [view zoom] [seed] [width] [height] [march: out|clash|smoke]
+##   godot --path . -s tools/map_shot.gd -- <out.png> <tile x> <tile y> [view zoom] [seed] [width] [height] [march: out|clash|smoke|-] [map size]
 ## With a march, the player's column of 80 troops goes from the test base to the post 9 tiles east, shown on the way out, at the
 ## fight, or walking home after a win.
 ## The zoom is the map camera's: a tile is 96 x zoom px wide.
@@ -12,7 +12,8 @@ func _initialize() -> void:
 	var zoom := float(args[3]) if args.size() > 3 else 1.0
 	var seed := int(args[4]) if args.size() > 4 else 1954
 	var size := Vector2i(int(args[5]) if args.size() > 5 else 1000, int(args[6]) if args.size() > 6 else 1000)
-	var scene := args[7] if args.size() > 7 else ""
+	var scene := args[7] if args.size() > 7 and args[7] != "-" else ""
+	var map_size := int(args[8]) if args.size() > 8 else 64
 	root.size = size
 	var view := SubViewport.new()
 	view.size = size
@@ -34,7 +35,7 @@ func _initialize() -> void:
 	if scene != "":
 		marches = [{"id": "m1", "mine": true, "from": {"x": base.x, "y": base.y}, "to": {"x": post.x, "y": post.y}, "departAt": 0, "arriveAt": 100000, "returnAt": 200000}]
 	await map.build({
-		"size": 64, "terrainSeed": seed, "now": 0, "liberations": [], "marches": marches, "sites": [], "hqs": [],
+		"size": map_size, "terrainSeed": seed, "now": 0, "liberations": [], "marches": marches, "sites": [], "hqs": [],
 		"bases": [{"x": base.x, "y": base.y, "tag": "TEST", "mine": true, "alliance": null}],
 		"npcs": [{"id": "a", "x": post.x, "y": post.y, "kind": "outpost", "level": 3}],
 	})
