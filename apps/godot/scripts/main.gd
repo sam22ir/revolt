@@ -39,6 +39,10 @@ var _tile_panel := TilePanel.new()
 var _march_sheet := MarchSheet.new()
 var _marches_list := MarchesList.new()
 var _toast := ReportToast.new()
+var _map_tools := MapTools.new()
+var _find_sheet := FindSheet.new()
+## When the minimap last took the snapshot (it rebakes only when the liberated regions change).
+var _minimap_ms := -100000
 var _top_box: Control
 var _screen := "base"
 ## The last of Base and Map: where a page's back button and a second tap on its bottom button return.
@@ -265,6 +269,8 @@ func _on_map_tapped(screen: Vector2) -> void:
 
 ## Selects a tile (the outline on the map and the sheet), or clears the selection with (-1, -1).
 func _select_tile(tile: Vector2i) -> void:
+	if tile.x >= 0:
+		_find_sheet.close()
 	_map.overlay().set_selected(tile)
 	_tile_panel.show_tile(tile)
 	_update_coords()
@@ -397,6 +403,7 @@ func _show_screen(screen: String) -> void:
 		_reports_unseen = false
 		_update_dots()
 	_march_sheet.close()
+	_find_sheet.close()
 	if screen != "map":
 		_select_tile(Vector2i(-1, -1))
 	if screen == "reports":
@@ -433,6 +440,8 @@ func _refit() -> void:
 	_march_sheet.offset_bottom = -NAV_HEIGHT
 	_toast.offset_top = top + TOAST_GAP
 	_place_marches_list()
+	_map_tools.place(float(NAV_HEIGHT) + HudTheme.px(NavTab.RISE), TranslationServer.get_locale().begins_with("ar"))
+	_update_map_tools()
 	_base.card_layer.offset_top = top
 	if not _base.is_built():
 		return
@@ -469,7 +478,11 @@ func _build_hud() -> void:
 
 	_coords.add_theme_font_size_override("font_size", HudTheme.font(UiKit.SMALL))
 	_coords.add_theme_stylebox_override("normal", HudTheme.tag(16.0, 4.0))
-	_coords.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# A tap on the plate opens the Find sheet.
+	_coords.mouse_filter = Control.MOUSE_FILTER_STOP
+	_coords.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			_open_find())
 	# In a row, so the plate is as wide as its text, at the reading start.
 	var coords_row := HBoxContainer.new()
 	coords_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -525,7 +538,20 @@ func _build_hud() -> void:
 	# Clear of the raised middle tab.
 	_tile_panel.offset_bottom = -NAV_HEIGHT - HudTheme.px(NavTab.RISE) - 4.0
 	_tile_panel.closed.connect(func() -> void: _select_tile(Vector2i(-1, -1)))
+	# The minimap, Find and My base sit in the bottom corner at the reading end, under the sheets.
+	_map_tools.jump.connect(func(t: Vector2i) -> void: _look_at_tile(t, false))
+	_map_tools.find_pressed.connect(_open_find)
+	_map_tools.home_pressed.connect(_go_home)
+	_hud_root.add_child(_map_tools)
 	_hud_root.add_child(_tile_panel)
+	_find_sheet.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	_find_sheet.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_find_sheet.offset_left = 16
+	_find_sheet.offset_right = -16
+	_find_sheet.offset_bottom = _tile_panel.offset_bottom
+	_find_sheet.closed.connect(_close_find)
+	_find_sheet.go.connect(func(t: Vector2i) -> void: _look_at_tile(t, true))
+	_hud_root.add_child(_find_sheet)
 	# Send march on a target opens the sheet over the map; a march that left clears the selection with it.
 	_march_sheet.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_march_sheet.setup(_session)
@@ -617,6 +643,8 @@ func _apply_language(lang: String) -> void:
 	_alliance_screen.refresh()
 	_heroes_screen.refresh()
 	_tile_panel.refresh()
+	_find_sheet.refresh()
+	_map_tools.refresh_language()
 	_march_sheet.refresh_language()
 	_marches_list.refresh()
 	_update_dots()
@@ -628,11 +656,66 @@ func _apply_language(lang: String) -> void:
 
 func _on_camera_moved() -> void:
 	_map.set_view_zoom(_camera.view_zoom)
+	_update_map_tools()
+
+## Opens the Find sheet over the map, searching outward from the tile the camera looks at.
+func _open_find() -> void:
+	if _screen != "map" or not _loaded:
+		return
+	_select_tile(Vector2i(-1, -1))
+	var t := Iso.world_to_tile(_camera.position)
+	_find_sheet.open(_map.snapshot, Vector2i(int(floor(t.x)), int(floor(t.y))))
+	_update_coords()
+
+func _close_find() -> void:
+	_find_sheet.close()
+	_update_coords()
+
+## Moves the camera to a tile; `select` also selects it (its sheet opens) and closes the Find sheet.
+func _look_at_tile(tile: Vector2i, select: bool) -> void:
+	if not _loaded:
+		return
+	_camera.focus_world(Iso.tile_to_world(tile.x + 0.5, tile.y + 0.5))
+	if select:
+		_find_sheet.close()
+		_select_tile(tile)
+	_update_map_tools()
+	_update_coords()
+
+func _go_home() -> void:
+	var own := _map.own_base_tile()
+	if own.x >= 0:
+		_close_find()
+		_look_at_tile(own, false)
+
+## The minimap's view outline and the base arrow follow the camera; the corner hides under a sheet.
+func _update_map_tools() -> void:
+	var on := _loaded and _screen == "map" and not _tile_panel.visible and not _find_sheet.visible and not _march_sheet.is_open()
+	_map_tools.visible = on
+	if not on or _top_box == null:
+		return
+	var vp := get_viewport().get_visible_rect().size
+	var top := _top_box.get_global_rect().end.y
+	var band := Rect2(0.0, top, vp.x, vp.y - NAV_HEIGHT - top)
+	var corners: Array = []
+	for p: Vector2 in [band.position, Vector2(band.end.x, band.position.y), band.end, Vector2(band.position.x, band.end.y)]:
+		corners.append(Iso.world_to_tile(_camera.world_at(p)))
+	_map_tools.minimap.set_view(corners)
+	var own := _map.own_base_tile()
+	if own.x < 0:
+		_map_tools.clear_arrow()
+		return
+	var world := Iso.tile_to_world(own.x + 1.0, own.y + 1.0)
+	var screen := _map.get_global_transform_with_canvas() * world
+	var here := Iso.world_to_tile(_camera.position)
+	var tiles := maxi(absi(own.x - int(floor(here.x))), absi(own.y - int(floor(here.y))))
+	_map_tools.set_arrow(screen, band, tiles)
 
 func _update_coords() -> void:
 	var t := Iso.world_to_tile(_camera.position)
 	_coords.text = Loc.t("map.coords", {"x": clampi(int(floor(t.x)), 0, maxi(_map.size - 1, 0)), "y": clampi(int(floor(t.y)), 0, maxi(_map.size - 1, 0))})
-	_coords.visible = _loaded and _screen == "map" and not _tile_panel.visible
+	_coords.visible = _loaded and _screen == "map" and not _tile_panel.visible and not _find_sheet.visible
+	_update_map_tools()
 
 func _process(_delta: float) -> void:
 	if _session.resources.is_empty() or not _clock.is_synced():
@@ -656,6 +739,10 @@ func _process(_delta: float) -> void:
 		_tile_panel.update_view(_map.snapshot, _map.terrain_at_tile(tile.x, tile.y), String(_session.alliance["name"]) if _session.alliance is Dictionary else "", String(_session.alliance["myRank"]) if _session.alliance is Dictionary else "", now, _session.state.get("marches", []))
 	if _screen == "map" and _loaded:
 		_map.markers().tick(now, _camera.view_zoom)
+		# The minimap takes the snapshot once a second: its dots follow the map, its regions rebake only on a liberation.
+		if Time.get_ticks_msec() - _minimap_ms > 1000:
+			_minimap_ms = Time.get_ticks_msec()
+			_map_tools.minimap.set_snapshot(_map.snapshot, now)
 		_marches_list.update_view(_session.state.get("marches", []), now, _march_sheet.is_open())
 	else:
 		_marches_list.visible = false

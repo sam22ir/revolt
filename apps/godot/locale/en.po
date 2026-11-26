@@ -541,6 +541,33 @@ msgstr "Place alliance HQ"
 msgid "map.moveHq"
 msgstr "Move alliance HQ"
 
+msgid "map.findTitle"
+msgstr "Find on the map"
+
+msgid "map.coordsTitle"
+msgstr "Go to coordinates"
+
+msgid "map.x"
+msgstr "X"
+
+msgid "map.y"
+msgstr "Y"
+
+msgid "map.goTo"
+msgstr "Go"
+
+msgid "map.badCoords"
+msgstr "X and Y run from 0 to {max}."
+
+msgid "map.campTitle"
+msgstr "Find a camp"
+
+msgid "map.campHint"
+msgstr "Camp tag, e.g. 7F6QZG"
+
+msgid "map.campNone"
+msgstr "No camp with that tag."
+
 msgid "march.title"
 msgstr "Send march"
 

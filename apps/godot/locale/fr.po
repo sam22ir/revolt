@@ -541,6 +541,33 @@ msgstr "Placer le QG de l'alliance"
 msgid "map.moveHq"
 msgstr "Déplacer le QG de l'alliance"
 
+msgid "map.findTitle"
+msgstr "Chercher sur la carte"
+
+msgid "map.coordsTitle"
+msgstr "Aller aux coordonnées"
+
+msgid "map.x"
+msgstr "X"
+
+msgid "map.y"
+msgstr "Y"
+
+msgid "map.goTo"
+msgstr "Aller"
+
+msgid "map.badCoords"
+msgstr "X et Y vont de 0 à {max}."
+
+msgid "map.campTitle"
+msgstr "Trouver un camp"
+
+msgid "map.campHint"
+msgstr "Code du camp, ex. 7F6QZG"
+
+msgid "map.campNone"
+msgstr "Aucun camp avec ce code."
+
 msgid "march.title"
 msgstr "Envoyer une marche"
 
