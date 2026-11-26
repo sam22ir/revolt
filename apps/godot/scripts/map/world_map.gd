@@ -317,13 +317,15 @@ func _work_chunks() -> bool:
 		_working = _queue.pop_front()
 		_working_row = 0
 		_working_props = []
-	var n := ceili(float(size) / CHUNK)
-	var x0 := (_working % n) * CHUNK
-	var y0 := (_working / n) * CHUNK + _working_row
-	var rows := mini(ROWS_PER_FRAME, CHUNK - _working_row)
-	_working_props.append_array(GroundPlan.chunk_props(size, _terrain, _flags, _fertility, _rocks, _grove, x0, y0, x0 + CHUNK, y0 + rows))
-	_working_row += rows
-	if _working_row >= CHUNK:
+	# A frame of its own for sorting the chunk's props once all its rows are worked out.
+	if _working_row < CHUNK:
+		var n := ceili(float(size) / CHUNK)
+		var x0 := (_working % n) * CHUNK
+		var y0 := (_working / n) * CHUNK + _working_row
+		var rows := mini(ROWS_PER_FRAME, CHUNK - _working_row)
+		_working_props.append_array(GroundPlan.chunk_props(size, _terrain, _flags, _fertility, _rocks, _grove, x0, y0, x0 + CHUNK, y0 + rows))
+		_working_row += rows
+	else:
 		_chunk_props[_working] = _working_props
 		_chunk_items[_working] = PropLayer.items_for(size, _working_props, _art)
 		_working = -1

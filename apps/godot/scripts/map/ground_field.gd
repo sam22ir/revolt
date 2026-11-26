@@ -98,7 +98,7 @@ class FeatureFill extends RefCounted:
 			var j: Array = _jobs[_done]
 			GroundField._stamp(_bytes, _n, _k, Vector2(j[1], j[2]), j[3], j[4], j[5])
 			_done += 1
-			if _done % 32 == 0 and Time.get_ticks_usec() >= until:
+			if _done % 4 == 0 and Time.get_ticks_usec() >= until:
 				break
 		return done()
 

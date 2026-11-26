@@ -12,14 +12,18 @@ var sorted_sprites: Array = []
 var _by_tile := {}
 var _hidden := {}
 
-## Sprites placed per frame while a window's batch fills in the background.
-const FILL_PER_FRAME := 700
+## Milliseconds a frame spent merging and placing a window's sprites while its batch fills in the background.
+const FILL_BUDGET_MS := 5
 
 ## The batch being filled for the next window (shown when full), its sprites, how far it is, and the tiles of each sprite.
 var _next: SpriteBatch
 var _next_sprites: Array = []
 var _next_tiles := PackedInt32Array()
 var _next_at := 0
+var _next_total := 0
+## The window's sorted chunk lists and how far the merge has read each one.
+var _next_lists: Array = []
+var _next_heads := PackedInt32Array()
 var _occupied := {}
 
 ## Draw items for `props` (GroundPlan props, or a chunk of them): {key, order, tile, sprite}, sorted in painter's order. `order` breaks
@@ -63,16 +67,22 @@ static func merge(lists: Array) -> Array:
 	var out: Array = []
 	var at := PackedInt32Array()
 	at.resize(lists.size())
-	while true:
-		var best := -1
-		for k in lists.size():
-			if at[k] < (lists[k] as Array).size() and (best < 0 or _before(lists[k][at[k]], lists[best][at[best]])):
-				best = k
-		if best < 0:
-			return out
-		out.append(lists[best][at[best]])
-		at[best] += 1
+	var item: Variant = _merge_next(lists, at)
+	while item != null:
+		out.append(item)
+		item = _merge_next(lists, at)
 	return out
+
+## The next item of the merge of `lists` (each sorted), advancing `at` (how far each list is read); null when all are read.
+static func _merge_next(lists: Array, at: PackedInt32Array) -> Variant:
+	var best := -1
+	for k in lists.size():
+		if at[k] < (lists[k] as Array).size() and (best < 0 or _before(lists[k][at[k]], lists[best][at[best]])):
+			best = k
+	if best < 0:
+		return null
+	at[best] += 1
+	return lists[best][at[best] - 1]
 
 ## `props`: GroundPlan.build()["props"]; `occupied`: {tile index: true}. Everything at once (tests, map shots, the frontier).
 func build(size: int, props: Array, art: GroundArt, occupied: Dictionary) -> void:
@@ -88,18 +98,22 @@ func build(size: int, props: Array, art: GroundArt, occupied: Dictionary) -> voi
 	batch.fill(sprites, 0, sprites.size())
 	_swap(batch, sprites, tiles, occupied)
 
-## Shows these sorted item lists (the loaded chunks): the batch fills FILL_PER_FRAME sprites a frame in the background and replaces the
-## shown one when full, so moving the window never stalls a frame. A newer call starts the fill again.
+## Shows these sorted item lists (the loaded chunks): they are merged into painter's order and placed in a new batch FILL_BUDGET_MS a
+## frame in the background, and it replaces the shown one when full, so moving the window never stalls a frame. A newer call starts
+## the fill again.
 func show_items(lists: Array, art: GroundArt, occupied: Dictionary) -> void:
 	_cancel_next()
 	_occupied = occupied
+	_next_lists = lists
+	_next_heads = PackedInt32Array()
+	_next_heads.resize(lists.size())
+	_next_total = 0
+	for l: Array in lists:
+		_next_total += l.size()
 	_next_sprites = []
 	_next_tiles = PackedInt32Array()
-	for it: Dictionary in merge(lists):
-		_next_sprites.append(it["sprite"])
-		_next_tiles.append(it["tile"])
 	_next = SpriteBatch.new(art.props_atlas)
-	_next.begin(_next_sprites.size())
+	_next.begin(_next_total)
 	_next_at = 0
 	set_process(true)
 
@@ -111,10 +125,20 @@ func _process(_delta: float) -> void:
 	if _next == null:
 		set_process(false)
 		return
-	var to := mini(_next_at + FILL_PER_FRAME, _next_sprites.size())
-	_next.fill(_next_sprites, _next_at, to)
-	_next_at = to
-	if _next_at >= _next_sprites.size():
+	var until := Time.get_ticks_msec() + FILL_BUDGET_MS
+	while _next_at < _next_total:
+		# A slice at a time between clock reads.
+		var to := mini(_next_at + 32, _next_total)
+		for k in range(_next_at, to):
+			var it: Dictionary = _merge_next(_next_lists, _next_heads)
+			_next_sprites.append(it["sprite"])
+			_next_tiles.append(it["tile"])
+		_next.fill(_next_sprites, _next_at, to)
+		_next_at = to
+		if Time.get_ticks_msec() >= until:
+			break
+	if _next_at >= _next_total:
+		_next_lists = []
 		var batch := _next
 		_next = null
 		_swap(batch, _next_sprites, _next_tiles, _occupied)
