@@ -20,6 +20,8 @@ var seam_points := PackedVector2Array()
 var seam_liberated: Array[bool] = []
 
 var _terrain := PackedInt32Array()
+## The search grid columns walk on (RoutePath), built with the map.
+var _route_grid: AStarGrid2D
 var _regions := PackedInt32Array()
 var _ground := GroundLayer.new()
 var _seams := MapOverlay.new()
@@ -64,6 +66,9 @@ func prop_layer() -> PropLayer:
 
 func ground_layer() -> GroundLayer:
 	return _ground
+
+func route_grid() -> AStarGrid2D:
+	return _route_grid
 
 ## Region id per tile, row-major (shared, not copied: do not change it).
 func region_grid() -> PackedInt32Array:
@@ -120,6 +125,7 @@ func build(snap: Dictionary) -> void:
 	await get_tree().process_frame
 	var geo := Geography.build(terrain_seed, size, region_cell, _terrain, _regions)
 	var flags := Geography.with_oasis_front(geo["flags"], geo["oases"], size)
+	_route_grid = RoutePath.grid_for(size, _terrain, flags)
 	var fertility := GroundMath.fertility_grid(terrain_seed, size)
 	var rocks := GroundMath.cluster_mask(terrain_seed, size, "rocks")
 	var grove := GroundMath.cluster_mask(terrain_seed, size, "grove")

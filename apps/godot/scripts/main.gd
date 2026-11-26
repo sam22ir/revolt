@@ -750,6 +750,7 @@ func _process(_delta: float) -> void:
 	if _find_sheet.visible:
 		_lift_find_sheet()
 	if _screen == "map" and _loaded:
+		_map.markers().set_own(_session.state.get("marches", []))
 		_map.markers().tick(now, _camera.view_zoom)
 		# The minimap takes the snapshot once a second: its dots follow the map, its regions rebake only on a liberation.
 		if Time.get_ticks_msec() - _minimap_ms > 1000:
