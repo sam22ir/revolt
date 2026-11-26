@@ -72,6 +72,7 @@ export {
   harvestedAt,
   harvestTiming,
   HARVEST_BLOCK_REASONS,
+  maxHarvestMs,
   placeSites,
   recallTiming,
   type HarvestBlockReason,
@@ -80,6 +81,7 @@ export {
   type RecallResult,
 } from "./sites.ts";
 export {
+  OPEN_SITE_KINDS,
   SITE_KINDS,
   SITE_LEVEL_BANDS,
   SITE_LEVEL_FALLBACK,
@@ -92,6 +94,8 @@ export {
   type SiteKind,
   type SiteLevel,
 } from "./data/sites.ts";
+export * from "./data/zones.ts";
+export { zoneAt, zonesOf, type Zone } from "./zones.ts";
 export { migrateBaseState } from "./migrate-state.ts";
 export { fightNpc, npcLevel, targetGone } from "./npc-battle.ts";
 export { RESOURCE_IDS, type ResourceId } from "./resource-id.ts";
@@ -158,6 +162,7 @@ export {
   type MapBaseView,
   type MapMarchView,
   type MapSiteView,
+  type MapZoneView,
   type LiberationView,
   type MapNpcView,
   type MapServerMessage,

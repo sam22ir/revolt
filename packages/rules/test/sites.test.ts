@@ -30,7 +30,8 @@ const farm1 = { kind: "farmland", level: 1 } as const;
 const quarry3 = { kind: "quarry", level: 3 } as const;
 const t = (infantry: number, scouts = 0, heavy = 0, porters = 0): Troops => ({ infantry, scouts, heavy, porters });
 
-const sitesFor = (seed: number): readonly MapSite[] => placeSites(seed, geographyOf(seed, MAP_SIZE));
+/** The sites outside contested zones (zone sites have their own rules, test/zones.test.ts). */
+const sitesFor = (seed: number): readonly MapSite[] => placeSites(seed, geographyOf(seed, MAP_SIZE)).filter((s) => s.zone === null);
 
 const march = (id: string): MarchState => ({
   id,
@@ -216,7 +217,7 @@ describe("recallTiming", () => {
 });
 
 describe("checkHarvest", () => {
-  const site: MapSite = { id: "farmland:0", kind: "farmland", level: 1, x: 3, y: 4 };
+  const site: MapSite = { id: "farmland:0", kind: "farmland", level: 1, x: 3, y: 4, zone: null };
   const troops = t(2, 0, 0, 1);
   const free = new Set<string>();
   const home = t(5, 0, 0, 5);

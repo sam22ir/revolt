@@ -7,6 +7,8 @@ import {
   harvestCarry,
   harvestedAt,
   harvestTiming,
+  maxHarvestMs,
+  zonesOf,
   heroBattleModifier,
   loadoutIds,
   HQ_MOVE_COOLDOWN_MS,
@@ -363,6 +365,7 @@ export class MapService {
         ...(m.site_id === null || m.leave_site_at === null ? {} : { siteId: m.site_id, leaveSiteAt: m.leave_site_at }),
       })),
       sites: this.sitesView(viewerId),
+      zones: zonesOf(Number(this.meta("terrain_seed")), MAP_SIZE).map((z) => ({ id: z.id, x: z.x, y: z.y, radius: z.radius })),
       hqs: this.rows<{ alliance_id: string; tag: string; x: number; y: number }>("SELECT alliance_id, tag, x, y FROM alliance_hqs ORDER BY alliance_id").map((h) => ({
         tag: h.tag,
         x: h.x,
@@ -491,7 +494,7 @@ export class MapService {
     if (reason !== null) return refuse(reason);
 
     const leg = travelMs(placed.at, site, troops);
-    const timing = harvestTiming(site, harvestCarry(troops), now + leg, leg);
+    const timing = harvestTiming(site, harvestCarry(troops, site), now + leg, leg);
     const march: Omit<MarchState, "outcome"> = {
       id: this.deps.newId(),
       target: { npcId: site.id, level: 0, x: site.x, y: site.y },
@@ -521,7 +524,8 @@ export class MapService {
     if (row === undefined) return { value: { ok: false, error: "not_found" }, events };
     const refuse = (reason: RecallHarvestReason): MapOp<RecallHarvestResult> => ({ value: { ok: false, reason, state: advanced }, events });
     if (row.site_id === null || row.leave_site_at === null) return refuse("not_harvest");
-    const timing = recallTiming(row.arrive_at, now, row.return_at - row.leave_site_at);
+    const site = this.sites().find((s) => s.id === row.site_id);
+    const timing = recallTiming(row.arrive_at, now, row.return_at - row.leave_site_at, site === undefined ? undefined : maxHarvestMs(site));
     if (!timing.ok) return refuse(timing.reason);
     if (now >= row.leave_site_at) return refuse("already_leaving");
 
@@ -666,7 +670,7 @@ export class MapService {
     const holders = this.rows<{ site_id: string; account_id: string }>("SELECT site_id, account_id FROM marches WHERE site_id IS NOT NULL");
     return this.visibleSites().map((s) => {
       const holder = holders.find((h) => h.site_id === s.id);
-      return { id: s.id, kind: s.kind, level: s.level, x: s.x, y: s.y, occupied: holder !== undefined, mine: holder?.account_id === viewerId };
+      return { id: s.id, kind: s.kind, level: s.level, x: s.x, y: s.y, occupied: holder !== undefined, mine: holder?.account_id === viewerId, zone: s.zone };
     });
   }
 
@@ -674,7 +678,7 @@ export class MapService {
   private harvestOutcome(row: MarchRow, leaveAt: number): MarchOutcome {
     const troops = parseTroops(row.troops);
     const site = this.sites().find((s) => s.id === row.site_id);
-    const gained = site === undefined ? 0 : harvestedAt(site, harvestCarry(troops), row.arrive_at, leaveAt);
+    const gained = site === undefined ? 0 : harvestedAt(site, harvestCarry(troops, site), row.arrive_at, leaveAt);
     const loot = site === undefined ? ZERO_RESOURCES : { ...ZERO_RESOURCES, [SITE_RESOURCE[site.kind]]: gained };
     return { result: "victory", survivors: troops, wounded: ZERO_TROOPS, lost: ZERO_TROOPS, loot };
   }

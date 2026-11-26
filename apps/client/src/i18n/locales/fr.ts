@@ -124,7 +124,7 @@ export const fr: LocaleShape = {
     heavy: { name: "Troupes lourdes", desc: "Lentes et robustes. Fortes contre l’infanterie, faibles contre les éclaireurs." },
     porters: { name: "Porteurs", desc: "Rapportent les ressources à la base. Ils ne combattent pas." },
   },
-  site: { farmland: { name: "Champ agricole" }, quarry: { name: "Carrière" } },
+  site: { farmland: { name: "Champ agricole" }, quarry: { name: "Carrière" }, depot: { name: "Dépôt de ravitaillement" } },
   harvest: {
     button: "Récolter",
     recall: "Rappeler",

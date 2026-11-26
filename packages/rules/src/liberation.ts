@@ -1,3 +1,5 @@
+import { ZONE_CLEARANCE } from "./data/zones.ts";
+import { zoneAt } from "./zones.ts";
 import { LIBERATION_BONUS_CAP, LIBERATION_BONUS_PER_REGION } from "./data/liberation.ts";
 import { MAP_SIZE } from "./data/map.ts";
 import { regionAt, regionSite, type RegionId } from "./regions.ts";
@@ -51,7 +53,7 @@ export interface TakenTile {
 
 /**
  * The tile for a region's stronghold: the nearest tile to the region's site that lies inside the
- * region, is not a mountain and keeps `spacing` tiles from everything in `taken` (relaxed to "not on
+ * region, is not a mountain nor near a contested zone, and keeps `spacing` tiles from everything in `taken` (relaxed to "not on
  * the same tile" if the region is crowded). A pure function of the seed and the taken tiles; null only
  * if the region owns no usable tile.
  */
@@ -61,7 +63,7 @@ export const strongholdTile = (seed: number, region: RegionId, taken: readonly T
   const sy = Math.floor(site.y);
   const usable = (x: number, y: number, gap: number): boolean =>
     x >= 0 && y >= 0 && x < size && y < size && regionAt(seed, x, y, size) === region && terrainAt(seed, x, y) !== "mountain" &&
-    taken.every((p) => Math.max(Math.abs(p.x - x), Math.abs(p.y - y)) > gap);
+    zoneAt(seed, x, y, size, ZONE_CLEARANCE) === null && taken.every((p) => Math.max(Math.abs(p.x - x), Math.abs(p.y - y)) > gap);
   for (const gap of spacing > 0 ? [spacing, 0] : [0]) {
     for (let r = 0; r < size; r++) {
       for (let y = sy - r; y <= sy + r; y++) {

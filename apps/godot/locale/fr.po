@@ -394,6 +394,9 @@ msgstr "Champ agricole"
 msgid "site.quarry.name"
 msgstr "Carrière"
 
+msgid "site.depot.name"
+msgstr "Dépôt de ravitaillement"
+
 msgid "harvest.button"
 msgstr "Récolter"
 

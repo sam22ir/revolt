@@ -1,7 +1,12 @@
 import { BASE_EDGE_MARGIN, BASE_MOUNTAIN_CLEARANCE, MAP_SIZE } from "./data/map.ts";
+import { ZONE_CLEARANCE } from "./data/zones.ts";
 import { terrainAt } from "./terrain.ts";
+import { zoneAt } from "./zones.ts";
 
-/** Whether a base or alliance HQ may stand on (x, y) of a map `size` tiles wide: on it, clear of its edges and of every mountain. */
+/**
+ * Whether a base or alliance HQ (or a colonial target) may stand on (x, y) of a map `size` tiles wide: on it, clear of its edges, of
+ * every mountain, and of every contested zone by ZONE_CLEARANCE tiles.
+ */
 export const baseSiteOk = (seed: number, x: number, y: number, size: number = MAP_SIZE): boolean => {
   if (!Number.isInteger(x) || !Number.isInteger(y) || x < 0 || y < 0 || x >= size || y >= size) return false;
   if (Math.min(x, y, size - 1 - x, size - 1 - y) < BASE_EDGE_MARGIN) return false;
@@ -10,5 +15,5 @@ export const baseSiteOk = (seed: number, x: number, y: number, size: number = MA
       if (terrainAt(seed, x + dx, y + dy) === "mountain") return false;
     }
   }
-  return true;
+  return zoneAt(seed, x, y, size, ZONE_CLEARANCE) === null;
 };

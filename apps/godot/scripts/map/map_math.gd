@@ -45,8 +45,9 @@ static func terrain_at(seed: int, x: int, y: int) -> String:
 		return "forest"
 	return "plain"
 
-## Whether a base or alliance HQ may stand on (x, y) (rules base-site.ts baseSiteOk): on the map, off its edges and clear of mountains.
-static func base_site_ok(seed: int, size: int, x: int, y: int) -> bool:
+## Whether a base or alliance HQ may stand on (x, y) (rules base-site.ts baseSiteOk): on the map, off its edges, clear of mountains and of
+## the contested `zones` (the snapshot's: {x, y, radius}) by the zone clearance.
+static func base_site_ok(seed: int, size: int, x: int, y: int, zones: Array = []) -> bool:
 	var m: Dictionary = Balance.data()["map"]
 	var margin := int(m["baseEdgeMargin"])
 	var clear := int(m["baseMountainClearance"])
@@ -56,6 +57,10 @@ static func base_site_ok(seed: int, size: int, x: int, y: int) -> bool:
 		for dx in range(-clear, clear + 1):
 			if terrain_at(seed, x + dx, y + dy) == "mountain":
 				return false
+	var zone_gap := float(m["zoneClearance"])
+	for z: Dictionary in zones:
+		if Vector2(float(z["x"]) - x, float(z["y"]) - y).length() <= float(z["radius"]) + zone_gap:
+			return false
 	return true
 
 static func _cells_per_side(size: int, region_cell: int) -> int:

@@ -36,6 +36,8 @@ import { BASE_EDGE_MARGIN, BASE_MOUNTAIN_CLEARANCE, MAP_SIZE, MARCH_RESCUE_GRACE
 import { hash32 } from "../rng.ts";
 import { regionAt, regionSite } from "../regions.ts";
 import { baseSiteOk } from "../base-site.ts";
+import { ZONE_CARRY_MULTIPLIER, ZONE_CLEARANCE, ZONE_MAX_HARVEST_MS } from "../data/zones.ts";
+import { zonesOf } from "../zones.ts";
 import { terrainAt, valueNoise, type TerrainId } from "../terrain.ts";
 import { NPC_LEVELS, NPC_RESPAWN_MS } from "../data/npcs.ts";
 import { PASS_TIERS, PASS_TIER_COUNT } from "../data/battle-pass.ts";
@@ -92,6 +94,7 @@ export const buildGodotBalance = (): unknown => ({
     placementSpacing: PLACEMENT_SPACING,
     baseEdgeMargin: BASE_EDGE_MARGIN,
     baseMountainClearance: BASE_MOUNTAIN_CLEARANCE,
+    zoneClearance: ZONE_CLEARANCE,
   },
   story: STORY,
   events: EVENTS,
@@ -105,6 +108,9 @@ export const buildGodotBalance = (): unknown => ({
     siteResource: SITE_RESOURCE,
     /** Per kind, keyed by level as a string (JSON object keys): units of the site's resource per hour on site. */
     ratePerHour: SITE_RATE_PER_HOUR,
+    /** In a contested zone: troops carry this many times as much, and may stay this long. */
+    zoneCarryMultiplier: ZONE_CARRY_MULTIPLIER,
+    zoneMaxHarvestMs: ZONE_MAX_HARVEST_MS,
   },
 });
 
@@ -312,7 +318,8 @@ export const buildGodotMapFixtures = (): unknown => {
         baseSites.push(b);
       }
       const sites = Array.from({ length: cells * cells }, (_, id) => regionSite(seed, id, size));
-      return { seed, terrain, regions, baseSites, sites };
+      const zones = zonesOf(seed, size).map((z) => ({ x: z.x, y: z.y, radius: z.radius }));
+      return { seed, terrain, regions, baseSites, sites, zones };
     }),
   };
 };

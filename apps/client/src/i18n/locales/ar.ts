@@ -121,7 +121,7 @@ export const ar: LocaleShape = {
     heavy: { name: "القوات الثقيلة", desc: "بطيئة وصلبة. قوية أمام المشاة، ضعيفة أمام المستطلعين." },
     porters: { name: "الحمّالون", desc: "ينقلون الموارد إلى القاعدة. لا يقاتلون." },
   },
-  site: { farmland: { name: "حقل زراعي" }, quarry: { name: "محجر" } },
+  site: { farmland: { name: "حقل زراعي" }, quarry: { name: "محجر" }, depot: { name: "مستودع تموين" } },
   harvest: {
     button: "حصاد",
     recall: "استدعاء",

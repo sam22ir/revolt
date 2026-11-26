@@ -71,6 +71,14 @@ export interface MapSiteView extends MapPoint {
   readonly level: SiteLevel;
   readonly occupied: boolean;
   readonly mine: boolean;
+  /** The contested zone the site is in (its sites are richer, and other alliances may fight for it), or null. Optional for older servers. */
+  readonly zone?: number | null;
+}
+
+/** A contested zone (GDD §5): the tiles within `radius` of (x, y). */
+export interface MapZoneView extends MapPoint {
+  readonly id: number;
+  readonly radius: number;
 }
 
 export interface MapMarchView {
@@ -107,6 +115,8 @@ export interface MapSnapshot {
   readonly marches: readonly MapMarchView[];
   /** Resource sites on the map. Optional so clients built before sites still read the snapshot. */
   readonly sites?: readonly MapSiteView[];
+  /** Contested zones. Optional so clients built before zones still read the snapshot. */
+  readonly zones?: readonly MapZoneView[];
   /** Only on `GET /v1/map` (never on the socket): the landmarks, so the client skips computing them. */
   readonly geography?: MapGeographyWire;
   readonly hqs: readonly MapHqView[];

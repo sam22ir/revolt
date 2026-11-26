@@ -119,7 +119,7 @@ export const en = {
     heavy: { name: "Heavy troops", desc: "Slow and sturdy. Strong against infantry, weak against scouts." },
     porters: { name: "Porters", desc: "Carry resources home. They do not fight." },
   },
-  site: { farmland: { name: "Farmland" }, quarry: { name: "Quarry" } },
+  site: { farmland: { name: "Farmland" }, quarry: { name: "Quarry" }, depot: { name: "Supply depot" } },
   harvest: {
     button: "Harvest",
     recall: "Recall",

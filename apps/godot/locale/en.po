@@ -394,6 +394,9 @@ msgstr "Farmland"
 msgid "site.quarry.name"
 msgstr "Quarry"
 
+msgid "site.depot.name"
+msgstr "Supply depot"
+
 msgid "harvest.button"
 msgstr "Harvest"
 

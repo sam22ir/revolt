@@ -80,3 +80,12 @@ func test_a_site_your_own_march_already_holds_is_taken_even_when_the_snapshot_la
 func test_a_missing_site_is_refused() -> void:
 	assert_eq(HarvestModel.check(_state({"infantry": 10}), {"infantry": 1, "scouts": 0, "heavy": 0, "porters": 0}, {}), "no_such_site")
 	assert_eq(HarvestModel.preview(_state({"infantry": 10}), Vector2i(10, 10), {}, {"infantry": 1, "scouts": 0, "heavy": 0, "porters": 0})["travel_ms"], -1)
+
+func test_a_zone_site_carries_three_times_as_much_and_may_hold_longer() -> void:
+	var troops := {"infantry": 10, "scouts": 0, "heavy": 0, "porters": 0}
+	var open := {"id": "farmland:0", "kind": "farmland", "level": 3, "x": 5, "y": 5, "occupied": false, "mine": false, "zone": null}
+	var rich := {"id": "farmland:z0.0", "kind": "farmland", "level": 5, "x": 5, "y": 5, "occupied": false, "mine": false, "zone": 0}
+	assert_eq(HarvestModel.site_carry(troops, rich), MarchModel.carry(troops) * int(Balance.data()["sites"]["zoneCarryMultiplier"]))
+	assert_eq(HarvestModel.site_carry(troops, open), MarchModel.carry(troops))
+	assert_eq(HarvestModel.fill_ms(1000000000, "farmland", 5, true), int(Balance.data()["sites"]["zoneMaxHarvestMs"]))
+	assert_eq(HarvestModel.fill_ms(1000000000, "farmland", 3), int(Balance.data()["sites"]["maxHarvestMs"]))

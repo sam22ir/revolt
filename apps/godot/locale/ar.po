@@ -394,6 +394,9 @@ msgstr "حقل زراعي"
 msgid "site.quarry.name"
 msgstr "محجر"
 
+msgid "site.depot.name"
+msgstr "مستودع تموين"
+
 msgid "harvest.button"
 msgstr "حصاد"
 
