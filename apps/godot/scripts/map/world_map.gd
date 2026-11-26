@@ -122,7 +122,10 @@ func prop_layer() -> PropLayer:
 func ground_layer() -> GroundLayer:
 	return _ground
 
+## The grid columns are routed on, made on first use (a fifth of a second at 192, so not while the map loads).
 func route_grid() -> AStarGrid2D:
+	if _route_grid == null and size > 0 and _terrain.size() == size * size and _flags.size() == size * size:
+		_route_grid = RoutePath.grid_for(size, _terrain, _flags)
 	return _route_grid
 
 ## Region id per tile, row-major (shared, not copied: do not change it).
@@ -191,15 +194,14 @@ func build(snap: Dictionary) -> void:
 	var geo: Dictionary = sent if sent != null else Geography.build(terrain_seed, size, region_cell, _terrain, _regions)
 	var flags := Geography.with_oasis_front(geo["flags"], geo["oases"], size)
 	lap.call("geography")
-	_route_grid = RoutePath.grid_for(size, _terrain, flags)
-	lap.call("route grid")
+	_flags = flags
+	_route_grid = null
 	var fertility := GroundMath.fertility_grid(terrain_seed, size)
 	var rocks := GroundMath.cluster_mask(terrain_seed, size, "rocks")
 	var grove := GroundMath.cluster_mask(terrain_seed, size, "grove")
 	lap.call("fields")
 	await get_tree().process_frame
 	t[0] = Time.get_ticks_msec()
-	_flags = flags
 	_fertility = fertility
 	_rocks = rocks
 	_grove = grove

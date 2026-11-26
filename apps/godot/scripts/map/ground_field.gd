@@ -45,16 +45,19 @@ static func rising(height: PackedFloat32Array, terrain: PackedInt32Array, size: 
 static func land(size: int, height: PackedFloat32Array, terrain: PackedInt32Array, fertility: PackedFloat32Array, rocks: PackedByteArray, grove: PackedByteArray, flags: PackedByteArray) -> Image:
 	var up := rising(height, terrain, size, flags)
 	# Full floats: Godot's cubic resize leaves half floats unchanged.
-	var image := Image.create_empty(size, size, false, Image.FORMAT_RGBAF)
-	for y in size:
-		for x in size:
-			var i := y * size + x
-			var h := height[i]
-			var m := up[i]
-			if (flags[i] & GroundPlan.NO_DECAL) != 0:
-				m = minf(m, HELD)
-				h = minf(h, MapGrid.HILLS_FROM - 0.03)
-			image.set_pixel(x, y, Color(h, m, fertility[i], 0.5 + (float(rocks[i]) - float(grove[i])) / 510.0))
+	var px := PackedFloat32Array()
+	px.resize(size * size * 4)
+	for i in size * size:
+		var h := height[i]
+		var m := up[i]
+		if (flags[i] & GroundPlan.NO_DECAL) != 0:
+			m = minf(m, HELD)
+			h = minf(h, MapGrid.HILLS_FROM - 0.03)
+		px[i * 4] = h
+		px[i * 4 + 1] = m
+		px[i * 4 + 2] = fertility[i]
+		px[i * 4 + 3] = 0.5 + (float(rocks[i]) - float(grove[i])) / 510.0
+	var image := Image.create_from_data(size, size, false, Image.FORMAT_RGBAF, px.to_byte_array())
 	image.resize(size * detail(size), size * detail(size), Image.INTERPOLATE_CUBIC)
 	image.convert(Image.FORMAT_RGBAH)
 	return image
@@ -69,9 +72,14 @@ class FeatureFill extends RefCounted:
 	var _k := 0
 	var _n := 0
 	var _bytes := PackedByteArray()
-	## Stamps to do: [distance², x, y, width, channel, reach], nearest the focus first; and how many are done.
-	var _jobs: Array = []
+	## Stamps to do, nearest the focus first: `_order` holds each job's index under its rounded squared distance (a packed sort, no
+	## script callback); a job is its point, width, channel and reach. Stamps take the nearest distance, so their order only decides
+	## what is drawn first.
+	var _order := PackedInt64Array()
+	var _at := PackedVector2Array()
+	var _job := PackedFloat32Array()
 	var _done := 0
+	var _focus := Vector2()
 
 	func _init(map_size: int, wadis: Array, roads: Array, oases: Array, focus: Vector2) -> void:
 		size = map_size
@@ -79,38 +87,42 @@ class FeatureFill extends RefCounted:
 		_n = size * _k
 		_bytes.resize(_n * _n * 4)
 		_bytes.fill(255)
-		# Each job leads with its squared distance to the focus, so the built-in sort (no script callback) puts the nearest first.
-		var add := func(x: float, y: float, width: float, channel: int, reach: float) -> void:
-			_jobs.append([Vector2(x, y).distance_squared_to(focus), x, y, width, channel, reach])
+		_focus = focus
 		for pair: Array in [[roads, 0], [wadis, 1]]:
 			for path: Array in pair[0]:
 				for j in range(0, path.size(), 2):
 					var p: Array = path[j]
-					add.call(float(p[0]), float(p[1]), float(p[2]), pair[1], NEAR)
+					_at.append(Vector2(float(p[0]), float(p[1])))
+					_job.append_array([float(p[2]), pair[1], NEAR])
 		for o: Vector2i in oases:
-			add.call(o.x + 0.5, o.y + 0.5, 1.0, 2, FAR)
-		_jobs.sort()
+			_at.append(Vector2(o.x + 0.5, o.y + 0.5))
+			_job.append_array([1.0, 2, FAR])
+		_order.resize(_at.size())
+		for j in _at.size():
+			_order[j] = (int(_at[j].distance_squared_to(focus) * 64.0) << 24) | j
+		_order.sort()
+
+	func _stamp_next() -> void:
+		var j := _order[_done] & 0xFFFFFF
+		GroundField._stamp(_bytes, _n, _k, _at[j], _job[j * 3], int(_job[j * 3 + 1]), _job[j * 3 + 2])
+		_done += 1
 
 	## Stamps until `budget_ms` has passed (or everything is done); true when done.
 	func step(budget_ms: float) -> bool:
 		var until := Time.get_ticks_usec() + int(budget_ms * 1000.0)
-		while _done < _jobs.size():
-			var j: Array = _jobs[_done]
-			GroundField._stamp(_bytes, _n, _k, Vector2(j[1], j[2]), j[3], j[4], j[5])
-			_done += 1
+		while _done < _order.size():
+			_stamp_next()
 			if _done % 4 == 0 and Time.get_ticks_usec() >= until:
 				break
 		return done()
 
 	## Stamps everything within `radius` tiles of the focus given at the start (the jobs are in that order).
 	func stamp_near(radius: float) -> void:
-		while _done < _jobs.size() and float(_jobs[_done][0]) <= radius * radius:
-			var j: Array = _jobs[_done]
-			GroundField._stamp(_bytes, _n, _k, Vector2(j[1], j[2]), j[3], j[4], j[5])
-			_done += 1
+		while _done < _order.size() and _at[_order[_done] & 0xFFFFFF].distance_squared_to(_focus) <= radius * radius:
+			_stamp_next()
 
 	func done() -> bool:
-		return _done >= _jobs.size()
+		return _done >= _order.size()
 
 	func image() -> Image:
 		return Image.create_from_data(_n, _n, false, Image.FORMAT_RGBA8, _bytes)
@@ -142,9 +154,13 @@ static func _stamp(bytes: PackedByteArray, n: int, k: int, at: Vector2, width: f
 	var cx := at.x * k - 0.5
 	var cy := at.y * k - 0.5
 	var scale := 255.0 / (reach * width * k)
+	var x0 := maxi(0, floori(cx) - r)
+	var x1 := mini(n, ceili(cx) + r + 1)
 	for y in range(maxi(0, floori(cy) - r), mini(n, ceili(cy) + r + 1)):
-		for x in range(maxi(0, floori(cx) - r), mini(n, ceili(cx) + r + 1)):
-			var d := int(sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy)) * scale)
-			var i := (y * n + x) * 4 + channel
+		var dy2 := (y - cy) * (y - cy)
+		var i := (y * n + x0) * 4 + channel
+		for x in range(x0, x1):
+			var d := int(sqrt((x - cx) * (x - cx) + dy2) * scale)
 			if d < bytes[i]:
 				bytes[i] = d
+			i += 4
