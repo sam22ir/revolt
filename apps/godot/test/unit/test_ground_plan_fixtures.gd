@@ -60,11 +60,14 @@ func test_colours_match_for_every_seed() -> void:
 func _near(a: float, b: float) -> bool:
 	return absf(a - b) <= 1e-12 * maxf(1.0, absf(b))
 
-func test_props_match_for_every_seed() -> void:
+## Trees and scrub still follow Phaser's golden data; rocks and the massif are our own since the 3D pieces (tested below).
+func test_trees_and_scrub_match_for_every_seed() -> void:
+	var golden := func(p: Variant) -> bool:
+		return (p["kind"] if p is Dictionary else p[1]) in ["trees", "scrub"]
 	for s: Dictionary in _fx["seeds"]:
 		var plan := _plan_for(s)
-		var got: Array = plan["props"]
-		var want: Array = s["props"]
+		var got: Array = plan["props"].filter(golden)
+		var want: Array = s["props"].filter(golden)
 		assert_eq(got.size(), want.size(), "prop count, seed %s" % s["seed"])
 		var bad := 0
 		for k in mini(got.size(), want.size()):
@@ -91,3 +94,35 @@ func test_decals_match_for_every_seed() -> void:
 			if not _near(g["x"], w[0]) or not _near(g["y"], w[1]) or g["frame"] != int(w[2]) or not _near(g["scale"], w[3]) or (1 if g["flip"] else 0) != int(w[4]) or not _near(g["alpha"], w[5]):
 				bad += 1
 		assert_eq(bad, 0, "decal mismatches, seed %s" % s["seed"])
+
+func test_a_mountain_gets_massif_pieces_by_depth_and_few_boulders() -> void:
+	var size := 7
+	var terrain := PackedInt32Array()
+	terrain.resize(size * size)
+	terrain.fill(GroundPlan.T_PLAIN)
+	for y in range(1, 6):
+		for x in range(1, 6):
+			terrain[y * size + x] = GroundPlan.T_MOUNTAIN
+	var flags := PackedByteArray()
+	flags.resize(size * size)
+	assert_eq(GroundPlan.mountain_depth(terrain, flags, size, 1, 1), 0, "edge")
+	assert_eq(GroundPlan.mountain_depth(terrain, flags, size, 2, 2), 1, "one in")
+	assert_eq(GroundPlan.mountain_depth(terrain, flags, size, 3, 3), 2, "middle")
+	flags[3 * size + 4] = Geography.GEO_ROAD
+	assert_eq(GroundPlan.mountain_depth(terrain, flags, size, 3, 3), 0, "a road through it is its edge")
+	for depth in 3:
+		var props := GroundPlan.props_for(GroundPlan.T_MOUNTAIN, 3, 3, 1.0, 0, 0.0, 0.0, 0.0, depth)
+		var pieces := props.filter(func(p: Dictionary) -> bool: return p["kind"] == "peaks")
+		# Foothills leave some edge tiles bare; inside, every tile has its piece.
+		assert_eq(pieces.size(), 1 if depth > 0 else pieces.size(), "one piece, depth %d" % depth)
+		assert_lte(pieces.size(), 1, "at most one piece, depth %d" % depth)
+		for p: Dictionary in pieces:
+			assert_eq(p["frames"], GroundPlan.massif_frames(depth), "frames, depth %d" % depth)
+		if depth > 0:
+			assert_eq(props.filter(func(p: Dictionary) -> bool: return p["kind"] == "rocks").size(), 0, "no boulders inside, depth %d" % depth)
+
+func test_rocks_are_fewer_than_the_phaser_plan() -> void:
+	for s: Dictionary in _fx["seeds"]:
+		var got := (_plan_for(s)["props"] as Array).filter(func(p: Dictionary) -> bool: return p["kind"] == "rocks").size()
+		var was := (s["props"] as Array).filter(func(p: Array) -> bool: return p[1] == "rocks").size()
+		assert_lt(got, int(was * 0.6), "rocks, seed %s" % s["seed"])

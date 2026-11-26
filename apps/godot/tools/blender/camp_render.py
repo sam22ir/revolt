@@ -444,9 +444,13 @@ def make_nature(args):
     """The map's prop atlases, frame by frame, each in the frame and on the anchor the manifest already gives it."""
     import map_pieces as mp
     atlases = json.load(open(os.path.join(os.getcwd(), "art", "terrain-manifest.json")))["props"]
+    # The massif has frames of its own, written beside its picture for GroundArt.
+    atlases["peaks"] = mp.MASSIF_ATLAS
     s, mat = setup(), material()
     for name in args or mp.NATURE:
         atlas = atlases[name]
+        if name == "peaks":
+            json.dump(atlas, open(os.path.join(os.getcwd(), "art", "terrain", "props-peaks.json"), "w"), indent=1)
         sheet = np.zeros((atlas["h"], atlas["w"], 4), np.float32)
         for i, f in enumerate(atlas["frames"]):
             kit = ck.Kit(i * 13 + len(name), ck.BODY)

@@ -53,8 +53,9 @@ vec2 place(vec2 t) {
 	return 1.0 - abs(mod(t / map_size, 2.0) - 1.0);
 }
 
+// Only hills step up in the ground: mountains are rock pieces standing on it (GroundPlan.massif_frames).
 float level(vec4 l) {
-	return step(T1, l.r) + step(T2, l.g) + step(T3, l.g);
+	return step(T1, l.r);
 }
 
 float drop_of(float lvl) {
@@ -176,8 +177,13 @@ void fragment() {
 		fringe += max((1.0 - smoothstep(0.317, 0.335, soil.r + ragged * 0.12)) - wood, 0.0) * 0.16;
 		colour *= 1.0 - max(fringe, 0.0);
 		if (lvl > 0.5) {
-			vec3 up = lvl > 1.5 ? texture(materials, vec3(uv, ROCK)).rgb * (lvl > 2.5 ? 1.07 : 1.0) : colour * vec3(1.035, 1.02, 0.99);
-			colour = up;
+			colour *= vec3(1.035, 1.02, 0.99);
+		}
+		// Mountain ground: scree and rock under the pieces, fading into gravel round them.
+		float scree = smoothstep(T2 - 0.06, T2 - 0.01, here.g + ragged * 0.12);
+		if (scree > 0.0) {
+			vec3 stone = mix(texture(materials, vec3(uv, GRAVEL)).rgb, texture(materials, vec3(uv, ROCK)).rgb, smoothstep(T2 - 0.01, T2 + 0.03, here.g));
+			colour = mix(colour, stone, scree);
 		}
 
 		// ---- Riverbeds.
@@ -208,10 +214,27 @@ void fragment() {
 			vec3 track = texture(materials, vec3(uv * 1.3 + 0.17, SAND)).rgb * vec3(1.08, 1.055, 1.02);
 			float rut = 1.0 - smoothstep(0.02, 0.055, abs(road - 0.115));
 			track *= 1.0 - rut * 0.15 * (0.6 + 0.4 * n_fine.r);
+			// The track is worn below the ground: its bank facing the sun (up-left on screen) is lit, the other in shade.
+			vec2 ft = t + (n_fine.ba - 0.5) * 0.16;
+			vec2 grad = vec2(texture(feature, place(ft + tile_of(vec2(3.0, 0.0)))).r - texture(feature, place(ft - tile_of(vec2(3.0, 0.0)))).r,
+					texture(feature, place(ft + tile_of(vec2(0.0, 3.0)))).r - texture(feature, place(ft - tile_of(vec2(0.0, 3.0)))).r);
+			float facing = dot(normalize(grad + 0.00001), normalize(vec2(-1.0, -1.4)));
+			float wall = smoothstep(half_w - 0.075, half_w - 0.01, road);
+			track *= 1.0 + wall * mix(0.13, -0.26, smoothstep(-0.4, 0.4, facing));
+			// The ruts' sun-side lip throws a thin shadow into them.
+			track *= 1.0 - rut * 0.10 * smoothstep(0.0, 0.5, facing * sign(road - 0.115) * -1.0);
 			colour = mix(colour, track, on);
 			float rim = 1.0 - smoothstep(0.008, 0.024 + px * 0.012, abs(road - half_w));
 			colour = ink_over(colour, rim * 0.48 * smoothstep(0.30, 0.48, n_fine.a + 0.08) * mix(0.35, 1.0, near_view));
 			colour *= 1.0 - 0.07 * (1.0 - on) * (1.0 - smoothstep(half_w, half_w + 0.14, road));
+			// Stones kicked to the verges, each with its shadow down-right.
+			float verge = (1.0 - on) * (1.0 - smoothstep(half_w + 0.04, half_w + 0.13, road));
+			if (verge > 0.01 && near_view > 0.05) {
+				float st = smoothstep(0.80, 0.86, texture(noise_tex, world / vec2(34.0, 17.0) + 0.13).r);
+				float sh = smoothstep(0.80, 0.86, texture(noise_tex, (world - vec2(2.0, 2.5)) / vec2(34.0, 17.0) + 0.13).r);
+				colour *= 1.0 - max(sh - st, 0.0) * 0.45 * verge * near_view;
+				colour = mix(colour, texture(materials, vec3(uv * 2.0, ROCK)).rgb * 1.12, st * verge * near_view);
+			}
 		}
 
 		// ---- Pools.
@@ -233,18 +256,11 @@ void fragment() {
 			vec4 right = texture(land, place(tw + tile_of(vec2(3.0, 0.0))));
 			vec4 down = texture(land, place(tw + tile_of(vec2(0.0, 3.0))));
 			float slope_r = max(length(vec2(right.r - here.r, down.r - here.r)) / 3.0, 0.00025);
-			float slope_g = max(length(vec2(right.g - here.g, down.g - here.g)) / 3.0, 0.00025);
 			float d1 = (here.r - T1) / slope_r;
-			float d2 = (here.g - T2) / slope_g;
-			float d3 = (here.g - T3) / slope_g;
 			float thin = 0.55 + px * 0.5;
 			float l1 = step(0.0, d1) * (1.0 - smoothstep(thin, thin + 0.7, d1)) * step(lvl, 1.5);
-			float l2 = step(0.0, d2) * (1.0 - smoothstep(thin + 0.4, thin + 1.2, d2)) * step(lvl, 2.5);
-			float l3 = step(0.0, d3) * (1.0 - smoothstep(thin + 0.4, thin + 1.2, d3));
 			colour *= 1.0 + 0.06 * (1.0 - smoothstep(0.0, 9.0, max(d1, 0.0))) * step(0.5, lvl) * step(lvl, 1.5);
-			colour *= 1.0 + 0.09 * (1.0 - smoothstep(0.0, 8.0, lvl > 2.5 ? d3 : d2)) * step(1.5, lvl);
 			colour = ink_over(colour, l1 * 0.42 * mix(0.4, 1.0, near_view) * smoothstep(0.28, 0.45, n_fine.b + 0.1));
-			colour = ink_over(colour, max(l2, l3) * 0.88);
 		}
 	}
 

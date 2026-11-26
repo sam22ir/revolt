@@ -4,6 +4,8 @@
 
 **Status (25 Nov 2026):** built: shader ground with materials, mesas and hill ledges, riverbeds, roads, pools, dunes, region borders, the raked strip, cloud shadows; the inked fence and towers; palms and lighter trees. Old ground code (colour field, wash, decals, detail overlay, stroke mesh, `?ground=` variants) removed. Open: speed on a real phone, the full-quality render of the materials, field parcels by roads (left out so they are not mistaken for resource sites), and lifting props that stand on a mesa top (they stand on their true tile, which is right, but nothing yet checks one is never on a face).
 
+**26 Nov 2026:** mountains are no longer shader mesas. Each mountain tile carries one Blender piece of massif (`map_pieces.py` peaks: foothill, butte or peak by `GroundPlan.mountain_depth`) on scree ground; rocks are about a quarter as many and larger; roads have a sunlit and a shaded bank and stones on the verges. Draft render; bases keep 3 tiles off the edge and 1 off mountains (`baseSiteOk`).
+
 ## What is drawn
 
 1. **Land with height.** The terrain noise itself is the height: hills are a low ledge, mountains rise as two- or three-step mesas with inked cliff faces (the camp's rock). One shader walks each pixel's column through the height field. Ground near roads, riverbeds, oases and anything built is flattened, so nothing the player uses stands on or behind a cliff.

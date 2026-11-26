@@ -50,7 +50,8 @@ static func build(seed: int, size: int, terrain: PackedInt32Array, flags: Packed
 			var rock_w := float(rocks[i]) / 255.0
 			var grove_w := float(grove[i]) / 255.0
 			colours[i] = land_tint(blended_ground(terrain, size, x, y), terrain[i], flags[i], fertility[i])
-			for p: Dictionary in props_for(terrain[i], x, y, _interior(terrain, size, x, y), flags[i], fertility[i], rock_w, grove_w):
+			var depth := mountain_depth(terrain, flags, size, x, y) if terrain[i] == T_MOUNTAIN else 0
+			for p: Dictionary in props_for(terrain[i], x, y, _interior(terrain, size, x, y), flags[i], fertility[i], rock_w, grove_w, depth):
 				p["i"] = i
 				props.append(p)
 	return {"colours": colours, "props": props, "decals": decals_for(seed, size, terrain, fertility, flags, rocks, grove, decal_frames)}
@@ -132,6 +133,28 @@ static func _interior(terrain: PackedInt32Array, size: int, x: int, y: int) -> f
 				same += 1
 	return float(same) / 8.0
 
+## How deep inside its mountain a mountain tile is: 0 on its edge, 1 two tiles in, 2 deeper. Roads, riverbeds and pools
+## through a mountain count as its edge; off the map counts as mountain (the frontier mirrors it).
+static func mountain_depth(terrain: PackedInt32Array, flags: PackedByteArray, size: int, x: int, y: int) -> int:
+	for r in [1, 2]:
+		for dy in range(-r, r + 1):
+			for dx in range(-r, r + 1):
+				var nx := x + dx
+				var ny := y + dy
+				if nx < 0 or ny < 0 or nx >= size or ny >= size:
+					continue
+				var j := ny * size + nx
+				if terrain[j] != T_MOUNTAIN or (flags[j] & NO_DECAL) != 0:
+					return r - 1
+	return 2
+
+## The massif frames for a depth (tools/blender/map_pieces.py peaks): foothills, cliff blocks, summits.
+static func massif_frames(depth: int) -> Array[int]:
+	var out: Array[int] = []
+	for j in 6:
+		out.append(mini(depth, 2) * 6 + j)
+	return out
+
 # ---------------------------------------------------------------- props
 
 static func _prop(x: int, y: int, salt: int, kind: String, scale_lo: float, scale_hi: float, spread: float = 0.3, frames: Variant = null) -> Dictionary:
@@ -146,7 +169,7 @@ static func _prop(x: int, y: int, salt: int, kind: String, scale_lo: float, scal
 	}
 
 ## The props on a tile (terrain-props.ts propsFor). `interior` is the share of its eight neighbours with the same terrain.
-static func props_for(terrain_index: int, x: int, y: int, interior: float, flags: int, fertility: float, rocks: float, grove: float) -> Array:
+static func props_for(terrain_index: int, x: int, y: int, interior: float, flags: int, fertility: float, rocks: float, grove: float, depth: int = 0) -> Array:
 	var out: Array = []
 	var r := GroundMath.hash01(x, y, 1)
 	var not_mountain := terrain_index != T_MOUNTAIN
@@ -154,8 +177,8 @@ static func props_for(terrain_index: int, x: int, y: int, interior: float, flags
 	if (flags & (Geography.GEO_ROAD | Geography.GEO_OASIS)) != 0:
 		return out
 	if (flags & Geography.GEO_WADI) != 0:
-		if r < 0.3:
-			out.append(_prop(x, y, 10, "rocks", 0.4, 0.6, 0.3))
+		if r < 0.12:
+			out.append(_prop(x, y, 10, "rocks", 0.5, 0.7, 0.3))
 		return out
 	if not_mountain and (flags & (Geography.GEO_OASIS_SHORE | Geography.OASIS_FRONT)) != 0:
 		if r < 0.4:
@@ -174,12 +197,13 @@ static func props_for(terrain_index: int, x: int, y: int, interior: float, flags
 		return out
 	if terrain_index == T_PLAIN or terrain_index == T_HILLS:
 		if rocks > 0.0 and fertility < ROCKY:
-			if r < 0.35 + 0.5 * rocks:
-				var lo := 0.6 + 0.3 * rocks
-				var hi := 0.9 + 0.4 * rocks
+			# Few rocks, in the rockiest ground, and big enough to stand up and throw a shadow.
+			if r < 0.08 + 0.3 * rocks:
+				var lo := 0.9 + 0.3 * rocks
+				var hi := 1.15 + 0.35 * rocks
 				out.append(_prop(x, y, 10, "rocks", lo, hi, 0.3))
-				if rocks > 0.5:
-					out.append(_prop(x, y, 40, "rocks", lo, hi, 0.35))
+				if rocks > 0.8:
+					out.append(_prop(x, y, 40, "rocks", lo * 0.7, hi * 0.7, 0.35))
 		elif grove > 0.0:
 			var green := minf(1.0, maxf(0.0, fertility))
 			var p := minf(0.85, (0.3 + 0.55 * grove) * (0.6 + 0.8 * green))
@@ -194,8 +218,8 @@ static func props_for(terrain_index: int, x: int, y: int, interior: float, flags
 			var scrub := 0.06 if terrain_index == T_HILLS else 0.02
 			if r < scrub:
 				out.append(_prop(x, y, 10, "scrub", 0.7, 1.0, 0.35))
-			elif r < scrub + 0.01:
-				out.append(_prop(x, y, 10, "rocks", 0.5, 0.8, 0.35))
+			elif r < scrub + 0.006:
+				out.append(_prop(x, y, 10, "rocks", 0.7, 0.95, 0.35))
 		return out
 	if terrain_index == T_FOREST:
 		var count := 0
@@ -210,12 +234,11 @@ static func props_for(terrain_index: int, x: int, y: int, interior: float, flags
 		if interior > 0.45 and GroundMath.hash01(x, y, 2) < 0.22:
 			out.append(_prop(x, y, 40, "scrub", 0.8, 1.1, 0.35))
 	elif terrain_index == T_MOUNTAIN:
-		if interior > 0.85 and r < 0.45:
-			out.append(_prop(x, y, 10, "peaks", 0.7, 1.0, 0.15))
-		elif r < 0.55:
-			out.append(_prop(x, y, 10, "rocks", 1.1, 1.8, 0.25))
-		if GroundMath.hash01(x, y, 2) < 0.3:
-			out.append(_prop(x, y, 40, "rocks", 0.7, 1.1, 0.35))
+		# One piece of massif per tile, taller the deeper in; a few boulders below the foothills.
+		if depth > 0 or r < 0.6:
+			out.append(_prop(x, y, 10, "peaks", 0.92, 1.08, 0.12, massif_frames(depth)))
+		if depth == 0 and GroundMath.hash01(x, y, 2) < 0.2:
+			out.append(_prop(x, y, 40, "rocks", 0.9, 1.2, 0.45))
 	return out
 
 # ---------------------------------------------------------------- decals

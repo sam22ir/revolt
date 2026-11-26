@@ -463,22 +463,84 @@ def scrub(k, i, p, w, h):
             k.mesh([b - s, b + s, mid + s * .7, mid - s * .7, tip], [[0, 1, 2, 3], [3, 2, 4]], k.shade(col, .22), ink if _ % 9 else 0.6, .4)
 
 
+# The mountains' pieces: six foothills, six cliff blocks and six summits, by how deep inside a mountain the tile is
+# (GroundPlan.massif_frames). Each frame is a whole piece of massif about one and a half tiles wide, so a mountain's
+# pieces overlap into one body of rock. This atlas is ours, not the Phaser manifest's: its frames are MASSIF_ATLAS.
+MASSIF_W = 256
+MASSIF_H = (150, 240, 340)
+
+
+def _massif_atlas():
+    frames, y = [], 0
+    for h in MASSIF_H:
+        for j in range(6):
+            frames.append({"x": j * MASSIF_W, "y": y, "w": MASSIF_W, "h": h, "ax": MASSIF_W // 2, "ay": h - 14})
+        y += h
+    return {"w": 6 * MASSIF_W, "h": y, "frames": frames}
+
+
+MASSIF_ATLAS = _massif_atlas()
+EARTH = (ck.rgb("c49c6e"), ck.rgb("d0ae82"), ck.rgb("bba88e"))
+
+
+def _scree(k, p, w, n, lo, hi):
+    """Loose stones round a piece's foot, most of them in front."""
+    for _ in range(n):
+        s = k.rng.uniform(lo, hi)
+        at = p + k_px(k.rng.uniform(-.42, .42) * w, k.rng.uniform(-.06, .05) * w)
+        k.rock(at + Vector((0, 0, s * .22)), (s * 1.4, s * 1.1, s), k.rng.choice(EARTH), upright=.3, cuts=8)
+
+
+# Ring profiles (height share, radius share) from foot to top: a low shoulder, a flat-topped butte, a peak.
+PROFILES = (
+    ((0.0, 1.0), (0.45, 0.74), (0.8, 0.44), (1.0, 0.22)),
+    ((0.0, 1.0), (0.18, 0.9), (0.82, 0.7), (1.0, 0.52)),
+    ((0.0, 1.0), (0.25, 0.8), (0.55, 0.56), (0.82, 0.3), (1.0, 0.13)),
+)
+
+
+def crag(k, at, radius, height, col, profile, sides=11, lean=0.22):
+    """A faceted body of rock on the ground at `at`: rings of points from the profile, each a little uneven and the upper
+    ones leaning, so its flat faces catch the sun or turn from it."""
+    turn = k.rng.uniform(0, math.tau)
+    jit = [k.rng.uniform(0.72, 1.18) for _ in range(sides)]
+    tilt = Vector((k.rng.uniform(-lean, lean), k.rng.uniform(-lean, lean), 0)) * radius
+    pts, faces = [], []
+    for r, (fz, fr) in enumerate(profile):
+        for j in range(sides):
+            t = turn + j / sides * math.tau + k.rng.uniform(-0.12, 0.12)
+            rr = radius * fr * (jit[j] if r < len(profile) - 1 else 1.0) * k.rng.uniform(0.94, 1.06)
+            pts.append(at + Vector((math.cos(t) * rr, math.sin(t) * rr, height * fz)) + tilt * fz)
+    for r in range(len(profile) - 1):
+        for j in range(sides):
+            a, b = r * sides + j, r * sides + (j + 1) % sides
+            faces.append([a, b, b + sides, a + sides])
+    top = (len(profile) - 1) * sides
+    faces.append([top + j for j in range(sides)])
+    k.mesh(pts, faces, k.shade(col, 0.05), None, 1.0)
+
+
+def _scree(k, p, w, n, lo, hi):
+    """Loose stones round a piece's foot, most of them in front."""
+    for _ in range(n):
+        s = k.rng.uniform(lo, hi)
+        at = p + k_px(k.rng.uniform(-.42, .42) * w, k.rng.uniform(-.06, .05) * w)
+        k.rock(at + Vector((0, 0, s * .22)), (s * 1.4, s * 1.1, s), k.rng.choice(EARTH), upright=.3, cuts=8)
+
+
 def peaks(k, i, p, w, h):
-    """A crag: a few tall shoulders of rock, snow on some tops."""
-    snow = i in (3, 7, 11)
-    n = 3 + i % 3
-    for j in range(n):
-        f = 1.0 if j == 0 else k.rng.uniform(.45, .8)
-        off = 0.0 if j == 0 else (j - n / 2) * w * .62 / n + k.rng.uniform(-6, 6)
-        z = h * .80 * f / ck.UP
-        wide = w * k.rng.uniform(.26, .36)
-        base = p + k_px(off, -h * (.14 + (.10 if j % 2 else 0.0)))
-        k.rock(base + Vector((0, 0, z * .34)), (wide, wide * .9, z * 1.1), ck.rgb("a67c57") if j % 2 else ck.rgb("b48a62"), upright=.85, cuts=13)
-        if snow and f > .7:
-            k.rock(base + Vector((0, 0, z * .72)), (wide * .66, wide * .6, z * .3), ck.rgb("dcd8cf"), upright=.3, cuts=8)
-    for j in range(4):
-        s = k.rng.uniform(12, 24)
-        k.rock(p + k_px(k.rng.uniform(-.36, .36) * w, -s * .6 - 4) + Vector((0, 0, s * .2)), (s * 1.3, s, s), ck.ROCK_TOP, upright=.3, cuts=8)
+    """A piece of massif: a low shoulder of rock (0-5), a flat-topped butte (6-11) or a peak (12-17), each with a smaller
+    body or two beside it and stones at its foot."""
+    kind, v = divmod(i, 6)
+    col = EARTH[v % 3]
+    tall = (.5, .62, .72)[kind] * h / ck.UP
+    wide = (.3, .26, .33)[kind] * w
+    crag(k, p + k_px(k.rng.uniform(-6, 6), -h * .12), wide, tall * k.rng.uniform(.9, 1.0), col, PROFILES[kind])
+    for side in ((-1, 1) if v % 2 else (k.rng.choice((-1, 1)),)):
+        sub = 0
+        crag(k, p + k_px(side * w * k.rng.uniform(.2, .24), -h * k.rng.uniform(.0, .06)), wide * k.rng.uniform(.6, .75),
+             tall * k.rng.uniform(.4, .55), EARTH[(v + 1) % 3], PROFILES[sub])
+    _scree(k, p, w, 6 + kind, 8 + 2 * kind, 18 + 3 * kind)
 
 
 NATURE = {"trees": trees, "rocks": rocks, "scrub": scrub, "peaks": peaks}
