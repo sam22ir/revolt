@@ -106,7 +106,8 @@ func _draw() -> void:
 	draw_polyline(rim, Color(0.15, 0.1, 0.07, 0.95), HudTheme.px(2.5), true)
 	draw_polyline(rim, HudTheme.BRASS, HudTheme.px(1.0), true)
 	var at := func(x: int, y: int) -> Vector2: return MinimapMath.tile_to_minimap(size, x + 0.5, y + 0.5, w)
-	var r := w / 132.0 * 0.75
+	# Dots shrink on a bigger map, so hundreds of targets do not cover it.
+	var r := w / 132.0 * 0.75 * clampf(sqrt(64.0 / maxf(size, 1)), 0.5, 1.0)
 	for n: Dictionary in _snap.get("npcs", []):
 		var strong := int(n["level"]) >= int(Balance.data()["npcLevels"].size()) or String(n.get("kind", "")) == "fortified_line"
 		draw_circle(at.call(int(n["x"]), int(n["y"])), (2.4 if strong else 1.5) * r, NPC_STRONG if strong else NPC)
@@ -124,8 +125,10 @@ func _draw() -> void:
 		draw_rect(Rect2(p - Vector2.ONE * 1.6 * r, Vector2.ONE * 3.2 * r), ALLY if q.get("mine", false) else HQ_OTHER)
 	if not mine.is_empty():
 		var p: Vector2 = at.call(int(mine["x"]), int(mine["y"]))
-		draw_circle(p, 3.0 * r, PAPER)
-		draw_arc(p, 3.0 * r, 0.0, TAU, 16, ALLY, 1.5 * r, true)
+		# The player's own base keeps its size whatever the map's.
+		var own := w / 132.0 * 0.75
+		draw_circle(p, 3.0 * own, PAPER)
+		draw_arc(p, 3.0 * own, 0.0, TAU, 16, ALLY, 1.5 * own, true)
 	if _view.size() == 4:
 		var pts := PackedVector2Array()
 		for c: Vector2 in _view:
