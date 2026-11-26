@@ -81,13 +81,14 @@ func _make_label() -> Label:
 	label.add_theme_stylebox_override("normal", plate)
 	return label
 
-## Takes what the screen shows: building levels, the running upgrade (or null) and server time.
-func set_state(levels: Dictionary, queue: Variant, now_ms: int) -> void:
+## Takes what the screen shows: building levels, the running upgrade (or null), server time and what the camp shows of the
+## player's game (CampSummary; empty for none).
+func set_state(levels: Dictionary, queue: Variant, now_ms: int, summary: Dictionary = {}) -> void:
 	_levels = levels
 	_queue = queue
 	_now_ms = now_ms
-	_picture.set_state(levels, "" if queue == null else String(queue["building"]), now_ms)
-	_life.tick(now_ms, CampArt.chimney(look("farm")))
+	_picture.set_state(levels, "" if queue == null else String(queue["building"]), now_ms, summary)
+	_life.tick(now_ms, CampArt.chimney(look("farm")), not summary.get("food_low", false))
 	_refresh_labels()
 	_overlay.queue_redraw()
 
