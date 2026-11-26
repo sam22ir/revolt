@@ -1,4 +1,5 @@
 import {
+  baseSiteOk,
   geographyOf,
   harvestCarry,
   harvestedAt,
@@ -143,7 +144,8 @@ test("harvest: the load comes home and is capped by the carry and by storage", a
       const ctl = await getState(s, control.token);
       ex(after.troops.infantry).toBe(10);
       ex(after.marches).toEqual([]);
-      ex(after.resources[res] - ctl.resources[res]).toBe(harvestedAt(site!, harvestCarry(troops(5)), t.arriveAt, recallAt));
+      // Both stores hold fractional production, so their difference is only equal to within rounding.
+      ex(after.resources[res] - ctl.resources[res]).toBeCloseTo(harvestedAt(site!, harvestCarry(troops(5)), t.arriveAt, recallAt), 6);
       ex(await harvest(s, p.token, site!.id, 5)).toMatchObject({ ok: true });
     },
     "a load never takes storage past its cap": async (s, ex) => {
@@ -341,7 +343,24 @@ test("harvest: no base, roaming NPC, stronghold or HQ is ever placed on a resour
   const placed = sql.exec<{ x: number; y: number }>("SELECT x, y FROM map_bases UNION ALL SELECT x, y FROM npcs UNION ALL SELECT x, y FROM alliance_hqs");
   expect(placed.length).toBeGreaterThan(40);
   expect(placed.some((p) => sites.some((s) => s.x === p.x && s.y === p.y))).toBe(false);
-  const site = sites[0]!;
+  const site = sites.find((x) => baseSiteOk(seed, x.x, x.y))!;
   expect(service.setHq({ accountId: "hq", handle: "H", allianceId: "al", allianceTag: "TAG" }, site.x, site.y, T0).value).toMatchObject({ ok: false, reason: "tile_taken" });
   close();
+});
+
+test("bases keep off the map's edges and away from mountains, on the random path and on a crowded map", () => {
+  for (const random of [seededRng(5), () => 0]) {
+    const sqlite = new DatabaseSync(":memory:");
+    const sql: MapSql = { exec: (q, ...b) => sqlite.prepare(q).all(...b) as never };
+    const { db, close } = sqliteDb();
+    let n = 0;
+    // `() => 0` always draws tile (0, 0), on the edge, so every base comes from the crowded-map scan.
+    const service = new MapService({ sql, db, random, newId: () => `id-${++n}` });
+    const seed = Number(sql.exec<{ value: number }>("SELECT value FROM meta WHERE key = 'terrain_seed'")[0]!.value);
+    for (let i = 0; i < 30; i++) service.ensureBase({ accountId: `acc-${i}`, handle: `h${i}`, allianceId: null, allianceTag: null }, T0);
+    const bases = sql.exec<{ x: number; y: number }>("SELECT x, y FROM map_bases");
+    expect(bases).toHaveLength(30);
+    for (const b of bases) expect(baseSiteOk(seed, b.x, b.y), `${b.x},${b.y}`).toBe(true);
+    close();
+  }
 });

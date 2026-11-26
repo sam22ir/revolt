@@ -1,4 +1,4 @@
-import { MAX_ALLIANCE_MEMBERS, terrainAt, type MapSnapshot } from "@revolt/rules";
+import { baseSiteOk, MAX_ALLIANCE_MEMBERS, terrainAt, type MapSnapshot } from "@revolt/rules";
 import { test } from "vitest";
 import { call, connectChat, create, join, mine, MANY_GUESTS, player, post, team, type Player } from "./alliance-helpers.ts";
 import { HOUR, T0, type Json, type Server } from "./harness.ts";
@@ -262,7 +262,7 @@ test("alliance HQ on the map and the member tag", async () => {
     throw new Error("no tile");
   };
   const clearOf = (snap: MapSnapshot) => (x: number, y: number): boolean =>
-    terrainAt(snap.terrainSeed, x, y) !== "mountain" &&
+    baseSiteOk(snap.terrainSeed, x, y) &&
     [...snap.bases, ...snap.npcs, ...snap.hqs].every((p) => Math.max(Math.abs(p.x - x), Math.abs(p.y - y)) > 2);
   await rows(MANY_GUESTS, {
     "only the leader places it; everyone sees it; the alliance tag shows on members' bases": async (s, ex) => {
@@ -294,8 +294,9 @@ test("alliance HQ on the map and the member tag", async () => {
       ex(await post(s, t.leader, "/v1/alliance/hq", { x: -1, y: 5 }), "negative").toMatchObject({ ok: false, reason: "bad_tile" });
       ex(await post(s, t.leader, "/v1/alliance/hq", { x: 3.5, y: 5 }), "fraction").toMatchObject({ ok: false, reason: "bad_tile" });
       ex(await post(s, t.leader, "/v1/alliance/hq", { x: snap.size, y: 0 }), "off the map").toMatchObject({ ok: false, reason: "bad_tile" });
+      ex(await post(s, t.leader, "/v1/alliance/hq", { x: 1, y: 30 }), "by the frontier").toMatchObject({ ok: false, reason: "bad_tile" });
       ex(await post(s, t.leader, "/v1/alliance/hq", { x: base.x + 1, y: base.y }), "next to a base").toMatchObject({ ok: false, reason: "tile_taken" });
-      const npc = snap.npcs[0]!;
+      const npc = snap.npcs.find((x) => baseSiteOk(snap.terrainSeed, x.x, x.y))!;
       ex(await post(s, t.leader, "/v1/alliance/hq", { x: npc.x, y: npc.y }), "on a target").toMatchObject({ ok: false, reason: "tile_taken" });
       for (const bad of [{ x: "1", y: 2 }, { x: 1 }, { x: null, y: 1 }, { x: Number.NaN, y: 1 }]) {
         ex((await s.request("POST", "/v1/alliance/hq", { token: t.leader.token, body: bad })).status, JSON.stringify(bad)).toBe(400);

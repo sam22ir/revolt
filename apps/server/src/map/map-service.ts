@@ -11,7 +11,7 @@ import {
   loadoutIds,
   HQ_MOVE_COOLDOWN_MS,
   isGatherOption,
-  isOnMap,
+  baseSiteOk,
   isTroops,
   MAP_SIZE,
   MAX_NPC_LEVEL,
@@ -31,7 +31,6 @@ import {
   startMarch,
   strongholdTile,
   targetGone,
-  terrainAt,
   travelMs,
   ZERO_RESOURCES,
   ZERO_TROOPS,
@@ -486,7 +485,7 @@ export class MapService {
   setHq(viewer: MapViewer, x: number, y: number, now: number): MapOp<HqResult> {
     if (viewer.allianceId === null || viewer.allianceTag === null) return { value: { ok: false, reason: "not_member" }, events: [] };
     const seed = Number(this.meta("terrain_seed"));
-    if (!isOnMap(x, y) || terrainAt(seed, x, y) === "mountain") return { value: { ok: false, reason: "bad_tile" }, events: [] };
+    if (!baseSiteOk(seed, x, y)) return { value: { ok: false, reason: "bad_tile" }, events: [] };
     const current = this.rows<{ moved_at: number }>("SELECT moved_at FROM alliance_hqs WHERE alliance_id = ?", viewer.allianceId)[0];
     if (current !== undefined && now - current.moved_at < HQ_MOVE_COOLDOWN_MS) return { value: { ok: false, reason: "hq_cooldown" }, events: [] };
     const others = [
@@ -883,7 +882,7 @@ export class MapService {
       ...this.sites(),
     ];
     const free = (x: number, y: number, spacing: number): boolean =>
-      terrainAt(seed, x, y) !== "mountain" && taken.every((p) => Math.max(Math.abs(p.x - x), Math.abs(p.y - y)) > spacing);
+      baseSiteOk(seed, x, y) && taken.every((p) => Math.max(Math.abs(p.x - x), Math.abs(p.y - y)) > spacing);
     for (let i = 0; i < 500; i++) {
       const x = Math.floor(this.deps.random() * MAP_SIZE);
       const y = Math.floor(this.deps.random() * MAP_SIZE);

@@ -1073,7 +1073,9 @@
     "marchRescueGraceMs": 3600000,
     "maxMarches": 2,
     "npcCountByLevel": [16,10,6,0],
-    "placementSpacing": 2
+    "placementSpacing": 2,
+    "baseEdgeMargin": 3,
+    "baseMountainClearance": 1
   },
   "story": {
     "algeria": [

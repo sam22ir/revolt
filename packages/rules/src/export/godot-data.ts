@@ -32,7 +32,7 @@ import { ALLIANCE_RANKS, canPerform } from "../alliance.ts";
 import { RALLY_GATHER_OPTIONS_MS, RALLY_SPEED } from "../data/alliance.ts";
 import { DEFAULT_BACKGROUND } from "../background.ts";
 import { SITE_KINDS, SITE_LEVELS, SITE_MAX_HARVEST_MS, SITE_RATE_PER_HOUR, SITE_RESOURCE } from "../data/sites.ts";
-import { MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING, REGION_CELL } from "../data/map.ts";
+import { BASE_EDGE_MARGIN, BASE_MOUNTAIN_CLEARANCE, MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING, REGION_CELL } from "../data/map.ts";
 import { hash32 } from "../rng.ts";
 import { regionAt, regionSite } from "../regions.ts";
 import { terrainAt, valueNoise, type TerrainId } from "../terrain.ts";
@@ -89,6 +89,8 @@ export const buildGodotBalance = (): unknown => ({
     maxMarches: MAX_MARCHES,
     npcCountByLevel: NPC_COUNT_BY_LEVEL,
     placementSpacing: PLACEMENT_SPACING,
+    baseEdgeMargin: BASE_EDGE_MARGIN,
+    baseMountainClearance: BASE_MOUNTAIN_CLEARANCE,
   },
   story: STORY,
   events: EVENTS,

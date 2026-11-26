@@ -19,6 +19,12 @@ export const MAX_MARCHES = 2;
 /** Minimum tile distance between a new base and anything already on the map. */
 export const PLACEMENT_SPACING = 2;
 
+/** Tiles along each map edge where no base or alliance HQ goes, so none stands against the frontier fence. */
+export const BASE_EDGE_MARGIN = 3;
+
+/** Tiles between a base or alliance HQ and the nearest mountain, so the rock never hides it. */
+export const BASE_MOUNTAIN_CLEARANCE = 1;
+
 /**
  * If a march has no battle outcome this long after it should have returned (the map
  * server lost it), its troops come home unharmed with no loot.
