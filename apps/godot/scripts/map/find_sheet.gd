@@ -40,6 +40,10 @@ func open(snapshot: Dictionary, from: Vector2i) -> void:
 	visible = true
 	_show_camps()
 
+## The map changed while the sheet is open (targets move and respawn).
+func set_snapshot(snapshot: Dictionary) -> void:
+	_snapshot = snapshot
+
 func close() -> void:
 	visible = false
 	for f: LineEdit in [_x, _y, _tag]:

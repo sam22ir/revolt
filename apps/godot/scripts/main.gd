@@ -656,7 +656,6 @@ func _apply_language(lang: String) -> void:
 
 func _on_camera_moved() -> void:
 	_map.set_view_zoom(_camera.view_zoom)
-	_update_map_tools()
 
 ## Opens the Find sheet over the map, searching outward from the tile the camera looks at.
 func _open_find() -> void:
@@ -666,6 +665,16 @@ func _open_find() -> void:
 	var t := Iso.world_to_tile(_camera.position)
 	_find_sheet.open(_map.snapshot, Vector2i(int(floor(t.x)), int(floor(t.y))))
 	_update_coords()
+
+## The phone's keyboard covers the bottom of the screen and Godot does not move the view for it: the Find sheet rises above it.
+func _lift_find_sheet() -> void:
+	var rest := _tile_panel.offset_bottom
+	var keyboard := DisplayServer.virtual_keyboard_get_height()
+	var window_h := DisplayServer.window_get_size().y
+	var lift := 0.0
+	if keyboard > 0 and window_h > 0:
+		lift = maxf(0.0, keyboard * get_viewport().get_visible_rect().size.y / window_h + rest)
+	_find_sheet.offset_bottom = rest - lift
 
 func _close_find() -> void:
 	_find_sheet.close()
@@ -708,7 +717,8 @@ func _update_map_tools() -> void:
 	var world := Iso.tile_to_world(own.x + 1.0, own.y + 1.0)
 	var screen := _map.get_global_transform_with_canvas() * world
 	var here := Iso.world_to_tile(_camera.position)
-	var tiles := maxi(absi(own.x - int(floor(here.x))), absi(own.y - int(floor(here.y))))
+	# The march's own measure (rules tileDistance), as the Phaser arrow showed it.
+	var tiles := roundi(Vector2(own).distance_to(here))
 	_map_tools.set_arrow(screen, band, tiles)
 
 func _update_coords() -> void:
@@ -737,12 +747,15 @@ func _process(_delta: float) -> void:
 	if _tile_panel.visible and not _map.snapshot.is_empty():
 		var tile := _tile_panel.tile()
 		_tile_panel.update_view(_map.snapshot, _map.terrain_at_tile(tile.x, tile.y), String(_session.alliance["name"]) if _session.alliance is Dictionary else "", String(_session.alliance["myRank"]) if _session.alliance is Dictionary else "", now, _session.state.get("marches", []))
+	if _find_sheet.visible:
+		_lift_find_sheet()
 	if _screen == "map" and _loaded:
 		_map.markers().tick(now, _camera.view_zoom)
 		# The minimap takes the snapshot once a second: its dots follow the map, its regions rebake only on a liberation.
 		if Time.get_ticks_msec() - _minimap_ms > 1000:
 			_minimap_ms = Time.get_ticks_msec()
-			_map_tools.minimap.set_snapshot(_map.snapshot, now)
+			_map_tools.minimap.set_snapshot(_map.snapshot, now, _map.region_grid())
+			_find_sheet.set_snapshot(_map.snapshot)
 		_marches_list.update_view(_session.state.get("marches", []), now, _march_sheet.is_open())
 	else:
 		_marches_list.visible = false

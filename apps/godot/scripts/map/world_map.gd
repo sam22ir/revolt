@@ -65,6 +65,10 @@ func prop_layer() -> PropLayer:
 func ground_layer() -> GroundLayer:
 	return _ground
 
+## Region id per tile, row-major (shared, not copied: do not change it).
+func region_grid() -> PackedInt32Array:
+	return _regions
+
 func region_at_tile(x: int, y: int) -> int:
 	if x < 0 or y < 0 or x >= size or y >= size:
 		return -1

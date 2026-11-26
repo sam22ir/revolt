@@ -27,6 +27,7 @@ var _view: Array = []
 
 func _init() -> void:
 	layout_direction = Control.LAYOUT_DIRECTION_LTR
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	custom_minimum_size = Vector2(HudTheme.px(WIDTH), HudTheme.px(WIDTH) / 2.0)
 	tooltip_text = ""
@@ -34,8 +35,9 @@ func _init() -> void:
 func width_px() -> float:
 	return custom_minimum_size.x
 
-## New map data: rebakes the regions only when the map or the liberated set changed.
-func set_snapshot(snap: Dictionary, now_ms: int) -> void:
+## New map data: rebakes the regions only when the map or the liberated set changed. `regions` is the region id per tile
+## (WorldMap.region_grid); empty computes it here, which is slower.
+func set_snapshot(snap: Dictionary, now_ms: int, regions := PackedInt32Array()) -> void:
 	_snap = snap
 	if snap.is_empty():
 		return
@@ -46,7 +48,7 @@ func set_snapshot(snap: Dictionary, now_ms: int) -> void:
 	var key := "%d|%d|%s" % [seed, size, held]
 	if key != _base_key:
 		_base_key = key
-		_bake(seed, size, held)
+		_bake(seed, size, held, regions)
 	queue_redraw()
 
 ## Where the camera looks, as the four corners of the free band in tile coordinates.
@@ -54,46 +56,55 @@ func set_view(corners: Array) -> void:
 	_view = corners
 	queue_redraw()
 
-func _bake(seed: int, size: int, liberated: Array) -> void:
-	var cell := int(Balance.data()["map"]["regionCell"])
-	_regions.resize(size * size)
+## Texels per tile of the baked picture: enough for a thin border line once it is drawn as a diamond.
+const TEXELS := 4
+
+## The regions in tile space (TEXELS per tile, one rectangle per tile and per border), drawn as the diamond by _draw's transform.
+func _bake(seed: int, size: int, liberated: Array, regions: PackedInt32Array) -> void:
+	if regions.size() == size * size:
+		_regions = regions
+	else:
+		var cell := int(Balance.data()["map"]["regionCell"])
+		_regions.resize(size * size)
+		for y in size:
+			for x in size:
+				_regions[y * size + x] = MapMath.region_at(seed, x, y, size, cell)
+	var image := Image.create_empty(size * TEXELS, size * TEXELS, false, Image.FORMAT_RGBA8)
 	for y in size:
 		for x in size:
-			_regions[y * size + x] = MapMath.region_at(seed, x, y, size, cell)
-	var w := int(width_px())
-	var h := w / 2
-	var image := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
-	var ids := PackedInt32Array()
-	ids.resize(w * h)
-	ids.fill(-1)
-	for py in h:
-		for px in w:
-			var t := MinimapMath.minimap_to_tile(size, Vector2(px + 0.5, py + 0.5), w)
-			if t.x >= 0:
-				ids[py * w + px] = _regions[t.y * size + t.x]
-	for py in h:
-		for px in w:
-			var id := ids[py * w + px]
-			if id < 0:
-				continue
-			var c := LIBERATED if liberated.has(id) else HELD
-			var right := ids[py * w + px + 1] if px + 1 < w else id
-			var down := ids[(py + 1) * w + px] if py + 1 < h else id
-			if (right >= 0 and right != id) or (down >= 0 and down != id):
-				c = PAPER if liberated.has(id) or liberated.has(right) or liberated.has(down) else BORDER
+			var id := _regions[y * size + x]
+			image.fill_rect(Rect2i(x * TEXELS, y * TEXELS, TEXELS, TEXELS), LIBERATED if liberated.has(id) else HELD)
+	for y in size:
+		for x in size:
+			var id := _regions[y * size + x]
+			for step: Vector2i in [Vector2i(1, 0), Vector2i(0, 1)]:
+				var nx := x + step.x
+				var ny := y + step.y
+				if nx >= size or ny >= size:
+					continue
+				var other := _regions[ny * size + nx]
+				if other == id:
+					continue
+				var c := PAPER if liberated.has(id) or liberated.has(other) else BORDER
 				c.a = 0.8
-			image.set_pixel(px, py, c)
+				if step.x == 1:
+					image.fill_rect(Rect2i(nx * TEXELS - 1, y * TEXELS, 2, TEXELS), c)
+				else:
+					image.fill_rect(Rect2i(x * TEXELS, ny * TEXELS - 1, TEXELS, 2), c)
 	_texture = ImageTexture.create_from_image(image)
 
 func _draw() -> void:
 	if _texture == null or _snap.is_empty():
 		return
 	var w := width_px()
-	draw_texture_rect(_texture, Rect2(Vector2.ZERO, Vector2(w, w / 2.0)), false)
+	var size := int(_snap["size"])
+	# Tile space to the diamond: x grows down-right, y down-left, the top corner at the middle of the top edge.
+	draw_set_transform_matrix(Transform2D(Vector2(w / (2.0 * size), w / (4.0 * size)), Vector2(-w / (2.0 * size), w / (4.0 * size)), Vector2(w / 2.0, 0.0)))
+	draw_texture_rect(_texture, Rect2(0, 0, size, size), false)
+	draw_set_transform_matrix(Transform2D.IDENTITY)
 	var rim := PackedVector2Array([Vector2(w / 2.0, 0.0), Vector2(w, w / 4.0), Vector2(w / 2.0, w / 2.0), Vector2(0.0, w / 4.0), Vector2(w / 2.0, 0.0)])
 	draw_polyline(rim, Color(0.15, 0.1, 0.07, 0.95), HudTheme.px(2.5), true)
 	draw_polyline(rim, HudTheme.BRASS, HudTheme.px(1.0), true)
-	var size := int(_snap["size"])
 	var at := func(x: int, y: int) -> Vector2: return MinimapMath.tile_to_minimap(size, x + 0.5, y + 0.5, w)
 	var r := w / 132.0 * 0.75
 	for n: Dictionary in _snap.get("npcs", []):
