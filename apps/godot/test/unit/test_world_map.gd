@@ -38,8 +38,8 @@ func _snapshot() -> Dictionary:
 			{"id": "farmland:1", "kind": "farmland", "level": 2, "x": 44, "y": 44, "occupied": true, "mine": false},
 		],
 		"liberations": [
-			{"region": 5, "from": NOW - 1000, "until": null, "alliance": null},
-			{"region": 6, "from": NOW - 5000, "until": NOW - 100, "alliance": null},
+			{"region": 1, "from": NOW - 1000, "until": null, "alliance": null},
+			{"region": 2, "from": NOW - 5000, "until": NOW - 100, "alliance": null},
 		],
 	}
 
@@ -50,7 +50,7 @@ func test_builds_and_draws_everything() -> void:
 	await wait_frames(2)
 	assert_gt(map.overlay().draw_count, 0, "the overlay never drew")
 	assert_eq(map.size, 64)
-	assert_eq(map.liberated.keys(), [5], "only the held region is liberated now")
+	assert_eq(map.liberated.keys(), [1], "only the held region is liberated now")
 	assert_gt(map.seam_points.size(), 0)
 	assert_true(map.seam_liberated.has(true), "a liberated region should have gold seams")
 	assert_eq(map.own_base_tile(), Vector2i(10, 10))
@@ -110,18 +110,18 @@ func test_a_live_snapshot_swaps_the_objects_without_rebuilding_the_ground() -> v
 
 func test_a_new_liberation_rebuilds_the_seams() -> void:
 	var map := await _built_map()
-	assert_eq(map.liberated.keys(), [5])
+	assert_eq(map.liberated.keys(), [1])
 	var snap := _snapshot()
-	snap["liberations"] = [{"region": 5, "from": NOW - 1000, "until": null, "alliance": null}, {"region": 7, "from": NOW, "until": null, "alliance": null}]
+	snap["liberations"] = [{"region": 1, "from": NOW - 1000, "until": null, "alliance": null}, {"region": 3, "from": NOW, "until": null, "alliance": null}]
 	await map.apply_snapshot(snap)
-	assert_eq(map.liberated.keys(), [5, 7])
+	assert_eq(map.liberated.keys(), [1, 3])
 	assert_eq(map.build_count, 1)
 
 func test_a_liberation_that_ended_is_dropped_as_time_moves_on() -> void:
 	var map := await _built_map()
 	var snap := _snapshot()
 	snap["now"] = NOW + 10_000
-	snap["liberations"] = [{"region": 5, "from": NOW - 1000, "until": NOW + 5000, "alliance": null}]
+	snap["liberations"] = [{"region": 1, "from": NOW - 1000, "until": NOW + 5000, "alliance": null}]
 	await map.apply_snapshot(snap)
 	assert_true(map.liberated.is_empty(), "the window is over at the snapshot's now")
 

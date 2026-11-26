@@ -70,8 +70,21 @@ export const regionGrid = (seed: number, size: number): RegionId[] => {
   return grid;
 };
 
-/** Regions that own at least one tile, sorted by id. */
+const regionsCache = new Map<string, readonly Region[]>();
+
+/** Regions that own at least one tile, sorted by id. Memoised on the last few seeds and sizes. */
 export const regionsOf = (seed: number, size: number = MAP_SIZE): readonly Region[] => {
+  const key = `${seed}:${size}`;
+  const hit = regionsCache.get(key);
+  if (hit !== undefined) return hit;
+  const regions = regionsOfNow(seed, size);
+  // A few maps at most: a pure function's results, so safe to share.
+  if (regionsCache.size >= 8) regionsCache.delete(regionsCache.keys().next().value!);
+  regionsCache.set(key, regions);
+  return regions;
+};
+
+const regionsOfNow = (seed: number, size: number): readonly Region[] => {
   const counts = new Map<RegionId, number>();
   for (const id of regionGrid(seed, size)) counts.set(id, (counts.get(id) ?? 0) + 1);
   return [...counts.keys()]

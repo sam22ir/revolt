@@ -194,10 +194,10 @@ func _mark_ring(out: Dictionary, t: Dictionary) -> void:
 			if x >= 0 and y >= 0 and x < size and y < size:
 				out[y * size + x] = true
 
-## Rebuilds the props after the snapshot's occupied tiles changed.
+## Hides the props on the snapshot's occupied tiles (and shows those freed) after it changed.
 func refresh_props() -> void:
 	if _art != null and not _plan.is_empty():
-		_props.build(size, _plan["props"], _art, occupied_tiles())
+		_props.set_occupied(occupied_tiles())
 
 ## A seam is the shared edge between two tiles of different regions: right neighbour (x+1, y) and
 ## lower neighbour (x, y+1) are checked once per tile.

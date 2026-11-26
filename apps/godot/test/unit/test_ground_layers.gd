@@ -66,6 +66,18 @@ func test_occupied_tiles_get_no_props() -> void:
 	layer.build(64, [_prop(10), _prop(11), _prop(12)], art, {11: true})
 	assert_eq(layer.sprite_count(), 2)
 
+func test_a_newly_occupied_tile_hides_its_props_and_a_freed_one_shows_them_without_a_rebuild() -> void:
+	var art := GroundArt.load_art()
+	var layer := PropLayer.new()
+	add_child_autofree(layer)
+	layer.build(64, [_prop(10), _prop(11), _prop(11), _prop(12)], art, {})
+	var batch := layer.get_child(0)
+	layer.set_occupied({11: true})
+	assert_eq(layer.sprite_count(), 2, "both props on tile 11 hidden")
+	layer.set_occupied({12: true})
+	assert_eq(layer.sprite_count(), 3, "11 shown again, 12 hidden")
+	assert_eq(layer.get_child(0), batch, "the same batch: nothing was rebuilt")
+
 func test_props_of_every_kind_resolve_to_a_frame_of_their_own_atlas() -> void:
 	var art := GroundArt.load_art()
 	var layer := PropLayer.new()

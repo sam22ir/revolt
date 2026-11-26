@@ -286,7 +286,8 @@ const NOISE_SAMPLES: readonly (readonly [number, number, number, number])[] = [
  * Grids are one character per tile, row-major by y: terrain p/h/f/m, regions as a hex digit, base sites 1/0.
  */
 export const buildGodotMapFixtures = (): unknown => {
-  const size = MAP_SIZE;
+  // Golden data stays at 64 tiles: the functions take the size, and the full map would make the fixtures nine times bigger.
+  const size = 64;
   const cells = Math.ceil(size / REGION_CELL);
   if (cells * cells > 16) throw new Error("region ids no longer fit one hex digit: change the map fixture encoding");
   return {
@@ -304,7 +305,7 @@ export const buildGodotMapFixtures = (): unknown => {
         for (let x = 0; x < size; x++) {
           t += TERRAIN_LETTER[terrainAt(seed, x, y)];
           r += regionAt(seed, x, y, size).toString(16);
-          b += baseSiteOk(seed, x, y) ? "1" : "0";
+          b += baseSiteOk(seed, x, y, size) ? "1" : "0";
         }
         terrain.push(t);
         regions.push(r);

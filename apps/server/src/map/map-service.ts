@@ -232,6 +232,11 @@ export class MapService {
       deps.sql.exec("ALTER TABLE npcs ADD COLUMN region_id INTEGER");
     }
     deps.sql.exec("DELETE FROM npcs WHERE level = ? AND region_id IS NULL", MAX_NPC_LEVEL);
+    // A map made at another size (or before sizes were stored, with a world in it) starts again: a new seed and an empty world.
+    const madeAt = this.meta("map_size");
+    const hasWorld = this.rows("SELECT 1 FROM map_bases UNION ALL SELECT 1 FROM npcs LIMIT 1").length > 0;
+    if ((madeAt === null && hasWorld) || (madeAt !== null && Number(madeAt) !== MAP_SIZE)) this.startAfresh();
+    this.setMeta("map_size", MAP_SIZE);
     if (this.meta("terrain_seed") === null) this.setMeta("terrain_seed", this.randomU32());
     this.ensureStrongholds();
     this.fillNpcs();
@@ -260,6 +265,19 @@ export class MapService {
     }
   }
 
+  /**
+   * Empties the world for a new map: bases (placed again on the next visit), targets, HQs, marches and rallies, and this map's record of
+   * liberations; a new terrain seed. Troops out on a march come home through the base's rescue rule. The server-wide liberations in D1
+   * are closed on the next settle (D1 is async).
+   */
+  private startAfresh(): void {
+    for (const table of ["map_bases", "npcs", "alliance_hqs", "marches", "rallies", "liberations"]) this.deps.sql.exec(`DELETE FROM ${table}`);
+    this.deps.sql.exec("DELETE FROM meta WHERE key = 'terrain_seed'");
+    this.setMeta("close_liberations", 1);
+    this.sitesCache = null;
+    this.geographyCache = null;
+  }
+
   /** The server name shown in snapshots; remembered from the first call that names it. */
   rememberName(name: string): void {
     if (this.meta("name") !== name) this.setMeta("name", name);
@@ -272,6 +290,13 @@ export class MapService {
   async settle(now: number): Promise<MapEvent[]> {
     const t = Math.max(now, Number(this.meta("last_settled") ?? 0));
     const events: MapEvent[] = [];
+    const server = this.meta("name");
+    if (this.meta("close_liberations") !== null && server !== null) {
+      // After a fresh map: the old regions' liberations end now (their ids mean other land on the new map).
+      await this.deps.db.prepare("UPDATE liberations SET until_at = ? WHERE server = ? AND until_at IS NULL").bind(t, String(server)).run();
+      this.deps.sql.exec("DELETE FROM meta WHERE key = 'close_liberations'");
+      events.push(MAP_CHANGED);
+    }
     for (const row of this.rows<MarchRow>("SELECT * FROM marches WHERE phase = 'pending' AND rally_id IS NULL AND depart_at <= ?", t - PENDING_TIMEOUT_MS)) {
       events.push(...(await this.resolvePending(row)));
     }
@@ -880,11 +905,14 @@ export class MapService {
 
   /** Tops up live roaming NPCs to the target count per level, on free tiles. */
   private fillNpcs(): void {
+    // One list for the whole fill (a full map places hundreds), kept up to date as targets go down.
+    const taken = this.takenTiles();
     NPC_COUNT_BY_LEVEL.forEach((target, i) => {
       const level = i + 1;
       const have = this.rows<{ n: number }>("SELECT COUNT(*) AS n FROM npcs WHERE level = ? AND region_id IS NULL", level)[0]?.n ?? 0;
       for (let k = have; k < target; k++) {
-        const at = this.freeTile();
+        const at = this.freeTile(taken);
+        taken.push(at);
         this.deps.sql.exec("INSERT INTO npcs (id, level, x, y, respawn_at, region_id) VALUES (?, ?, ?, ?, NULL, NULL)", this.deps.newId(), level, at.x, at.y);
       }
     });
@@ -908,15 +936,19 @@ export class MapService {
     return this.sitesCache;
   }
 
-  /** A random tile away from mountains and at least PLACEMENT_SPACING from any base, NPC or HQ. */
-  private freeTile(): MapPoint {
-    const seed = Number(this.meta("terrain_seed"));
-    const taken = [
+  /** Every tile something stands on: bases, NPCs, HQs and resource sites. */
+  private takenTiles(): MapPoint[] {
+    return [
       ...this.rows<MapPoint>("SELECT x, y FROM map_bases"),
       ...this.rows<MapPoint>("SELECT x, y FROM npcs"),
       ...this.rows<MapPoint>("SELECT x, y FROM alliance_hqs"),
       ...this.sites(),
     ];
+  }
+
+  /** A random tile where a base may stand (`baseSiteOk`), at least PLACEMENT_SPACING from anything in `taken` (by default, everything). */
+  private freeTile(taken: readonly MapPoint[] = this.takenTiles()): MapPoint {
+    const seed = Number(this.meta("terrain_seed"));
     const free = (x: number, y: number, spacing: number): boolean =>
       baseSiteOk(seed, x, y) && taken.every((p) => Math.max(Math.abs(p.x - x), Math.abs(p.y - y)) > spacing);
     for (let i = 0; i < 500; i++) {

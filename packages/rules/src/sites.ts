@@ -44,7 +44,18 @@ const levelFor = (distance: number): SiteLevel => SITE_LEVEL_BANDS.find((b) => d
  * never stored or sent. Never depends on bases, HQs or NPCs. Candidates are ranked by a seeded hash and
  * taken greedily, so the set is fixed for a seed; picks are then numbered in row-major scan order.
  */
+/** Sites per geography object (geographyOf hands back the same object for the same map), so a map's sites are placed once. */
+const placed = new WeakMap<Geography, { seed: number; sites: readonly MapSite[] }>();
+
 export const placeSites = (seed: number, geography: Geography): readonly MapSite[] => {
+  const hit = placed.get(geography);
+  if (hit !== undefined && hit.seed === seed) return hit.sites;
+  const sites = placeSitesNow(seed, geography);
+  placed.set(geography, { seed, sites });
+  return sites;
+};
+
+const placeSitesNow = (seed: number, geography: Geography): readonly MapSite[] => {
   const size = geography.size;
   const centres = regionsOf(seed, size).map((r) => ({ tile: { x: clampTile(r.site.x, size), y: clampTile(r.site.y, size) }, site: r.site }));
   const centreKeys = new Set(centres.map((c) => c.tile.y * size + c.tile.x));

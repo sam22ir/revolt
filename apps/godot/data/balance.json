@@ -1068,11 +1068,11 @@
   ],
   "npcRespawnMs": 600000,
   "map": {
-    "size": 64,
-    "regionCell": 16,
+    "size": 192,
+    "regionCell": 32,
     "marchRescueGraceMs": 3600000,
     "maxMarches": 2,
-    "npcCountByLevel": [16,10,6,0],
+    "npcCountByLevel": [144,90,54,0],
     "placementSpacing": 2,
     "baseEdgeMargin": 3,
     "baseMountainClearance": 1

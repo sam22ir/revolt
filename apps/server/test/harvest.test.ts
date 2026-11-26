@@ -382,3 +382,35 @@ test("a base or HQ placed before the edge and mountain rule moves once, and a go
   for (const p of [at("SELECT x, y FROM map_bases WHERE account_id = 'edge'"), at("SELECT x, y FROM alliance_hqs")]) expect(baseSiteOk(seed, p.x, p.y), `${p.x},${p.y}`).toBe(true);
   close();
 });
+
+test("a map made before sizes were stored, or at another size, starts afresh and closes its liberations on the next settle", async () => {
+  const sqlite = new DatabaseSync(":memory:");
+  const sql: MapSql = { exec: (q, ...b) => sqlite.prepare(q).all(...b) as never };
+  const { db, close } = sqliteDb();
+  let n = 0;
+  const deps = { sql, db, random: seededRng(11), newId: () => `id-${++n}` };
+  const first = new MapService(deps);
+  first.rememberName("algeria-1");
+  first.ensureBase({ accountId: "old", handle: "OLD", allianceId: null, allianceTag: null }, T0);
+  const oldSeed = sql.exec<{ value: number }>("SELECT value FROM meta WHERE key = 'terrain_seed'")[0]!.value;
+  await db.prepare("CREATE TABLE liberations (server TEXT NOT NULL, region INTEGER NOT NULL, alliance_id TEXT, from_at INTEGER NOT NULL, until_at INTEGER)").run();
+  await db.prepare("INSERT INTO liberations (server, region, alliance_id, from_at, until_at) VALUES ('algeria-1', 3, NULL, ?, NULL)").bind(T0).run();
+  // Untouched while the size matches.
+  new MapService(deps);
+  expect(sql.exec("SELECT account_id FROM map_bases")).toHaveLength(1);
+  // An old map with no size stored.
+  sql.exec("DELETE FROM meta WHERE key = 'map_size'");
+  const fresh = new MapService(deps);
+  expect(sql.exec("SELECT account_id FROM map_bases")).toEqual([]);
+  expect(sql.exec<{ value: number }>("SELECT value FROM meta WHERE key = 'terrain_seed'")[0]!.value).not.toBe(oldSeed);
+  expect(sql.exec<{ value: number }>("SELECT value FROM meta WHERE key = 'map_size'")[0]!.value).toBe(MAP_SIZE);
+  expect(sql.exec("SELECT id FROM npcs").length).toBeGreaterThan(0);
+  await fresh.settle(T0 + 1000);
+  expect(await db.prepare("SELECT until_at FROM liberations WHERE server = 'algeria-1'").all()).toMatchObject({ results: [{ until_at: T0 + 1000 }] });
+  // Another size stored: the same.
+  sql.exec("UPDATE meta SET value = 64 WHERE key = 'map_size'");
+  new MapService(deps).ensureBase({ accountId: "new", handle: "NEW", allianceId: null, allianceTag: null }, T0);
+  new MapService(deps);
+  expect(sql.exec<{ account_id: string }>("SELECT account_id FROM map_bases").map((r) => r.account_id)).toEqual(["new"]);
+  close();
+});

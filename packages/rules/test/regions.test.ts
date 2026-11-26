@@ -1,6 +1,9 @@
 import { test } from "vitest";
-import { isRegionBorder, MAP_SIZE, regionAt, regionGrid, regionNeighbors, regionSite, regionsOf, type RegionId } from "../src/index.ts";
+import { isRegionBorder, MAP_SIZE, REGION_CELL, regionAt, regionGrid, regionNeighbors, regionSite, regionsOf, type RegionId } from "../src/index.ts";
 import { ex } from "./helpers.ts";
+
+/** Region cells per side of the map. */
+const CELLS = Math.ceil(MAP_SIZE / REGION_CELL);
 
 const tilesOf = (size: number): [number, number][] => {
   const out: [number, number][] = [];
@@ -45,7 +48,7 @@ test("regionAt: pure, seed-dependent, off-map safe, stable for seed 7, regionGri
     for (const [x, y] of [[-1, -1], [-5, 3], [3, -40], [MAP_SIZE + 10, 2], [500, 500], [-1000, 1000]] as const) {
       const id = regionAt(7, x, y);
       e(id, `${x},${y} deterministic`).toBe(regionAt(7, x, y));
-      e(Number.isInteger(id) && id >= 0 && id < 16, `${x},${y} valid id`).toBe(true);
+      e(Number.isInteger(id) && id >= 0 && id < CELLS * CELLS, `${x},${y} valid id`).toBe(true);
     }
   }
 
@@ -54,11 +57,11 @@ test("regionAt: pure, seed-dependent, off-map safe, stable for seed 7, regionGri
     // once regions are used, so a change here must be deliberate.
     const e = ex("seed 7 region ids at fixed tiles and the region count");
     e(regionAt(7, 0, 0), "0,0").toBe(0);
-    e(regionAt(7, 63, 0), "63,0").toBe(3);
-    e(regionAt(7, 0, 63), "0,63").toBe(12);
-    e(regionAt(7, 63, 63), "63,63").toBe(15);
-    e(regionAt(7, 32, 32), "32,32").toBe(5);
-    e(regionsOf(7), "region count").toHaveLength(16);
+    e(regionAt(7, 191, 0), "191,0").toBe(5);
+    e(regionAt(7, 0, 191), "0,191").toBe(30);
+    e(regionAt(7, 191, 191), "191,191").toBe(35);
+    e(regionAt(7, 96, 96), "96,96").toBe(20);
+    e(regionsOf(7), "region count").toHaveLength(36);
   }
 
   {
@@ -91,17 +94,20 @@ test("regionsOf and regionSite: listing, sums, connectivity, count, other map si
   }
 
   {
-    const e = ex("region count is between 9 and 16 for MAP_SIZE 64");
-    e(regions.length, "min").toBeGreaterThanOrEqual(9);
-    e(regions.length, "max").toBeLessThanOrEqual(16);
+    const e = ex("region count is between (cells - 1)² and cells² for the map's cells per side");
+    e(regions.length, "min").toBeGreaterThanOrEqual((CELLS - 1) * (CELLS - 1));
+    e(regions.length, "max").toBeLessThanOrEqual(CELLS * CELLS);
   }
 
   {
     const e = ex("each region is 4-connected for several seeds");
     for (const seed of [1, 2, 7, 99, 4242]) {
+      // One grid per seed: regionAt per tile per region is too slow on the full map.
+      const grid = regionGrid(seed, MAP_SIZE);
+      const at = (x: number, y: number): number => grid[y * MAP_SIZE + x]!;
       for (const region of regionsOf(seed)) {
-        const tiles = tilesOf(MAP_SIZE).filter(([x, y]) => regionAt(seed, x, y) === region.id);
-        e(isConnected(tiles, MAP_SIZE, (x, y) => regionAt(seed, x, y) === region.id), `seed ${seed} region ${region.id}`).toBe(true);
+        const tiles = tilesOf(MAP_SIZE).filter(([x, y]) => at(x, y) === region.id);
+        e(isConnected(tiles, MAP_SIZE, (x, y) => at(x, y) === region.id), `seed ${seed} region ${region.id}`).toBe(true);
       }
     }
   }

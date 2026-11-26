@@ -59,6 +59,11 @@ static func placement(frame: Dictionary, s: Dictionary, atlas_size: Vector2) -> 
 		"color": Color(1, 1, 1, float(s["alpha"])),
 	}
 
+## Sets one sprite's opacity (0 hides it) without rebuilding the batch.
+func set_alpha(i: int, alpha: float) -> void:
+	# Sprites are never tinted (placement's colour is white), and a headless renderer cannot read colours back.
+	multimesh.set_instance_color(i, Color(1, 1, 1, alpha))
+
 ## `sprites`: Array of {frame: int, pos: Vector2, scale: float, flip: bool, alpha: float, center: bool (optional)}.
 ## `center` anchors the frame's middle instead of its manifest ground anchor (used for decals).
 func set_sprites(sprites: Array) -> void:
