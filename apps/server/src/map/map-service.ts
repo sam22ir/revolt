@@ -232,6 +232,23 @@ export class MapService {
     if (this.meta("terrain_seed") === null) this.setMeta("terrain_seed", this.randomU32());
     this.ensureStrongholds();
     this.fillNpcs();
+    this.moveMisplaced();
+  }
+
+  /**
+   * Moves any base or alliance HQ that `baseSiteOk` refuses (placed before the rule, or before it changed) to a free
+   * tile. Marches already out keep their timing and the start they were drawn from.
+   */
+  private moveMisplaced(): void {
+    const seed = Number(this.meta("terrain_seed"));
+    for (const table of ["map_bases", "alliance_hqs"] as const) {
+      const key = table === "map_bases" ? "account_id" : "alliance_id";
+      for (const r of this.rows<{ id: string; x: number; y: number }>(`SELECT ${key} AS id, x, y FROM ${table}`)) {
+        if (baseSiteOk(seed, r.x, r.y)) continue;
+        const at = this.freeTile();
+        this.deps.sql.exec(`UPDATE ${table} SET x = ?, y = ? WHERE ${key} = ?`, at.x, at.y, r.id);
+      }
+    }
   }
 
   /** The server name shown in snapshots; remembered from the first call that names it. */

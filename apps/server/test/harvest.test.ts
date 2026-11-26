@@ -364,3 +364,21 @@ test("bases keep off the map's edges and away from mountains, on the random path
     close();
   }
 });
+
+test("a base or HQ placed before the edge and mountain rule moves once, and a good one stays", () => {
+  const sqlite = new DatabaseSync(":memory:");
+  const sql: MapSql = { exec: (q, ...b) => sqlite.prepare(q).all(...b) as never };
+  const { db, close } = sqliteDb();
+  let n = 0;
+  const deps = { sql, db, random: seededRng(9), newId: () => `id-${++n}` };
+  const first = new MapService(deps);
+  const seed = Number(sql.exec<{ value: number }>("SELECT value FROM meta WHERE key = 'terrain_seed'")[0]!.value);
+  const good = first.ensureBase({ accountId: "good", handle: "G", allianceId: null, allianceTag: null }, T0).at;
+  sql.exec("INSERT INTO map_bases (account_id, tag, x, y, created_at) VALUES ('edge', 'E', ?, 1, ?)", MAP_SIZE - 1, T0);
+  sql.exec("INSERT INTO alliance_hqs (alliance_id, tag, x, y, moved_at) VALUES ('al', 'TAG', 0, 0, ?)", T0);
+  new MapService(deps);
+  const at = (q: string): MapPoint => sql.exec<MapPoint>(q)[0]!;
+  expect(at("SELECT x, y FROM map_bases WHERE account_id = 'good'")).toEqual(good);
+  for (const p of [at("SELECT x, y FROM map_bases WHERE account_id = 'edge'"), at("SELECT x, y FROM alliance_hqs")]) expect(baseSiteOk(seed, p.x, p.y), `${p.x},${p.y}`).toBe(true);
+  close();
+});
