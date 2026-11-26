@@ -1,4 +1,4 @@
-import { terrainAt, type MapSnapshot } from "@revolt/rules";
+import { baseSiteOk, type MapSnapshot } from "@revolt/rules";
 import { test, vi } from "vitest";
 import { runCleanup, STALE_GUEST_MS } from "../src/cleanup.ts";
 import { scheduled } from "../src/scheduled.ts";
@@ -11,7 +11,7 @@ import { LONG, rows } from "./rows.ts";
 const findFreeTile = (snap: MapSnapshot, wanted: (x: number, y: number) => boolean = () => true): { x: number; y: number } => {
   for (let x = 0; x < snap.size; x++) {
     for (let y = 0; y < snap.size; y++) {
-      const clear = terrainAt(snap.terrainSeed, x, y) !== "mountain" && [...snap.bases, ...snap.npcs, ...snap.hqs].every((p) => Math.max(Math.abs(p.x - x), Math.abs(p.y - y)) > 2);
+      const clear = baseSiteOk(snap.terrainSeed, x, y) && [...snap.bases, ...snap.npcs, ...snap.hqs].every((p) => Math.max(Math.abs(p.x - x), Math.abs(p.y - y)) > 2);
       if (clear && wanted(x, y)) return { x, y };
     }
   }

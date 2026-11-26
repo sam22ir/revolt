@@ -1068,12 +1068,15 @@
   ],
   "npcRespawnMs": 600000,
   "map": {
-    "size": 64,
-    "regionCell": 16,
+    "size": 192,
+    "regionCell": 32,
     "marchRescueGraceMs": 3600000,
     "maxMarches": 2,
-    "npcCountByLevel": [16,10,6,0],
-    "placementSpacing": 2
+    "npcCountByLevel": [144,90,54,0],
+    "placementSpacing": 2,
+    "baseEdgeMargin": 3,
+    "baseMountainClearance": 1,
+    "zoneClearance": 2
   },
   "story": {
     "algeria": [
@@ -1999,24 +2002,38 @@
     }
   },
   "sites": {
-    "kinds": ["farmland","quarry"],
-    "levels": [1,2,3],
+    "kinds": ["farmland","quarry","depot"],
+    "levels": [1,2,3,4,5],
     "maxHarvestMs": 28800000,
     "siteResource": {
       "farmland": "food",
-      "quarry": "materiel"
+      "quarry": "materiel",
+      "depot": "funds"
     },
     "ratePerHour": {
       "farmland": {
         "1": 300,
         "2": 600,
-        "3": 1000
+        "3": 1000,
+        "4": 3000,
+        "5": 5000
       },
       "quarry": {
         "1": 200,
         "2": 400,
-        "3": 700
+        "3": 700,
+        "4": 2100,
+        "5": 3500
+      },
+      "depot": {
+        "1": 100,
+        "2": 200,
+        "3": 350,
+        "4": 1200,
+        "5": 2000
       }
-    }
+    },
+    "zoneCarryMultiplier": 3,
+    "zoneMaxHarvestMs": 43200000
   }
 }

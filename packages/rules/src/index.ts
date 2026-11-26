@@ -44,7 +44,8 @@ export { HEROES, type HeroDef, type SkillDef } from "./data/heroes.ts";
 export * from "./data/hero-progression.ts";
 export { NO_BATTLE_MODIFIER, type BattleModifier } from "./battle.ts";
 export { BUILDINGS, MAX_BUILDING_LEVEL, type BuildingDef, type BuildingLevel } from "./data/buildings.ts";
-export { MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING, REGION_CELL } from "./data/map.ts";
+export { BASE_EDGE_MARGIN, BASE_MOUNTAIN_CLEARANCE, MAP_SIZE, MARCH_RESCUE_GRACE_MS, MAX_MARCHES, NPC_COUNT_BY_LEVEL, PLACEMENT_SPACING, REGION_CELL } from "./data/map.ts";
+export { baseSiteOk } from "./base-site.ts";
 export { MAX_NPC_LEVEL, NPC_KINDS, NPC_LEVELS, NPC_RESPAWN_MS, type NpcKind, type NpcLevelDef } from "./data/npcs.ts";
 export { STORAGE_CAPS } from "./data/storage.ts";
 export { START_LEVELS, START_RESOURCES, START_TROOPS } from "./data/start.ts";
@@ -71,6 +72,7 @@ export {
   harvestedAt,
   harvestTiming,
   HARVEST_BLOCK_REASONS,
+  maxHarvestMs,
   placeSites,
   recallTiming,
   type HarvestBlockReason,
@@ -79,6 +81,7 @@ export {
   type RecallResult,
 } from "./sites.ts";
 export {
+  OPEN_SITE_KINDS,
   SITE_KINDS,
   SITE_LEVEL_BANDS,
   SITE_LEVEL_FALLBACK,
@@ -91,6 +94,8 @@ export {
   type SiteKind,
   type SiteLevel,
 } from "./data/sites.ts";
+export * from "./data/zones.ts";
+export { zoneAt, zonesOf, type Zone } from "./zones.ts";
 export { migrateBaseState } from "./migrate-state.ts";
 export { fightNpc, npcLevel, targetGone } from "./npc-battle.ts";
 export { RESOURCE_IDS, type ResourceId } from "./resource-id.ts";
@@ -157,9 +162,11 @@ export {
   type MapBaseView,
   type MapMarchView,
   type MapSiteView,
+  type MapZoneView,
   type LiberationView,
   type MapNpcView,
   type MapServerMessage,
+  type MapGeographyWire,
   type MapSnapshot,
   type EventsResponse,
   type EventView,

@@ -209,15 +209,18 @@ const build = (seed: number, size: number): Geography => {
 
   const sites = regionsOf(seed, size).map((r) => siteTile(seed, r.id, size));
   const roads: GeoTile[][] = [];
-  // Existing road is cheap, so later roads join earlier ones instead of running beside them.
-  const roadCost = (x: number, y: number): number => {
-    const f = flags[y * size + x] ?? 0;
-    if ((f & GEO_ROAD) !== 0) return 0.35;
-    return ROAD_COST[terrainAt(seed, x, y)] + ((f & GEO_WADI) !== 0 ? 2 : 0);
-  };
+  // The price of stepping on each tile, worked out once (terrain noise is dear); existing road is cheap, so later roads join earlier
+  // ones instead of running beside them.
+  const costs = new Float64Array(size * size);
+  for (let y = 0; y < size; y++)
+    for (let x = 0; x < size; x++) costs[y * size + x] = ROAD_COST[terrainAt(seed, x, y)] + ((flags[y * size + x]! & GEO_WADI) !== 0 ? 2 : 0);
+  const roadCost = (x: number, y: number): number => costs[y * size + x]!;
   for (const [a, b] of regionTree(seed, size)) {
     const road = cheapestPath(size, siteTile(seed, a, size), siteTile(seed, b, size), roadCost, 0.35);
-    for (const t of road) flags[t.y * size + t.x]! |= GEO_ROAD;
+    for (const t of road) {
+      flags[t.y * size + t.x]! |= GEO_ROAD;
+      costs[t.y * size + t.x] = 0.35;
+    }
     roads.push(road);
   }
 
@@ -243,10 +246,21 @@ const build = (seed: number, size: number): Geography => {
   return { size, wadis, roads, oases, flags };
 };
 
-let cached: { seed: number; size: number; geo: Geography } | null = null;
+/** The last few maps' landmarks, newest last; a pure function's results, so safe to share. */
+const cache: { key: string; geo: Geography }[] = [];
+const CACHE_SIZE = 6;
 
-/** The landmarks of a map. Costs a few path searches: memoised on the last seed and size. */
+/** The landmarks of a map. Costs many path searches (about a second at 192 tiles): memoised on the last few seeds and sizes. */
 export const geographyOf = (seed: number, size: number): Geography => {
-  if (cached === null || cached.seed !== seed || cached.size !== size) cached = { seed, size, geo: build(seed, size) };
-  return cached.geo;
+  const key = `${seed}:${size}`;
+  const at = cache.findIndex((c) => c.key === key);
+  if (at >= 0) {
+    const [hit] = cache.splice(at, 1);
+    cache.push(hit!);
+    return hit!.geo;
+  }
+  const geo = build(seed, size);
+  cache.push({ key, geo });
+  if (cache.length > CACHE_SIZE) cache.shift();
+  return geo;
 };

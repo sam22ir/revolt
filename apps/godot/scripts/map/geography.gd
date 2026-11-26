@@ -1,9 +1,10 @@
 class_name Geography
 extends RefCounted
 ## Landmarks over the terrain, ported from packages/rules/src/geography.ts: dry riverbeds (wadis), dirt roads between
-## region strongholds and oases, plus per-tile GEO_* flags. A pure function of the map seed, never sent by the server.
+## region strongholds and oases, plus per-tile GEO_* flags. A pure function of the map seed.
 ## Same algorithms, same tie-breaks and 64-bit floats throughout (no Vector2: it is float32), so the results equal the
-## rules'. Checked tile for tile against golden data in test_geography_fixtures.gd.
+## rules'. Checked tile for tile against golden data in test_geography_fixtures.gd. The server also sends them with the first map
+## (from_wire), which spares a phone the road search on a big map.
 
 const GEO_WADI := 1
 const GEO_ROAD := 2
@@ -38,22 +39,74 @@ static func build(seed: int, size: int, region_cell: int, terrain: PackedInt32Ar
 	for id in region_ids:
 		sites.append(_site_tile(seed, id, size, region_cell))
 	var roads: Array = []
+	var costs := PackedFloat64Array()
+	costs.resize(size * size)
+	for i in size * size:
+		costs[i] = ROAD_COST[terrain[i]] + (2.0 if (flags[i] & GEO_WADI) != 0 else 0.0)
 	for edge: Array in _region_tree(seed, size, region_cell, regions, region_ids):
-		# Existing road is cheap, so later roads join earlier ones instead of running beside them.
-		var costs := PackedFloat64Array()
-		costs.resize(size * size)
-		for i in size * size:
-			var f := flags[i]
-			if (f & GEO_ROAD) != 0:
-				costs[i] = 0.35
-			else:
-				costs[i] = ROAD_COST[terrain[i]] + (2.0 if (f & GEO_WADI) != 0 else 0.0)
 		var road := _cheapest_path(size, _site_tile(seed, edge[0], size, region_cell), _site_tile(seed, edge[1], size, region_cell), costs, 0.35)
 		for t: Vector2i in road:
 			flags[t.y * size + t.x] |= GEO_ROAD
+			# Existing road is cheap, so later roads join earlier ones instead of running beside them.
+			costs[t.y * size + t.x] = 0.35
 		roads.append(road)
 
 	var oases := _pick_oases(seed, size, terrain, flags, sites)
+	_mark_oases(flags, size, oases)
+	_mark_banks(flags, size)
+	return {"wadis": wadis, "roads": roads, "oases": oases, "flags": flags}
+
+## The same as `build`, from the landmarks the server sent with the first map (MapGeographyWire: flat [x, y, ...] lists), so the road
+## search never runs on the phone. Returns null when `wire` is missing or malformed, and the caller computes them instead.
+static func from_wire(size: int, wire: Variant) -> Variant:
+	if not wire is Dictionary:
+		return null
+	var paths := func(list: Variant) -> Variant:
+		if not list is Array:
+			return null
+		var out: Array = []
+		for flat: Variant in list:
+			var tiles: Variant = _tiles(flat, size)
+			if tiles == null:
+				return null
+			out.append(tiles)
+		return out
+	var wadis: Variant = paths.call(wire.get("wadis"))
+	var roads: Variant = paths.call(wire.get("roads"))
+	var oases: Variant = _tiles(wire.get("oases"), size)
+	if wadis == null or roads == null or oases == null:
+		return null
+	var flags := PackedByteArray()
+	flags.resize(size * size)
+	for w: Array in wadis:
+		for t: Vector2i in w:
+			flags[t.y * size + t.x] |= GEO_WADI
+	for r: Array in roads:
+		for t: Vector2i in r:
+			flags[t.y * size + t.x] |= GEO_ROAD
+	var oasis_tiles: Array[Vector2i] = []
+	oasis_tiles.assign(oases)
+	_mark_oases(flags, size, oasis_tiles)
+	_mark_banks(flags, size)
+	return {"wadis": wadis, "roads": roads, "oases": oasis_tiles, "flags": flags}
+
+## Flat [x0, y0, x1, y1, ...] as tiles on the map, or null if it is not that.
+static func _tiles(flat: Variant, size: int) -> Variant:
+	if not flat is Array or (flat as Array).size() % 2 != 0:
+		return null
+	var out: Array[Vector2i] = []
+	for i in range(0, (flat as Array).size(), 2):
+		var x: Variant = flat[i]
+		var y: Variant = flat[i + 1]
+		if not (x is int or x is float) or not (y is int or y is float):
+			return null
+		var t := Vector2i(int(x), int(y))
+		if t.x < 0 or t.y < 0 or t.x >= size or t.y >= size:
+			return null
+		out.append(t)
+	return out
+
+static func _mark_oases(flags: PackedByteArray, size: int, oases: Array[Vector2i]) -> void:
 	for o in oases:
 		for dy in range(-2, 3):
 			for dx in range(-2, 3):
@@ -63,6 +116,8 @@ static func build(seed: int, size: int, region_cell: int, terrain: PackedInt32Ar
 					continue
 				var d := maxi(absi(dx), absi(dy))
 				flags[y * size + x] |= GEO_OASIS if d == 0 else ((GEO_OASIS_RING | GEO_OASIS_SHORE) if d == 1 else GEO_OASIS_RING)
+
+static func _mark_banks(flags: PackedByteArray, size: int) -> void:
 	for y in size:
 		for x in size:
 			var i := y * size + x
@@ -72,7 +127,6 @@ static func build(seed: int, size: int, region_cell: int, terrain: PackedInt32Ar
 				if n.x >= 0 and n.y >= 0 and n.x < size and n.y < size and (flags[n.y * size + n.x] & GEO_WADI) != 0:
 					flags[i] |= GEO_BANK
 					break
-	return {"wadis": wadis, "roads": roads, "oases": oases, "flags": flags}
 
 ## The client's OASIS_FRONT bit (GroundLayer.onSnapshot): oasis-ring tiles in front of a pool on screen keep low dressing.
 static func with_oasis_front(flags: PackedByteArray, oases: Array, size: int) -> PackedByteArray:

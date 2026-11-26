@@ -1,5 +1,5 @@
 extends GutTest
-## The base picture and its sheet: hit testing on the traced outlines, the shade, fit and pan, the panel's rebuild rule, and the
+## The base picture and its sheet: hit testing on the outlines, the scaffolding, fit and pan, the panel's rebuild rule, and the
 ## upgrade request with a fake API.
 
 class FakeApi:
@@ -44,22 +44,26 @@ func test_a_point_on_each_building_hits_that_building_and_empty_ground_hits_noth
 	assert_eq(view.hit_building(Vector2(0, -300)), "", "above the base")
 	assert_eq(view.hit_building(Vector2(-900, 100)), "", "far to the side")
 
-func test_every_building_has_one_outline_and_no_two_overlap() -> void:
+func test_every_building_has_an_outline_at_every_look_and_no_two_overlap() -> void:
 	var ids: Array = Balance.data()["buildingIds"]
-	assert_eq(CampLayout.REGIONS.size(), ids.size())
+	assert_eq(CampLayout.BUILDINGS.size(), ids.size())
 	for id: String in ids:
-		assert_true(CampLayout.REGIONS.has(id), id)
-		assert_true(Geometry2D.is_point_in_polygon(CampLayout.REGIONS[id]["point"], CampLayout.outline(id)), id + " point is inside")
+		assert_true(CampLayout.BUILDINGS.has(id), id)
+		for look in range(1, 5):
+			assert_true(Geometry2D.is_point_in_polygon(CampLayout.point_of(id, look), CampArt.outline(id, look)), id + " point is inside")
 	for i in ids.size():
 		for j in range(i + 1, ids.size()):
-			assert_eq(Geometry2D.intersect_polygons(CampLayout.outline(ids[i]), CampLayout.outline(ids[j])).size(), 0, "%s and %s" % [ids[i], ids[j]])
+			for a in range(1, 5):
+				for b in range(1, 5):
+					assert_eq(Geometry2D.intersect_polygons(CampArt.outline(ids[i], a), CampArt.outline(ids[j], b)).size(), 0, "%s %d and %s %d" % [ids[i], a, ids[j], b])
 
-func test_outlines_and_names_are_on_the_painting() -> void:
-	var world := Rect2(Vector2.ZERO, CampLayout.WORLD)
-	for id: String in CampLayout.REGIONS:
-		assert_true(world.has_point(CampLayout.REGIONS[id]["label"]), id)
-		for at: Vector2 in CampLayout.outline(id):
-			assert_true(world.has_point(at), id)
+func test_outlines_and_names_are_on_the_picture() -> void:
+	var world := Rect2(Vector2.ZERO, CampLayout.WORLD).grow(0.5)
+	for id in CampLayout.BUILDINGS:
+		for look in range(1, 5):
+			assert_true(world.has_point(CampLayout.label_at(id, look)), id)
+			for at: Vector2 in CampArt.outline(id, look):
+				assert_true(world.has_point(at), "%s %d %s" % [id, look, at])
 
 func test_taps_are_reported_in_world_coordinates() -> void:
 	var view := _view()
@@ -125,9 +129,9 @@ func test_the_building_under_construction_is_shaded() -> void:
 func test_a_name_plate_taps_as_its_building() -> void:
 	var view := _view()
 	view.set_state(_levels(), null, NOW)
-	for id: String in CampLayout.REGIONS:
+	for id in CampLayout.BUILDINGS:
 		var label: Label = view._labels[id]
-		var centre: Vector2 = label.position + label.size * BaseView.LABEL_SCALE * 0.5
+		var centre: Vector2 = label.position + label.size * view._label_scale() * 0.5
 		assert_eq(view.hit_building(centre), id)
 
 func test_each_building_shows_its_name_and_level_in_the_language() -> void:
@@ -142,7 +146,7 @@ func test_each_building_shows_its_name_and_level_in_the_language() -> void:
 
 ## A building's bounds on screen at the layer's current fit.
 func _screen_bounds(view: BaseView, id: String) -> Rect2:
-	var shape := CampLayout.outline(id)
+	var shape := CampArt.outline(id, view.look(id))
 	var box := Rect2(shape[0], Vector2.ZERO)
 	for at in shape:
 		box = box.expand(at)
@@ -166,7 +170,7 @@ func test_on_tall_phones_every_building_opens_clear_of_the_hud() -> void:
 	for view_size: Vector2 in [Vector2(1080, 2340), Vector2(1080, 2400)]:
 		var view := _view()
 		view.apply_fit(view_size, HUD_TOP, HUD_NAV)
-		for id: String in CampLayout.REGIONS:
+		for id in CampLayout.BUILDINGS:
 			var box := _screen_bounds(view, id)
 			assert_gte(box.position.y, HUD_TOP, "%s under the top at %s" % [id, view_size])
 			assert_lte(box.end.y, view_size.y - HUD_NAV, "%s above the nav at %s" % [id, view_size])

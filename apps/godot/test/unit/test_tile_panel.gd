@@ -2,7 +2,8 @@ extends GutTest
 ## TilePanel: hidden until a tile is shown, one sheet per kind, redrawn only when what it shows changes, closed by its button.
 
 func _snap() -> Dictionary:
-	return {"bases": [{"tag": "AAAA", "x": 2, "y": 2, "mine": true, "alliance": null}], "hqs": [],
+	# Seed 12345 lets a base or HQ stand on (20, 20) (map-fixtures.json baseSites).
+	return {"size": 64, "terrainSeed": 12345, "bases": [{"tag": "AAAA", "x": 2, "y": 2, "mine": true, "alliance": null}], "hqs": [],
 		"npcs": [{"id": "n1", "kind": "patrol", "level": 1, "x": 8, "y": 8, "region": 1}]}
 
 func _texts(panel: TilePanel) -> Array:
@@ -147,6 +148,10 @@ func test_the_leader_sees_place_hq_on_land_and_move_hq_once_it_stands() -> void:
 		if b.text == Loc.t("map.placeHq"):
 			b.pressed.emit()
 	assert_eq(asked, [Vector2i(20, 20)])
+	panel.show_tile(Vector2i(1, 20))
+	panel.update_view(snap, "plain", "Wolves", "leader", 0.0)
+	assert_false(_buttons(panel).has(Loc.t("map.placeHq")), "no HQ button by the frontier")
+	panel.show_tile(Vector2i(20, 20))
 	snap["hqs"] = [{"tag": "WLF", "x": 4, "y": 4, "mine": true}]
 	panel.update_view(snap, "plain", "Wolves", "leader", 0.0)
 	assert_true(_buttons(panel).has(Loc.t("map.moveHq")))

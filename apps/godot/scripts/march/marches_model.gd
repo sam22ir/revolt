@@ -35,7 +35,7 @@ static func _fraction(from: float, to: float, now: float) -> float:
 		return 1.0
 	return minf(1.0, maxf(0.0, (now - from) / (to - from)))
 
-## {"leg": "outbound"|"at_site"|"returning"|"done", "x", "y"}: the column's tile coordinates (tile middles are +0.5) for a march with
+## {"leg": "outbound"|"at_site"|"returning"|"done", "x", "y", "f" (how far along its leg, 0..1)}: the column's tile coordinates (tile middles are +0.5) for a march with
 ## from, to, departAt, arriveAt and returnAt. Out until arriveAt, back until returnAt, then gone (at its start). A harvest waits at its
 ## site ("at_site", on the site tile) from arriveAt to leaveSiteAt, and walks back from there.
 static func position(m: Dictionary, now: float) -> Dictionary:
@@ -44,17 +44,17 @@ static func position(m: Dictionary, now: float) -> Dictionary:
 	var tx := float(m["to"]["x"])
 	var ty := float(m["to"]["y"])
 	if now >= float(m["returnAt"]):
-		return {"leg": "done", "x": fx, "y": fy}
+		return {"leg": "done", "x": fx, "y": fy, "f": 1.0}
 	if now < float(m["arriveAt"]):
 		var f := _fraction(float(m["departAt"]), float(m["arriveAt"]), now)
-		return {"leg": "outbound", "x": fx + (tx - fx) * f, "y": fy + (ty - fy) * f}
+		return {"leg": "outbound", "x": fx + (tx - fx) * f, "y": fy + (ty - fy) * f, "f": f}
 	var back_from := float(m["arriveAt"])
 	if is_harvest(m):
 		back_from = leave_at(m)
 		if now < back_from:
-			return {"leg": "at_site", "x": tx, "y": ty}
+			return {"leg": "at_site", "x": tx, "y": ty, "f": 0.0}
 	var g := _fraction(back_from, float(m["returnAt"]), now)
-	return {"leg": "returning", "x": tx + (fx - tx) * g, "y": ty + (fy - ty) * g}
+	return {"leg": "returning", "x": tx + (fx - tx) * g, "y": ty + (fy - ty) * g, "f": g}
 
 ## Whether the fight marker shows at the target now. A harvest is no fight.
 static func battle_flash(m: Dictionary, now: float) -> bool:

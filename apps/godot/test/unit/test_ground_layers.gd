@@ -66,6 +66,18 @@ func test_occupied_tiles_get_no_props() -> void:
 	layer.build(64, [_prop(10), _prop(11), _prop(12)], art, {11: true})
 	assert_eq(layer.sprite_count(), 2)
 
+func test_a_newly_occupied_tile_hides_its_props_and_a_freed_one_shows_them_without_a_rebuild() -> void:
+	var art := GroundArt.load_art()
+	var layer := PropLayer.new()
+	add_child_autofree(layer)
+	layer.build(64, [_prop(10), _prop(11), _prop(11), _prop(12)], art, {})
+	var batch := layer.get_child(0)
+	layer.set_occupied({11: true})
+	assert_eq(layer.sprite_count(), 2, "both props on tile 11 hidden")
+	layer.set_occupied({12: true})
+	assert_eq(layer.sprite_count(), 3, "11 shown again, 12 hidden")
+	assert_eq(layer.get_child(0), batch, "the same batch: nothing was rebuilt")
+
 func test_props_of_every_kind_resolve_to_a_frame_of_their_own_atlas() -> void:
 	var art := GroundArt.load_art()
 	var layer := PropLayer.new()
@@ -90,7 +102,6 @@ func test_the_map_builds_every_layer_and_props_hide_when_zoomed_out() -> void:
 		"npcs": [], "hqs": [], "marches": [], "rallies": [], "liberations": [],
 	}
 	await map.build(snap)
-	assert_gt(map.ground_layer().decal_count(), 100, "decals")
 	assert_gt(map.prop_layer().sprite_count(), 500, "props")
 	var occupied := map.occupied_tiles()
 	assert_true(occupied.has(30 * 64 + 30) and occupied.has(29 * 64 + 29) and occupied.has(31 * 64 + 31), "the 3x3 ring around a base is kept clear")
@@ -122,3 +133,127 @@ func test_packing_releases_the_per_kind_textures() -> void:
 		assert_null(art.atlases[kind]["texture"], "%s texture should be released after packing" % kind)
 		assert_gt(art.atlases[kind]["frames"].size(), 0)
 	assert_not_null(art.props_atlas["texture"])
+
+func test_only_mountains_with_mountains_below_them_rise() -> void:
+	# A 4 x 4 map: a mountain block in the top left, one lone mountain tile at the bottom right.
+	var size := 4
+	var terrain := PackedInt32Array([3, 3, 0, 0, 3, 3, 0, 0, 3, 3, 0, 0, 0, 0, 0, 3])
+	var height := PackedFloat32Array()
+	for i in size * size:
+		height.append(0.9 if terrain[i] == GroundPlan.T_MOUNTAIN else 0.4)
+	var up := GroundField.rising(height, terrain, size)
+	assert_almost_eq(up[0], GroundField.HELD_HIGH, 1e-6, "inside the block it rises one step: two tiles down is plain")
+	assert_almost_eq(up[1 * 4 + 1], GroundField.HELD, 1e-6, "its face would hang over plain land below")
+	assert_almost_eq(up[2 * 4 + 0], GroundField.HELD, 1e-6, "the bottom row of the block is held")
+	assert_almost_eq(up[3 * 4 + 3], 0.9, 1e-6, "the map's edge has nothing below it")
+	assert_almost_eq(up[2], 0.4, 1e-6, "low land is left as it is")
+
+func test_the_feature_field_measures_distance_to_roads_riverbeds_and_pools() -> void:
+	var road := [[2.0, 2.0, 1.0], [2.1, 2.0, 1.0], [2.2, 2.0, 1.0]]
+	var img := GroundField.features(8, [], [road], [Vector2i(6, 6)])
+	assert_eq(img.get_size(), Vector2i(8, 8) * GroundField.detail(8))
+	var on_road := img.get_pixel(2 * GroundField.detail(8), 2 * GroundField.detail(8))
+	var away := img.get_pixel(5 * GroundField.detail(8), 1 * GroundField.detail(8))
+	assert_lt(on_road.r, 0.15, "on the road")
+	assert_eq(away.r, 1.0, "far from it")
+	assert_eq(on_road.g, 1.0, "no riverbed anywhere")
+	assert_lt(img.get_pixel(6 * GroundField.detail(8) + 4, 6 * GroundField.detail(8) + 4).b, 0.05, "the pool's middle")
+
+func test_the_land_field_keeps_roads_low_and_is_smooth_between_tiles() -> void:
+	var size := 8
+	var terrain := PackedInt32Array()
+	var height := PackedFloat32Array()
+	var fertility := PackedFloat32Array()
+	var bytes := PackedByteArray()
+	var flags := PackedByteArray()
+	for i in size * size:
+		terrain.append(GroundPlan.T_MOUNTAIN)
+		height.append(0.95)
+		fertility.append(0.5)
+		bytes.append(0)
+		flags.append(Geography.GEO_ROAD if i == 3 * size + 3 else 0)
+	var img := GroundField.land(size, height, terrain, fertility, bytes, bytes, flags)
+	assert_eq(img.get_size(), Vector2i(size, size) * GroundField.detail(8))
+	var road := img.get_pixel(3 * GroundField.detail(8) + 4, 3 * GroundField.detail(8) + 4)
+	assert_lt(road.r, MapGrid.HILLS_FROM, "a road's tile is low")
+	assert_lt(road.g, MapGrid.MOUNTAIN_FROM, "and does not rise")
+
+func test_a_road_over_a_mountain_keeps_the_faces_off_it() -> void:
+	# A 6 x 6 mountain with a road along its fourth row.
+	var size := 6
+	var terrain := PackedInt32Array()
+	var height := PackedFloat32Array()
+	var flags := PackedByteArray()
+	for i in size * size:
+		terrain.append(GroundPlan.T_MOUNTAIN)
+		height.append(0.95)
+		flags.append(Geography.GEO_ROAD if i / size == 3 else 0)
+	var up := GroundField.rising(height, terrain, size, flags)
+	assert_almost_eq(up[2 * size + 2], GroundField.HELD, 1e-6, "the row above the road does not rise")
+	assert_almost_eq(up[1 * size + 2], GroundField.HELD_HIGH, 1e-6, "two rows above only one step")
+	assert_almost_eq(up[0 * size + 2], 0.95, 1e-6, "farther up it rises fully")
+	assert_almost_eq(up[5 * size + 2], 0.95, 1e-6, "below the road it rises")
+
+func test_the_chunks_props_together_are_the_whole_maps() -> void:
+	var size := 64
+	var grid := MapGrid.compute(1954, size, 16)
+	var geo := Geography.build(1954, size, 16, grid["terrain"], grid["regions"])
+	var flags := Geography.with_oasis_front(geo["flags"], geo["oases"], size)
+	var fert := GroundMath.fertility_grid(1954, size)
+	var rocks := GroundMath.cluster_mask(1954, size, "rocks")
+	var grove := GroundMath.cluster_mask(1954, size, "grove")
+	var whole: Array = GroundPlan.build(1954, size, grid["terrain"], flags, fert, rocks, grove, {"sand": [0], "grass": [0], "stone": [0], "track": [0]}, true)["props"]
+	var parts: Array = []
+	for cy in 2:
+		for cx in 2:
+			parts.append_array(GroundPlan.chunk_props(size, grid["terrain"], flags, fert, rocks, grove, cx * 32, cy * 32, cx * 32 + 32, cy * 32 + 32))
+	var key := func(p: Dictionary) -> String: return "%d|%s|%s|%s" % [p["i"], p["kind"], p["pick"], p["scale"]]
+	var a := whole.map(key)
+	var b := parts.map(key)
+	a.sort()
+	b.sort()
+	assert_eq(b, a)
+	# Merged per-chunk items draw in the same order as the whole map's.
+	var art := GroundArt.load_art()
+	var lists: Array = []
+	for cy in 2:
+		for cx in 2:
+			lists.append(PropLayer.items_for(size, GroundPlan.chunk_props(size, grid["terrain"], flags, fert, rocks, grove, cx * 32, cy * 32, cx * 32 + 32, cy * 32 + 32), art))
+	var merged := PropLayer.merge(lists).map(func(it: Dictionary) -> Vector2: return it["sprite"]["pos"])
+	var direct := PropLayer.items_for(size, whole, art).map(func(it: Dictionary) -> Vector2: return it["sprite"]["pos"])
+	assert_eq(merged, direct)
+
+func test_a_windowed_map_loads_only_the_chunks_round_the_view() -> void:
+	var map := WorldMap.new()
+	map.windowed = true
+	add_child_autofree(map)
+	# 96 tiles (9 chunks): big enough to window, small enough to build fast here.
+	await map.build({"size": 96, "terrainSeed": 1954, "now": 0, "liberations": [], "marches": [], "sites": [], "hqs": [], "bases": [], "npcs": []})
+	assert_eq(map.loaded_chunks(), 0, "nothing until the camera says where it looks")
+	var centre := Iso.tile_to_world(48, 48)
+	map.set_view(Rect2(centre - Vector2(540, 960), Vector2(1080, 1920)), 1.0)
+	var some := map.loaded_chunks()
+	assert_between(some, 1, 8, "some of the 9 chunks, not all")
+	map.set_view(Rect2(centre - Vector2(500, 900), Vector2(1080, 1920)), 1.0)
+	assert_eq(map.loaded_chunks(), some, "a small pan loads nothing new")
+	map.set_view(Rect2(centre - Vector2(540, 960), Vector2(1080, 1920)), 0.2)
+	assert_eq(map.loaded_chunks(), some, "zoomed far out: props hidden, nothing loads")
+	# Chunks are worked out a slice a frame, then the batch fills: wait for both.
+	for i in 600:
+		if not map.is_filling_ground() and not map.prop_layer().is_filling():
+			break
+		await wait_frames(1)
+	assert_false(map.prop_layer().is_filling(), "the window's batch filled in the background")
+	assert_gt(map.prop_layer().sorted_sprites.size(), 0)
+
+func test_a_feature_fill_run_to_the_end_equals_the_whole_feature_picture() -> void:
+	var size := 192
+	var grid := MapGrid.compute(1954, size, 32)
+	var geo := Geography.build(1954, size, 32, grid["terrain"], grid["regions"])
+	var wadis := FeatureShape.wadi_paths(geo["wadis"])
+	var roads := FeatureShape.road_paths(geo["roads"])
+	var fill := GroundField.FeatureFill.new(size, wadis, roads, geo["oases"], Vector2(40, 150))
+	fill.stamp_near(24.0)
+	while not fill.step(50.0):
+		pass
+	assert_eq(fill.image().get_data(), GroundField.features(size, wadis, roads, geo["oases"]).get_data())

@@ -5,12 +5,12 @@ extends Node2D
 
 enum Side { BEHIND, FRONT }
 
-const FENCE: Texture2D = preload("res://art/frontier/fence.svg")
-const TOWER: Texture2D = preload("res://art/frontier/tower.svg")
+## One repeat of the fence for each way an edge runs on the screen (tools/blender/map_pieces.py fence), upright: its bottom row is the ground.
+const FENCE_DOWN: Texture2D = preload("res://art/frontier/fence_down.webp")
+const FENCE_UP: Texture2D = preload("res://art/frontier/fence_up.webp")
 ## World px: the fence's height, and how many tiles one repeat of its art covers.
-const FENCE_HEIGHT := 60.0
+const FENCE_HEIGHT := 62.0
 const FENCE_TILES := 2.0
-const TOWER_HEIGHT := 128.0
 ## A tower every so many tiles along an edge, and at the corners.
 const TOWER_EVERY := 16
 ## The land outside is duller than the map.
@@ -71,8 +71,9 @@ func _draw_fence(out: float) -> void:
 	for edge: Array in edges():
 		var a := corners[edge[0]]
 		var b := corners[edge[1]]
+		var art := FENCE_UP if b.y < a.y else FENCE_DOWN
 		_built.draw_colored_polygon(PackedVector2Array([a, b, b + up, a + up]), tint,
-			PackedVector2Array([Vector2(0, 1), Vector2(repeats, 1), Vector2(repeats, 0), Vector2(0, 0)]), FENCE)
+			PackedVector2Array([Vector2(0, 1), Vector2(repeats, 1), Vector2(repeats, 0), Vector2(0, 0)]), art)
 
 ## Where the towers of this half stand, in drawing order (the farthest first).
 func tower_spots() -> PackedVector2Array:
@@ -95,9 +96,5 @@ func tower_spots() -> PackedVector2Array:
 	return PackedVector2Array(spots)
 
 func _draw_towers(_out: float) -> void:
-	var size_px := Vector2(TOWER_HEIGHT * TOWER.get_width() / TOWER.get_height(), TOWER_HEIGHT)
 	for p in tower_spots():
-		_built.draw_set_transform(p, 0.0, Vector2(1.0, 0.5))
-		_built.draw_circle(Vector2(8, 0), size_px.x * 0.55, Color(0, 0, 0, 0.28))
-		_built.draw_set_transform(Vector2.ZERO)
-		_built.draw_texture_rect(TOWER, Rect2(p - Vector2(size_px.x * 0.5, size_px.y - 5.0), size_px), false)
+		_built.draw_texture_rect(MapArt.texture("frontier_tower"), MapArt.rect("frontier_tower", p), false)

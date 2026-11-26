@@ -15,7 +15,7 @@ func setup(size: int) -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	if _size == 0 or not GroundStyle.params().is_empty():
+	if _size == 0:
 		return
 	var inner := Frontier.outline(_size, FROM)
 	var outer := Frontier.outline(_size, TO)

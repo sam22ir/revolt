@@ -12,10 +12,7 @@ const BIG := 20.0
 const BUTTON := 50.0
 const TAP := 44.0
 const BOLD := "res://fonts/IBMPlexSansArabic-Bold.ttf"
-## The painting around a building's outline that its portrait also shows, in painting px.
-const PORTRAIT_PAD := 24.0
 
-static var _portraits := {}
 
 static func label(text: String, size := BODY, color := HudTheme.TEXT, bold := false, wrap := false) -> Label:
 	var l := Label.new()
@@ -225,13 +222,13 @@ static func warning(text: String) -> PanelContainer:
 static func set_warning(warning_line: PanelContainer, text: String) -> void:
 	(warning_line.get_child(0).get_child(1) as Label).text = text
 
-## The building as it is painted in the camp, framed: a square cut of the painting around its traced outline.
-static func portrait(id: String, size := 64.0) -> PanelContainer:
+## The building as it stands in the camp at `level`, framed.
+static func portrait(id: String, size := 64.0, level := 1) -> PanelContainer:
 	var frame := PanelContainer.new()
 	var box := StyleBoxEmpty.new()
 	frame.add_theme_stylebox_override("panel", box)
 	var pic := TextureRect.new()
-	pic.texture = portrait_texture(id)
+	pic.texture = portrait_texture(id, level)
 	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	pic.custom_minimum_size = Vector2.ONE * HudTheme.px(size)
@@ -245,23 +242,6 @@ static func portrait(id: String, size := 64.0) -> PanelContainer:
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return frame
 
-## The square region of the painting around building `id`'s outline (CampLayout is in world units, half the painting's px).
-static func portrait_region(id: String) -> Rect2:
-	var outline := CampLayout.outline(id)
-	var low := outline[0]
-	var high := outline[0]
-	for p in outline:
-		low = low.min(p)
-		high = high.max(p)
-	# The outline's centre, (low + high) / 2 world units, is low + high painting px.
-	var centre := low + high
-	var side := maxf(high.x - low.x, high.y - low.y) * 2.0 + PORTRAIT_PAD * 2.0
-	return Rect2(centre - Vector2.ONE * side * 0.5, Vector2.ONE * side)
-
-static func portrait_texture(id: String) -> Texture2D:
-	if not _portraits.has(id):
-		var atlas := AtlasTexture.new()
-		atlas.atlas = load(CampLayout.PAINTING)
-		atlas.region = portrait_region(id).intersection(Rect2(Vector2.ZERO, CampModels.SIZE))
-		_portraits[id] = atlas
-	return _portraits[id]
+## A building's picture on the cards: the look it has at `level`.
+static func portrait_texture(id: String, level: int = 1) -> Texture2D:
+	return CampArt.card(id, CampArt.look_for(level))

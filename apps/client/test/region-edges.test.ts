@@ -40,12 +40,12 @@ RA.push(["on a real map every edge separates two different regions, and every re
   expect(edges.length).toBeGreaterThan(50);
   for (const e of edges) {
     expect(e.a).not.toBe(e.b);
-    expect(regionAt(seed, e.x, e.y)).toBe(e.a);
+    expect(regionAt(seed, e.x, e.y, 64)).toBe(e.a);
   }
   // Any tile with a different-region right or lower neighbour is covered.
   for (const [x, y] of [[0, 0], [31, 31], [63, 5]] as const) {
-    const lower = y + 1 < 64 && regionAt(seed, x, y + 1) !== regionAt(seed, x, y);
-    const right = x + 1 < 64 && regionAt(seed, x + 1, y) !== regionAt(seed, x, y);
+    const lower = y + 1 < 64 && regionAt(seed, x, y + 1, 64) !== regionAt(seed, x, y, 64);
+    const right = x + 1 < 64 && regionAt(seed, x + 1, y, 64) !== regionAt(seed, x, y, 64);
     const has = edges.some((e) => e.x === x && e.y === y);
     expect(has).toBe(lower || right);
   }

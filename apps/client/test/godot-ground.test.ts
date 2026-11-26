@@ -114,7 +114,8 @@ describe("Godot ground fixtures", () => {
     const same = (from: string, to: string): boolean =>
       readFileSync(new URL(from, import.meta.url)).equals(readFileSync(new URL(to, import.meta.url)));
     expect(same("../src/art/terrain-manifest.json", "../../godot/art/terrain-manifest.json")).toBe(true);
-    for (const name of ["decals", "props-trees", "props-rocks", "props-peaks", "props-scrub"]) {
+    // The props-*.webp atlases are Godot's own art; only their frames are shared.
+    for (const name of ["decals"]) {
       expect(same(`../public/art/terrain/${name}.webp`, `../../godot/art/terrain/${name}.webp`), name).toBe(true);
     }
   });

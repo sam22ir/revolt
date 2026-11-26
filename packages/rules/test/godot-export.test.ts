@@ -21,11 +21,11 @@ describe("Godot export", () => {
 
   test("the sites block gives each kind its resource, a rate for every level, and the harvest cap", () => {
     const sites = (buildGodotBalance() as { sites: { kinds: string[]; levels: number[]; maxHarvestMs: number; siteResource: Record<string, string>; ratePerHour: Record<string, Record<string, number>> } }).sites;
-    expect(sites.kinds).toEqual(["farmland", "quarry"]);
-    expect(sites.levels).toEqual([1, 2, 3]);
-    expect(sites.siteResource).toEqual({ farmland: "food", quarry: "materiel" });
+    expect(sites.kinds).toEqual(["farmland", "quarry", "depot"]);
+    expect(sites.levels).toEqual([1, 2, 3, 4, 5]);
+    expect(sites.siteResource).toEqual({ farmland: "food", quarry: "materiel", depot: "funds" });
     for (const kind of sites.kinds) {
-      expect(Object.keys(sites.ratePerHour[kind]!).sort()).toEqual(["1", "2", "3"]);
+      expect(Object.keys(sites.ratePerHour[kind]!).sort()).toEqual(["1", "2", "3", "4", "5"]);
       for (const level of sites.levels) expect(sites.ratePerHour[kind]![String(level)]).toBeGreaterThan(0);
     }
     expect(sites.maxHarvestMs).toBeGreaterThan(0);

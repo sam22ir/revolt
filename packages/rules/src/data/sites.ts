@@ -5,22 +5,29 @@ import type { ResourceId } from "../resource-id.ts";
  * occupies and harvests, PvE only. Names and art are i18n keys and art ids `site.<kind>.*`.
  * Every number here is a placeholder to be tuned against building production.
  */
-export const SITE_KINDS = ["farmland", "quarry"] as const;
+export const SITE_KINDS = ["farmland", "quarry", "depot"] as const;
 export type SiteKind = (typeof SITE_KINDS)[number];
 
-export const SITE_LEVELS = [1, 2, 3] as const;
+/** The kinds found outside contested zones, in the order sites take them. Depots (funds) are only in zones. */
+export const OPEN_SITE_KINDS: readonly SiteKind[] = ["farmland", "quarry"];
+
+/** Levels 1-3 outside contested zones, 4-5 inside them. */
+export const SITE_LEVELS = [1, 2, 3, 4, 5] as const;
 export type SiteLevel = (typeof SITE_LEVELS)[number];
 
 /** The resource a site yields. */
 export const SITE_RESOURCE: Readonly<Record<SiteKind, ResourceId>> = {
   farmland: "food",
   quarry: "materiel",
+  depot: "funds",
 };
 
 /** Yield per hour of occupation, by kind and level. */
 export const SITE_RATE_PER_HOUR: Readonly<Record<SiteKind, Readonly<Record<SiteLevel, number>>>> = {
-  farmland: { 1: 300, 2: 600, 3: 1000 },
-  quarry: { 1: 200, 2: 400, 3: 700 },
+  farmland: { 1: 300, 2: 600, 3: 1000, 4: 3000, 5: 5000 },
+  quarry: { 1: 200, 2: 400, 3: 700, 4: 2100, 5: 3500 },
+  // Only levels 4-5 exist (depots are only in zones); the lower levels keep the table whole.
+  depot: { 1: 100, 2: 200, 3: 350, 4: 1200, 5: 2000 },
 };
 
 /** A harvest stops accruing after this long on site, even with carry room left. */

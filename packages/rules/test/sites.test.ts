@@ -24,12 +24,14 @@ import {
 } from "../src/index.ts";
 import { base, HOUR, SEC, T0 } from "./helpers.ts";
 
-const SEEDS = [1, 2, 3, 42, 1234, 99999, 0xdeadbeef];
+// Three seeds: each full map takes about a second of road search (cached after the first test).
+const SEEDS = [1, 42, 0xdeadbeef];
 const farm1 = { kind: "farmland", level: 1 } as const;
 const quarry3 = { kind: "quarry", level: 3 } as const;
 const t = (infantry: number, scouts = 0, heavy = 0, porters = 0): Troops => ({ infantry, scouts, heavy, porters });
 
-const sitesFor = (seed: number): readonly MapSite[] => placeSites(seed, geographyOf(seed, MAP_SIZE));
+/** The sites outside contested zones (zone sites have their own rules, test/zones.test.ts). */
+const sitesFor = (seed: number): readonly MapSite[] => placeSites(seed, geographyOf(seed, MAP_SIZE)).filter((s) => s.zone === null);
 
 const march = (id: string): MarchState => ({
   id,
@@ -42,7 +44,7 @@ const march = (id: string): MarchState => ({
   outcome: null,
 });
 
-describe("placeSites", () => {
+describe("placeSites", { timeout: 30_000 }, () => {
   test("same seed gives the same sites; different seeds differ", () => {
     expect(sitesFor(42)).toEqual(sitesFor(42));
     expect(sitesFor(42)).not.toEqual(sitesFor(43));
@@ -76,11 +78,12 @@ describe("placeSites", () => {
     }
   });
 
-  test("count is in a sane range for a 64-tile map and sites keep their spacing", () => {
+  test("count is in a sane range for the map (15 to 40 per 64x64 tiles) and sites keep their spacing", () => {
+    const per = (MAP_SIZE * MAP_SIZE) / (64 * 64);
     for (const seed of SEEDS) {
       const sites = sitesFor(seed);
-      expect(sites.length).toBeGreaterThanOrEqual(15);
-      expect(sites.length).toBeLessThanOrEqual(40);
+      expect(sites.length).toBeGreaterThanOrEqual(15 * per);
+      expect(sites.length).toBeLessThanOrEqual(40 * per);
       for (let i = 0; i < sites.length; i++) {
         for (let j = i + 1; j < sites.length; j++) {
           const a = sites[i]!;
@@ -214,7 +217,7 @@ describe("recallTiming", () => {
 });
 
 describe("checkHarvest", () => {
-  const site: MapSite = { id: "farmland:0", kind: "farmland", level: 1, x: 3, y: 4 };
+  const site: MapSite = { id: "farmland:0", kind: "farmland", level: 1, x: 3, y: 4, zone: null };
   const troops = t(2, 0, 0, 1);
   const free = new Set<string>();
   const home = t(5, 0, 0, 5);

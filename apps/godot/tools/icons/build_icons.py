@@ -2100,8 +2100,30 @@ def hero_column_commander():
     hero_save(ic)
 
 
+def search_icon():
+    """A brass magnifying glass over a scrap of map: the Find sheet's button."""
+    ic = Icon("search")
+    ic.shape("M40 70L150 52L176 150L66 170z", ic.lin(PAPER, 40, 60, 176, 160), LINE, 2.4)
+    ic.line("M60 92Q86 100 98 86T140 92M70 130Q96 116 118 126T160 120", "#7c4822", 2.6, .7)
+    ic.line("M44 72L148 55", "#ffffff", 2.4, .8)
+    cx, cy, r = 112, 104, 58
+    # The handle, wood with a brass collar, down to the right.
+    ic.shape("M152 140L214 214Q222 226 210 232Q198 238 190 228L130 160z", "#0c0704", "#0c0704", 8, False)
+    ic.shape("M152 140L214 214Q222 226 210 232Q198 238 190 228L130 160z", ic.lin(["#a0671a", "#6b3f12", "#3e230a"], 150, 150, 220, 230), LINE, 2.4)
+    ic.line("M160 156L208 214", "#e2a860", 3, .6)
+    ic.shape("M140 132L166 156L150 172L124 148z", ic.lin(GOLD, 124, 132, 166, 172), LINE, 2.2)
+    # The rim and the glass.
+    ic.shape(circ(cx + 3, cy + 4, r + 12), "#4a2a0c", INK, 3)
+    ic.shape(circ(cx, cy, r + 12), ic.lin(BRASS, cx - r, cy - r, cx + r, cy + r), LINE, 3)
+    ic.shape(circ(cx, cy, r), ic.rad(["#e8f3ef", "#b7d3cf", "#7fa6a4", "#4f7472"], cx - 18, cy - 20, r * 1.3), INK, 2.2, False)
+    ic.line(f"M{cx - 38} {cy - 6}A40 40 0 0 1 {cx - 4} {cy - 40}", "#ffffff", 6, .75)
+    for a in (45, 135, 225, 315):
+        ic.rivet(*pol(cx, cy, r + 6, a), 5, GOLD)
+    ic.save()
+
+
 if __name__ == "__main__":
-    for draw in (food, materiel, funds, support, heroes, alliance, map_icon, base, reports, settings, upgrade, info, train, hammer, builders, power, marches, wounded, avatar, back, chevron, clock, lock, storage, troop_infantry, troop_scouts, troop_heavy, troop_porters, music, effects, language, help_icon, link,
+    for draw in (food, materiel, funds, support, heroes, alliance, map_icon, base, reports, settings, upgrade, info, train, hammer, builders, power, marches, wounded, avatar, back, chevron, clock, lock, storage, troop_infantry, troop_scouts, troop_heavy, troop_porters, music, effects, language, help_icon, link, search_icon,
                  victory, defeat, gone, npc_patrol, npc_convoy, npc_outpost, npc_fortified_line, chat, hourglass, offline,
                hero_mountain_guide, hero_dock_foreman, hero_iron_quartermaster, hero_hill_commander, hero_trail_scout, hero_field_medic, hero_porter_chief, hero_column_commander):
         draw()

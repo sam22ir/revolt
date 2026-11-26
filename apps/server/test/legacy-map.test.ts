@@ -1,4 +1,4 @@
-import { MAX_NPC_LEVEL, regionsOf } from "@revolt/rules";
+import { MAP_SIZE, MAX_NPC_LEVEL, regionsOf } from "@revolt/rules";
 import { DatabaseSync } from "node:sqlite";
 import { describe, expect, test } from "vitest";
 import { MapService } from "../src/map/map-service.ts";
@@ -14,6 +14,8 @@ describe("a map created before strongholds", () => {
     sqlite.exec("CREATE TABLE meta (key TEXT PRIMARY KEY, value)");
     sqlite.exec("CREATE TABLE npcs (id TEXT PRIMARY KEY, level INTEGER NOT NULL, x INTEGER NOT NULL, y INTEGER NOT NULL, respawn_at INTEGER)");
     sqlite.exec("INSERT INTO meta (key, value) VALUES ('terrain_seed', 42)");
+    // Made at today's size, so it is migrated, not started afresh (that has its own test).
+    sqlite.exec(`INSERT INTO meta (key, value) VALUES ('map_size', ${MAP_SIZE})`);
     sqlite.exec("INSERT INTO npcs VALUES ('old-l1', 1, 3, 3, NULL), ('old-l4a', 4, 20, 20, NULL), ('old-l4b', 4, 40, 40, 123)");
     const sql: MapSql = { exec: (q, ...b) => sqlite.prepare(q).all(...b) as never };
     const { db, close } = sqliteDb();

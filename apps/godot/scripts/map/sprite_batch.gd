@@ -59,6 +59,32 @@ static func placement(frame: Dictionary, s: Dictionary, atlas_size: Vector2) -> 
 		"color": Color(1, 1, 1, float(s["alpha"])),
 	}
 
+## Sets one sprite's opacity (0 hides it) without rebuilding the batch.
+func set_alpha(i: int, alpha: float) -> void:
+	# Sprites are never tinted (placement's colour is white), and a headless renderer cannot read colours back.
+	multimesh.set_instance_color(i, Color(1, 1, 1, alpha))
+
+## An empty batch for `count` sprites, to fill a part at a time (fill) before it is shown.
+func begin(count: int) -> void:
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_2D
+	mm.use_colors = true
+	mm.use_custom_data = true
+	mm.mesh = _unit_quad()
+	mm.instance_count = count
+	multimesh = mm
+
+## Places sprites[from..to-1] in the batch begun for them.
+func fill(sprites: Array, from: int, to: int) -> void:
+	var atlas_size: Vector2 = _atlas["size"]
+	var frames: Array = _atlas["frames"]
+	for i in range(from, mini(to, sprites.size())):
+		var s: Dictionary = sprites[i]
+		var pl := placement(frames[clampi(int(s["frame"]), 0, frames.size() - 1)], s, atlas_size)
+		multimesh.set_instance_transform_2d(i, pl["transform"])
+		multimesh.set_instance_color(i, pl["color"])
+		multimesh.set_instance_custom_data(i, pl["custom"])
+
 ## `sprites`: Array of {frame: int, pos: Vector2, scale: float, flip: bool, alpha: float, center: bool (optional)}.
 ## `center` anchors the frame's middle instead of its manifest ground anchor (used for decals).
 func set_sprites(sprites: Array) -> void:

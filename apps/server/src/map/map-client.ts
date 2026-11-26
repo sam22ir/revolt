@@ -9,7 +9,7 @@ export type { MapViewer } from "./map-service.ts";
  * code outside the DO needs no Workers runtime types (tests run in Node).
  */
 export interface MapStub {
-  view(map: string, viewer: MapViewer, now: number): Promise<MapSnapshot>;
+  view(map: string, viewer: MapViewer, now: number, withGeography?: boolean): Promise<MapSnapshot>;
   sendMarch(map: string, viewer: MapViewer, npcId: string, troops: Troops, heroes: HeroLoadout | null, now: number): Promise<SendMarchResult>;
   startRally(map: string, viewer: MapViewer, npcId: string, troops: Troops, gatherMs: number, now: number): Promise<SendMarchResult>;
   joinRally(map: string, viewer: MapViewer, rallyId: string, troops: Troops, now: number): Promise<SendMarchResult>;
@@ -32,7 +32,7 @@ export interface MapNamespace {
 
 /** What the Worker asks of a server's map. */
 export interface MapApi {
-  view(viewer: MapViewer, now: number): Promise<MapSnapshot>;
+  view(viewer: MapViewer, now: number, withGeography?: boolean): Promise<MapSnapshot>;
   sendMarch(viewer: MapViewer, npcId: string, troops: Troops, heroes: HeroLoadout | null, now: number): Promise<SendMarchResult>;
   startRally(viewer: MapViewer, npcId: string, troops: Troops, gatherMs: number, now: number): Promise<SendMarchResult>;
   joinRally(viewer: MapViewer, rallyId: string, troops: Troops, now: number): Promise<SendMarchResult>;
@@ -53,7 +53,7 @@ export interface MapApi {
 export const durableMap = (env: Env, server: string): MapApi => {
   const stub = env.WORLD_MAP.get(env.WORLD_MAP.idFromName(server) as never);
   return {
-    view: (v, now) => stub.view(server, v, now),
+    view: (v, now, withGeography) => stub.view(server, v, now, withGeography),
     sendMarch: (v, npcId, troops, heroes, now) => stub.sendMarch(server, v, npcId, troops, heroes, now),
     startRally: (v, npcId, troops, gatherMs, now) => stub.startRally(server, v, npcId, troops, gatherMs, now),
     joinRally: (v, rallyId, troops, now) => stub.joinRally(server, v, rallyId, troops, now),

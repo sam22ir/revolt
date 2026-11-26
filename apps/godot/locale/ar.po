@@ -394,6 +394,9 @@ msgstr "حقل زراعي"
 msgid "site.quarry.name"
 msgstr "محجر"
 
+msgid "site.depot.name"
+msgstr "مستودع تموين"
+
 msgid "harvest.button"
 msgstr "حصاد"
 
@@ -540,6 +543,33 @@ msgstr "إقامة مقر التحالف"
 
 msgid "map.moveHq"
 msgstr "نقل مقر التحالف"
+
+msgid "map.findTitle"
+msgstr "البحث في الخريطة"
+
+msgid "map.coordsTitle"
+msgstr "الانتقال إلى إحداثيات"
+
+msgid "map.x"
+msgstr "س"
+
+msgid "map.y"
+msgstr "ص"
+
+msgid "map.goTo"
+msgstr "انتقال"
+
+msgid "map.badCoords"
+msgstr "تتراوح س وص بين 0 و{max}."
+
+msgid "map.campTitle"
+msgstr "البحث عن معسكر"
+
+msgid "map.campHint"
+msgstr "رمز المعسكر، مثل 7F6QZG"
+
+msgid "map.campNone"
+msgstr "لا يوجد معسكر بهذا الرمز."
 
 msgid "march.title"
 msgstr "إرسال حملة"

@@ -1,2 +1,3 @@
 *.blend1
 silhouettes.json
+__pycache__/
