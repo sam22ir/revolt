@@ -113,7 +113,7 @@ func _draw() -> void:
 		var target := Iso.tile_center(int(m["to"]["x"]), int(m["to"]["y"]))
 		var since := _now - float(m["arriveAt"])
 		# Smoke over a colonial post the player's column beat, dying away (GDD §6: fire on colonial targets only).
-		if own.get("result", "") == "victory" and since >= 0.0 and since < SMOKE_MS:
+		if own.get("result", "") == "victory" and not MarchesModel.is_harvest(m) and since >= 0.0 and since < SMOKE_MS:
 			var seed := fposmod(float(m["to"]["x"]) * 0.37 + float(m["to"]["y"]) * 0.11, 1.0)
 			Puffs.draw(self, target + Vector2(-6.0 * k, -26.0 * k), t_s, k, seed, 7, Puffs.BURNING, minf(1.0, 1.4 * (1.0 - since / SMOKE_MS)), 150.0, 26.0, 1.7)
 		var pos := MarchesModel.position(m, _now)

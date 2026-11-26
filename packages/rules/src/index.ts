@@ -161,6 +161,7 @@ export {
   type LiberationView,
   type MapNpcView,
   type MapServerMessage,
+  type MapGeographyWire,
   type MapSnapshot,
   type EventsResponse,
   type EventView,

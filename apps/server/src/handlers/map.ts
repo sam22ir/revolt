@@ -9,7 +9,8 @@ import { viewerFor } from "./viewer.ts";
 export const getMap = async (ctx: Ctx): Promise<Response> => {
   const { account } = await authenticate(ctx);
   const { viewer } = await viewerFor(ctx, account);
-  return json(await ctx.deps.map(ctx.env, account.server).view(viewer, ctx.now));
+  // The first load carries the landmarks; the socket's snapshots never do.
+  return json(await ctx.deps.map(ctx.env, account.server).view(viewer, ctx.now, true));
 };
 
 /** GET /v1/reports — the latest battle reports, newest first. */

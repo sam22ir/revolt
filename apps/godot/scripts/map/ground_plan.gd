@@ -40,7 +40,8 @@ const NO_DECAL := Geography.GEO_ROAD | Geography.GEO_OASIS | Geography.GEO_WADI
 ## Returns {"colours": PackedInt32Array (0xRRGGBB per tile), "props": Array of {i, kind, pick, dx, dy, scale, flip, frames}
 ## in tile order, "decals": Array of {x, y, frame, scale, flip, alpha}}.
 ## `decal_frames` maps a decal kind ("sand", "grass", "stone", "track") to its atlas frame indices.
-static func build(seed: int, size: int, terrain: PackedInt32Array, flags: PackedByteArray, fertility: PackedFloat32Array, rocks: PackedByteArray, grove: PackedByteArray, decal_frames: Dictionary) -> Dictionary:
+## `props_only` skips the tile colours and the decals, which the map no longer draws (the fixtures still check them): most of the time.
+static func build(seed: int, size: int, terrain: PackedInt32Array, flags: PackedByteArray, fertility: PackedFloat32Array, rocks: PackedByteArray, grove: PackedByteArray, decal_frames: Dictionary, props_only := false) -> Dictionary:
 	var colours := PackedInt32Array()
 	colours.resize(size * size)
 	var props: Array = []
@@ -49,12 +50,13 @@ static func build(seed: int, size: int, terrain: PackedInt32Array, flags: Packed
 			var i := y * size + x
 			var rock_w := float(rocks[i]) / 255.0
 			var grove_w := float(grove[i]) / 255.0
-			colours[i] = land_tint(blended_ground(terrain, size, x, y), terrain[i], flags[i], fertility[i])
+			if not props_only:
+				colours[i] = land_tint(blended_ground(terrain, size, x, y), terrain[i], flags[i], fertility[i])
 			var depth := mountain_depth(terrain, flags, size, x, y) if terrain[i] == T_MOUNTAIN else 0
 			for p: Dictionary in props_for(terrain[i], x, y, _interior(terrain, size, x, y), flags[i], fertility[i], rock_w, grove_w, depth):
 				p["i"] = i
 				props.append(p)
-	return {"colours": colours, "props": props, "decals": decals_for(seed, size, terrain, fertility, flags, rocks, grove, decal_frames)}
+	return {"colours": colours, "props": props, "decals": [] if props_only else decals_for(seed, size, terrain, fertility, flags, rocks, grove, decal_frames)}
 
 # ---------------------------------------------------------------- colour
 

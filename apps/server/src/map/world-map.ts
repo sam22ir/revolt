@@ -48,10 +48,10 @@ export class WorldMap extends DurableObject<Env> {
     }
   }
 
-  async view(map: string, viewer: MapViewer, now: number): Promise<MapSnapshot> {
+  async view(map: string, viewer: MapViewer, now: number, withGeography = false): Promise<MapSnapshot> {
     return this.mapHost().run(now, (s) => {
       s.rememberName(map);
-      return s.view(viewer, now);
+      return s.view(viewer, now, withGeography);
     });
   }
 

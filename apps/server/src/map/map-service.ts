@@ -38,12 +38,14 @@ import {
   type BaseState,
   type BattleReport,
   type HeroId,
+  type Geography,
   type HarvestBlockReason,
   type HeroLoadout,
   type LiberationView,
   type MapPoint,
   type MapSite,
   type MapSiteView,
+  type MapGeographyWire,
   type MapSnapshot,
   type MarchBlockReason,
   type MarchHeroes,
@@ -209,6 +211,7 @@ const parseTroops = (raw: string): Troops => {
 export class MapService {
   /** Resource sites of this map, placed once from the seed. Never stored: `sites()` recomputes them the same way. */
   private sitesCache: readonly MapSite[] | null = null;
+  private geographyCache: Geography | null = null;
 
   constructor(private readonly deps: MapServiceDeps) {
     for (const s of SCHEMA) deps.sql.exec(s);
@@ -292,11 +295,12 @@ export class MapService {
     return events;
   }
 
-  /** The map as the viewer sees it. Places their base first if they have none. */
-  view(viewer: MapViewer, now: number): MapOp<MapSnapshot> {
+  /** The map as the viewer sees it. Places their base first if they have none. `withGeography` adds the landmarks (the first load only). */
+  view(viewer: MapViewer, now: number, withGeography = false): MapOp<MapSnapshot> {
     const known = this.touchPlayer(viewer);
     const placed = this.ensureBase(viewer, now);
-    return { value: this.snapshot(viewer.accountId, now), events: known || placed.created ? [MAP_CHANGED] : [] };
+    const snap = this.snapshot(viewer.accountId, now);
+    return { value: withGeography ? { ...snap, geography: this.geographyWire() } : snap, events: known || placed.created ? [MAP_CHANGED] : [] };
   }
 
   /** Records a change of name or alliance for a player (best-effort push from the Worker). */
@@ -886,12 +890,21 @@ export class MapService {
     });
   }
 
+  /** The map's landmarks (`geographyOf`), cached for the life of this service: the road search is the dearest thing on the map. */
+  private geography(): Geography {
+    if (this.geographyCache === null) this.geographyCache = geographyOf(Number(this.meta("terrain_seed")), MAP_SIZE);
+    return this.geographyCache;
+  }
+
+  private geographyWire(): MapGeographyWire {
+    const flat = (path: readonly MapPoint[]): number[] => path.flatMap((t) => [t.x, t.y]);
+    const g = this.geography();
+    return { wadis: g.wadis.map(flat), roads: g.roads.map(flat), oases: flat(g.oases) };
+  }
+
   /** Every resource site of the map (see `placeSites`), cached for the life of this service. */
   private sites(): readonly MapSite[] {
-    if (this.sitesCache === null) {
-      const seed = Number(this.meta("terrain_seed"));
-      this.sitesCache = placeSites(seed, geographyOf(seed, MAP_SIZE));
-    }
+    if (this.sitesCache === null) this.sitesCache = placeSites(Number(this.meta("terrain_seed")), this.geography());
     return this.sitesCache;
   }
 

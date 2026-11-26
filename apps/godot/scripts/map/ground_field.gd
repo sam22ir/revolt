@@ -4,8 +4,9 @@ extends RefCounted
 ## rises as mountains, fertility, rocks and groves) and how far each place is from a road, a riverbed and a pool. All of it comes
 ## from the terrain seed; nothing here is gameplay.
 
-## Field px per tile.
+## Field px per tile on the 64-tile map; bigger maps get fewer (detail), so neither picture passes MAX_SIDE px a side.
 const DETAIL := 8
+const MAX_SIDE := 1024
 ## The distances the shader's NEAR and FAR stand for, in tiles.
 const NEAR := 0.8
 const FAR := 2.0
@@ -54,35 +55,41 @@ static func land(size: int, height: PackedFloat32Array, terrain: PackedInt32Arra
 				m = minf(m, HELD)
 				h = minf(h, MapGrid.HILLS_FROM - 0.03)
 			image.set_pixel(x, y, Color(h, m, fertility[i], 0.5 + (float(rocks[i]) - float(grove[i])) / 510.0))
-	image.resize(size * DETAIL, size * DETAIL, Image.INTERPOLATE_CUBIC)
+	image.resize(size * detail(size), size * detail(size), Image.INTERPOLATE_CUBIC)
 	image.convert(Image.FORMAT_RGBAH)
 	return image
 
+## Field px per tile for a map `size` tiles wide.
+static func detail(size: int) -> int:
+	return clampi(MAX_SIDE / maxi(size, 1), 2, DETAIL)
+
 ## The distance picture.
 static func features(size: int, wadis: Array, roads: Array, oases: Array) -> Image:
-	var n := size * DETAIL
+	var k := detail(size)
+	var n := size * k
 	var bytes := PackedByteArray()
 	bytes.resize(n * n * 4)
 	bytes.fill(255)
 	for path: Array in roads:
-		_stamp_path(bytes, n, path, 0)
+		_stamp_path(bytes, n, k, path, 0)
 	for path: Array in wadis:
-		_stamp_path(bytes, n, path, 1)
+		_stamp_path(bytes, n, k, path, 1)
 	for o: Vector2i in oases:
-		_stamp(bytes, n, Vector2(o.x + 0.5, o.y + 0.5), 1.0, 2, FAR)
+		_stamp(bytes, n, k, Vector2(o.x + 0.5, o.y + 0.5), 1.0, 2, FAR)
 	return Image.create_from_data(n, n, false, Image.FORMAT_RGBA8, bytes)
 
 ## A path's points ([x, y, width factor]); a point's distance is divided by its width, so wide stretches are wide.
-static func _stamp_path(bytes: PackedByteArray, n: int, path: Array, channel: int) -> void:
-	for k in range(0, path.size(), 2):
-		var p: Array = path[k]
-		_stamp(bytes, n, Vector2(p[0], p[1]), float(p[2]), channel, NEAR)
+static func _stamp_path(bytes: PackedByteArray, n: int, k: int, path: Array, channel: int) -> void:
+	for j in range(0, path.size(), 2):
+		var p: Array = path[j]
+		_stamp(bytes, n, k, Vector2(p[0], p[1]), float(p[2]), channel, NEAR)
 
-static func _stamp(bytes: PackedByteArray, n: int, at: Vector2, width: float, channel: int, reach: float) -> void:
-	var r := ceili(reach * width * DETAIL) + 1
-	var cx := at.x * DETAIL - 0.5
-	var cy := at.y * DETAIL - 0.5
-	var scale := 255.0 / (reach * width * DETAIL)
+## `k` is field px per tile.
+static func _stamp(bytes: PackedByteArray, n: int, k: int, at: Vector2, width: float, channel: int, reach: float) -> void:
+	var r := ceili(reach * width * k) + 1
+	var cx := at.x * k - 0.5
+	var cy := at.y * k - 0.5
+	var scale := 255.0 / (reach * width * k)
 	for y in range(maxi(0, floori(cy) - r), mini(n, ceili(cy) + r + 1)):
 		for x in range(maxi(0, floori(cx) - r), mini(n, ceili(cx) + r + 1)):
 			var d := int(sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy)) * scale)

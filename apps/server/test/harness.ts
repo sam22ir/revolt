@@ -122,7 +122,7 @@ export const testMapApi = (tm: TestMap, server: string): MapApi => {
       return op(s);
     });
   return {
-    view: (v, now) => run(now, (s) => s.view(v, now)),
+    view: (v, now, withGeography) => run(now, (s) => s.view(v, now, withGeography)),
     sendMarch: (v, npcId, troops, heroes, now) => run(now, (s) => s.sendMarch(v, npcId, troops, heroes, now)),
     startRally: (v, npcId, troops, gatherMs, now) => run(now, (s) => s.startRally(v, npcId, troops, gatherMs, now)),
     joinRally: (v, rallyId, troops, now) => run(now, (s) => s.joinRally(v, rallyId, troops, now)),

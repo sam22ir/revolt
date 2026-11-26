@@ -48,3 +48,23 @@ func test_geography_build_time_is_reported() -> void:
 	var ms := Time.get_ticks_msec() - t0
 	gut.p("geography build: %d ms (native)" % ms)
 	assert_lt(ms, 3000, "geography is far too slow to build at load")
+
+func test_the_landmarks_sent_by_the_server_give_the_same_flags() -> void:
+	for seed in [1954, 12345]:
+		var grid := MapGrid.compute(seed, 64, 16)
+		var built := Geography.build(seed, 64, 16, grid["terrain"], grid["regions"])
+		var flat := func(path: Array) -> Array:
+			var out: Array = []
+			for t: Vector2i in path:
+				out.append_array([t.x, t.y])
+			return out
+		var wire := {"wadis": built["wadis"].map(flat), "roads": built["roads"].map(flat), "oases": flat.call(built["oases"])}
+		# As JSON would deliver it: numbers as floats.
+		wire = JSON.parse_string(JSON.stringify(wire))
+		var sent: Dictionary = Geography.from_wire(64, wire)
+		assert_eq(sent["flags"], built["flags"], "flags, seed %d" % seed)
+		assert_eq(sent["roads"], built["roads"], "roads, seed %d" % seed)
+		assert_eq(sent["oases"], built["oases"], "oases, seed %d" % seed)
+	assert_null(Geography.from_wire(64, null))
+	assert_null(Geography.from_wire(64, {"wadis": [[1, 2, 3]], "roads": [], "oases": []}), "odd list")
+	assert_null(Geography.from_wire(64, {"wadis": [], "roads": [[70, 1]], "oases": []}), "off the map")

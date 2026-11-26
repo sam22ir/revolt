@@ -51,8 +51,8 @@ It still typechecks against `packages/rules`; keep it compiling, nothing more.
 - Alliances are checked **at arrival**, not when sent: two players with no alliance are never allies; an ally holding the site at arrival
   turns the march back unharmed; a site free at arrival is a plain harvest.
 - No NPCs or strongholds inside zones (`fillNpcs`, `freeTile`). Rallies on zone sites are out of scope.
-- Open (ask the user before the data): a harvest leaves when its carry is full, so a faster rate alone only shortens the trip. "Very
-  rich" needs more load: a carry multiplier inside zones, or a load cap that does not depend on carry.
+- Richness (decided 2026-11-26): troops carry **3×** from a zone site, on top of the 3–5× rates and the 12 h cap, so each trip brings
+  home about three times the load.
 
 ### B2. Server
 

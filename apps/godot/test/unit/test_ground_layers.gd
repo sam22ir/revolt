@@ -139,13 +139,13 @@ func test_only_mountains_with_mountains_below_them_rise() -> void:
 func test_the_feature_field_measures_distance_to_roads_riverbeds_and_pools() -> void:
 	var road := [[2.0, 2.0, 1.0], [2.1, 2.0, 1.0], [2.2, 2.0, 1.0]]
 	var img := GroundField.features(8, [], [road], [Vector2i(6, 6)])
-	assert_eq(img.get_size(), Vector2i(8, 8) * GroundField.DETAIL)
-	var on_road := img.get_pixel(2 * GroundField.DETAIL, 2 * GroundField.DETAIL)
-	var away := img.get_pixel(5 * GroundField.DETAIL, 1 * GroundField.DETAIL)
+	assert_eq(img.get_size(), Vector2i(8, 8) * GroundField.detail(8))
+	var on_road := img.get_pixel(2 * GroundField.detail(8), 2 * GroundField.detail(8))
+	var away := img.get_pixel(5 * GroundField.detail(8), 1 * GroundField.detail(8))
 	assert_lt(on_road.r, 0.15, "on the road")
 	assert_eq(away.r, 1.0, "far from it")
 	assert_eq(on_road.g, 1.0, "no riverbed anywhere")
-	assert_lt(img.get_pixel(6 * GroundField.DETAIL + 4, 6 * GroundField.DETAIL + 4).b, 0.05, "the pool's middle")
+	assert_lt(img.get_pixel(6 * GroundField.detail(8) + 4, 6 * GroundField.detail(8) + 4).b, 0.05, "the pool's middle")
 
 func test_the_land_field_keeps_roads_low_and_is_smooth_between_tiles() -> void:
 	var size := 8
@@ -161,8 +161,8 @@ func test_the_land_field_keeps_roads_low_and_is_smooth_between_tiles() -> void:
 		bytes.append(0)
 		flags.append(Geography.GEO_ROAD if i == 3 * size + 3 else 0)
 	var img := GroundField.land(size, height, terrain, fertility, bytes, bytes, flags)
-	assert_eq(img.get_size(), Vector2i(size, size) * GroundField.DETAIL)
-	var road := img.get_pixel(3 * GroundField.DETAIL + 4, 3 * GroundField.DETAIL + 4)
+	assert_eq(img.get_size(), Vector2i(size, size) * GroundField.detail(8))
+	var road := img.get_pixel(3 * GroundField.detail(8) + 4, 3 * GroundField.detail(8) + 4)
 	assert_lt(road.r, MapGrid.HILLS_FROM, "a road's tile is low")
 	assert_lt(road.g, MapGrid.MOUNTAIN_FROM, "and does not rise")
 

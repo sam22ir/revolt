@@ -123,14 +123,16 @@ func build(snap: Dictionary) -> void:
 	_terrain = grid["terrain"]
 	_regions = grid["regions"]
 	await get_tree().process_frame
-	var geo := Geography.build(terrain_seed, size, region_cell, _terrain, _regions)
+	# The server sends the landmarks with the first map; without them (an old server, a test) they are computed here.
+	var sent: Variant = Geography.from_wire(size, snap.get("geography"))
+	var geo: Dictionary = sent if sent != null else Geography.build(terrain_seed, size, region_cell, _terrain, _regions)
 	var flags := Geography.with_oasis_front(geo["flags"], geo["oases"], size)
 	_route_grid = RoutePath.grid_for(size, _terrain, flags)
 	var fertility := GroundMath.fertility_grid(terrain_seed, size)
 	var rocks := GroundMath.cluster_mask(terrain_seed, size, "rocks")
 	var grove := GroundMath.cluster_mask(terrain_seed, size, "grove")
 	await get_tree().process_frame
-	_plan = GroundPlan.build(terrain_seed, size, _terrain, flags, fertility, rocks, grove, _art.decal_frames_by_kind())
+	_plan = GroundPlan.build(terrain_seed, size, _terrain, flags, fertility, rocks, grove, _art.decal_frames_by_kind(), true)
 	await get_tree().process_frame
 	var land := GroundField.land(size, grid["height"], _terrain, fertility, rocks, grove, flags)
 	var features := GroundField.features(size, FeatureShape.wadi_paths(geo["wadis"]), FeatureShape.road_paths(geo["roads"]), geo["oases"])
