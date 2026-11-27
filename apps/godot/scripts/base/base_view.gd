@@ -24,6 +24,7 @@ const BAR_WIDTH := 120.0
 ## A speech bubble shows this long, this far above the feet (world units).
 const TALK_MS := 4000
 const TALK_ABOVE := 46.0
+const TALK_FILL := Color("efe2c2")
 ## One notch of the mouse wheel.
 const WHEEL_ZOOM := 1.1
 const MOUSE := -1
@@ -78,6 +79,15 @@ func build() -> void:
 		_labels[id] = _make_label()
 		add_child(_labels[id])
 	_talk = _make_label()
+	# Speech, not a name: parchment with dark ink, so it never reads as a building's plate.
+	var speech := HudTheme.flat(TALK_FILL, 14.0, HudTheme.BUTTON_INK, 2.0)
+	speech.content_margin_left = 18.0
+	speech.content_margin_right = 18.0
+	speech.content_margin_top = 6.0
+	speech.content_margin_bottom = 8.0
+	_talk.add_theme_stylebox_override("normal", speech)
+	_talk.add_theme_color_override("font_color", HudTheme.ON_GOLD)
+	_talk.z_index = D_LABEL + 1
 	_talk.visible = false
 	add_child(_talk)
 

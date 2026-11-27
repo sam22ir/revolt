@@ -37,14 +37,14 @@ const STANDING := [
 
 ## What the camp shows of the player's game (CampCast, docs/camp-life-plan.md). Spots are world units on open ground, clear of
 ## every building's outline and the walkers' routes.
-## Fighters drilling in the barracks yard while troops train, facing the barracks.
-const DRILL := [Vector2(238, 548), Vector2(270, 560), Vector2(302, 572)]
+## Fighters drilling in the barracks yard while troops train, facing the barracks, to the right of its name plate.
+const DRILL := [Vector2(330, 575), Vector2(362, 583), Vector2(394, 591)]
 const DRILL_DIR := 3
-## The wounded rest in front of the hero hall: one figure per this many wounded, up to the spots there are.
-const WOUNDED := [Vector2(150, 818), Vector2(178, 826), Vector2(122, 810)]
+## The wounded rest beside the hero hall, clear of its name plate: one figure per this many wounded, up to the spots there are.
+const WOUNDED := [Vector2(268, 706), Vector2(292, 716), Vector2(250, 694)]
 const WOUNDED_PER_FIGURE := 10
-## Where a full or nearly full producer piles its stock, by resource.
-const PILES := {"food": Vector2(470, 1012), "materiel": Vector2(640, 505), "funds": Vector2(705, 888)}
+## Where a full or nearly full producer piles its stock, by resource, clear of the name plates.
+const PILES := {"food": Vector2(470, 1012), "materiel": Vector2(692, 478), "funds": Vector2(618, 772)}
 ## Food below this share of its cap: the farm's chimney goes cold and the farmer leaves.
 const FOOD_LOW := 0.15
 ## The way out of the camp, from the bend below the hero hall to the top of the road; a march walks it out after it leaves
@@ -66,11 +66,13 @@ const BY_TENT := Vector2(24, 10)
 const FIRE := Vector2(580, 1070)
 const FIRE_PEOPLE := 3
 const FIRE_RADIUS := 24.0
-## Two workers stand in front of the building being upgraded: WORKER_DROP below its outline, looked for in steps of WORKER_STEP.
+## Two workers stand in front of the building being upgraded, WORKER_ALONG of the way in from its side corners (the name plate
+## hangs under the front corner): WORKER_DROP below its outline, looked for in steps of WORKER_STEP.
+const WORKER_ALONG := 0.2
 const WORKER_DROP := 4.0
 const WORKER_STEP := 4.0
 ## At most this many people and props on top of the walkers and the standing ones, so a phone stays fast.
-const MAX_CAST := 16
+const MAX_CAST := 30
 
 ## The building whose outline holds `world`, or "" for empty ground. `looks` is the look each building shows (none: the first).
 static func building_at(world: Vector2, looks: Dictionary = {}) -> String:

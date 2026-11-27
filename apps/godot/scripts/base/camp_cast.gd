@@ -46,12 +46,12 @@ static func pile_of(resource: String, full: bool) -> String:
 	var kind: String = {"food": "sacks", "materiel": "crates", "funds": "chest"}[resource]
 	return kind + ("_big" if full else "_small")
 
-## Two workers in front of the building, one on each front wall, facing it.
+## Two workers in front of the building, one on each front wall towards its side corner, facing it.
 static func _workers(id: String, look: int, now_ms: int) -> Array:
 	var line := CampArt.base(id, look)
 	return [
-		_one("worker", _below(id, look, (line[0] + line[1]) * 0.5), 1, now_ms, 0),
-		_one("worker", _below(id, look, (line[1] + line[2]) * 0.5), 3, now_ms, 3),
+		_one("worker", _below(id, look, line[0].lerp(line[1], CampLayout.WORKER_ALONG)), 1, now_ms, 0),
+		_one("worker", _below(id, look, line[2].lerp(line[1], CampLayout.WORKER_ALONG)), 3, now_ms, 3),
 	]
 
 ## The first point straight below `at` that is out of the building's outline, a little further down.

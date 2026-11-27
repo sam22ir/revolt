@@ -93,3 +93,21 @@ func test_arabic_lines_show_in_arabic() -> void:
 	var guard: Dictionary = CampLife.figures(NOW).filter(func(f: Dictionary) -> bool: return f["kind"] == "guard")[0]
 	view.talk_at(guard["at"] - Vector2(0, 20))
 	assert_true(view.talk_text().unicode_at(0) >= 0x0600, view.talk_text())
+
+func test_a_real_tap_on_someone_shows_their_line() -> void:
+	var view := _view()
+	var guard: Dictionary = CampLife.figures(NOW).filter(func(f: Dictionary) -> bool: return f["kind"] == "guard")[1]
+	var screen: Vector2 = view.layer.offset + (guard["at"] - Vector2(0, 20)) * view.layer.scale
+	view._on_press(BaseView.MOUSE, screen, true)
+	view._on_press(BaseView.MOUSE, screen, false)
+	assert_ne(view.talk_text(), "", "tapped at %s" % screen)
+
+func test_the_line_stays_while_the_camp_keeps_updating() -> void:
+	var view := _view()
+	var guard: Dictionary = CampLife.figures(NOW).filter(func(f: Dictionary) -> bool: return f["kind"] == "guard")[1]
+	view.talk_at(guard["at"] - Vector2(0, 20))
+	var s := CampSummary.build(LEVELS, null, {}, {})
+	for i in 5:
+		view.set_state(LEVELS, null, NOW + 16 * i, s)
+	assert_ne(view.talk_text(), "", "still showing after a few frames")
+	assert_true(Rect2(Vector2.ZERO, CampLayout.WORLD).has_point(view._talk.position), "on the camp: %s" % view._talk.position)

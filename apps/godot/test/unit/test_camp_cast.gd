@@ -100,7 +100,7 @@ func test_everything_at_once_stays_under_the_cap_and_keeps_the_game_state_first(
 	var list := CampCast.cast(s, NOW + 2000)
 	assert_eq(list.size(), CampLayout.MAX_CAST)
 	assert_eq(_count(list, "worker"), 2)
-	assert_eq(_count(list, "tent"), 0, "the growth is dropped first")
+	assert_eq(_count(list, "fire"), 0, "the growth is dropped first")
 
 func test_the_same_time_gives_the_same_camp_and_a_clock_going_back_is_fine() -> void:
 	var s := _sum({"hq": 6}, {"building": "hq", "toLevel": 7, "startedAt": NOW, "endsAt": NOW + 60000},
