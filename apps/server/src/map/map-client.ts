@@ -14,6 +14,7 @@ export interface MapStub {
   startRally(map: string, viewer: MapViewer, npcId: string, troops: Troops, gatherMs: number, now: number): Promise<SendMarchResult>;
   joinRally(map: string, viewer: MapViewer, rallyId: string, troops: Troops, now: number): Promise<SendMarchResult>;
   startHarvest(map: string, viewer: MapViewer, siteId: string, troops: Troops, now: number): Promise<SendMarchResult>;
+  sendAid(map: string, viewer: MapViewer, villageId: string, troops: Troops, now: number): Promise<SendMarchResult>;
   recallHarvest(map: string, viewer: MapViewer, marchId: string, now: number): Promise<RecallHarvestResult>;
   setHq(map: string, viewer: MapViewer, x: number, y: number, now: number): Promise<HqResult>;
   hqOf(map: string, allianceId: string): Promise<MapPoint | null>;
@@ -37,6 +38,7 @@ export interface MapApi {
   startRally(viewer: MapViewer, npcId: string, troops: Troops, gatherMs: number, now: number): Promise<SendMarchResult>;
   joinRally(viewer: MapViewer, rallyId: string, troops: Troops, now: number): Promise<SendMarchResult>;
   startHarvest(viewer: MapViewer, siteId: string, troops: Troops, now: number): Promise<SendMarchResult>;
+  sendAid(viewer: MapViewer, villageId: string, troops: Troops, now: number): Promise<SendMarchResult>;
   recallHarvest(viewer: MapViewer, marchId: string, now: number): Promise<RecallHarvestResult>;
   setHq(viewer: MapViewer, x: number, y: number, now: number): Promise<HqResult>;
   hqOf(allianceId: string): Promise<MapPoint | null>;
@@ -58,6 +60,7 @@ export const durableMap = (env: Env, server: string): MapApi => {
     startRally: (v, npcId, troops, gatherMs, now) => stub.startRally(server, v, npcId, troops, gatherMs, now),
     joinRally: (v, rallyId, troops, now) => stub.joinRally(server, v, rallyId, troops, now),
     startHarvest: (v, siteId, troops, now) => stub.startHarvest(server, v, siteId, troops, now),
+    sendAid: (v, villageId, troops, now) => stub.sendAid(server, v, villageId, troops, now),
     recallHarvest: (v, marchId, now) => stub.recallHarvest(server, v, marchId, now),
     setHq: (v, x, y, now) => stub.setHq(server, v, x, y, now),
     hqOf: (allianceId) => stub.hqOf(server, allianceId),
