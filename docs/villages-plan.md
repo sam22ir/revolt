@@ -52,7 +52,7 @@ A lesson of level N needs academy level N × 2 − 1 (1, 3, 5).
 
 ## Slices
 
-1. Design and rules: villages, needs, trust with fading, lessons taught (this PR).
-2. Server: placement on the map, the aid march and intents, trust stored in the base, map view.
+1. Design and rules: villages, needs, trust with fading, lessons taught. Done (#12), with the first village art.
+2. Server: placement on the map (about 41 villages on a 192 map), the aid march and intent, protection credited after a solo victory (rallies not yet), trust stored in the base, villages in the map snapshot. Done.
 3. Academy and lesson effects in the rules (march speed, tiers, healing, carry, storage, forecast, help, support).
 4. Godot: villages on the map, the aid sheet, the academy screen; Blender art for villages and the academy.

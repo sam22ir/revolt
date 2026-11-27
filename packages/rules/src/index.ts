@@ -176,6 +176,7 @@ export {
   type MarchPhase,
   type PassView,
   type ScoutView,
+  type MapVillageView,
   type ProductView,
   type StoreView,
   type WalletView,
@@ -289,6 +290,9 @@ export {
   TRUST_PER_HELP,
   VILLAGE_DAY_OFFSET_MS,
   VILLAGE_KINDS,
+  VILLAGE_MIN_SPACING,
+  VILLAGE_SITE_CLEARANCE,
+  VILLAGE_TILES_PER_VILLAGE,
   type LessonDef,
   type LessonId,
   type LessonStat,
@@ -296,3 +300,5 @@ export {
   type VillageKind,
 } from "./data/villages.ts";
 export { VILLAGE_HELP_BLOCK_REASONS, helpVillage, lessonAt, needAmount, NO_TRUST, trustAt, trustLevel, villageDay, villageNeed, type VillageHelpBlockReason, type VillageHelpResult, type VillageTrust } from "./villages.ts";
+export { placeVillages, type MapVillage } from "./village-map.ts";
+export { AID_BLOCK_REASONS, aidOutcome, aidPlan, checkAid, recordHelp, startAid, trustLevelWith, trustWith, type AidBlockReason, type AidStartResult, type AidVillage } from "./aid.ts";

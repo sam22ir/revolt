@@ -41,6 +41,7 @@ export type Intent =
   | { readonly type: "rally_join"; readonly rally: string; readonly troops: Troops }
   | { readonly type: "harvest_start"; readonly site: string; readonly troops: Troops }
   | { readonly type: "harvest_recall"; readonly march: string }
+  | { readonly type: "aid"; readonly village: string; readonly troops: Troops }
   | { readonly type: "heal" }
   | { readonly type: "recruit" }
   | { readonly type: "hero_level"; readonly hero: HeroId }
@@ -78,6 +79,10 @@ export const parseIntent = (body: Record<string, unknown>): Intent => {
   if (type === "harvest_start" && typeof body.site === "string" && body.site.length > 0 && body.site.length <= MAX_TARGET_ID) {
     const troops = parseTroops(body.troops);
     if (troops !== null) return { type, site: body.site, troops };
+  }
+  if (type === "aid" && typeof body.village === "string" && body.village.length > 0 && body.village.length <= MAX_TARGET_ID) {
+    const troops = parseTroops(body.troops);
+    if (troops !== null) return { type, village: body.village, troops };
   }
   if (type === "harvest_recall" && typeof body.march === "string" && body.march.length > 0 && body.march.length <= MAX_TARGET_ID) {
     return { type, march: body.march };
@@ -170,6 +175,12 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
     case "harvest_start": {
       const { viewer } = await viewerFor(ctx, account);
       const r = await ctx.deps.map(ctx.env, account.server).startHarvest(viewer, intent.site, intent.troops, ctx.now);
+      if ("error" in r) throw new HttpError(r.error);
+      return json({ ...r, now: ctx.now });
+    }
+    case "aid": {
+      const { viewer } = await viewerFor(ctx, account);
+      const r = await ctx.deps.map(ctx.env, account.server).sendAid(viewer, intent.village, intent.troops, ctx.now);
       if ("error" in r) throw new HttpError(r.error);
       return json({ ...r, now: ctx.now });
     }

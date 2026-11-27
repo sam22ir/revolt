@@ -6,6 +6,7 @@ import { TROOP_IDS } from "./troop-id.ts";
 import { isTroops, type Troops } from "./troops.ts";
 import { HERO_IDS } from "./hero-id.ts";
 import { isHeroEntry } from "./hero-roster.ts";
+import { isLessonId, MAX_TRUST_LEVEL, NEED_KINDS, TRUST_MAX } from "./data/villages.ts";
 
 const isFiniteNumber = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 
@@ -72,6 +73,17 @@ const isHeroRoster = (r: unknown): boolean =>
   isRecord(r.owned) &&
   Object.entries(r.owned).every(([id, e]) => isHeroIdValue(id) && isHeroEntry(e));
 
+const isTrust = (t: unknown): boolean =>
+  isRecord(t) &&
+  isFiniteNumber(t.trust) && t.trust >= 0 && t.trust <= TRUST_MAX &&
+  isFiniteNumber(t.at) &&
+  isFiniteNumber(t.taught) && Number.isInteger(t.taught) && t.taught >= 0 && t.taught <= MAX_TRUST_LEVEL &&
+  isFiniteNumber(t.helpedDay) && Number.isInteger(t.helpedDay);
+
+const isAid = (a: unknown): boolean =>
+  a === undefined ||
+  (isRecord(a) && typeof a.village === "string" && NEED_KINDS.some((n) => n === a.need) && isFiniteNumber(a.day) && Number.isInteger(a.day) && isResources(a.cost));
+
 const isMarch = (m: unknown): boolean =>
   isRecord(m) &&
   typeof m.id === "string" &&
@@ -87,6 +99,7 @@ const isMarch = (m: unknown): boolean =>
   (m.rallyId === undefined || typeof m.rallyId === "string") &&
   (m.siteId === undefined || typeof m.siteId === "string") &&
   isHeroes(m.heroes) &&
+  isAid(m.aid) &&
   isOutcome(m.outcome);
 
 /**
@@ -106,6 +119,10 @@ export const isBaseState = (v: unknown): v is BaseState => {
     isTraining(v.training) &&
     isHealing(v.healing) &&
     Array.isArray(v.marches) &&
-    v.marches.every(isMarch)
+    v.marches.every(isMarch) &&
+    isRecord(v.villages) &&
+    Object.values(v.villages).every(isTrust) &&
+    Array.isArray(v.lessonsTaught) &&
+    v.lessonsTaught.every(isLessonId)
   );
 };

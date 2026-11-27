@@ -50,6 +50,8 @@ export const importM1Save = (raw: unknown, now: number): BaseState => {
     heroes: EMPTY_HERO_ROSTER,
     story: START_STORY,
     marches: [],
+    villages: {},
+    lessonsTaught: [],
     lastUpdated: Math.min(candidate.lastUpdated, now),
   };
 };

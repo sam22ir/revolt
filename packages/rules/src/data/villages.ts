@@ -37,8 +37,13 @@ export const CARE_COST = { food: 150, funds: 150 } as const;
 /** Labor: this many troops lent for this long; they come back unharmed. */
 export const LABOR_TROOPS = 20;
 export const LABOR_MS = 2 * 60 * 60_000;
-/** Protection: the colonial patrol camped within this many tiles of the village must be beaten. */
-export const PROTECTION_RADIUS = 4;
+/** Protection: beating any colonial target within this many tiles (Chebyshev) of the village answers it. */
+export const PROTECTION_RADIUS = 6;
+
+/** Placement: about one village per this many map tiles, this far apart, and this far from any resource site. */
+export const VILLAGE_TILES_PER_VILLAGE = 900;
+export const VILLAGE_MIN_SPACING = 10;
+export const VILLAGE_SITE_CLEARANCE = 4;
 
 /** What a lesson does once studied (applied in slice 3). Fractions are shares (0.06 = 6%); counts are whole numbers. */
 export const LESSON_STATS = [

@@ -29,5 +29,7 @@ export const migrateBaseState = (v: unknown): unknown => {
     training: v.training === undefined ? null : v.training,
     healing: v.healing === undefined ? null : v.healing,
     marches: v.marches ?? [],
+    villages: v.villages ?? {},
+    lessonsTaught: v.lessonsTaught ?? [],
   };
 };
