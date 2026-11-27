@@ -128,5 +128,55 @@
    215,
    179
   ]
+ },
+ "village_healers": {
+  "centre": [
+   198.0,
+   175.0
+  ],
+  "size": [
+   421,
+   262
+  ]
+ },
+ "village_messengers": {
+  "centre": [
+   194.0,
+   184.0
+  ],
+  "size": [
+   429,
+   279
+  ]
+ },
+ "village_shepherds": {
+  "centre": [
+   197.0,
+   171.0
+  ],
+  "size": [
+   428,
+   258
+  ]
+ },
+ "village_smiths": {
+  "centre": [
+   193.0,
+   180.0
+  ],
+  "size": [
+   428,
+   267
+  ]
+ },
+ "village_weavers": {
+  "centre": [
+   196.0,
+   186.0
+  ],
+  "size": [
+   435,
+   273
+  ]
  }
 }
