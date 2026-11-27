@@ -1000,6 +1000,15 @@
     }
   },
   "trainingBatchPerLevel": 20,
+  "healing": {
+    "batchPerLevel": 15,
+    "costShare": 0.4,
+    "timeShare": 0.5
+  },
+  "forecast": {
+    "lossesLevel": 3,
+    "chanceLevel": 5
+  },
   "battle": {
     "counterBonus": 1.5,
     "lostShare": 0.2,

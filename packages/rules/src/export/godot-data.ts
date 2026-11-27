@@ -45,7 +45,9 @@ import { START_LEVELS, START_RESOURCES, START_TROOPS } from "../data/start.ts";
 import { STORAGE_CAPS } from "../data/storage.ts";
 import { PRODUCTS } from "../data/store.ts";
 import { STORY } from "../data/story.ts";
-import { COUNTER_BONUS, LOST_SHARE, MAX_BATTLE_ROUNDS, TRAINING_BATCH_PER_LEVEL, TROOPS } from "../data/troops.ts";
+import { COUNTER_BONUS, HEAL_BATCH_PER_LEVEL, HEAL_COST_SHARE, HEAL_TIME_SHARE, LOST_SHARE, MAX_BATTLE_ROUNDS, TRAINING_BATCH_PER_LEVEL, TROOPS } from "../data/troops.ts";
+import { checkHealing, healingQuote, planHealing } from "../healing.ts";
+import { FORECAST_CHANCE_LEVEL, FORECAST_LOSSES_LEVEL } from "../data/watchtower.ts";
 import { RESOURCE_IDS } from "../resource-id.ts";
 import { COMBAT_TROOP_IDS, TROOP_IDS } from "../troop-id.ts";
 import type { Resources } from "../resources.ts";
@@ -64,6 +66,8 @@ export const buildGodotBalance = (): unknown => ({
   start: { levels: START_LEVELS, resources: START_RESOURCES, troops: START_TROOPS },
   troops: TROOPS,
   trainingBatchPerLevel: TRAINING_BATCH_PER_LEVEL,
+  healing: { batchPerLevel: HEAL_BATCH_PER_LEVEL, costShare: HEAL_COST_SHARE, timeShare: HEAL_TIME_SHARE },
+  forecast: { lossesLevel: FORECAST_LOSSES_LEVEL, chanceLevel: FORECAST_CHANCE_LEVEL },
   battle: { counterBonus: COUNTER_BONUS, lostShare: LOST_SHARE, maxRounds: MAX_BATTLE_ROUNDS },
   heroes: HEROES,
   heroesByBackground: HEROES_BY_BACKGROUND,
@@ -259,6 +263,38 @@ export const buildGodotUpgradeFixtures = (): unknown => ({
     return { name: c.name, building: c.building, levels: c.levels, resources: c.resources, queue: c.queue, expected: checkUpgrade(state, c.building) };
   }),
 });
+
+/**
+ * Golden cases for `HealModel` (GDScript): an already-advanced base (infirmary level, wounded, resources, a batch in or not), and
+ * what the real `planHealing`, `healingQuote` and `checkHealing` say about it.
+ */
+export const buildGodotHealFixtures = (): unknown => {
+  const t = (infantry: number, scouts: number, heavy: number, porters: number) => ({ infantry, scouts, heavy, porters });
+  const r = (food: number, materiel: number, funds: number) => ({ food, materiel, funds, support: 0 });
+  const inputs = [
+    { name: "nobody wounded", infirmary: 1, wounded: t(0, 0, 0, 0), resources: r(500, 500, 500), busy: false },
+    { name: "a few, plenty of resources", infirmary: 1, wounded: t(6, 2, 0, 0), resources: r(5000, 5000, 5000), busy: false },
+    { name: "more than one batch", infirmary: 1, wounded: t(10, 8, 30, 4), resources: r(5000, 5000, 5000), busy: false },
+    { name: "a bigger infirmary", infirmary: 4, wounded: t(10, 8, 30, 4), resources: r(5000, 5000, 5000), busy: false },
+    { name: "resources pay for some", infirmary: 3, wounded: t(20, 10, 10, 0), resources: r(97.6, 41.2, 13.9), busy: false },
+    { name: "nothing can be paid", infirmary: 2, wounded: t(5, 0, 0, 0), resources: r(3, 1, 0), busy: false },
+    { name: "a batch is already in", infirmary: 2, wounded: t(5, 0, 0, 0), resources: r(5000, 5000, 5000), busy: true },
+    { name: "porters only", infirmary: 1, wounded: t(0, 0, 0, 9), resources: r(5000, 0, 5000), busy: false },
+  ];
+  return {
+    cases: inputs.map((c) => {
+      const state: BaseState = {
+        ...createBaseState(0),
+        levels: { ...createBaseState(0).levels, infirmary: c.infirmary },
+        wounded: c.wounded,
+        resources: c.resources,
+        healing: c.busy ? { troops: t(1, 0, 0, 0), startedAt: 0, endsAt: 1 } : null,
+      };
+      const plan = planHealing(state);
+      return { ...c, expected: { plan, quote: healingQuote(plan), reason: checkHealing(state) } };
+    }),
+  };
+};
 
 const TERRAIN_LETTER: Readonly<Record<TerrainId, string>> = { plain: "p", hills: "h", forest: "f", mountain: "m" };
 

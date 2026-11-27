@@ -18,7 +18,7 @@ const MUTED := HudTheme.TEXT_SECOND
 const CLOSE_SIZE := UiKit.TAP
 
 var _model: Dictionary = {}
-## Which part of the building the card shows: "upgrade", "info" or "train" (the barracks' training form).
+## Which part of the building the card shows: "upgrade", "info", "train" (the barracks' training form) or "heal" (the infirmary's).
 var mode := "upgrade"
 var _key := ""
 var _pending := false
@@ -30,6 +30,8 @@ var _scroll := ScrollContainer.new()
 var _max_height := 0.0
 ## The training form of the barracks sheet. One instance for the panel's life (see TrainingView); it is in the body only on the barracks.
 var training := TrainingView.new()
+## The infirmary's form, kept across rebuilds like the training form; in the body only on the infirmary's "heal" card.
+var healing := HealView.new()
 ## The upgrade speed-up under the running upgrade's countdown (one instance, kept across rebuilds like the training form).
 var upgrade_speedup := SpeedupRow.new()
 var _countdown: Label
@@ -52,7 +54,7 @@ func _ready() -> void:
 ## when the panel itself is deleted is freed with it (not on leaving the tree: the base screen still holds them then).
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_PREDELETE:
-		for n: Node in [training, upgrade_speedup]:
+		for n: Node in [training, healing, upgrade_speedup]:
 			if is_instance_valid(n) and n.get_parent() == null:
 				n.free()
 
@@ -78,6 +80,12 @@ func _fit() -> void:
 func update_training(ctx: Dictionary) -> void:
 	if visible and training.get_parent() == _body:
 		training.update_context(ctx)
+		_fit()
+
+## Feeds the infirmary's form (only on its "heal" card). `ctx` is HealView.update_context's.
+func update_healing(ctx: Dictionary) -> void:
+	if visible and healing.get_parent() == _body:
+		healing.update_context(ctx)
 		_fit()
 
 ## Feeds the upgrade's speed-up row (shown only while the upgrading building's sheet is open).
@@ -138,7 +146,7 @@ func update_model(model: Dictionary, background: String) -> void:
 func _rebuild() -> void:
 	for child in _body.get_children():
 		_body.remove_child(child)
-		if child != training and child != upgrade_speedup:
+		if child != training and child != healing and child != upgrade_speedup:
 			child.queue_free()
 	_countdown = null
 	_bar = null
@@ -152,6 +160,10 @@ func _rebuild() -> void:
 	if mode == "train":
 		if id == "barracks":
 			_body.add_child(training)
+		return
+	if mode == "heal":
+		if id == "infirmary":
+			_body.add_child(healing)
 		return
 
 	match m["mode"]:

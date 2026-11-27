@@ -18,7 +18,8 @@ export type HealingResult =
 export const maxHealingBatch = (infirmaryLevel: number): number => Math.max(0, Math.floor(infirmaryLevel)) * HEAL_BATCH_PER_LEVEL;
 
 /** What healing one unit of each type costs: a share of training it, rounded up so it is never free. */
-const unitCost = (troop: (typeof TROOP_IDS)[number]): Resources => mapResources((id) => Math.ceil(TROOPS[troop].cost[id] * HEAL_COST_SHARE));
+// The small epsilon keeps float error (15 × 0.4 = 6.000000000000001) from rounding a whole amount up.
+const unitCost = (troop: (typeof TROOP_IDS)[number]): Resources => mapResources((id) => Math.ceil(TROOPS[troop].cost[id] * HEAL_COST_SHARE - 1e-9));
 
 /** The cost and time of healing exactly `troops`. */
 export const healingQuote = (troops: Troops): { cost: Resources; durationMs: number } => {

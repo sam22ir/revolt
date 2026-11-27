@@ -7,7 +7,7 @@ import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { compactJson } from "../packages/rules/src/export/compact-json.ts";
-import { buildGodotBalance, buildGodotDisplayFixtures, buildGodotMapFixtures, buildGodotUpgradeFixtures } from "../packages/rules/src/export/godot-data.ts";
+import { buildGodotBalance, buildGodotDisplayFixtures, buildGodotHealFixtures, buildGodotMapFixtures, buildGodotUpgradeFixtures } from "../packages/rules/src/export/godot-data.ts";
 import { buildPo, PO_LANGUAGES } from "../apps/client/src/i18n/export-po.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -33,6 +33,7 @@ write("data/balance.json", json(buildGodotBalance()));
 write("data/display-fixtures.json", json(buildGodotDisplayFixtures()));
 write("data/map-fixtures.json", json(buildGodotMapFixtures()));
 write("data/upgrade-fixtures.json", json(buildGodotUpgradeFixtures()));
+write("data/heal-fixtures.json", json(buildGodotHealFixtures()));
 for (const lang of PO_LANGUAGES) write(`locale/${lang}.po`, buildPo(lang));
 
 // Terrain art drawn on the map: the frame manifest and the decals (the ground-*.webp and

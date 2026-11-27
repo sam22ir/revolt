@@ -6,7 +6,7 @@ extends RefCounted
 
 const WORLD := Vector2(768.0, 1376.0)
 ## Farthest first, so the nearer one is drawn over it.
-const BUILDINGS: Array[String] = ["hq", "barracks", "armory", "hero_hall", "treasury", "farm"]
+const BUILDINGS: Array[String] = ["hq", "watchtower", "barracks", "armory", "hero_hall", "treasury", "farm", "infirmary"]
 ## How far the camp can be zoomed in from the fit that covers the screen; past it the pictures would blur.
 const MAX_ZOOM := 2.2
 ## A name goes this far below the building's front corner.
@@ -14,7 +14,8 @@ const LABEL_DROP := 14.0
 
 ## Where the people walk, along the painted road and yards and clear of every building's outline.
 const ROUTES := {
-	"road": [Vector2(768, 520), Vector2(700, 552), Vector2(600, 606), Vector2(500, 660), Vector2(400, 712), Vector2(305, 762), Vector2(230, 810), Vector2(190, 880), Vector2(225, 950), Vector2(290, 1005), Vector2(350, 1062), Vector2(440, 1105)],
+	# It stops at the foot of the slope: the farm terrace beyond is the infirmary's.
+	"road": [Vector2(768, 520), Vector2(700, 552), Vector2(600, 606), Vector2(500, 660), Vector2(400, 712), Vector2(305, 762), Vector2(230, 810), Vector2(190, 880), Vector2(225, 950), Vector2(290, 1005)],
 	"yard": [Vector2(395, 440), Vector2(400, 520), Vector2(300, 585), Vector2(215, 560)],
 	"cave": [Vector2(360, 436), Vector2(395, 455), Vector2(440, 520), Vector2(420, 570)],
 }
@@ -40,8 +41,8 @@ const STANDING := [
 ## Fighters drilling in the barracks yard while troops train, facing the barracks, to the right of its name plate.
 const DRILL := [Vector2(330, 575), Vector2(362, 583), Vector2(394, 591)]
 const DRILL_DIR := 3
-## The wounded rest beside the hero hall, clear of its name plate: one figure per this many wounded, up to the spots there are.
-const WOUNDED := [Vector2(268, 706), Vector2(292, 716), Vector2(250, 694)]
+## The wounded rest beside the infirmary, clear of its name plate: one figure per this many wounded, up to the spots there are.
+const WOUNDED := [Vector2(322, 1106), Vector2(346, 1116), Vector2(300, 1096)]
 const WOUNDED_PER_FIGURE := 10
 ## Where a full or nearly full producer piles its stock, by resource, clear of the name plates.
 const PILES := {"food": Vector2(470, 1012), "materiel": Vector2(692, 478), "funds": Vector2(618, 772)}

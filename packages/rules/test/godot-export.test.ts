@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
-import { buildGodotBalance, buildGodotDisplayFixtures, buildGodotMapFixtures, buildGodotUpgradeFixtures } from "../src/export/godot-data.ts";
+import { buildGodotBalance, buildGodotDisplayFixtures, buildGodotHealFixtures, buildGodotMapFixtures, buildGodotUpgradeFixtures } from "../src/export/godot-data.ts";
 
 const committed = (name: string): unknown =>
   JSON.parse(readFileSync(new URL(`../../../apps/godot/data/${name}`, import.meta.url), "utf8"));
@@ -37,6 +37,10 @@ describe("Godot export", () => {
 
   test("upgrade-fixtures.json is up to date (run `pnpm godot:export`)", () => {
     expect(committed("upgrade-fixtures.json")).toEqual(roundTrip(buildGodotUpgradeFixtures()));
+  });
+
+  test("heal-fixtures.json is up to date (run `pnpm godot:export`)", () => {
+    expect(committed("heal-fixtures.json")).toEqual(roundTrip(buildGodotHealFixtures()));
   });
 
   test("map-fixtures.json is up to date (run `pnpm godot:export`)", () => {

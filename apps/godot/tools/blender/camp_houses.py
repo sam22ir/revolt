@@ -20,7 +20,7 @@ PLACES = {
     # The lookout terrace's tower (it was part of the ground until the watchtower became a building).
     "watchtower": ((1440, 545), land.MID, 0),
     # Open ground on the farm terrace, between the farm and the walled field.
-    "infirmary": ((820, 2170), land.FARM, 4),
+    "infirmary": ((820, 2194), land.FARM, 4),
 }
 # How big the scaffolding round each is: along the front, along the right, height.
 SCAFFOLD = {"hq": (190, 240, 150), "barracks": (185, 245, 140), "armory": (190, 195, 140), "hero_hall": (240, 355, 190), "treasury": (115, 190, 160),
