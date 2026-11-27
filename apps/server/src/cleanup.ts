@@ -44,6 +44,7 @@ const deleteChunk = (db: Db, ids: string[]): DbStatement[] => {
     // M7 live tables (migration 0006) hold no foreign keys; delete the account's rows from each.
     inGuarded("live_awards", "account_id"),
     inGuarded("claims", "account_id"),
+    inGuarded("mission_ticks", "account_id"),
     inGuarded("wallet", "account_id"),
     inGuarded("cosmetics", "account_id"),
     inGuarded("pass_premium", "account_id"),

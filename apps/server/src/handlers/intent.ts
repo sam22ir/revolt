@@ -8,6 +8,8 @@ import {
   isHelpKind,
   type HelpKind,
   levelUpHero,
+  missionTick,
+  type MissionTick,
   parseHeroLoadout,
   parseTroops,
   recruitHero,
@@ -26,6 +28,7 @@ import {
 import type { Account } from "../db/accounts.ts";
 import { loadBase, saveBase } from "../db/bases.ts";
 import { loadWorld } from "../db/liberations.ts";
+import { writeTicks } from "../db/missions.ts";
 import { speedUpIntent } from "./speedup.ts";
 import { syncSnapshot } from "./live-support.ts";
 import { HttpError, json, readJson } from "../http.ts";
@@ -91,7 +94,13 @@ type BaseChange =
 const ATTEMPTS = 2;
 
 /** Applies a base-only intent with the shared rules at server time and saves it (compare-and-set). */
-const changeBase = async (ctx: Ctx, account: Account, apply: (s: BaseState, world: World) => BaseChange): Promise<Response> => {
+const changeBase = async (
+  ctx: Ctx,
+  account: Account,
+  apply: (s: BaseState, world: World) => BaseChange,
+  /** Daily-mission counts for an accepted change, written after it is saved. */
+  ticks: (next: BaseState) => (MissionTick | null)[] = () => [],
+): Promise<Response> => {
   const accountId = account.id;
   const world = await loadWorld(ctx.env.DB, account.server);
   for (let i = 0; i < ATTEMPTS; i++) {
@@ -101,10 +110,20 @@ const changeBase = async (ctx: Ctx, account: Account, apply: (s: BaseState, worl
     if (!result.ok) return json({ ok: false, reason: result.reason, state: result.state, liberations: world.liberations, now: ctx.now });
     if (await saveBase(ctx.env.DB, accountId, result.state, stored.version, ctx.now)) {
       await syncSnapshot(ctx, account, advance(result.state, ctx.now, world));
+      await countTicks(ctx, account, ticks(result.state));
       return json({ ok: true, state: result.state, liberations: world.liberations, now: ctx.now, ...(result.ok ? result.extra : undefined) });
     }
   }
   throw new HttpError("conflict");
+};
+
+/** Mission progress is secondary: a failed write must not fail the player's own request. */
+const countTicks = async (ctx: Ctx, account: Account, ticks: (MissionTick | null)[]): Promise<void> => {
+  try {
+    await writeTicks(ctx.env.DB, account.id, ticks, ctx.now);
+  } catch (e) {
+    ctx.deps.crash.capture(e, { where: "mission_ticks" });
+  }
 };
 
 /** A refusal the Worker decides itself (before the map is asked), with the player's current base state. */
@@ -125,9 +144,25 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
   const intent = parseIntent(await readJson(ctx.req));
   switch (intent.type) {
     case "upgrade":
-      return changeBase(ctx, account, (s, w) => startUpgrade(s, intent.building, ctx.now, w));
+      return changeBase(
+        ctx,
+        account,
+        (s, w) => startUpgrade(s, intent.building, ctx.now, w),
+        (next) => {
+          const job = next.queue;
+          return [job === null ? null : missionTick(backgroundOfServer(account.server), ctx.now, "upgrades_started", `upgrade:${job.building}:${job.toLevel}:${job.startedAt}`, 1)];
+        },
+      );
     case "train":
-      return changeBase(ctx, account, (s, w) => startTraining(s, intent.troop, intent.count, ctx.now, w));
+      return changeBase(
+        ctx,
+        account,
+        (s, w) => startTraining(s, intent.troop, intent.count, ctx.now, w),
+        (next) => {
+          const job = next.training;
+          return [job === null ? null : missionTick(backgroundOfServer(account.server), ctx.now, "troops_trained", `train:${job.troop}:${job.startedAt}`, job.count)];
+        },
+      );
     case "recruit":
       // The server picks the seed, so the client never chooses the draw.
       return changeBase(ctx, account, (s, w) => {

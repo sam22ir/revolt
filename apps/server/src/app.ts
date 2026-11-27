@@ -23,6 +23,7 @@ import { connectMap, getMap, getReports } from "./handlers/map.ts";
 import { getState } from "./handlers/state.ts";
 import { getEvents, postEventClaim } from "./handlers/events.ts";
 import { getLeaderboard } from "./handlers/leaderboard.ts";
+import { getMissions, postMissionClaim, postQuestClaim } from "./handlers/missions.ts";
 import { getPass, postPassClaim } from "./handlers/pass.ts";
 import { getStore, postEquip, postRedeem } from "./handlers/store.ts";
 
@@ -56,6 +57,9 @@ const ROUTES: Record<string, Handler> = {
   "GET /v1/store": getStore,
   "POST /v1/store/redeem": postRedeem,
   "POST /v1/cosmetics/equip": postEquip,
+  "GET /v1/missions": getMissions,
+  "POST /v1/missions/claim": postMissionClaim,
+  "POST /v1/quests/claim": postQuestClaim,
 };
 
 const route = async (req: Request, env: Env, deps: Deps): Promise<Response> => {

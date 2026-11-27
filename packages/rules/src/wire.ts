@@ -9,6 +9,8 @@ import type { HeroId } from "./hero-id.ts";
 import type { HelpKind } from "./help.ts";
 import type { CosmeticId, CosmeticSlot } from "./data/cosmetics.ts";
 import type { EventId } from "./data/events.ts";
+import type { DailyMissionId, MissionMetric, QuestId } from "./data/missions.ts";
+import type { Reward } from "./reward.ts";
 import type { ProductKind, ProductSku } from "./data/store.ts";
 import type { LeaderboardId } from "./leaderboard.ts";
 import type { Liberation } from "./liberation.ts";
@@ -303,5 +305,37 @@ export interface StoreView {
   readonly cosmetics: { readonly owned: readonly CosmeticId[]; readonly equipped: Readonly<Partial<Record<CosmeticSlot, CosmeticId>>> };
   /** Whether this server can check receipts at all (false: the store is browse-only). */
   readonly canRedeem: boolean;
+  readonly now: number;
+}
+
+export interface DailyMissionView {
+  readonly id: DailyMissionId;
+  readonly metric: MissionMetric;
+  readonly target: number;
+  readonly progress: number;
+  readonly done: boolean;
+  readonly claimed: boolean;
+  readonly reward: Reward;
+  readonly passXp: number;
+}
+
+export interface QuestView {
+  readonly id: QuestId;
+  readonly progress: number;
+  readonly target: number;
+  readonly done: boolean;
+  readonly reward: Reward;
+  /** 1-based place of this quest in the chain, and the chain's length. */
+  readonly step: number;
+  readonly steps: number;
+}
+
+/** GET /v1/missions: today's daily missions and the current beginner quest (null once the chain is finished). */
+export interface MissionsView {
+  readonly day: number;
+  /** Epoch ms of the next daily reset. */
+  readonly resetsAt: number;
+  readonly daily: readonly DailyMissionView[];
+  readonly quest: QuestView | null;
   readonly now: number;
 }

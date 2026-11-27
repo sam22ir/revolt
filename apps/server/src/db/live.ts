@@ -4,6 +4,7 @@ import {
   EMPTY_PASS,
   MAX_SPEEDUP_TOKENS_HELD,
   marchAwards,
+  missionTick,
   passKey,
   passSeasonAt,
   slotOf,
@@ -14,6 +15,7 @@ import {
   type PassProgress,
 } from "@revolt/rules";
 import type { Db, DbStatement } from "./db.ts";
+import { tickStatement } from "./missions.ts";
 
 /** The award rows a battle report earns, as statements for the same batch as the report. INSERT OR IGNORE: written once. */
 export const awardStatements = (db: Db, accountId: string, server: string, report: BattleReport): DbStatement[] => {
@@ -23,11 +25,15 @@ export const awardStatements = (db: Db, accountId: string, server: string, repor
   } catch {
     return []; // an unnamed server (a bare test map) earns nothing
   }
-  return awards.map((a) =>
+  const stmts = awards.map((a) =>
     db
       .prepare("INSERT OR IGNORE INTO live_awards (march_id, key, account_id, server, points, at) VALUES (?, ?, ?, ?, ?, ?)")
       .bind(report.id, a.key, accountId, server, a.points, report.at),
   );
+  // Daily missions count victories over colonial NPC forces only (a gone target has no kind).
+  const won = report.result === "victory" && report.target.kind !== null ? missionTick(backgroundOfServer(server), report.at, "npc_victories", `report:${report.id}`, 1) : null;
+  if (won !== null) stmts.push(tickStatement(db, accountId, won, report.at));
+  return stmts;
 };
 
 export const eventScore = async (db: Db, accountId: string, key: string): Promise<number> => {
