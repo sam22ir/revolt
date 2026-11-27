@@ -1,0 +1,284 @@
+{
+  "cases": [
+    {
+      "name": "nobody wounded",
+      "infirmary": 1,
+      "wounded": {
+        "infantry": 0,
+        "scouts": 0,
+        "heavy": 0,
+        "porters": 0
+      },
+      "resources": {
+        "food": 500,
+        "materiel": 500,
+        "funds": 500,
+        "support": 0
+      },
+      "busy": false,
+      "expected": {
+        "plan": {
+          "infantry": 0,
+          "scouts": 0,
+          "heavy": 0,
+          "porters": 0
+        },
+        "quote": {
+          "cost": {
+            "food": 0,
+            "materiel": 0,
+            "funds": 0,
+            "support": 0
+          },
+          "durationMs": 0
+        },
+        "reason": "no_wounded"
+      }
+    },
+    {
+      "name": "a few, plenty of resources",
+      "infirmary": 1,
+      "wounded": {
+        "infantry": 6,
+        "scouts": 2,
+        "heavy": 0,
+        "porters": 0
+      },
+      "resources": {
+        "food": 5000,
+        "materiel": 5000,
+        "funds": 5000,
+        "support": 0
+      },
+      "busy": false,
+      "expected": {
+        "plan": {
+          "infantry": 6,
+          "scouts": 2,
+          "heavy": 0,
+          "porters": 0
+        },
+        "quote": {
+          "cost": {
+            "food": 60,
+            "materiel": 36,
+            "funds": 16,
+            "support": 0
+          },
+          "durationMs": 23000
+        },
+        "reason": null
+      }
+    },
+    {
+      "name": "more than one batch",
+      "infirmary": 1,
+      "wounded": {
+        "infantry": 10,
+        "scouts": 8,
+        "heavy": 30,
+        "porters": 4
+      },
+      "resources": {
+        "food": 5000,
+        "materiel": 5000,
+        "funds": 5000,
+        "support": 0
+      },
+      "busy": false,
+      "expected": {
+        "plan": {
+          "infantry": 10,
+          "scouts": 5,
+          "heavy": 0,
+          "porters": 0
+        },
+        "quote": {
+          "cost": {
+            "food": 110,
+            "materiel": 70,
+            "funds": 30,
+            "support": 0
+          },
+          "durationMs": 42500
+        },
+        "reason": null
+      }
+    },
+    {
+      "name": "a bigger infirmary",
+      "infirmary": 4,
+      "wounded": {
+        "infantry": 10,
+        "scouts": 8,
+        "heavy": 30,
+        "porters": 4
+      },
+      "resources": {
+        "food": 5000,
+        "materiel": 5000,
+        "funds": 5000,
+        "support": 0
+      },
+      "busy": false,
+      "expected": {
+        "plan": {
+          "infantry": 10,
+          "scouts": 8,
+          "heavy": 30,
+          "porters": 4
+        },
+        "quote": {
+          "cost": {
+            "food": 504,
+            "materiel": 448,
+            "funds": 172,
+            "support": 0
+          },
+          "durationMs": 208000
+        },
+        "reason": null
+      }
+    },
+    {
+      "name": "resources pay for some",
+      "infirmary": 3,
+      "wounded": {
+        "infantry": 20,
+        "scouts": 10,
+        "heavy": 10,
+        "porters": 0
+      },
+      "resources": {
+        "food": 97.6,
+        "materiel": 41.2,
+        "funds": 13.9,
+        "support": 0
+      },
+      "busy": false,
+      "expected": {
+        "plan": {
+          "infantry": 6,
+          "scouts": 0,
+          "heavy": 0,
+          "porters": 0
+        },
+        "quote": {
+          "cost": {
+            "food": 48,
+            "materiel": 24,
+            "funds": 12,
+            "support": 0
+          },
+          "durationMs": 18000
+        },
+        "reason": null
+      }
+    },
+    {
+      "name": "nothing can be paid",
+      "infirmary": 2,
+      "wounded": {
+        "infantry": 5,
+        "scouts": 0,
+        "heavy": 0,
+        "porters": 0
+      },
+      "resources": {
+        "food": 3,
+        "materiel": 1,
+        "funds": 0,
+        "support": 0
+      },
+      "busy": false,
+      "expected": {
+        "plan": {
+          "infantry": 0,
+          "scouts": 0,
+          "heavy": 0,
+          "porters": 0
+        },
+        "quote": {
+          "cost": {
+            "food": 0,
+            "materiel": 0,
+            "funds": 0,
+            "support": 0
+          },
+          "durationMs": 0
+        },
+        "reason": "insufficient"
+      }
+    },
+    {
+      "name": "a batch is already in",
+      "infirmary": 2,
+      "wounded": {
+        "infantry": 5,
+        "scouts": 0,
+        "heavy": 0,
+        "porters": 0
+      },
+      "resources": {
+        "food": 5000,
+        "materiel": 5000,
+        "funds": 5000,
+        "support": 0
+      },
+      "busy": true,
+      "expected": {
+        "plan": {
+          "infantry": 5,
+          "scouts": 0,
+          "heavy": 0,
+          "porters": 0
+        },
+        "quote": {
+          "cost": {
+            "food": 40,
+            "materiel": 20,
+            "funds": 10,
+            "support": 0
+          },
+          "durationMs": 15000
+        },
+        "reason": "infirmary_busy"
+      }
+    },
+    {
+      "name": "porters only",
+      "infirmary": 1,
+      "wounded": {
+        "infantry": 0,
+        "scouts": 0,
+        "heavy": 0,
+        "porters": 9
+      },
+      "resources": {
+        "food": 5000,
+        "materiel": 0,
+        "funds": 5000,
+        "support": 0
+      },
+      "busy": false,
+      "expected": {
+        "plan": {
+          "infantry": 0,
+          "scouts": 0,
+          "heavy": 0,
+          "porters": 9
+        },
+        "quote": {
+          "cost": {
+            "food": 36,
+            "materiel": 0,
+            "funds": 36,
+            "support": 0
+          },
+          "durationMs": 18000
+        },
+        "reason": null
+      }
+    }
+  ]
+}

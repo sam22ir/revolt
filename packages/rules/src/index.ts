@@ -31,6 +31,7 @@ export {
   type MarchResult,
   type MarchState,
   type TrainingJob,
+  type HealingJob,
   type UpgradeJob,
 } from "./base-state.ts";
 export { carryCapacity, counterFactor, resolveBattle, takeLoot, type BattleResult, type BattleRound } from "./battle.ts";
@@ -174,6 +175,7 @@ export {
   type LeaderboardResponse,
   type MarchPhase,
   type PassView,
+  type ScoutView,
   type ProductView,
   type StoreView,
   type WalletView,
@@ -263,3 +265,8 @@ export {
 } from "./store.ts";
 export { LIBERATION_BONUS_CAP, LIBERATION_BONUS_PER_REGION } from "./data/liberation.ts";
 export { liberatedCount, liberatedRegions, multiplierBreakpoints, NO_WORLD, productionMultiplier, strongholdTile, type Liberation, type TakenTile, type World } from "./liberation.ts";
+
+export { HEAL_BATCH_PER_LEVEL, HEAL_COST_SHARE, HEAL_TIME_SHARE } from "./data/troops.ts";
+export { checkHealing, HEALING_BLOCK_REASONS, healingQuote, maxHealingBatch, planHealing, startHealing, type HealingBlockReason, type HealingResult } from "./healing.ts";
+export { CLOSE_FROM, FORECAST_CHANCE_LEVEL, FORECAST_LOSSES_LEVEL, FORECAST_SAMPLES, LIKELY_WIN_FROM } from "./data/watchtower.ts";
+export { battleOdds, FORECAST_VERDICTS, forecastFor, verdictOf, type BattleOdds, type Forecast, type ForecastVerdict } from "./scout.ts";

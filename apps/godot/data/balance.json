@@ -1,6 +1,6 @@
 {
   "resourceIds": ["food","materiel","funds","support"],
-  "buildingIds": ["hq","farm","armory","treasury","barracks","hero_hall"],
+  "buildingIds": ["hq","farm","armory","treasury","barracks","hero_hall","watchtower","infirmary"],
   "troopIds": ["infantry","scouts","heavy","porters"],
   "combatTroopIds": ["infantry","scouts","heavy"],
   "cosmeticIds": ["skin_olive","skin_sand","skin_slate","banner_plain","banner_stripes","banner_dawn","march_dust","march_lantern","outfit_field","outfit_scarf","outfit_coat"],
@@ -639,6 +639,216 @@
           "ratePerHour": 0
         }
       ]
+    },
+    "watchtower": {
+      "produces": null,
+      "levels": [
+        {
+          "cost": {
+            "food": 0,
+            "materiel": 0,
+            "funds": 0,
+            "support": 0
+          },
+          "durationSec": 0,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 60,
+            "materiel": 120,
+            "funds": 80,
+            "support": 0
+          },
+          "durationSec": 90,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 140,
+            "materiel": 260,
+            "funds": 180,
+            "support": 0
+          },
+          "durationSec": 360,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 280,
+            "materiel": 520,
+            "funds": 360,
+            "support": 0
+          },
+          "durationSec": 1200,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 560,
+            "materiel": 1040,
+            "funds": 720,
+            "support": 0
+          },
+          "durationSec": 2400,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 1050,
+            "materiel": 1950,
+            "funds": 1350,
+            "support": 0
+          },
+          "durationSec": 4800,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 1850,
+            "materiel": 3400,
+            "funds": 2350,
+            "support": 0
+          },
+          "durationSec": 9000,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 3150,
+            "materiel": 5800,
+            "funds": 4000,
+            "support": 0
+          },
+          "durationSec": 16200,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 5300,
+            "materiel": 9700,
+            "funds": 6700,
+            "support": 0
+          },
+          "durationSec": 28800,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 8800,
+            "materiel": 16000,
+            "funds": 11000,
+            "support": 0
+          },
+          "durationSec": 57600,
+          "ratePerHour": 0
+        }
+      ]
+    },
+    "infirmary": {
+      "produces": null,
+      "levels": [
+        {
+          "cost": {
+            "food": 0,
+            "materiel": 0,
+            "funds": 0,
+            "support": 0
+          },
+          "durationSec": 0,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 120,
+            "materiel": 50,
+            "funds": 100,
+            "support": 0
+          },
+          "durationSec": 90,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 260,
+            "materiel": 110,
+            "funds": 220,
+            "support": 0
+          },
+          "durationSec": 360,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 520,
+            "materiel": 220,
+            "funds": 440,
+            "support": 0
+          },
+          "durationSec": 1200,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 1040,
+            "materiel": 440,
+            "funds": 880,
+            "support": 0
+          },
+          "durationSec": 2400,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 1950,
+            "materiel": 820,
+            "funds": 1650,
+            "support": 0
+          },
+          "durationSec": 4800,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 3400,
+            "materiel": 1450,
+            "funds": 2900,
+            "support": 0
+          },
+          "durationSec": 9000,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 5800,
+            "materiel": 2450,
+            "funds": 4950,
+            "support": 0
+          },
+          "durationSec": 16200,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 9700,
+            "materiel": 4100,
+            "funds": 8300,
+            "support": 0
+          },
+          "durationSec": 28800,
+          "ratePerHour": 0
+        },
+        {
+          "cost": {
+            "food": 16000,
+            "materiel": 6800,
+            "funds": 13700,
+            "support": 0
+          },
+          "durationSec": 57600,
+          "ratePerHour": 0
+        }
+      ]
     }
   },
   "storageCaps": [
@@ -710,7 +920,9 @@
       "armory": 1,
       "treasury": 1,
       "barracks": 1,
-      "hero_hall": 1
+      "hero_hall": 1,
+      "watchtower": 1,
+      "infirmary": 1
     },
     "resources": {
       "food": 500,
@@ -788,6 +1000,15 @@
     }
   },
   "trainingBatchPerLevel": 20,
+  "healing": {
+    "batchPerLevel": 15,
+    "costShare": 0.4,
+    "timeShare": 0.5
+  },
+  "forecast": {
+    "lossesLevel": 3,
+    "chanceLevel": 5
+  },
   "battle": {
     "counterBonus": 1.5,
     "lostShare": 0.2,

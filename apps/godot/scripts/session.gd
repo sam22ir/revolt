@@ -127,13 +127,14 @@ func apply(reply: Dictionary) -> void:
 func queue() -> Variant:
 	return state.get("queue")
 
-## Call every frame. When a running job (upgrade or training) is over (server time), asks the server for the base once, so
+## Call every frame. When a running job (upgrade, training or healing) is over (server time), asks the server for the base once, so
 ## the new level or the new troops come from the server and not from the client. If the answer still holds the job (the
 ## server's clock is a little behind), it asks again after COMPLETION_RETRY_MS, up to MAX_COMPLETION_ASKS times for that job.
 func tick() -> void:
 	_retry_when_offline()
 	_watch_job("upgrade", queue())
 	_watch_job("training", state.get("training"))
+	_watch_job("healing", state.get("healing"))
 
 func _watch_job(kind: String, job: Variant) -> void:
 	if job == null:
@@ -275,6 +276,13 @@ func give_help(request_id: String) -> Dictionary:
 			refresh_alliance()
 		return {"ok": ok, "reason": reason}
 	return {"ok": false, "reason": "unreachable" if int(result["status"]) == 0 else "error"}
+
+## Asks the watchtower for a forecast (`POST /v1/scout` with ForecastModel.request's body). Returns the ScoutView, or {} when the
+## request failed or was refused (a hero away since the sheet was drawn); nothing in the base changes.
+func scout(body: Dictionary) -> Dictionary:
+	var result: Dictionary = await api.post_json("/v1/scout", body)
+	_take(result)
+	return result["data"] if result["ok"] and ForecastModel.is_view(result["data"]) else {}
 
 ## Fetches `GET /v1/store` for the wallet (the catalog in the reply is not used). Taken through `apply`, like every reply.
 func load_wallet() -> void:

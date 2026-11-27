@@ -49,6 +49,12 @@ var _travel: Label
 var _carry: Label
 var _reason: PanelContainer
 var _submit: Button
+## The watchtower's forecast: its card's lines, what was last asked (a JSON key), and the wait before asking.
+var _forecast_box: VBoxContainer
+var _forecast_key := ""
+var _forecast_timer := Timer.new()
+## How long the choice must stay put before the server is asked, so tapping + ten times sends one request.
+const FORECAST_WAIT_S := 0.4
 
 func _init() -> void:
 	super("marches")
@@ -62,6 +68,9 @@ func _ready() -> void:
 	_footer.add_child(_footer_box)
 	column.add_child(_footer)
 	_picker.picked.connect(_on_picked)
+	_forecast_timer.one_shot = true
+	_forecast_timer.timeout.connect(_ask_forecast)
+	add_child(_forecast_timer)
 	add_child(_picker)
 
 ## Connects the sheet to the session it reads and sends through.
@@ -127,6 +136,7 @@ func _build() -> void:
 	body.add_child(troops)
 	if _mode == "march":
 		body.add_child(_heroes_card())
+		body.add_child(_forecast_card())
 	if _mode == "harvest":
 		body.add_child(_harvest_card())
 	_build_footer()
@@ -156,6 +166,48 @@ func _target_card() -> Control:
 	row.add_child(words)
 	UiKit.card_body(card).add_child(row)
 	return card
+
+## The watchtower's forecast for the troops and heroes chosen; its lines come in when the server answers.
+func _forecast_card() -> Control:
+	var card := UiKit.section("power", Loc.t("forecast.title"))
+	_forecast_box = VBoxContainer.new()
+	_forecast_box.add_theme_constant_override("separation", roundi(HudTheme.px(4)))
+	UiKit.card_body(card).add_child(_forecast_box)
+	_forecast_key = ""
+	return card
+
+## The choice changed: say so, and ask the server once it has stayed put for FORECAST_WAIT_S.
+func _queue_forecast(key: String) -> void:
+	_forecast_key = key
+	_show_forecast([{"key": "forecast.loading", "vars": {}, "tone": ""}])
+	_forecast_timer.start(FORECAST_WAIT_S)
+
+func _ask_forecast() -> void:
+	var asked := _forecast_key
+	var request: Variant = ForecastModel.request(int(_npc.get("level", 0)), _counts, _loadout())
+	if request == null or _session == null:
+		_show_forecast(ForecastModel.lines({"watchtower": 0, "forecast": null}))
+		return
+	var view := await _session.scout(request)
+	# An answer for a choice that has changed since, or a sheet closed meanwhile, is dropped.
+	if asked != _forecast_key or not is_open() or _forecast_box == null:
+		return
+	_show_forecast(ForecastModel.lines(view) if not view.is_empty() else [{"key": "forecast.unavailable", "vars": {}, "tone": ""}])
+
+func _show_forecast(list: Array) -> void:
+	if _forecast_box == null or not is_instance_valid(_forecast_box):
+		return
+	for child in _forecast_box.get_children():
+		_forecast_box.remove_child(child)
+		child.queue_free()
+	var lang := Fmt.lang()
+	for line: Dictionary in list:
+		var vars := {}
+		for k: String in line["vars"]:
+			vars[k] = Fmt.amount(lang, line["vars"][k])
+		var tone := String(line["tone"])
+		var colour: Color = {"good": Color("7fbf6a"), "even": HudTheme.GOLD, "bad": HudTheme.LACKING}.get(tone, HudTheme.TEXT_SECOND)
+		_forecast_box.add_child(UiKit.label(Loc.t(line["key"], vars), UiKit.BODY + (1.0 if tone != "" else 0.0), colour, tone != "", true))
 
 ## The gathering times to start a rally with, as buttons; the chosen one is amber.
 func _gather_card() -> Control:
@@ -424,6 +476,10 @@ func _refresh() -> void:
 	if _mode != "march" and _mode != "harvest" and int(p["travel_ms"]) >= 0:
 		p["travel_ms"] = _rally_leg()
 	var bonus := MarchModel.hero_bonus(state, loadout)
+	if _mode == "march" and _forecast_box != null:
+		var key := JSON.stringify([_npc.get("level", 0), _counts, loadout])
+		if key != _forecast_key:
+			_queue_forecast(key)
 	if _mode == "march":
 		_bonus.visible = loadout != null
 		_bonus.text = Loc.t("march.heroBonus", {"attack": Fmt.amount(lang, bonus["attack"]), "defense": Fmt.amount(lang, bonus["defense"])})

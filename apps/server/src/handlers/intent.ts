@@ -12,6 +12,7 @@ import {
   parseTroops,
   recruitHero,
   seededRng,
+  startHealing,
   startTraining,
   startUpgrade,
   TROOP_IDS,
@@ -40,6 +41,7 @@ export type Intent =
   | { readonly type: "rally_join"; readonly rally: string; readonly troops: Troops }
   | { readonly type: "harvest_start"; readonly site: string; readonly troops: Troops }
   | { readonly type: "harvest_recall"; readonly march: string }
+  | { readonly type: "heal" }
   | { readonly type: "recruit" }
   | { readonly type: "hero_level"; readonly hero: HeroId }
   | { readonly type: "story_claim" }
@@ -51,7 +53,7 @@ const MAX_TARGET_ID = 64;
 export const parseIntent = (body: Record<string, unknown>): Intent => {
   const { type } = body;
   if (type === "upgrade" && BUILDING_IDS.some((id) => id === body.building)) return { type, building: body.building as BuildingId };
-  if (type === "recruit") return { type };
+  if (type === "recruit" || type === "heal") return { type };
   if (type === "hero_level" && HERO_IDS.some((id) => id === body.hero)) return { type, hero: body.hero as HeroId };
   if (type === "train" && TROOP_IDS.some((id) => id === body.troop) && typeof body.count === "number") {
     return { type, troop: body.troop as TroopId, count: body.count };
@@ -128,6 +130,8 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
       return changeBase(ctx, account, (s, w) => startUpgrade(s, intent.building, ctx.now, w));
     case "train":
       return changeBase(ctx, account, (s, w) => startTraining(s, intent.troop, intent.count, ctx.now, w));
+    case "heal":
+      return changeBase(ctx, account, (s, w) => startHealing(s, ctx.now, w));
     case "recruit":
       // The server picks the seed, so the client never chooses the draw.
       return changeBase(ctx, account, (s, w) => {

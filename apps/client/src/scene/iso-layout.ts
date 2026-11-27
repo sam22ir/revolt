@@ -17,8 +17,15 @@ export interface Plot {
 const PLOT_SIZE = 1.6;
 const plotAt = (cx: number, cy: number): Plot => ({ gx: cx - PLOT_SIZE / 2, gy: cy - PLOT_SIZE / 2, size: PLOT_SIZE });
 
+/**
+ * The buildings this (Phaser) base draws, with their painted sprites. The watchtower and the infirmary are only in the Godot camp,
+ * which replaces this client; here they keep their levels in the state but have no plot.
+ */
+export const PAINTED_BUILDINGS = ["hq", "farm", "armory", "treasury", "barracks", "hero_hall"] as const satisfies readonly BuildingId[];
+export type PaintedBuildingId = (typeof PAINTED_BUILDINGS)[number];
+
 /** Fixed plots for M1 (GDD §4.1). */
-export const PLOTS: Readonly<Record<BuildingId, Plot>> = {
+export const PLOTS: Readonly<Record<PaintedBuildingId, Plot>> = {
   hq: plotAt(3, 3),
   farm: plotAt(1, 2.6),
   armory: plotAt(2.6, 1),

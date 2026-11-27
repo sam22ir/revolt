@@ -1,7 +1,7 @@
 class_name ActionRing
 extends Control
 ## The round buttons that come up over a tapped building (docs/design/ui-pass-plan.md): Upgrade and Info on every building,
-## Train on the barracks and Heroes on the hero hall. They sit on a shallow arch above the building, or below it when the top HUD
+## Train on the barracks, Heal on the infirmary and Heroes on the hero hall. They sit on a shallow arch above the building, or below it when the top HUD
 ## leaves no room, kept on screen; the shell moves them every frame so they follow the building while the camp pans. In Arabic
 ## the order is reversed, so Upgrade stays at the reading start. A press sends `action` with the action's id; this never decides
 ## anything itself.
@@ -15,7 +15,7 @@ const CELL := Vector2(72.0, 70.0)
 const GAP := 8.0
 const ARCH := 10.0
 const MARGIN := 8.0
-const ICONS := {"upgrade": "upgrade", "info": "info", "train": "train", "heroes": "heroes"}
+const ICONS := {"upgrade": "upgrade", "info": "info", "train": "train", "heal": "wounded", "heroes": "heroes"}
 
 var shown_id := ""
 var _buttons: Array[RoundButton] = []
@@ -30,6 +30,8 @@ static func actions_for(id: String) -> Array:
 	var out := ["upgrade", "info"]
 	if id == "barracks":
 		out.append("train")
+	if id == "infirmary":
+		out.append("heal")
 	if id == "hero_hall":
 		out.append("heroes")
 	return out
@@ -87,6 +89,8 @@ static func label_for(kind: String) -> String:
 			return Loc.t("panel.info")
 		"train":
 			return Loc.t("train.start")
+		"heal":
+			return Loc.t("heal.title")
 		_:
 			return Loc.t("nav.heroes")
 

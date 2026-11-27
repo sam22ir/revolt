@@ -3,7 +3,7 @@ import { BUILDING_IDS } from "./building-id.ts";
 import { MAX_BUILDING_LEVEL } from "./data/buildings.ts";
 import { RESOURCE_IDS } from "./resource-id.ts";
 import { TROOP_IDS } from "./troop-id.ts";
-import { isTroops } from "./troops.ts";
+import { isTroops, type Troops } from "./troops.ts";
 import { HERO_IDS } from "./hero-id.ts";
 import { isHeroEntry } from "./hero-roster.ts";
 
@@ -34,6 +34,10 @@ const isTraining = (j: unknown): boolean =>
     j.count > 0 &&
     isFiniteNumber(j.startedAt) &&
     isFiniteNumber(j.endsAt));
+
+const isHealing = (j: unknown): boolean =>
+  j === null ||
+  (isRecord(j) && isTroops(j.troops) && TROOP_IDS.some((id) => (j.troops as Troops)[id] > 0) && isFiniteNumber(j.startedAt) && isFiniteNumber(j.endsAt));
 
 const isOutcome = (o: unknown): boolean =>
   o === null ||
@@ -100,6 +104,7 @@ export const isBaseState = (v: unknown): v is BaseState => {
     isTroops(v.troops) &&
     isTroops(v.wounded) &&
     isTraining(v.training) &&
+    isHealing(v.healing) &&
     Array.isArray(v.marches) &&
     v.marches.every(isMarch)
   );

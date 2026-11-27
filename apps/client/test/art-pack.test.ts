@@ -1,8 +1,9 @@
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { expect } from "vitest";
-import { BUILDING_IDS, NPC_KINDS, RESOURCE_IDS, TERRAIN_IDS, TROOP_IDS } from "@revolt/rules";
+import { NPC_KINDS, RESOURCE_IDS, TERRAIN_IDS, TROOP_IDS } from "@revolt/rules";
 import { artPack, type ArtPack } from "../src/art/pack.ts";
+import { PAINTED_BUILDINGS } from "../src/scene/iso-layout.ts";
 import manifest from "../src/art/manifest.json";
 import terrainManifest from "../src/art/terrain-manifest.json";
 import { test } from "vitest";
@@ -25,7 +26,7 @@ const packKeys = (pack: ArtPack): string[] => [
 ];
 
 RA.push(["has a sprite for every building, troop, resource, NPC kind and terrain", () => {
-  for (const id of BUILDING_IDS) expect(artPack.buildings[id], `building ${id}`).toBeTruthy();
+  for (const id of PAINTED_BUILDINGS) expect(artPack.buildings[id], `building ${id}`).toBeTruthy();
   for (const id of TROOP_IDS) expect(artPack.troops[id], `troop ${id}`).toBeTruthy();
   for (const id of RESOURCE_IDS) expect(artPack.resources[id], `resource ${id}`).toBeTruthy();
   for (const kind of NPC_KINDS) expect(artPack.npc[kind], `npc ${kind}`).toBeTruthy();

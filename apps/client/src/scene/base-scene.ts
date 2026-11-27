@@ -1,12 +1,12 @@
 import Phaser from "phaser";
-import { BUILDING_IDS, type BaseState, type BuildingId } from "@revolt/rules";
+import type { BaseState, BuildingId } from "@revolt/rules";
 import type { GameStore } from "../state/game-store.ts";
 import type { HudInsets } from "../ui/hud-insets.ts";
 import { hex, theme } from "../theme/theme.ts";
 import { artKeyFor, artUrl, spriteInfo, textureKey } from "../art/art.ts";
 import { artPack } from "../art/pack.ts";
 import { activeBackground } from "../state/background.ts";
-import { baseSpan, fitBase, isoToWorld, PLOTS, placeGround, placeSprite, plotCenter, type Placement, type Vec } from "./iso-layout.ts";
+import { baseSpan, fitBase, isoToWorld, PAINTED_BUILDINGS, PLOTS, type PaintedBuildingId, placeGround, placeSprite, plotCenter, type Placement, type Vec } from "./iso-layout.ts";
 
 interface BuildingView {
   readonly sprite: Phaser.GameObjects.Image;
@@ -19,7 +19,7 @@ interface BuildingView {
 }
 
 const ground = (): string => artKeyFor(activeBackground(), "buildings/ground_tile");
-const spriteKey = (id: BuildingId): string => artKeyFor(activeBackground(), `buildings/${id}`);
+const spriteKey = (id: PaintedBuildingId): string => artKeyFor(activeBackground(), `buildings/${id}`);
 /** Depths: ground, then buildings back to front, then outlines, then badges and bars. */
 const D_SPRITE = 10;
 const D_OUTLINE = 100;
@@ -29,8 +29,8 @@ const D_HUD = 200;
 const UPGRADING_TINT = 0xb8aa94;
 
 export class BaseScene extends Phaser.Scene {
-  private readonly views = new Map<BuildingId, BuildingView>();
-  private readonly placements = new Map<BuildingId, Placement>();
+  private readonly views = new Map<PaintedBuildingId, BuildingView>();
+  private readonly placements = new Map<PaintedBuildingId, Placement>();
   private selected: BuildingId | null = null;
   private viewCenter: Vec = { x: 0, y: 0 };
   /** The HUD room the camera was last fitted to; a sheet opening does not refit the base. */
@@ -47,14 +47,14 @@ export class BaseScene extends Phaser.Scene {
   }
 
   preload(): void {
-    for (const key of [ground(), ...BUILDING_IDS.map(spriteKey)]) this.load.image(textureKey(key), artUrl(key));
+    for (const key of [ground(), ...PAINTED_BUILDINGS.map(spriteKey)]) this.load.image(textureKey(key), artUrl(key));
   }
 
   create(): void {
     this.cameras.main.setBackgroundColor(hex(theme.ground.base));
     this.drawGround();
     // Draw back-to-front so nearer buildings overlap farther ones.
-    const order = [...BUILDING_IDS].sort((a, b) => plotCenter(PLOTS[a]).y - plotCenter(PLOTS[b]).y);
+    const order = [...PAINTED_BUILDINGS].sort((a, b) => plotCenter(PLOTS[a]).y - plotCenter(PLOTS[b]).y);
     order.forEach((id, i) => this.views.set(id, this.createBuilding(id, i)));
     this.fitCamera();
     this.scale.on(Phaser.Scale.Events.RESIZE, () => this.fitCamera());
@@ -88,7 +88,7 @@ export class BaseScene extends Phaser.Scene {
   }
 
   /** Screen (CSS px) position of a building's body, for tests and tooling. */
-  buildingScreenPoint(id: BuildingId): Vec {
+  buildingScreenPoint(id: PaintedBuildingId): Vec {
     const cam = this.cameras.main;
     const world = this.buildingCenter(id);
     // The camera zooms around its center, which fitCamera() points at viewCenter.
@@ -101,7 +101,7 @@ export class BaseScene extends Phaser.Scene {
   }
 
   /** A point on the building's walls, above the plot centre where its own sprite is opaque. */
-  private buildingCenter(id: BuildingId): Vec {
+  private buildingCenter(id: PaintedBuildingId): Vec {
     const c = plotCenter(PLOTS[id]);
     return { x: c.x, y: c.y - this.placement(id).height * 0.35 };
   }
@@ -115,7 +115,7 @@ export class BaseScene extends Phaser.Scene {
     this.fitted = { top: room.top, nav: room.nav };
     const px = this.scale.displayScale.y;
     // Fit the buildings and the whole ground diamond: a cropped slab reads as a cut-off edge, so its corners stay on screen.
-    const span = baseSpan(BUILDING_IDS.map((id) => ({ x: this.placement(id).x, width: spriteInfo(artPack.buildings[id]).w * this.placement(id).scale })));
+    const span = baseSpan(PAINTED_BUILDINGS.map((id) => ({ x: this.placement(id).x, width: spriteInfo(artPack.buildings[id]).w * this.placement(id).scale })));
     const fit = fitBase(width, height, px, room, span);
     cam.setZoom(fit.zoom);
     const zoom = fit.zoom;
@@ -133,7 +133,7 @@ export class BaseScene extends Phaser.Scene {
     this.add.image(g.x, g.y, textureKey(ground())).setOrigin(0, 0).setScale(g.sx, g.sy).setDepth(0);
   }
 
-  private placement(id: BuildingId): Placement {
+  private placement(id: PaintedBuildingId): Placement {
     const cached = this.placements.get(id);
     if (cached !== undefined) return cached;
     const p = placeSprite(PLOTS[id], spriteInfo(artPack.buildings[id]));
@@ -141,7 +141,7 @@ export class BaseScene extends Phaser.Scene {
     return p;
   }
 
-  private createBuilding(id: BuildingId, index: number): BuildingView {
+  private createBuilding(id: PaintedBuildingId, index: number): BuildingView {
     const place = this.placement(id);
     const sprite = this.add.image(place.x, place.y, textureKey(artPack.buildings[id])).setOrigin(0, 0).setScale(place.scale).setDepth(D_SPRITE + index);
     // Taps hit the painted pixels, so where sprites overlap the one drawn on top (the nearer building) wins.
@@ -158,7 +158,7 @@ export class BaseScene extends Phaser.Scene {
   }
 
   private refresh(state: BaseState, now: number): void {
-    for (const id of BUILDING_IDS) {
+    for (const id of PAINTED_BUILDINGS) {
       const view = this.views.get(id);
       if (view === undefined) continue;
       const level = state.levels[id];
@@ -172,7 +172,7 @@ export class BaseScene extends Phaser.Scene {
     }
   }
 
-  private drawBuilding(id: BuildingId, view: BuildingView, level: number, upgrading: boolean): void {
+  private drawBuilding(id: PaintedBuildingId, view: BuildingView, level: number, upgrading: boolean): void {
     // Under construction: the sprite is dimmed (and the progress bar runs under it).
     if (upgrading) view.sprite.setTint(UPGRADING_TINT);
     else view.sprite.clearTint();
@@ -193,7 +193,7 @@ export class BaseScene extends Phaser.Scene {
     view.label.setPosition(badgePos.x, badgePos.y).setText(String(level));
   }
 
-  private drawProgress(id: BuildingId, view: BuildingView, state: BaseState, now: number): void {
+  private drawProgress(id: PaintedBuildingId, view: BuildingView, state: BaseState, now: number): void {
     const g = view.progress;
     g.clear();
     const job = state.queue;
@@ -210,7 +210,7 @@ export class BaseScene extends Phaser.Scene {
   }
 
   /** Ground corners of a plot: top, right, bottom, left (world px). */
-  private footprint(id: BuildingId): [Vec, Vec, Vec, Vec] {
+  private footprint(id: PaintedBuildingId): [Vec, Vec, Vec, Vec] {
     const { gx, gy, size } = PLOTS[id];
     return [isoToWorld(gx, gy), isoToWorld(gx + size, gy), isoToWorld(gx + size, gy + size), isoToWorld(gx, gy + size)];
   }

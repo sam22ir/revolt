@@ -90,7 +90,7 @@ collect resources → spend on buildings / troops / research
   - `infirmary` — heals wounded troops.
   - `academy` — research tree.
   - `hero_hall` — hero recruitment and upgrades.
-  - `watchtower` — scouting and incoming-attack warnings.
+  - `watchtower` — scouting: a battle forecast before a march, more detailed at higher levels; incoming-attack warnings once anything can attack a base.
   - `liaison_office` — alliance features (help speeds up timers).
 
 ### 4.2 Production and timers

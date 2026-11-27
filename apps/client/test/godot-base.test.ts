@@ -5,7 +5,6 @@
  * so a stale file fails the tests. The shipped sprites and their anchors are copied for Godot and checked here too.
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { BUILDING_IDS } from "@revolt/rules";
 import { describe, expect, test } from "vitest";
 import { compactJson } from "../../../packages/rules/src/export/compact-json.ts";
 import manifest from "../src/art/manifest.json";
@@ -22,6 +21,7 @@ import {
   mapCenter,
   MAP_WORLD_HEIGHT,
   MAP_WORLD_WIDTH,
+  PAINTED_BUILDINGS,
   PLOTS,
   placeGround,
   placeSprite,
@@ -32,13 +32,13 @@ import {
 
 const godot = (rel: string): URL => new URL(`../../godot/${rel}`, import.meta.url);
 const sprites = (): Record<string, unknown> => {
-  const keys = [...BUILDING_IDS.map((id) => artPack.buildings[id]), artPack.baseGround];
+  const keys = [...PAINTED_BUILDINGS.map((id) => artPack.buildings[id]), artPack.baseGround];
   return Object.fromEntries(keys.map((k) => [k, (manifest as Record<string, unknown>)[k]]));
 };
 const info = (key: string): SpriteInfo => spriteInfo(key);
 
 const buildLayout = (): unknown => {
-  const placed = BUILDING_IDS.map((id) => {
+  const placed = PAINTED_BUILDINGS.map((id) => {
     const key = artPack.buildings[id];
     const plot = PLOTS[id];
     const p = placeSprite(plot, info(key));

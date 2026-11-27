@@ -58,6 +58,18 @@ msgstr "قاعة الأبطال"
 msgid "building.hero_hall.desc"
 msgstr "تجنّد الأبطال وترفع سقف مستواهم."
 
+msgid "building.watchtower.name"
+msgstr "برج المراقبة"
+
+msgid "building.watchtower.desc"
+msgstr "يطل على التلال. كلما ارتفع مستواه أخبرك أكثر عن سير المعركة قبل أن تزحف."
+
+msgid "building.infirmary.name"
+msgstr "المستوصف"
+
+msgid "building.infirmary.desc"
+msgstr "يعالج الجرحى حتى يقفوا على أقدامهم. كلما ارتفع مستواه عالج عددًا أكبر دفعة واحدة."
+
 msgid "panel.level"
 msgstr "المستوى {level}"
 
@@ -102,6 +114,12 @@ msgstr "إنقاص"
 
 msgid "panel.max"
 msgstr "الأقصى"
+
+msgid "reason.infirmary_busy"
+msgstr "المستوصف يعالج مجموعة بالفعل"
+
+msgid "reason.no_wounded"
+msgstr "لا يوجد جرحى"
 
 msgid "reason.hero_hall_level"
 msgstr "تتطلب قاعة الأبطال من المستوى {level}"
@@ -660,6 +678,54 @@ msgstr "مكافأة الأبطال: الهجوم +{attack}٪ والضرر ال�
 
 msgid "march.ledBy"
 msgstr "بقيادة {names}"
+
+msgid "heal.title"
+msgstr "الجرحى"
+
+msgid "heal.wounded"
+msgstr "الجرحى: {count}"
+
+msgid "heal.batch"
+msgstr "يعالج حتى {count} دفعة واحدة"
+
+msgid "heal.next"
+msgstr "المجموعة التالية: {count}"
+
+msgid "heal.button"
+msgstr "عالج الجرحى"
+
+msgid "heal.inCare"
+msgstr "قيد العلاج: {count}"
+
+msgid "heal.none"
+msgstr "لا يوجد جرحى. يأتي إلى هنا جرحى المعارك."
+
+msgid "forecast.title"
+msgstr "توقعات برج المراقبة"
+
+msgid "forecast.likely_victory"
+msgstr "نصر مرجّح"
+
+msgid "forecast.close"
+msgstr "النتيجة متقاربة"
+
+msgid "forecast.likely_defeat"
+msgstr "هزيمة مرجّحة"
+
+msgid "forecast.losses"
+msgstr "المتوقع: {lost} قتلى، {wounded} جرحى"
+
+msgid "forecast.chance"
+msgstr "فرصة النصر: {chance}٪"
+
+msgid "forecast.more"
+msgstr "برج المراقبة من المستوى {level} يخبرك أكثر"
+
+msgid "forecast.loading"
+msgstr "جارٍ الاستطلاع…"
+
+msgid "forecast.unavailable"
+msgstr "لا توجد توقعات الآن"
 
 msgid "train.title"
 msgstr "التدريب"
@@ -1293,6 +1359,18 @@ msgstr "قاعة المسؤولين"
 
 msgid "background.vietnam.building.hero_hall.desc"
 msgstr "تجنّد الأبطال وتدرّبهم. كلما ارتفع مستواها بلغ الأبطال مستويات أعلى."
+
+msgid "background.vietnam.building.watchtower.name"
+msgstr "نقطة المراقبة"
+
+msgid "background.vietnam.building.watchtower.desc"
+msgstr "تراقب الوادي من بين الأشجار. كلما ارتفع مستواها أخبرتك أكثر عن سير المعركة قبل أن تزحف."
+
+msgid "background.vietnam.building.infirmary.name"
+msgstr "العيادة الميدانية"
+
+msgid "background.vietnam.building.infirmary.desc"
+msgstr "تعالج الجرحى حتى يقفوا على أقدامهم. كلما ارتفع مستواها عالجت عددًا أكبر دفعة واحدة."
 
 msgid "background.vietnam.troop.infantry.name"
 msgstr "المشاة الخفيفة"

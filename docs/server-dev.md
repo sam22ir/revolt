@@ -137,6 +137,8 @@ Routes (all bearer-auth, all scoped to the account's server; players are named b
 | `POST /v1/events/claim {event}` | After a window ends (7 days grace) pays the highest tier reached, once. |
 | `GET /v1/leaderboard?board=power\|regions\|alliance\|event[&event=key]` | Top 50 and the viewer's own place. |
 | `GET /v1/pass`, `POST /v1/pass/claim {tier, track}` | The season's pass; each tier pays once per track; premium needs the purchase. |
+| `POST /v1/intent` `{ type: "heal" }` | Starts an infirmary batch: wounded in troop order, up to infirmary level × 15 and what the resources pay for (40% of training cost, 50% of its time); reasons `infirmary_busy`, `no_wounded`, `insufficient`. |
+| `POST /v1/scout {level, troops, heroes?}` | The watchtower's battle forecast: the march played over 40 fixed seeds against an NPC of `level`; a verdict, then expected losses from watchtower 3 and the chance from 5. Changes nothing. |
 | `GET /v1/store`, `POST /v1/store/redeem {sku, provider, receipt}`, `POST /v1/cosmetics/equip {slot, cosmetic}` | Catalog and wallet; receipt redemption; wearing cosmetics. |
 | `POST /v1/intent {type:"speedup", job, tokens}` | Spends speed-up tokens on the running upgrade or training. |
 

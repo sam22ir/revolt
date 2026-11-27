@@ -324,7 +324,10 @@ def make_looks(args):
     import camp_houses
     s, mat = setup(), material()
     land = ground(mat)
-    wanted = [a.split(":") for a in args if ":" in a] or [(i, str(n)) for i in camp_houses.PLACES for n in (1, 2, 3, 4)]
+    # "id:look" renders one look; "id:scaffold" one scaffold. No arguments: every look, then every scaffold.
+    named = [a.split(":") for a in args if ":" in a]
+    scaffolds = [name for name, n in named if n == "scaffold"]
+    wanted = [(name, n) for name, n in named if n != "scaffold"] if named else [(i, str(n)) for i in camp_houses.PLACES for n in (1, 2, 3, 4)]
     for name, n in wanted:
         n = int(n)
         kit = camp_houses.kit(name, n)
@@ -364,10 +367,10 @@ def make_looks(args):
         manifest("%s_%d" % (name, n), {"body": body_rect, "shade": shade_rect, "outline": ring, "base": base,
                                                 **({"chimney": [round(v, 1) for v in painting_px(f @ Vector(camp_houses.chimney(n)))]} if name == "farm" else {})})
         print("LOOK", name, n, body_rect, flush=True)
-    if wanted and args and ":" in "".join(args):
+    if named and not scaffolds:
         return
     land.hide_render = True
-    for name in camp_houses.PLACES:
+    for name in scaffolds if named else camp_houses.PLACES:
         kit = camp_houses.scaffold(name)
         obj = add("scaffold", kit, mat)
         rect = bounds(kit, 8)
