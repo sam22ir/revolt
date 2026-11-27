@@ -7,6 +7,19 @@ extends RefCounted
 const PATH := "res://data/balance.json"
 
 static var _data: Dictionary = {}
+## The lessons the player has studied (the base's `lessons`), set by Session when a base comes in. Every function below that a lesson
+## changes reads it; with none, each gives exactly the number its golden fixtures expect.
+static var lessons: Array = []
+
+## The sum of `stat` over the lessons studied (`lessonBonus` in effects.ts); 0 with none.
+static func lesson_bonus(stat: String) -> float:
+	var table: Variant = data().get("lessons", {})
+	var sum := 0.0
+	for id: Variant in lessons:
+		var def: Variant = table.get(id) if table is Dictionary else null
+		if def is Dictionary and def["stat"] == stat:
+			sum += float(def["value"])
+	return sum
 
 static func data() -> Dictionary:
 	if _data.is_empty():
@@ -29,12 +42,21 @@ static func production_per_hour(levels: Dictionary, multiplier: float = 1.0) -> 
 		var def: Dictionary = buildings[building_id]
 		var produces: Variant = def["produces"]
 		if produces != null:
-			out[produces] += float(level_row(def["levels"], int(levels[building_id]))["ratePerHour"]) * multiplier
+			out[produces] += float(level_row(def["levels"], int(levels.get(building_id, 1)))["ratePerHour"]) * multiplier
+	# The messengers' support lesson (`productionFor`).
+	out["support"] *= 1.0 + lesson_bonus("support_rate")
 	return out
 
-## Resource id -> storage cap at the given HQ level.
+## Resource id -> storage cap at the given HQ level, raised by the weavers' storage lessons and rounded down (`storageCapFor`).
 static func storage_cap(hq_level: int) -> Dictionary:
-	return level_row(data()["storageCaps"], hq_level)
+	var base: Dictionary = level_row(data()["storageCaps"], hq_level)
+	var more := lesson_bonus("storage")
+	if more == 0.0:
+		return base
+	var out := {}
+	for id: String in base:
+		out[id] = floori(float(base[id]) * (1.0 + more))
+	return out
 
 ## The regions liberated at time `t_ms` as a set {region id: true}. `liberations` is the server's list of
 ## {region, from, until} (until null while still held). Mirrors liberatedRegions in liberation.ts.

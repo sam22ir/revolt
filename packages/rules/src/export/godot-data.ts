@@ -48,6 +48,8 @@ import { STORY } from "../data/story.ts";
 import { COUNTER_BONUS, HEAL_BATCH_PER_LEVEL, HEAL_COST_SHARE, HEAL_TIME_SHARE, LOST_SHARE, MAX_BATTLE_ROUNDS, TRAINING_BATCH_PER_LEVEL, TROOPS } from "../data/troops.ts";
 import { checkHealing, healingQuote, planHealing } from "../healing.ts";
 import { FORECAST_CHANCE_LEVEL, FORECAST_LOSSES_LEVEL } from "../data/watchtower.ts";
+import { CARE_COST, CARE_INFIRMARY_LEVEL, LABOR_MS, LABOR_TROOPS, LESSON_IDS, LESSONS, NEED_FOOD, NEED_FUNDS, PROTECTION_RADIUS, TRUST_DECAY_PER_DAY, TRUST_LEVELS, TRUST_MAX, VILLAGE_KINDS } from "../data/villages.ts";
+import { ACADEMY_LEVEL_FOR, STUDY_COST, STUDY_MS } from "../data/academy.ts";
 import { RESOURCE_IDS } from "../resource-id.ts";
 import { COMBAT_TROOP_IDS, TROOP_IDS } from "../troop-id.ts";
 import type { Resources } from "../resources.ts";
@@ -68,6 +70,10 @@ export const buildGodotBalance = (): unknown => ({
   trainingBatchPerLevel: TRAINING_BATCH_PER_LEVEL,
   healing: { batchPerLevel: HEAL_BATCH_PER_LEVEL, costShare: HEAL_COST_SHARE, timeShare: HEAL_TIME_SHARE },
   forecast: { lossesLevel: FORECAST_LOSSES_LEVEL, chanceLevel: FORECAST_CHANCE_LEVEL },
+  villages: { kinds: [...VILLAGE_KINDS], trustLevels: [...TRUST_LEVELS], trustMax: TRUST_MAX, trustDecayPerDay: TRUST_DECAY_PER_DAY, protectionRadius: PROTECTION_RADIUS, laborTroops: LABOR_TROOPS, laborMs: LABOR_MS, needFoodPerLevel: NEED_FOOD(0), needFundsPerLevel: NEED_FUNDS(0), careInfirmaryLevel: CARE_INFIRMARY_LEVEL, careCost: CARE_COST },
+  lessons: LESSONS,
+  lessonIds: [...LESSON_IDS],
+  study: { cost: STUDY_COST, ms: STUDY_MS, academyLevel: ACADEMY_LEVEL_FOR },
   battle: { counterBonus: COUNTER_BONUS, lostShare: LOST_SHARE, maxRounds: MAX_BATTLE_ROUNDS },
   heroes: HEROES,
   heroesByBackground: HEROES_BY_BACKGROUND,

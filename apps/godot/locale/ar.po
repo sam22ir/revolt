@@ -121,6 +121,27 @@ msgstr "إنقاص"
 msgid "panel.max"
 msgstr "الأقصى"
 
+msgid "reason.no_such_village"
+msgstr "هذه القرية ليست على الخريطة"
+
+msgid "reason.already_helped_today"
+msgstr "ساعدت هذه القرية اليوم"
+
+msgid "reason.already_on_the_way"
+msgstr "مساعدتك في الطريق بالفعل"
+
+msgid "reason.not_this_need"
+msgstr "احمِهم بالانتصار على هدف استعماري قريب"
+
+msgid "reason.not_enough_carry"
+msgstr "سعة الحمل لا تكفي: أرسل حمّالين أكثر"
+
+msgid "reason.infirmary_level"
+msgstr "يتطلب المستوصف من المستوى {level}"
+
+msgid "reason.labor_troops"
+msgstr "أرسل {count} جنديًا على الأقل"
+
 msgid "reason.unknown_lesson"
 msgstr "هذا الدرس غير موجود"
 
@@ -699,6 +720,213 @@ msgstr "مكافأة الأبطال: الهجوم +{attack}٪ والضرر ال�
 
 msgid "march.ledBy"
 msgstr "بقيادة {names}"
+
+msgid "village.shepherds.name"
+msgstr "قرية الرعاة"
+
+msgid "village.shepherds.desc"
+msgstr "رعاة يعرفون كل دروب التلال."
+
+msgid "village.smiths.name"
+msgstr "قرية الحدادين"
+
+msgid "village.smiths.desc"
+msgstr "حدادون يصلحون الأدوات ويصنعون ما يحتاجه المعسكر."
+
+msgid "village.healers.name"
+msgstr "قرية المداوين"
+
+msgid "village.healers.desc"
+msgstr "عائلات تعرف نباتات الجبال وعلاجاتها."
+
+msgid "village.weavers.name"
+msgstr "قرية النساجين"
+
+msgid "village.weavers.desc"
+msgstr "نساجون للقماش والأكياس والسلال التي تحمل وتحفظ."
+
+msgid "village.messengers.name"
+msgstr "قرية المراسلين"
+
+msgid "village.messengers.desc"
+msgstr "عدّاؤون وفرسان يحملون الأخبار بين القرى."
+
+msgid "village.trust"
+msgstr "الثقة: المستوى {level} من {max}"
+
+msgid "village.trustNone"
+msgstr "لا يعرفونك بعد"
+
+msgid "village.fading"
+msgstr "تخفت الثقة ببطء إن ابتعدت عنهم"
+
+msgid "village.needToday"
+msgstr "يحتاجون اليوم: {need}"
+
+msgid "village.helpedToday"
+msgstr "ساعدتهم اليوم. عد غدًا."
+
+msgid "village.help"
+msgstr "ساعد هذه القرية"
+
+msgid "village.next"
+msgstr "الدرس التالي عند مستوى الثقة {level}: {lesson}"
+
+msgid "village.allTaught"
+msgstr "علّموك كل ما يعرفون"
+
+msgid "village.protectionHint"
+msgstr "انتصر على دورية أو قافلة أو موقع استعماري على بعد {tiles} مربعات لحمايتهم"
+
+msgid "need.food.name"
+msgstr "مؤن"
+
+msgid "need.food.line"
+msgstr "أحضر {amount} من المؤن"
+
+msgid "need.funds.name"
+msgstr "أموال"
+
+msgid "need.funds.line"
+msgstr "أحضر {amount} من الأموال"
+
+msgid "need.care.name"
+msgstr "رعاية مرضاهم"
+
+msgid "need.care.line"
+msgstr "أرسل رعاية من مستوصفك (المستوى {level} أو أعلى)"
+
+msgid "need.labor.name"
+msgstr "أيدٍ للحصاد"
+
+msgid "need.labor.line"
+msgstr "أعرهم {count} جنديًا لمدة {time}"
+
+msgid "need.protection.name"
+msgstr "الحماية"
+
+msgid "need.protection.line"
+msgstr "اطرد القوات الاستعمارية المعسكرة قربهم"
+
+msgid "lesson.hidden_paths.name"
+msgstr "الدروب الخفية"
+
+msgid "lesson.hidden_paths.desc"
+msgstr "الحملات أسرع بنسبة 6٪."
+
+msgid "lesson.night_marches.name"
+msgstr "مسير الليل"
+
+msgid "lesson.night_marches.desc"
+msgstr "الحملات أسرع بنسبة 6٪ أخرى."
+
+msgid "lesson.high_passes.name"
+msgstr "الممرات العالية"
+
+msgid "lesson.high_passes.desc"
+msgstr "الحملات أسرع بنسبة 8٪ أخرى."
+
+msgid "lesson.repair_work.name"
+msgstr "أعمال الإصلاح"
+
+msgid "lesson.repair_work.desc"
+msgstr "التدريب أرخص بنسبة 10٪."
+
+msgid "lesson.metal_craft.name"
+msgstr "صنعة المعادن"
+
+msgid "lesson.metal_craft.desc"
+msgstr "التدريب أقصر بنسبة 15٪."
+
+msgid "lesson.master_smith.name"
+msgstr "الحداد الماهر"
+
+msgid "lesson.master_smith.desc"
+msgstr "دفعات التدريب أكبر بنسبة 25٪."
+
+msgid "lesson.herbal_remedies.name"
+msgstr "علاجات الأعشاب"
+
+msgid "lesson.herbal_remedies.desc"
+msgstr "العلاج أرخص بنسبة 15٪."
+
+msgid "lesson.bone_setting.name"
+msgstr "تجبير العظام"
+
+msgid "lesson.bone_setting.desc"
+msgstr "يعالج المستوصف 5 إضافيين لكل مستوى."
+
+msgid "lesson.convalescence.name"
+msgstr "النقاهة"
+
+msgid "lesson.convalescence.desc"
+msgstr "العلاج أقصر بنسبة 20٪."
+
+msgid "lesson.strong_packs.name"
+msgstr "الأحمال المتينة"
+
+msgid "lesson.strong_packs.desc"
+msgstr "الحمّالون يحملون أكثر بنسبة 15٪."
+
+msgid "lesson.grain_sacks.name"
+msgstr "أكياس الحبوب"
+
+msgid "lesson.grain_sacks.desc"
+msgstr "المخازن تتسع أكثر بنسبة 10٪."
+
+msgid "lesson.woven_stores.name"
+msgstr "المخازن المنسوجة"
+
+msgid "lesson.woven_stores.desc"
+msgstr "المخازن تتسع 10٪ أخرى."
+
+msgid "lesson.lookout_network.name"
+msgstr "شبكة الرصد"
+
+msgid "lesson.lookout_network.desc"
+msgstr "التوقعات كأن برج المراقبة أعلى بمستوى."
+
+msgid "lesson.relay_runners.name"
+msgstr "عدّاؤو التتابع"
+
+msgid "lesson.relay_runners.desc"
+msgstr "كل مساعدة من التحالف تحسب أكثر بنسبة 20٪."
+
+msgid "lesson.safe_houses.name"
+msgstr "البيوت الآمنة"
+
+msgid "lesson.safe_houses.desc"
+msgstr "الدعم الشعبي ينمو أسرع بنسبة 15٪."
+
+msgid "study.title"
+msgstr "الدروس"
+
+msgid "study.none"
+msgstr "ساعد القرى على الخريطة: كل مستوى ثقة تبلغه يعلّمك درسًا تدرسه هنا."
+
+msgid "study.studying"
+msgstr "قيد الدراسة: {lesson}"
+
+msgid "study.studied"
+msgstr "مدروس"
+
+msgid "study.button"
+msgstr "ادرس"
+
+msgid "study.from"
+msgstr "من {village}"
+
+msgid "aid.title"
+msgstr "ساعد قرية"
+
+msgid "aid.send"
+msgstr "أرسل المساعدة"
+
+msgid "aid.carry"
+msgstr "سعة الحمل: {have} من {need}"
+
+msgid "aid.stays"
+msgstr "يبقون {time} للمساعدة"
 
 msgid "heal.title"
 msgstr "الجرحى"

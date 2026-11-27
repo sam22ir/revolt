@@ -7,8 +7,9 @@ extends RefCounted
 const ARABIC_SEPARATOR := "\u060c "
 
 ## Largest batch the barracks at `barracks` can train at once.
+## With the smiths' batch lesson, rounded down (`maxTrainingBatch`).
 static func max_batch(barracks: int) -> int:
-	return barracks * int(Balance.data()["trainingBatchPerLevel"])
+	return floori(barracks * int(Balance.data()["trainingBatchPerLevel"]) * (1.0 + Balance.lesson_bonus("train_batch")))
 
 static func troop_tier(troop: String) -> int:
 	return int(Balance.data()["troops"][troop]["tier"])
@@ -16,10 +17,15 @@ static func troop_tier(troop: String) -> int:
 ## {"cost": {resource: amount}, "duration_ms": float} for `count` units of `troop`.
 static func quote(troop: String, count: int) -> Dictionary:
 	var def: Dictionary = Balance.data()["troops"][troop]
+	# The smiths' cost and time lessons, as `trainingQuote`: cost rounded up per resource, time to the whole millisecond.
+	var cut := minf(0.9, Balance.lesson_bonus("train_cost"))
+	var faster := minf(0.9, Balance.lesson_bonus("train_time"))
 	var cost := {}
 	for id: String in Balance.data()["resourceIds"]:
-		cost[id] = float(def["cost"][id]) * count
-	return {"cost": cost, "duration_ms": float(def["trainSecPerUnit"]) * 1000.0 * count}
+		var full := float(def["cost"][id]) * count
+		cost[id] = float(ceili(full * (1.0 - cut) - 1e-9)) if cut > 0.0 else full
+	var ms := float(def["trainSecPerUnit"]) * 1000.0 * count
+	return {"cost": cost, "duration_ms": float(roundi(ms * (1.0 - faster))) if faster > 0.0 else ms}
 
 ## The reason a batch is blocked (`bad_count`, `training_busy`, `barracks_level`, `insufficient`), or "" when it can start.
 ## Checked in the same order as checkTraining. `tier` overrides the data's tier (tests only; negative means the data's).

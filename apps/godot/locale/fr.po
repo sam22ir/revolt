@@ -121,6 +121,27 @@ msgstr "Moins"
 msgid "panel.max"
 msgstr "Max"
 
+msgid "reason.no_such_village"
+msgstr "Ce village n’est pas sur la carte"
+
+msgid "reason.already_helped_today"
+msgstr "Vous avez déjà aidé ce village aujourd’hui"
+
+msgid "reason.already_on_the_way"
+msgstr "Votre aide est déjà en route"
+
+msgid "reason.not_this_need"
+msgstr "Protégez-les en battant une cible coloniale proche"
+
+msgid "reason.not_enough_carry"
+msgstr "Pas assez de capacité de port : envoyez plus de porteurs"
+
+msgid "reason.infirmary_level"
+msgstr "Nécessite l’infirmerie niveau {level}"
+
+msgid "reason.labor_troops"
+msgstr "Envoyez au moins {count} soldats"
+
 msgid "reason.unknown_lesson"
 msgstr "Cette leçon n’existe pas"
 
@@ -699,6 +720,213 @@ msgstr "Bonus des héros : attaque +{attack} %, dégâts subis −{defense} %"
 
 msgid "march.ledBy"
 msgstr "Mené par {names}"
+
+msgid "village.shepherds.name"
+msgstr "Village de bergers"
+
+msgid "village.shepherds.desc"
+msgstr "Des bergers qui connaissent tous les sentiers des collines."
+
+msgid "village.smiths.name"
+msgstr "Village de forgerons"
+
+msgid "village.smiths.desc"
+msgstr "Des forgerons qui réparent les outils et fabriquent ce dont un camp a besoin."
+
+msgid "village.healers.name"
+msgstr "Village de guérisseurs"
+
+msgid "village.healers.desc"
+msgstr "Des familles qui connaissent les plantes et les remèdes de la montagne."
+
+msgid "village.weavers.name"
+msgstr "Village de tisserands"
+
+msgid "village.weavers.desc"
+msgstr "Des tisserands de toiles, de sacs et de paniers qui portent et conservent."
+
+msgid "village.messengers.name"
+msgstr "Village de messagers"
+
+msgid "village.messengers.desc"
+msgstr "Des coureurs et des cavaliers qui portent les nouvelles entre les villages."
+
+msgid "village.trust"
+msgstr "Confiance : niveau {level} sur {max}"
+
+msgid "village.trustNone"
+msgstr "Ils ne vous connaissent pas encore"
+
+msgid "village.fading"
+msgstr "La confiance s’estompe lentement si vous restez loin"
+
+msgid "village.needToday"
+msgstr "Aujourd’hui, ils ont besoin de : {need}"
+
+msgid "village.helpedToday"
+msgstr "Vous les avez aidés aujourd’hui. Revenez demain."
+
+msgid "village.help"
+msgstr "Aider ce village"
+
+msgid "village.next"
+msgstr "Prochaine leçon au niveau de confiance {level} : {lesson}"
+
+msgid "village.allTaught"
+msgstr "Ils vous ont appris tout ce qu’ils savent"
+
+msgid "village.protectionHint"
+msgstr "Battez une patrouille, un convoi ou un poste colonial à moins de {tiles} cases pour les protéger"
+
+msgid "need.food.name"
+msgstr "Vivres"
+
+msgid "need.food.line"
+msgstr "Apporter {amount} vivres"
+
+msgid "need.funds.name"
+msgstr "Fonds"
+
+msgid "need.funds.line"
+msgstr "Apporter {amount} fonds"
+
+msgid "need.care.name"
+msgstr "Soins pour leurs malades"
+
+msgid "need.care.line"
+msgstr "Envoyer des soins depuis votre infirmerie (niveau {level} ou plus)"
+
+msgid "need.labor.name"
+msgstr "Des bras pour la récolte"
+
+msgid "need.labor.line"
+msgstr "Prêter {count} soldats pendant {time}"
+
+msgid "need.protection.name"
+msgstr "Protection"
+
+msgid "need.protection.line"
+msgstr "Chasser les forces coloniales installées à proximité"
+
+msgid "lesson.hidden_paths.name"
+msgstr "Sentiers cachés"
+
+msgid "lesson.hidden_paths.desc"
+msgstr "Les marches sont 6 % plus rapides."
+
+msgid "lesson.night_marches.name"
+msgstr "Marches de nuit"
+
+msgid "lesson.night_marches.desc"
+msgstr "Les marches sont encore 6 % plus rapides."
+
+msgid "lesson.high_passes.name"
+msgstr "Hauts cols"
+
+msgid "lesson.high_passes.desc"
+msgstr "Les marches sont encore 8 % plus rapides."
+
+msgid "lesson.repair_work.name"
+msgstr "Réparations"
+
+msgid "lesson.repair_work.desc"
+msgstr "L’entraînement coûte 10 % de moins."
+
+msgid "lesson.metal_craft.name"
+msgstr "Travail du métal"
+
+msgid "lesson.metal_craft.desc"
+msgstr "L’entraînement prend 15 % de temps en moins."
+
+msgid "lesson.master_smith.name"
+msgstr "Maître forgeron"
+
+msgid "lesson.master_smith.desc"
+msgstr "Les lots d’entraînement sont 25 % plus grands."
+
+msgid "lesson.herbal_remedies.name"
+msgstr "Remèdes aux plantes"
+
+msgid "lesson.herbal_remedies.desc"
+msgstr "Les soins coûtent 15 % de moins."
+
+msgid "lesson.bone_setting.name"
+msgstr "Rebouteux"
+
+msgid "lesson.bone_setting.desc"
+msgstr "L’infirmerie soigne 5 de plus par niveau."
+
+msgid "lesson.convalescence.name"
+msgstr "Convalescence"
+
+msgid "lesson.convalescence.desc"
+msgstr "Les soins prennent 20 % de temps en moins."
+
+msgid "lesson.strong_packs.name"
+msgstr "Charges solides"
+
+msgid "lesson.strong_packs.desc"
+msgstr "Les porteurs portent 15 % de plus."
+
+msgid "lesson.grain_sacks.name"
+msgstr "Sacs de grain"
+
+msgid "lesson.grain_sacks.desc"
+msgstr "Les réserves contiennent 10 % de plus."
+
+msgid "lesson.woven_stores.name"
+msgstr "Réserves tressées"
+
+msgid "lesson.woven_stores.desc"
+msgstr "Les réserves contiennent encore 10 % de plus."
+
+msgid "lesson.lookout_network.name"
+msgstr "Réseau de guetteurs"
+
+msgid "lesson.lookout_network.desc"
+msgstr "Prévisions comme si la tour de guet avait un niveau de plus."
+
+msgid "lesson.relay_runners.name"
+msgstr "Coureurs relais"
+
+msgid "lesson.relay_runners.desc"
+msgstr "Chaque aide d’alliance compte 20 % de plus."
+
+msgid "lesson.safe_houses.name"
+msgstr "Maisons sûres"
+
+msgid "lesson.safe_houses.desc"
+msgstr "Le soutien populaire croît 15 % plus vite."
+
+msgid "study.title"
+msgstr "Leçons"
+
+msgid "study.none"
+msgstr "Aidez les villages de la carte : chaque niveau de confiance atteint vous enseigne une leçon à étudier ici."
+
+msgid "study.studying"
+msgstr "En cours d’étude : {lesson}"
+
+msgid "study.studied"
+msgstr "Étudiée"
+
+msgid "study.button"
+msgstr "Étudier"
+
+msgid "study.from"
+msgstr "Du {village}"
+
+msgid "aid.title"
+msgstr "Aider un village"
+
+msgid "aid.send"
+msgstr "Envoyer de l’aide"
+
+msgid "aid.carry"
+msgstr "Capacité de port : {have} sur {need}"
+
+msgid "aid.stays"
+msgstr "Ils restent {time} pour aider"
 
 msgid "heal.title"
 msgstr "Les blessés"

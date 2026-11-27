@@ -32,6 +32,8 @@ var _max_height := 0.0
 var training := TrainingView.new()
 ## The infirmary's form, kept across rebuilds like the training form; in the body only on the infirmary's "heal" card.
 var healing := HealView.new()
+## The academy's lessons, kept across rebuilds like the other forms; in the body only on the academy's "study" card.
+var studies := StudyView.new()
 ## The upgrade speed-up under the running upgrade's countdown (one instance, kept across rebuilds like the training form).
 var upgrade_speedup := SpeedupRow.new()
 var _countdown: Label
@@ -54,7 +56,7 @@ func _ready() -> void:
 ## when the panel itself is deleted is freed with it (not on leaving the tree: the base screen still holds them then).
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_PREDELETE:
-		for n: Node in [training, healing, upgrade_speedup]:
+		for n: Node in [training, healing, studies, upgrade_speedup]:
 			if is_instance_valid(n) and n.get_parent() == null:
 				n.free()
 
@@ -86,6 +88,12 @@ func update_training(ctx: Dictionary) -> void:
 func update_healing(ctx: Dictionary) -> void:
 	if visible and healing.get_parent() == _body:
 		healing.update_context(ctx)
+		_fit()
+
+## Feeds the academy's lessons (only on its "study" card). `ctx` is StudyView.update_context's.
+func update_study(ctx: Dictionary) -> void:
+	if visible and studies.get_parent() == _body:
+		studies.update_context(ctx)
 		_fit()
 
 ## Feeds the upgrade's speed-up row (shown only while the upgrading building's sheet is open).
@@ -146,7 +154,7 @@ func update_model(model: Dictionary, background: String) -> void:
 func _rebuild() -> void:
 	for child in _body.get_children():
 		_body.remove_child(child)
-		if child != training and child != healing and child != upgrade_speedup:
+		if child != training and child != healing and child != studies and child != upgrade_speedup:
 			child.queue_free()
 	_countdown = null
 	_bar = null
@@ -164,6 +172,10 @@ func _rebuild() -> void:
 	if mode == "heal":
 		if id == "infirmary":
 			_body.add_child(healing)
+		return
+	if mode == "study":
+		if id == "academy":
+			_body.add_child(studies)
 		return
 
 	match m["mode"]:

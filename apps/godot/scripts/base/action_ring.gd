@@ -15,7 +15,7 @@ const CELL := Vector2(72.0, 70.0)
 const GAP := 8.0
 const ARCH := 10.0
 const MARGIN := 8.0
-const ICONS := {"upgrade": "upgrade", "info": "info", "train": "train", "heal": "wounded", "heroes": "heroes"}
+const ICONS := {"upgrade": "upgrade", "info": "info", "train": "train", "heal": "wounded", "study": "reports", "heroes": "heroes"}
 
 var shown_id := ""
 var _buttons: Array[RoundButton] = []
@@ -32,6 +32,8 @@ static func actions_for(id: String) -> Array:
 		out.append("train")
 	if id == "infirmary":
 		out.append("heal")
+	if id == "academy":
+		out.append("study")
 	if id == "hero_hall":
 		out.append("heroes")
 	return out
@@ -91,6 +93,8 @@ static func label_for(kind: String) -> String:
 			return Loc.t("train.start")
 		"heal":
 			return Loc.t("heal.title")
+		"study":
+			return Loc.t("study.title")
 		_:
 			return Loc.t("nav.heroes")
 

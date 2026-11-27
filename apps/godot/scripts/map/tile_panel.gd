@@ -15,6 +15,8 @@ signal rally_start_requested(npc: Dictionary)
 signal rally_join_requested(npc: Dictionary, rally: Dictionary)
 ## Harvest on a free resource site (the snapshot's entry for it).
 signal harvest_requested(site: Dictionary)
+## Help on a village: the aid sheet opens for it.
+signal aid_requested(village: Dictionary)
 ## Recall on your harvest march at the site, by the march's id.
 signal recall_requested(march_id: String)
 
@@ -27,6 +29,7 @@ var _rank := ""
 var _now := 0.0
 var _snapshot: Dictionary = {}
 var _marches: Array = []
+var _state: Dictionary = {}
 ## Why the last HQ placement here was refused (a reason code), shown under the button until another tile is shown.
 var _notice := ""
 var _body := VBoxContainer.new()
@@ -55,9 +58,10 @@ func tile() -> Vector2i:
 ## Call every frame while a tile is selected: the snapshot, the terrain under the tile, the player's own alliance name (or ""), their rank in
 ## it ("" for none), the synced server time in ms (a rally stops being joinable when its gathering ends) and the player's marches (a
 ## harvest's Recall shows only while it is at its site).
-func update_view(snapshot: Dictionary, terrain: String, own_alliance_name: String, rank := "", now_ms := 0.0, marches: Array = []) -> void:
+func update_view(snapshot: Dictionary, terrain: String, own_alliance_name: String, rank := "", now_ms := 0.0, marches: Array = [], state: Dictionary = {}) -> void:
 	if not visible:
 		return
+	_state = state
 	_rank = rank
 	_now = now_ms
 	_rallies = snapshot.get("rallies", [])
@@ -80,13 +84,16 @@ func refresh() -> void:
 
 func _signature(info: Dictionary, alliance_name: String) -> String:
 	var what: Array = [info["kind"], info["terrain"]]
-	for k in ["base", "hq", "npc", "site"]:
+	for k in ["base", "hq", "npc", "site", "village"]:
 		if info.has(k):
 			what.append(JSON.stringify(info[k]))
 	if info["kind"] == "empty":
 		what.append("%s|%s|%s" % [TileModel.can_place_hq(_rank), TileModel.hq_button_key(_snapshot), _notice])
 	if info["kind"] == "site":
 		what.append("%s|%s" % [TileModel.site_holder(info["site"], _marches, _now), TileModel.recall_march(info["site"], _marches, _now)])
+	if info["kind"] == "village":
+		var vid := String(info["village"]["id"])
+		what.append("%s|%d" % [JSON.stringify(VillageModel.record(_state, vid)), VillageModel.level_of(VillageModel.trust(_state, vid, _now))])
 	if info["kind"] == "npc":
 		what.append(str(RallyModel.can_start(_rank)))
 		for r: Dictionary in RallyModel.open_at(_rallies, String(info["npc"]["id"]), _now):
@@ -97,12 +104,15 @@ func _render(info: Dictionary, own_alliance_name: String) -> void:
 	for child in _body.get_children():
 		_body.remove_child(child)
 		child.queue_free()
-	var v := TileModel.view(info, _tile.x, _tile.y, own_alliance_name, _marches, _now)
+	var v := TileModel.view(info, _tile.x, _tile.y, own_alliance_name, _marches, _now, _state)
 	_body.add_child(_head(info, v))
 	for line: String in _about(v):
 		_body.add_child(UiKit.label(line, UiKit.BODY, HudTheme.TEXT, false, true))
 	if info["kind"] == "site":
 		_body.add_child(_site_chips(info["site"], v["lines"]))
+	if info["kind"] == "village":
+		for line: String in v["lines"]:
+			_body.add_child(UiKit.label(line, UiKit.BODY, HudTheme.TEXT_SECOND, false, true))
 	if v["defenders"] is Dictionary:
 		_body.add_child(UiKit.label(Loc.t("map.defenders"), UiKit.SMALL, HudTheme.RING, true))
 		_body.add_child(troop_chips(v["defenders"]))
@@ -159,6 +169,8 @@ static func icon_of(info: Dictionary) -> String:
 			return "npc_" + String(info["npc"]["kind"])
 		"site":
 			return SitesModel.kind_resource(String(info["site"]["kind"]))
+		"village":
+			return VillageModel.NEED_ICONS.get(String(info["village"]["need"]), "map")
 	return "map"
 
 ## The plain sentences: what it is, and the player's own alliance by name (player text, after the translated word, never in a template).
@@ -198,6 +210,8 @@ func _actions(info: Dictionary, v: Dictionary) -> HFlowContainer:
 			_notice = ""
 			hq_requested.emit(_tile))
 		place.pressed.connect(func() -> void: place.disabled = true)
+	if v["can_aid"]:
+		_action(row, Loc.t("village.help"), "green", func() -> void: aid_requested.emit(info["village"]))
 	if v["harvest_action"] == "harvest":
 		_action(row, Loc.t("harvest.button"), "green", func() -> void: harvest_requested.emit(info["site"]))
 	elif v["harvest_action"] == "recall":

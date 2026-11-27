@@ -54,5 +54,5 @@ A lesson of level N needs academy level N × 2 − 1 (1, 3, 5).
 
 1. Design and rules: villages, needs, trust with fading, lessons taught. Done (#12), with the first village art.
 2. Server: placement on the map (about 41 villages on a 192 map), the aid march and intent, protection credited after a solo victory (rallies not yet), trust stored in the base, villages in the map snapshot. Done.
-3. Academy and lesson effects: the building (Blender art, in the barracks yard), the study job and intent, every lesson's effect in the rules and server. Done. The Godot client does not yet apply storage, support, training or healing lessons to its own numbers (slice 4).
-4. Godot: villages on the map, the aid sheet, the academy screen; Blender art for villages and the academy.
+3. Academy and lesson effects: the building (Blender art, in the barracks yard), the study job and intent, every lesson's effect in the rules and server. Done.
+4. Godot: villages on the map (their Blender pieces, a badge with today's need until you have helped), the village sheet (trust, need, next lesson, Help), the aid sheet, the academy's lessons (Study), and the lessons applied to the client's own numbers (storage, support, training, healing). Done.
