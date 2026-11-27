@@ -56,7 +56,9 @@ func _draw() -> void:
 		# The ground draws the borders and the liberated wash now (map_ground.gdshader).
 		return
 	var snap := map.snapshot
-	# Sites first: they are scenery under the camps, NPCs and HQs.
+	# Villages and sites first: they are scenery under the camps, NPCs and HQs.
+	for v: Dictionary in VillageModel.villages(snap):
+		_draw_village(v)
 	for site: Dictionary in SitesModel.sites(snap):
 		_draw_site(site)
 	for b: Dictionary in snap["bases"]:
@@ -162,6 +164,26 @@ func _draw_level_badge(at: Vector2, radius: float, text: String, ring: Color, fo
 	draw_circle(at, radius, BADGE_FILL)
 	draw_arc(at, radius, 0.0, TAU, 20, ring, 2.0)
 	_draw_text(text, at + Vector2(0, font_size * 0.375), font_size, Color("fff8e6"))
+
+const VILLAGE_BADGE_RADIUS := 15.0
+const VILLAGE_BADGE_RING := Color("e0b43c")
+
+## A village (docs/villages-plan.md): its picture, and over it a round badge with the icon of today's need, unless the player already
+## answered it today. Never a target: no level, no hostile colour.
+func _draw_village(v: Dictionary) -> void:
+	var c := Iso.tile_center(int(v["x"]), int(v["y"]))
+	var piece := "village_" + String(v["kind"])
+	if MapArt.has(piece):
+		_draw_piece(piece, c)
+	if map.helped_villages.has(String(v["id"])):
+		return
+	var at := c + Vector2(0, -Iso.TILE_H * 1.6)
+	draw_circle(at, VILLAGE_BADGE_RADIUS, BADGE_FILL)
+	draw_arc(at, VILLAGE_BADGE_RADIUS, 0.0, TAU, 24, VILLAGE_BADGE_RING, 2.5)
+	var icon := HudIcon.load_texture(String(VillageModel.NEED_ICONS.get(String(v["need"]), "info")))
+	if icon != null:
+		var side := VILLAGE_BADGE_RADIUS * 1.35
+		draw_texture_rect(icon, Rect2(at - Vector2.ONE * side * 0.5, Vector2.ONE * side), false)
 
 ## A resource site: a field or a quarry inside its own tile, fuller with its level, with a level badge. Free sites are plain; a site another player holds is shaded with a flag; one of the viewer's has a gold glow,
 ## ring and flag (as a base does). Scenery, so it stays lighter than camps and NPCs.

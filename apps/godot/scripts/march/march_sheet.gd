@@ -124,7 +124,7 @@ func _build() -> void:
 	_slot_key = ""
 	_gather_buttons = {}
 	_picker.close()
-	set_title(Loc.t({"march": "march.title", "rally_start": "rally.startTitle", "rally_join": "rally.joinTitle", "harvest": "harvest.sendTitle"}[_mode]), Loc.t("settings.back"))
+	set_title(Loc.t({"march": "march.title", "rally_start": "rally.startTitle", "rally_join": "rally.joinTitle", "harvest": "harvest.sendTitle", "aid": "aid.title"}[_mode]), Loc.t("settings.back"))
 	body.add_child(_target_card())
 	if _mode == "rally_start":
 		body.add_child(_gather_card())
@@ -144,6 +144,8 @@ func _build() -> void:
 
 ## What is marched at: its medallion, name and level, and who defends it.
 func _target_card() -> Control:
+	if _mode == "aid":
+		return _aid_card()
 	var lang := Fmt.lang()
 	var card := UiKit.card()
 	var row := HBoxContainer.new()
@@ -208,6 +210,30 @@ func _show_forecast(list: Array) -> void:
 		var tone := String(line["tone"])
 		var colour: Color = {"good": Color("7fbf6a"), "even": HudTheme.GOLD, "bad": HudTheme.LACKING}.get(tone, HudTheme.TEXT_SECOND)
 		_forecast_box.add_child(UiKit.label(Loc.t(line["key"], vars), UiKit.BODY + (1.0 if tone != "" else 0.0), colour, tone != "", true))
+
+## The village helped: its name, today's need and what answering it takes (the trust it brings and lessons are on the tile sheet).
+func _aid_card() -> Control:
+	var lang := Fmt.lang()
+	var card := UiKit.card()
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", roundi(HudTheme.px(11)))
+	var icon := HudIcon.new(String(VillageModel.NEED_ICONS.get(String(_npc["need"]), "info")), 56.0)
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(icon)
+	var words := VBoxContainer.new()
+	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	words.add_theme_constant_override("separation", roundi(HudTheme.px(4)))
+	words.add_child(UiKit.label(Loc.t("village.%s.name" % _npc["kind"]), UiKit.BODY + 2.0, HudTheme.TEXT, true, true))
+	var line := VillageModel.need_line(_session.state if _session != null else {}, _npc, float(_session.clock.now_ms(Time.get_ticks_msec())) if _session != null else 0.0)
+	var vars := {}
+	for k: String in line["vars"]:
+		vars[k] = Fmt.duration(float(line["vars"][k])) if k == "time_ms" else Fmt.amount(lang, line["vars"][k])
+	if vars.has("time_ms"):
+		vars["time"] = vars["time_ms"]
+	words.add_child(UiKit.label(Loc.t(line["key"], vars), UiKit.BODY, HudTheme.TEXT_SECOND, false, true))
+	row.add_child(words)
+	UiKit.card_body(card).add_child(row)
+	return card
 
 ## The gathering times to start a rally with, as buttons; the chosen one is amber.
 func _gather_card() -> Control:
@@ -473,7 +499,12 @@ func _refresh() -> void:
 		_away_label.text = Fmt.duration(p["away_ms"]) if int(p["away_ms"]) >= 0 else "—"
 	else:
 		p = MarchModel.preview(state, _from, Vector2i(int(_npc["x"]), int(_npc["y"])), _counts, loadout)
-	if _mode != "march" and _mode != "harvest" and int(p["travel_ms"]) >= 0:
+	if _mode == "aid":
+		# The aid rules first (need, carry, the day's help), then the march rules; the server checks both again.
+		var aid_why := VillageModel.check(state, _npc, _counts, state.get("resources", {}), float(_session.clock.now_ms(Time.get_ticks_msec())))
+		if aid_why != "" and aid_why != "no_troops":
+			p["reason"] = aid_why
+	if _mode != "march" and _mode != "harvest" and _mode != "aid" and int(p["travel_ms"]) >= 0:
 		p["travel_ms"] = _rally_leg()
 	var bonus := MarchModel.hero_bonus(state, loadout)
 	if _mode == "march" and _forecast_box != null:
@@ -486,10 +517,11 @@ func _refresh() -> void:
 	_travel.text = Fmt.duration(p["travel_ms"]) if int(p["travel_ms"]) >= 0 else "—"
 	_carry.text = Fmt.amount(lang, p["carry"])
 	var why := _server_reason if _server_reason != "" else String(p["reason"])
-	UiKit.set_warning(_reason, Loc.t("reason." + why) if why != "" else "")
+	var why_vars := {"count": Fmt.amount(lang, int(Balance.data()["villages"]["laborTroops"])), "level": Fmt.amount(lang, int(Balance.data()["villages"]["careInfirmaryLevel"]))}
+	UiKit.set_warning(_reason, Loc.t("reason." + why, why_vars) if why != "" else "")
 	# Its room is kept, so the rows do not move under the finger that makes the march possible.
 	_reason.modulate.a = 1.0 if why != "" else 0.0
-	_submit.text = Loc.t("march.sending" if _sending else {"march": "march.send", "rally_start": "rally.start", "rally_join": "rally.join", "harvest": "harvest.send"}[_mode])
+	_submit.text = Loc.t("march.sending" if _sending else {"march": "march.send", "rally_start": "rally.start", "rally_join": "rally.join", "harvest": "harvest.send", "aid": "aid.send"}[_mode])
 	_submit.disabled = _sending or p["reason"] != ""
 
 ## The one-way leg a rally shows: from your camp at the fixed rally speed when you start it; the rally's own when you join (the server
@@ -537,6 +569,8 @@ func _on_send() -> void:
 			verdict = await _session.rally_join(String(_rally["id"]), _counts)
 		"harvest":
 			verdict = await _session.harvest_start(String(_npc["id"]), _counts)
+		"aid":
+			verdict = await _session.aid(String(_npc["id"]), _counts)
 		_:
 			verdict = await _session.march(String(_npc["id"]), _counts, _loadout())
 	_sending = false

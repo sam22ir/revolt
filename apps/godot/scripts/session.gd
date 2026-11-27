@@ -73,6 +73,7 @@ var _recruit_pending := false
 var _march_pending := false
 var _rally_pending := false
 var _harvest_pending := false
+var _aid_pending := false
 var _hq_pending := false
 var _refreshing := false
 var _alliance_refreshing := false
@@ -115,6 +116,7 @@ func apply(reply: Dictionary) -> void:
 	if reply.get("state") is Dictionary and _newer_than(reply_now, stamped, _base_now):
 		var s: Dictionary = reply["state"]
 		state = s
+		Balance.lessons = s.get("lessons", []) if s.get("lessons") is Array else []
 		resources = s.get("resources", {})
 		levels = s.get("levels", {})
 		last_updated = int(s.get("lastUpdated", 0))
@@ -135,6 +137,7 @@ func tick() -> void:
 	_watch_job("upgrade", queue())
 	_watch_job("training", state.get("training"))
 	_watch_job("healing", state.get("healing"))
+	_watch_job("study", state.get("study"))
 
 func _watch_job(kind: String, job: Variant) -> void:
 	if job == null:
@@ -345,6 +348,16 @@ func _rally_intent(intent: Dictionary) -> Dictionary:
 	_rally_pending = true
 	var verdict: Dictionary = await send_intent(intent)
 	_rally_pending = false
+	return verdict
+
+## Sends an aid march to a village (the intent `aid`, docs/villages-plan.md): `troops` are counts per troop id. Returns the verdict like an
+## intent; "" as the reason means an aid intent is already out.
+func aid(village_id: String, troops: Dictionary) -> Dictionary:
+	if _aid_pending:
+		return {"ok": false, "reason": ""}
+	_aid_pending = true
+	var verdict: Dictionary = await send_intent({"type": "aid", "village": village_id, "troops": troops})
+	_aid_pending = false
 	return verdict
 
 ## Sends a harvest march to a resource site (the intent `harvest_start`): `troops` are counts per troop id. Returns the verdict like an

@@ -8,15 +8,16 @@ const REASONS: Array[String] = ["infirmary_busy", "no_wounded", "insufficient"]
 static func _cfg() -> Dictionary:
 	return Balance.data()["healing"]
 
+## With the healers' batch lesson (`maxHealingBatch`).
 static func max_batch(infirmary_level: int) -> int:
-	return maxi(0, infirmary_level) * int(_cfg()["batchPerLevel"])
+	return maxi(0, infirmary_level) * (int(_cfg()["batchPerLevel"]) + floori(Balance.lesson_bonus("heal_batch_per_level")))
 
 ## What healing one unit of `troop` costs: a share of training it, rounded up (the epsilon as in the TypeScript).
 static func unit_cost(troop: String) -> Dictionary:
 	var cost: Dictionary = Balance.data()["troops"][troop]["cost"]
 	var out := {}
 	for id: String in Balance.data()["resourceIds"]:
-		out[id] = ceili(float(cost.get(id, 0)) * float(_cfg()["costShare"]) - 1e-9)
+		out[id] = ceili(float(cost.get(id, 0)) * float(_cfg()["costShare"]) * (1.0 - minf(0.9, Balance.lesson_bonus("heal_cost"))) - 1e-9)
 	return out
 
 ## The cost and time of healing exactly `troops`: {"cost": {...}, "durationMs": int}.
@@ -32,7 +33,7 @@ static func quote(troops: Dictionary) -> Dictionary:
 		var per := unit_cost(troop)
 		for id: String in cost:
 			cost[id] += int(per[id]) * n
-		ms += roundi(float(Balance.data()["troops"][troop]["trainSecPerUnit"]) * float(_cfg()["timeShare"]) * 1000.0) * n
+		ms += roundi(float(Balance.data()["troops"][troop]["trainSecPerUnit"]) * float(_cfg()["timeShare"]) * (1.0 - minf(0.9, Balance.lesson_bonus("heal_time"))) * 1000.0) * n
 	return {"cost": cost, "durationMs": ms}
 
 ## The batch one press takes: wounded in troop order, up to the batch size and as many as `amounts` pay for, a unit at a time.

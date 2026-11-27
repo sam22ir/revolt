@@ -1115,6 +1115,147 @@
     "lossesLevel": 3,
     "chanceLevel": 5
   },
+  "villages": {
+    "kinds": ["shepherds","smiths","healers","weavers","messengers"],
+    "trustLevels": [60,150,270],
+    "trustMax": 300,
+    "trustDecayPerDay": 10,
+    "protectionRadius": 6,
+    "laborTroops": 20,
+    "laborMs": 7200000,
+    "needFoodPerLevel": 300,
+    "needFundsPerLevel": 200,
+    "careInfirmaryLevel": 2,
+    "careCost": {
+      "food": 150,
+      "funds": 150
+    }
+  },
+  "lessons": {
+    "hidden_paths": {
+      "village": "shepherds",
+      "level": 1,
+      "stat": "march_speed",
+      "value": 0.06
+    },
+    "night_marches": {
+      "village": "shepherds",
+      "level": 2,
+      "stat": "march_speed",
+      "value": 0.06
+    },
+    "high_passes": {
+      "village": "shepherds",
+      "level": 3,
+      "stat": "march_speed",
+      "value": 0.08
+    },
+    "repair_work": {
+      "village": "smiths",
+      "level": 1,
+      "stat": "train_cost",
+      "value": 0.1
+    },
+    "metal_craft": {
+      "village": "smiths",
+      "level": 2,
+      "stat": "train_time",
+      "value": 0.15
+    },
+    "master_smith": {
+      "village": "smiths",
+      "level": 3,
+      "stat": "train_batch",
+      "value": 0.25
+    },
+    "herbal_remedies": {
+      "village": "healers",
+      "level": 1,
+      "stat": "heal_cost",
+      "value": 0.15
+    },
+    "bone_setting": {
+      "village": "healers",
+      "level": 2,
+      "stat": "heal_batch_per_level",
+      "value": 5
+    },
+    "convalescence": {
+      "village": "healers",
+      "level": 3,
+      "stat": "heal_time",
+      "value": 0.2
+    },
+    "strong_packs": {
+      "village": "weavers",
+      "level": 1,
+      "stat": "porter_carry",
+      "value": 0.15
+    },
+    "grain_sacks": {
+      "village": "weavers",
+      "level": 2,
+      "stat": "storage",
+      "value": 0.1
+    },
+    "woven_stores": {
+      "village": "weavers",
+      "level": 3,
+      "stat": "storage",
+      "value": 0.1
+    },
+    "lookout_network": {
+      "village": "messengers",
+      "level": 1,
+      "stat": "forecast_levels",
+      "value": 1
+    },
+    "relay_runners": {
+      "village": "messengers",
+      "level": 2,
+      "stat": "help_time",
+      "value": 0.2
+    },
+    "safe_houses": {
+      "village": "messengers",
+      "level": 3,
+      "stat": "support_rate",
+      "value": 0.15
+    }
+  },
+  "lessonIds": ["hidden_paths","night_marches","high_passes","repair_work","metal_craft","master_smith","herbal_remedies","bone_setting","convalescence","strong_packs","grain_sacks","woven_stores","lookout_network","relay_runners","safe_houses"],
+  "study": {
+    "cost": {
+      "1": {
+        "food": 300,
+        "materiel": 300,
+        "funds": 400,
+        "support": 0
+      },
+      "2": {
+        "food": 1200,
+        "materiel": 1200,
+        "funds": 1600,
+        "support": 0
+      },
+      "3": {
+        "food": 4000,
+        "materiel": 4000,
+        "funds": 5500,
+        "support": 0
+      }
+    },
+    "ms": {
+      "1": 1800000,
+      "2": 7200000,
+      "3": 28800000
+    },
+    "academyLevel": {
+      "1": 1,
+      "2": 3,
+      "3": 5
+    }
+  },
   "battle": {
     "counterBonus": 1.5,
     "lostShare": 0.2,
