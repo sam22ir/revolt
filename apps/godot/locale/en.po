@@ -70,6 +70,12 @@ msgstr "Infirmary"
 msgid "building.infirmary.desc"
 msgstr "Nurses the wounded back on their feet. A higher level treats more of them at once."
 
+msgid "building.academy.name"
+msgstr "Academy"
+
+msgid "building.academy.desc"
+msgstr "Where the lessons villages teach you are studied. A higher academy can study deeper lessons."
+
 msgid "panel.level"
 msgstr "Level {level}"
 
@@ -114,6 +120,21 @@ msgstr "Fewer"
 
 msgid "panel.max"
 msgstr "Max"
+
+msgid "reason.unknown_lesson"
+msgstr "That lesson does not exist"
+
+msgid "reason.not_taught"
+msgstr "No village has taught you that lesson yet"
+
+msgid "reason.already_studied"
+msgstr "You have already studied that lesson"
+
+msgid "reason.study_busy"
+msgstr "The academy is already studying a lesson"
+
+msgid "reason.academy_level"
+msgstr "Requires academy level {level}"
 
 msgid "reason.infirmary_busy"
 msgstr "The infirmary is already treating a group"
@@ -1371,6 +1392,12 @@ msgstr "Field clinic"
 
 msgid "background.vietnam.building.infirmary.desc"
 msgstr "Nurses the wounded back on their feet. A higher level treats more of them at once."
+
+msgid "background.vietnam.building.academy.name"
+msgstr "Jungle school"
+
+msgid "background.vietnam.building.academy.desc"
+msgstr "Where the lessons villages teach you are studied. A higher school can study deeper lessons."
 
 msgid "background.vietnam.troop.infantry.name"
 msgstr "Light infantry"

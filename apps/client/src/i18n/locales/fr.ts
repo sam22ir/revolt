@@ -20,6 +20,7 @@ export const fr: LocaleShape = {
     hero_hall: { name: "Salle des héros", desc: "Recrute des héros et relève leur plafond de niveau." },
     watchtower: { name: "Tour de guet", desc: "Surveille les collines. Plus elle est haute, plus elle vous en dit sur l’issue d’une bataille avant la marche." },
     infirmary: { name: "Infirmerie", desc: "Remet les blessés sur pied. Un niveau plus élevé en soigne davantage à la fois." },
+    academy: { name: "Académie", desc: "On y étudie les leçons que les villages vous enseignent. Une académie plus haute étudie des leçons plus profondes." },
   },
   panel: {
     level: "Niveau {{level}}",
@@ -39,6 +40,11 @@ export const fr: LocaleShape = {
     max: "Max",
   },
   reason: {
+    unknown_lesson: "Cette leçon n’existe pas",
+    not_taught: "Aucun village ne vous a encore enseigné cette leçon",
+    already_studied: "Vous avez déjà étudié cette leçon",
+    study_busy: "L’académie étudie déjà une leçon",
+    academy_level: "Nécessite l’académie niveau {{level}}",
     infirmary_busy: "L’infirmerie soigne déjà un groupe",
     no_wounded: "Personne n’est blessé",
     hero_hall_level: "Requiert la salle des héros niveau {{level}}",
@@ -462,6 +468,7 @@ export const fr: LocaleShape = {
         hero_hall: { name: "Salle des responsables", desc: "Recrute et forme les héros. Plus le niveau est élevé, plus les héros peuvent monter." },
         watchtower: { name: "Poste de guet", desc: "Surveille la vallée depuis les arbres. Plus il est haut, plus il vous en dit sur l’issue d’une bataille avant la marche." },
         infirmary: { name: "Clinique de campagne", desc: "Remet les blessés sur pied. Un niveau plus élevé en soigne davantage à la fois." },
+        academy: { name: "École de la jungle", desc: "On y étudie les leçons que les villages vous enseignent. Une école plus haute étudie des leçons plus profondes." },
       },
       troop: {
         infantry: { name: "Infanterie légère", desc: "Combattants de première ligne. Forts contre les éclaireurs, faibles contre les troupes lourdes." },

@@ -32,6 +32,7 @@ export {
   type MarchState,
   type TrainingJob,
   type HealingJob,
+  type StudyJob,
   type UpgradeJob,
 } from "./base-state.ts";
 export { carryCapacity, counterFactor, resolveBattle, takeLoot, type BattleResult, type BattleRound } from "./battle.ts";
@@ -302,3 +303,9 @@ export {
 export { VILLAGE_HELP_BLOCK_REASONS, helpVillage, lessonAt, needAmount, NO_TRUST, trustAt, trustLevel, villageDay, villageNeed, type VillageHelpBlockReason, type VillageHelpResult, type VillageTrust } from "./villages.ts";
 export { placeVillages, type MapVillage } from "./village-map.ts";
 export { AID_BLOCK_REASONS, aidOutcome, aidPlan, checkAid, recordHelp, startAid, trustLevelWith, trustWith, type AidBlockReason, type AidStartResult, type AidVillage } from "./aid.ts";
+export { ACADEMY_LEVEL_FOR, STUDY_COST, STUDY_MS } from "./data/academy.ts";
+export { checkStudy, startStudy, STUDY_BLOCK_REASONS, studyQuote, type StudyBlockReason, type StudyResult } from "./study.ts";
+export { lessonBonus } from "./effects.ts";
+export { productionFor, storageCapFor } from "./production.ts";
+export { healingLessons, NO_HEALING_LESSONS, type HealingLessons } from "./healing.ts";
+export { NO_TRAINING_LESSONS, trainingLessons, type TrainingLessons } from "./training.ts";

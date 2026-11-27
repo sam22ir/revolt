@@ -67,7 +67,7 @@ test("startUpgrade: HQ gate, cost, queue, affordability, max level, clock behind
   }
 
   {
-    const s = base({ levels: { hq: MAX_BUILDING_LEVEL, farm: 1, armory: 1, treasury: 1, barracks: 1, hero_hall: 1, watchtower: 1, infirmary: 1 } });
+    const s = base({ levels: { hq: MAX_BUILDING_LEVEL, farm: 1, armory: 1, treasury: 1, barracks: 1, hero_hall: 1, watchtower: 1, infirmary: 1, academy: 1 } });
     ex("rejects at max level")(startUpgrade(s, "hq", T0, NO_WORLD)).toMatchObject({ ok: false, reason: "max_level" });
   }
 

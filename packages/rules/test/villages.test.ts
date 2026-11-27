@@ -115,7 +115,7 @@ describe("lessons", () => {
     expect(lessonAt("smiths", 4)).toBeNull();
   });
 
-  test("smiths unlock troop tiers in order", () => {
-    expect([1, 2, 3].map((l) => LESSONS[lessonAt("smiths", l)!].value)).toEqual([2, 3, 4]);
+  test("smiths improve training: cost, then time, then batch size", () => {
+    expect([1, 2, 3].map((l) => LESSONS[lessonAt("smiths", l)!].stat)).toEqual(["train_cost", "train_time", "train_batch"]);
   });
 });

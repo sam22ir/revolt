@@ -21,6 +21,7 @@ export const migrateBaseState = (v: unknown): unknown => {
       hero_hall: v.levels.hero_hall ?? START_LEVELS.hero_hall,
       watchtower: v.levels.watchtower ?? START_LEVELS.watchtower,
       infirmary: v.levels.infirmary ?? START_LEVELS.infirmary,
+      academy: v.levels.academy ?? START_LEVELS.academy,
     },
     heroes: v.heroes ?? EMPTY_HERO_ROSTER,
     story: v.story ?? START_STORY,
@@ -31,5 +32,7 @@ export const migrateBaseState = (v: unknown): unknown => {
     marches: v.marches ?? [],
     villages: v.villages ?? {},
     lessonsTaught: v.lessonsTaught ?? [],
+    lessons: v.lessons ?? [],
+    study: v.study === undefined ? null : v.study,
   };
 };

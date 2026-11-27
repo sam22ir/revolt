@@ -123,6 +123,9 @@ export const isBaseState = (v: unknown): v is BaseState => {
     isRecord(v.villages) &&
     Object.values(v.villages).every(isTrust) &&
     Array.isArray(v.lessonsTaught) &&
-    v.lessonsTaught.every(isLessonId)
+    v.lessonsTaught.every(isLessonId) &&
+    Array.isArray(v.lessons) &&
+    v.lessons.every(isLessonId) &&
+    (v.study === null || (isRecord(v.study) && isLessonId(v.study.lesson) && isFiniteNumber(v.study.startedAt) && isFiniteNumber(v.study.endsAt)))
   );
 };

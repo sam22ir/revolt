@@ -1,6 +1,7 @@
 import { advance } from "./advance.ts";
 import type { BaseState, MarchOutcome, MarchState } from "./base-state.ts";
 import { carryCapacity } from "./battle.ts";
+import { lessonBonus } from "./effects.ts";
 import { CARE_COST, CARE_INFIRMARY_LEVEL, LABOR_MS, LABOR_TROOPS, type NeedKind } from "./data/villages.ts";
 import type { World } from "./liberation.ts";
 import { startMarch, type MarchBlockReason } from "./march.ts";
@@ -52,7 +53,7 @@ export const checkAid = (state: BaseState, village: AidVillage, need: NeedKind, 
   if (state.marches.some((m) => m.aid?.village === village.id && m.aid.day === day)) return "already_on_the_way";
   const { cost } = aidPlan(need, trustLevelWith(state, village.id, now));
   const load = cost.food + cost.funds + cost.materiel + cost.support;
-  if ((need === "food" || need === "funds") && carryCapacity(troops) < load) return "not_enough_carry";
+  if ((need === "food" || need === "funds") && carryCapacity(troops, lessonBonus(state, "porter_carry")) < load) return "not_enough_carry";
   if (need === "care" && state.levels.infirmary < CARE_INFIRMARY_LEVEL) return "infirmary_level";
   if (need === "labor" && totalTroops(troops) < LABOR_TROOPS) return "labor_troops";
   if (!canAfford(state.resources, cost)) return "insufficient";

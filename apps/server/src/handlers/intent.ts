@@ -13,6 +13,7 @@ import {
   recruitHero,
   seededRng,
   startHealing,
+  startStudy,
   startTraining,
   startUpgrade,
   TROOP_IDS,
@@ -43,6 +44,7 @@ export type Intent =
   | { readonly type: "harvest_recall"; readonly march: string }
   | { readonly type: "aid"; readonly village: string; readonly troops: Troops }
   | { readonly type: "heal" }
+  | { readonly type: "study"; readonly lesson: string }
   | { readonly type: "recruit" }
   | { readonly type: "hero_level"; readonly hero: HeroId }
   | { readonly type: "story_claim" }
@@ -55,6 +57,7 @@ export const parseIntent = (body: Record<string, unknown>): Intent => {
   const { type } = body;
   if (type === "upgrade" && BUILDING_IDS.some((id) => id === body.building)) return { type, building: body.building as BuildingId };
   if (type === "recruit" || type === "heal") return { type };
+  if (type === "study" && typeof body.lesson === "string" && body.lesson.length > 0 && body.lesson.length <= MAX_TARGET_ID) return { type, lesson: body.lesson };
   if (type === "hero_level" && HERO_IDS.some((id) => id === body.hero)) return { type, hero: body.hero as HeroId };
   if (type === "train" && TROOP_IDS.some((id) => id === body.troop) && typeof body.count === "number") {
     return { type, troop: body.troop as TroopId, count: body.count };
@@ -135,6 +138,8 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
       return changeBase(ctx, account, (s, w) => startUpgrade(s, intent.building, ctx.now, w));
     case "train":
       return changeBase(ctx, account, (s, w) => startTraining(s, intent.troop, intent.count, ctx.now, w));
+    case "study":
+      return changeBase(ctx, account, (s, w) => startStudy(s, intent.lesson, ctx.now, w));
     case "heal":
       return changeBase(ctx, account, (s, w) => startHealing(s, ctx.now, w));
     case "recruit":

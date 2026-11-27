@@ -15,6 +15,7 @@ export const en = {
     hero_hall: { name: "Hero hall", desc: "Recruits heroes and raises their level limit." },
     watchtower: { name: "Watchtower", desc: "Looks out over the hills. A higher tower tells you more about how a battle would go before you march." },
     infirmary: { name: "Infirmary", desc: "Nurses the wounded back on their feet. A higher level treats more of them at once." },
+    academy: { name: "Academy", desc: "Where the lessons villages teach you are studied. A higher academy can study deeper lessons." },
   },
   panel: {
     level: "Level {{level}}",
@@ -34,6 +35,11 @@ export const en = {
     max: "Max",
   },
   reason: {
+    unknown_lesson: "That lesson does not exist",
+    not_taught: "No village has taught you that lesson yet",
+    already_studied: "You have already studied that lesson",
+    study_busy: "The academy is already studying a lesson",
+    academy_level: "Requires academy level {{level}}",
     infirmary_busy: "The infirmary is already treating a group",
     no_wounded: "Nobody is wounded",
     hero_hall_level: "Requires hero hall level {{level}}",
@@ -457,6 +463,7 @@ export const en = {
         hero_hall: { name: "Leaders' hall", desc: "Recruits and trains heroes. Higher levels let heroes reach higher levels." },
         watchtower: { name: "Lookout post", desc: "Watches the valley from the trees. A higher post tells you more about how a battle would go before you march." },
         infirmary: { name: "Field clinic", desc: "Nurses the wounded back on their feet. A higher level treats more of them at once." },
+        academy: { name: "Jungle school", desc: "Where the lessons villages teach you are studied. A higher school can study deeper lessons." },
       },
       troop: {
         infantry: { name: "Light infantry", desc: "Frontline fighters. Strong against scouts, weak against heavy troops." },

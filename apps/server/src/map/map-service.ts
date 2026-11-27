@@ -1,5 +1,6 @@
 import {
   advance,
+  lessonBonus,
   aidOutcome,
   aidPlan,
   backgroundOfServer,
@@ -418,7 +419,7 @@ export class MapService {
     if (reason !== null) return { value: { ok: false, reason, state: advanced }, events };
 
     const id = this.deps.newId();
-    const timing = planMarch(placed.at, npc, troops, now);
+    const timing = planMarch(placed.at, npc, troops, now, lessonBonus(advanced, "march_speed"));
     const march: Omit<MarchState, "outcome"> = { id, target: { npcId: npc.id, level: npc.level, x: npc.x, y: npc.y }, from: placed.at, troops, ...timing };
     this.insertMarchRow(march, viewer.accountId, this.randomU32(), null);
     const result = await this.commitMarch(viewer.accountId, stored, march, now, heroes);
@@ -513,8 +514,8 @@ export class MapService {
     const reason = checkHarvest(advanced, troops, site, taken);
     if (reason !== null) return refuse(reason);
 
-    const leg = travelMs(placed.at, site, troops);
-    const timing = harvestTiming(site, harvestCarry(troops, site), now + leg, leg);
+    const leg = travelMs(placed.at, site, troops, lessonBonus(advanced, "march_speed"));
+    const timing = harvestTiming(site, harvestCarry(troops, site, lessonBonus(advanced, "porter_carry")), now + leg, leg);
     const march: Omit<MarchState, "outcome"> = {
       id: this.deps.newId(),
       target: { npcId: site.id, level: 0, x: site.x, y: site.y },
@@ -549,7 +550,7 @@ export class MapService {
     if (!timing.ok) return refuse(timing.reason);
     if (now >= row.leave_site_at) return refuse("already_leaving");
 
-    const saved = await this.writeHarvest(viewer.accountId, row.id, this.harvestOutcome(row, timing.leaveSiteAt), timing.returnAt, now);
+    const saved = await this.writeHarvest(viewer.accountId, row.id, this.harvestOutcome(row, timing.leaveSiteAt, lessonBonus(advanced, "porter_carry")), timing.returnAt, now);
     this.deps.sql.exec("UPDATE marches SET phase = 'returning', leave_site_at = ?, return_at = ? WHERE id = ?", timing.leaveSiteAt, timing.returnAt, row.id);
     return { value: { ok: true, state: advance(saved ?? advanced, now, this.world()) }, events: [...events, MAP_CHANGED] };
   }
@@ -730,7 +731,7 @@ export class MapService {
     const aidReason = checkAid(advanced, village, need, troops, day, now);
     if (aidReason !== null) return refuse(aidReason);
     const { cost, stayMs } = aidPlan(need, trustLevelWith(advanced, village.id, now));
-    const leg = travelMs(placed.at, village, troops);
+    const leg = travelMs(placed.at, village, troops, lessonBonus(advanced, "march_speed"));
     const march = {
       id: this.deps.newId(),
       target: { npcId: village.id, level: 0, x: village.x, y: village.y },
@@ -818,10 +819,10 @@ export class MapService {
   }
 
   /** A harvest's outcome as of `leaveAt`: the troops come home whole, carrying what the site gave up by then. */
-  private harvestOutcome(row: MarchRow, leaveAt: number): MarchOutcome {
+  private harvestOutcome(row: MarchRow, leaveAt: number, porterBonus: number): MarchOutcome {
     const troops = parseTroops(row.troops);
     const site = this.sites().find((s) => s.id === row.site_id);
-    const gained = site === undefined ? 0 : harvestedAt(site, harvestCarry(troops, site), row.arrive_at, leaveAt);
+    const gained = site === undefined ? 0 : harvestedAt(site, harvestCarry(troops, site, porterBonus), row.arrive_at, leaveAt);
     const loot = site === undefined ? ZERO_RESOURCES : { ...ZERO_RESOURCES, [SITE_RESOURCE[site.kind]]: gained };
     return { result: "victory", survivors: troops, wounded: ZERO_TROOPS, lost: ZERO_TROOPS, loot };
   }
@@ -854,7 +855,10 @@ export class MapService {
     const leaving = this.rows<MarchRow>("SELECT * FROM marches WHERE site_id IS NOT NULL AND phase = 'at_site' AND leave_site_at <= ? ORDER BY leave_site_at, id", t);
     for (const row of leaving) {
       const leaveAt = row.leave_site_at ?? row.arrive_at;
-      await this.writeHarvest(row.account_id, row.id, this.harvestOutcome(row, leaveAt), null, leaveAt);
+      // The weavers' carry lesson as the base has it now (lessons are only ever added, never lost).
+      const owner = await loadBase(this.deps.db, row.account_id);
+      const porterBonus = owner === null ? 0 : lessonBonus(owner.state, "porter_carry");
+      await this.writeHarvest(row.account_id, row.id, this.harvestOutcome(row, leaveAt, porterBonus), null, leaveAt);
       this.deps.sql.exec("UPDATE marches SET phase = 'returning' WHERE id = ?", row.id);
     }
     return arrived.length + leaving.length > 0 ? [MAP_CHANGED] : [];

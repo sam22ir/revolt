@@ -27,6 +27,15 @@ export interface TrainingJob {
   readonly endsAt: number;
 }
 
+/** One academy study: `lesson` is learned for good at `endsAt`. */
+export interface StudyJob {
+  readonly lesson: LessonId;
+  /** Epoch ms. */
+  readonly startedAt: number;
+  /** Epoch ms. */
+  readonly endsAt: number;
+}
+
 /** One infirmary batch: these wounded troops are being nursed and come home ready at `endsAt`. */
 export interface HealingJob {
   readonly troops: Troops;
@@ -114,8 +123,12 @@ export interface BaseState {
   readonly marches: readonly MarchState[];
   /** The player's trust with each village they have helped, by village id. */
   readonly villages: Readonly<Record<string, VillageTrust>>;
-  /** Lessons the villages have taught, in the order taught. Studied at the academy (slice 3). */
+  /** Lessons the villages have taught, in the order taught: they can be studied at the academy. */
   readonly lessonsTaught: readonly LessonId[];
+  /** Lessons studied: their effects apply (effects.ts). */
+  readonly lessons: readonly LessonId[];
+  /** The academy's one study in progress. */
+  readonly study: StudyJob | null;
   /** Epoch ms up to which production has been settled. Never moves backwards. */
   readonly lastUpdated: number;
 }
@@ -133,5 +146,7 @@ export const createBaseState = (now: number): BaseState => ({
   marches: [],
   villages: {},
   lessonsTaught: [],
+  lessons: [],
+  study: null,
   lastUpdated: now,
 });

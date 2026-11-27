@@ -5,7 +5,7 @@ import { DEFAULT_BACKGROUND, type BackgroundId } from "./background.ts";
 import { STORY, type Objective, type StoryChapter } from "./data/story.ts";
 import { HERO_IDS } from "./hero-id.ts";
 import { addShardsToOwned } from "./hero-shards.ts";
-import { storageCap } from "./production.ts";
+import { storageCapFor } from "./production.ts";
 import { mapResources } from "./resources.ts";
 import { totalTroops } from "./troops.ts";
 
@@ -77,7 +77,7 @@ export const claimChapter = (state: BaseState, now: number, world: World, backgr
   const chapter = currentChapter(s, background);
   if (chapter === null) return { ok: false, reason: "story_complete", state: s };
   if (!chapter.objectives.every((o) => objectiveProgress(s, o).done)) return { ok: false, reason: "objectives_unmet", state: s };
-  const cap = storageCap(s.levels.hq);
+  const cap = storageCapFor(s);
   // Like loot: fills storage up to the cap, and never lowers an amount already above it.
   const resources = mapResources((id) => Math.max(s.resources[id], Math.min(cap[id], s.resources[id] + chapter.reward.resources[id])));
   let next: BaseState = { ...s, resources, story: { ...s.story, chapter: s.story.chapter + 1 } };
