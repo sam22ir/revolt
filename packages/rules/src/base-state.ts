@@ -25,6 +25,15 @@ export interface TrainingJob {
   readonly endsAt: number;
 }
 
+/** One infirmary batch: these wounded troops are being nursed and come home ready at `endsAt`. */
+export interface HealingJob {
+  readonly troops: Troops;
+  /** Epoch ms. */
+  readonly startedAt: number;
+  /** Epoch ms. */
+  readonly endsAt: number;
+}
+
 export interface MapPoint {
   readonly x: number;
   readonly y: number;
@@ -84,10 +93,12 @@ export interface BaseState {
   readonly queue: UpgradeJob | null;
   /** Troops at home, ready to march. */
   readonly troops: Troops;
-  /** Troops wounded in battle. Healing comes with the infirmary (later milestone). */
+  /** Troops wounded in battle, waiting for the infirmary. */
   readonly wounded: Troops;
   /** One barracks queue, separate from the build queue. */
   readonly training: TrainingJob | null;
+  /** One infirmary batch, separate from both. */
+  readonly healing: HealingJob | null;
   /** Recruited heroes, their levels and shards, and the pity counter. */
   readonly heroes: HeroRoster;
   /** Campaign progress (GDD §4.8). */
@@ -105,6 +116,7 @@ export const createBaseState = (now: number): BaseState => ({
   troops: START_TROOPS,
   wounded: ZERO_TROOPS,
   training: null,
+  healing: null,
   heroes: EMPTY_HERO_ROSTER,
   story: START_STORY,
   marches: [],

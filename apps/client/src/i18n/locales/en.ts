@@ -13,6 +13,8 @@ export const en = {
     treasury: { name: "Treasury", desc: "Collects funds." },
     barracks: { name: "Barracks", desc: "Trains troops. Higher levels train bigger batches." },
     hero_hall: { name: "Hero hall", desc: "Recruits heroes and raises their level limit." },
+    watchtower: { name: "Watchtower", desc: "Looks out over the hills. A higher tower tells you more about how a battle would go before you march." },
+    infirmary: { name: "Infirmary", desc: "Nurses the wounded back on their feet. A higher level treats more of them at once." },
   },
   panel: {
     level: "Level {{level}}",
@@ -32,6 +34,8 @@ export const en = {
     max: "Max",
   },
   reason: {
+    infirmary_busy: "The infirmary is already treating a group",
+    no_wounded: "Nobody is wounded",
     hero_hall_level: "Requires hero hall level {{level}}",
     hall_cap: "The hero hall's level limit is reached",
     duplicate_hero: "That hero is already in this march",
@@ -205,6 +209,26 @@ export const en = {
     heroNone: "No hero",
     heroBonus: "Hero bonus: attack +{{attack}}%, damage taken −{{defense}}%",
     ledBy: "Led by {{names}}",
+  },
+  heal: {
+    title: "The wounded",
+    wounded: "Wounded: {{count}}",
+    batch: "Treats up to {{count}} at once",
+    next: "Next group: {{count}}",
+    button: "Treat the wounded",
+    inCare: "In care: {{count}}",
+    none: "Nobody is wounded. Wounded troops from battles come here.",
+  },
+  forecast: {
+    title: "Watchtower forecast",
+    likely_victory: "Likely victory",
+    close: "Too close to call",
+    likely_defeat: "Likely defeat",
+    losses: "Expected: {{lost}} lost, {{wounded}} wounded",
+    chance: "Chance of victory: {{chance}}%",
+    more: "Watchtower level {{level}} tells you more",
+    loading: "Scouting…",
+    unavailable: "No forecast right now",
   },
   train: {
     title: "Training",
@@ -431,6 +455,8 @@ export const en = {
         treasury: { name: "Common fund", desc: "Collects funds." },
         barracks: { name: "Training camp", desc: "Trains troops. Higher levels train bigger batches." },
         hero_hall: { name: "Leaders' hall", desc: "Recruits and trains heroes. Higher levels let heroes reach higher levels." },
+        watchtower: { name: "Lookout post", desc: "Watches the valley from the trees. A higher post tells you more about how a battle would go before you march." },
+        infirmary: { name: "Field clinic", desc: "Nurses the wounded back on their feet. A higher level treats more of them at once." },
       },
       troop: {
         infantry: { name: "Light infantry", desc: "Frontline fighters. Strong against scouts, weak against heavy troops." },

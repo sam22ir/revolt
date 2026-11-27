@@ -1,4 +1,5 @@
-import type { BuildingId, NpcKind, ResourceId, TroopId } from "@revolt/rules";
+import type { NpcKind, ResourceId, TroopId } from "@revolt/rules";
+import type { PaintedBuildingId } from "../scene/iso-layout.ts";
 
 /**
  * Every painted sprite the client draws, looked up by mechanical id. Scenes and UI read art only through a pack,
@@ -6,7 +7,7 @@ import type { BuildingId, NpcKind, ResourceId, TroopId } from "@revolt/rules";
  */
 export interface ArtPack {
   /** Base buildings on the base screen, keyed by building id. */
-  readonly buildings: Readonly<Record<BuildingId, string>>;
+  readonly buildings: Readonly<Record<PaintedBuildingId, string>>;
   /** The painted ground slab under the base screen. */
   readonly baseGround: string;
   /** The sprite a player camp uses on the world map: a hidden camp on the same earth slab as the outposts. */

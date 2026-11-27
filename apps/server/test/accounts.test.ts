@@ -121,7 +121,7 @@ test("M1 save import: bounded, troop-free, no import for existing accounts", asy
     },
     "a forged save is bounded": async (s, ex) => {
       const a = await newGuest(s, forged);
-      ex(a.res.state.levels).toEqual({ hq: M1_IMPORT_MAX_LEVEL, farm: 3, armory: 3, treasury: 3, barracks: 1, hero_hall: 1 });
+      ex(a.res.state.levels).toEqual({ hq: M1_IMPORT_MAX_LEVEL, farm: 3, armory: 3, treasury: 3, barracks: 1, hero_hall: 1, watchtower: 1, infirmary: 1 });
       ex(a.res.state.resources).toEqual(storageCap(M1_IMPORT_MAX_LEVEL));
     },
     "a save can never bring troops, wounded, training or marches": async (s, ex) => {

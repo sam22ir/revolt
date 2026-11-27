@@ -37,3 +37,9 @@ export const TRAINING_BATCH_PER_LEVEL = 20;
 export const LOST_SHARE = 0.2;
 
 export const MAX_BATTLE_ROUNDS = 4;
+
+/** Wounded units one healing batch may hold, per infirmary level. */
+export const HEAL_BATCH_PER_LEVEL = 15;
+/** Healing a unit costs this share of training it (rounded up per resource), and takes this share of its training time. */
+export const HEAL_COST_SHARE = 0.4;
+export const HEAL_TIME_SHARE = 0.5;

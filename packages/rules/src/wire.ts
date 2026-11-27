@@ -15,6 +15,7 @@ import type { Liberation } from "./liberation.ts";
 import type { Resources } from "./resources.ts";
 import type { SiteKind, SiteLevel } from "./data/sites.ts";
 import type { Troops } from "./troops.ts";
+import type { Forecast } from "./scout.ts";
 
 export interface MapBaseView extends MapPoint {
   /** The player's public handle; account ids are never sent to other players. */
@@ -303,5 +304,12 @@ export interface StoreView {
   readonly cosmetics: { readonly owned: readonly CosmeticId[]; readonly equipped: Readonly<Partial<Record<CosmeticSlot, CosmeticId>>> };
   /** Whether this server can check receipts at all (false: the store is browse-only). */
   readonly canRedeem: boolean;
+  readonly now: number;
+}
+
+/** POST /v1/scout: the watchtower's forecast for a march (null: no NPC of that level, or nobody sent), and the tower's level. */
+export interface ScoutView {
+  readonly forecast: Forecast | null;
+  readonly watchtower: number;
   readonly now: number;
 }

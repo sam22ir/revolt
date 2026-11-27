@@ -18,6 +18,8 @@ export const fr: LocaleShape = {
     treasury: { name: "Trésorerie", desc: "Collecte des fonds." },
     barracks: { name: "Caserne", desc: "Forme les troupes. Plus le niveau est élevé, plus les groupes sont grands." },
     hero_hall: { name: "Salle des héros", desc: "Recrute des héros et relève leur plafond de niveau." },
+    watchtower: { name: "Tour de guet", desc: "Surveille les collines. Plus elle est haute, plus elle vous en dit sur l’issue d’une bataille avant la marche." },
+    infirmary: { name: "Infirmerie", desc: "Remet les blessés sur pied. Un niveau plus élevé en soigne davantage à la fois." },
   },
   panel: {
     level: "Niveau {{level}}",
@@ -37,6 +39,8 @@ export const fr: LocaleShape = {
     max: "Max",
   },
   reason: {
+    infirmary_busy: "L’infirmerie soigne déjà un groupe",
+    no_wounded: "Personne n’est blessé",
     hero_hall_level: "Requiert la salle des héros niveau {{level}}",
     hall_cap: "Le plafond de niveau de la salle des héros est atteint",
     duplicate_hero: "Ce héros est déjà dans cette expédition",
@@ -210,6 +214,26 @@ export const fr: LocaleShape = {
     heroNone: "Aucun héros",
     heroBonus: "Bonus des héros : attaque +{{attack}} %, dégâts subis −{{defense}} %",
     ledBy: "Mené par {{names}}",
+  },
+  heal: {
+    title: "Les blessés",
+    wounded: "Blessés : {{count}}",
+    batch: "Soigne jusqu’à {{count}} à la fois",
+    next: "Prochain groupe : {{count}}",
+    button: "Soigner les blessés",
+    inCare: "En soins : {{count}}",
+    none: "Personne n’est blessé. Les blessés des batailles arrivent ici.",
+  },
+  forecast: {
+    title: "Prévision de la tour de guet",
+    likely_victory: "Victoire probable",
+    close: "Issue incertaine",
+    likely_defeat: "Défaite probable",
+    losses: "Attendu : {{lost}} perdus, {{wounded}} blessés",
+    chance: "Chance de victoire : {{chance}} %",
+    more: "La tour de guet au niveau {{level}} vous en dira plus",
+    loading: "Reconnaissance…",
+    unavailable: "Pas de prévision pour le moment",
   },
   train: {
     title: "Formation",
@@ -436,6 +460,8 @@ export const fr: LocaleShape = {
         treasury: { name: "Caisse commune", desc: "Collecte des fonds." },
         barracks: { name: "Camp d’entraînement", desc: "Forme les troupes. Plus le niveau est élevé, plus les groupes sont grands." },
         hero_hall: { name: "Salle des responsables", desc: "Recrute et forme les héros. Plus le niveau est élevé, plus les héros peuvent monter." },
+        watchtower: { name: "Poste de guet", desc: "Surveille la vallée depuis les arbres. Plus il est haut, plus il vous en dit sur l’issue d’une bataille avant la marche." },
+        infirmary: { name: "Clinique de campagne", desc: "Remet les blessés sur pied. Un niveau plus élevé en soigne davantage à la fois." },
       },
       troop: {
         infantry: { name: "Infanterie légère", desc: "Combattants de première ligne. Forts contre les éclaireurs, faibles contre les troupes lourdes." },

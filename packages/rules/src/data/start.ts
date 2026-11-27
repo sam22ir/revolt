@@ -11,6 +11,8 @@ export const START_LEVELS: Readonly<Record<BuildingId, number>> = {
   treasury: 1,
   barracks: 1,
   hero_hall: 1,
+  watchtower: 1,
+  infirmary: 1,
 };
 
 /** A small starting force so the first march needs no wait. Placeholder. */

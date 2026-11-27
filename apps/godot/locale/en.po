@@ -58,6 +58,18 @@ msgstr "Hero hall"
 msgid "building.hero_hall.desc"
 msgstr "Recruits heroes and raises their level limit."
 
+msgid "building.watchtower.name"
+msgstr "Watchtower"
+
+msgid "building.watchtower.desc"
+msgstr "Looks out over the hills. A higher tower tells you more about how a battle would go before you march."
+
+msgid "building.infirmary.name"
+msgstr "Infirmary"
+
+msgid "building.infirmary.desc"
+msgstr "Nurses the wounded back on their feet. A higher level treats more of them at once."
+
 msgid "panel.level"
 msgstr "Level {level}"
 
@@ -102,6 +114,12 @@ msgstr "Fewer"
 
 msgid "panel.max"
 msgstr "Max"
+
+msgid "reason.infirmary_busy"
+msgstr "The infirmary is already treating a group"
+
+msgid "reason.no_wounded"
+msgstr "Nobody is wounded"
 
 msgid "reason.hero_hall_level"
 msgstr "Requires hero hall level {level}"
@@ -660,6 +678,54 @@ msgstr "Hero bonus: attack +{attack}%, damage taken −{defense}%"
 
 msgid "march.ledBy"
 msgstr "Led by {names}"
+
+msgid "heal.title"
+msgstr "The wounded"
+
+msgid "heal.wounded"
+msgstr "Wounded: {count}"
+
+msgid "heal.batch"
+msgstr "Treats up to {count} at once"
+
+msgid "heal.next"
+msgstr "Next group: {count}"
+
+msgid "heal.button"
+msgstr "Treat the wounded"
+
+msgid "heal.inCare"
+msgstr "In care: {count}"
+
+msgid "heal.none"
+msgstr "Nobody is wounded. Wounded troops from battles come here."
+
+msgid "forecast.title"
+msgstr "Watchtower forecast"
+
+msgid "forecast.likely_victory"
+msgstr "Likely victory"
+
+msgid "forecast.close"
+msgstr "Too close to call"
+
+msgid "forecast.likely_defeat"
+msgstr "Likely defeat"
+
+msgid "forecast.losses"
+msgstr "Expected: {lost} lost, {wounded} wounded"
+
+msgid "forecast.chance"
+msgstr "Chance of victory: {chance}%"
+
+msgid "forecast.more"
+msgstr "Watchtower level {level} tells you more"
+
+msgid "forecast.loading"
+msgstr "Scouting…"
+
+msgid "forecast.unavailable"
+msgstr "No forecast right now"
 
 msgid "train.title"
 msgstr "Training"
@@ -1293,6 +1359,18 @@ msgstr "Leaders' hall"
 
 msgid "background.vietnam.building.hero_hall.desc"
 msgstr "Recruits and trains heroes. Higher levels let heroes reach higher levels."
+
+msgid "background.vietnam.building.watchtower.name"
+msgstr "Lookout post"
+
+msgid "background.vietnam.building.watchtower.desc"
+msgstr "Watches the valley from the trees. A higher post tells you more about how a battle would go before you march."
+
+msgid "background.vietnam.building.infirmary.name"
+msgstr "Field clinic"
+
+msgid "background.vietnam.building.infirmary.desc"
+msgstr "Nurses the wounded back on their feet. A higher level treats more of them at once."
 
 msgid "background.vietnam.troop.infantry.name"
 msgstr "Light infantry"

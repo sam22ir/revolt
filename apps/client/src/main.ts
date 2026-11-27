@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import type { AllianceView, BackgroundId, BuildingId, ChatMessage, HelpRequestView, MapSnapshot } from "@revolt/rules";
+import type { PaintedBuildingId } from "./scene/iso-layout.ts";
 import { changeLanguage, initI18n } from "./i18n/i18n.ts";
 import { loadLanguagePref, storeLanguagePref } from "./i18n/language-pref.ts";
 import { detectLanguage } from "./i18n/languages.ts";
@@ -162,7 +163,7 @@ const start = async (): Promise<void> => {
   const scene = worldScene;
   // Read-only hooks so screenshot tests can tap buildings and map tiles.
   window.__revolt = {
-    buildingScreenPoint: (id: BuildingId) => baseScene.buildingScreenPoint(id),
+    buildingScreenPoint: (id: PaintedBuildingId) => baseScene.buildingScreenPoint(id),
     map: {
       snapshot: () => world.snapshot(),
       tileScreenPoint: (x, y) => scene.tileScreenPoint(x, y),
@@ -178,7 +179,7 @@ const start = async (): Promise<void> => {
 declare global {
   interface Window {
     __revolt?: {
-      buildingScreenPoint: (id: BuildingId) => { x: number; y: number };
+      buildingScreenPoint: (id: PaintedBuildingId) => { x: number; y: number };
       map: {
         snapshot: () => MapSnapshot | null;
         /** CSS-pixel position of a tile's middle on the map view; null until the map has been opened. */
