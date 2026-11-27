@@ -70,6 +70,12 @@ msgstr "المستوصف"
 msgid "building.infirmary.desc"
 msgstr "يعالج الجرحى حتى يقفوا على أقدامهم. كلما ارتفع مستواه عالج عددًا أكبر دفعة واحدة."
 
+msgid "building.academy.name"
+msgstr "الأكاديمية"
+
+msgid "building.academy.desc"
+msgstr "هنا تُدرَس الدروس التي تعلّمك إياها القرى. كلما ارتفع مستواها أمكنها دراسة دروس أعمق."
+
 msgid "panel.level"
 msgstr "المستوى {level}"
 
@@ -114,6 +120,21 @@ msgstr "إنقاص"
 
 msgid "panel.max"
 msgstr "الأقصى"
+
+msgid "reason.unknown_lesson"
+msgstr "هذا الدرس غير موجود"
+
+msgid "reason.not_taught"
+msgstr "لم تعلّمك أي قرية هذا الدرس بعد"
+
+msgid "reason.already_studied"
+msgstr "درست هذا الدرس من قبل"
+
+msgid "reason.study_busy"
+msgstr "الأكاديمية تدرس درسًا بالفعل"
+
+msgid "reason.academy_level"
+msgstr "يتطلب الأكاديمية من المستوى {level}"
 
 msgid "reason.infirmary_busy"
 msgstr "المستوصف يعالج مجموعة بالفعل"
@@ -1371,6 +1392,12 @@ msgstr "العيادة الميدانية"
 
 msgid "background.vietnam.building.infirmary.desc"
 msgstr "تعالج الجرحى حتى يقفوا على أقدامهم. كلما ارتفع مستواها عالجت عددًا أكبر دفعة واحدة."
+
+msgid "background.vietnam.building.academy.name"
+msgstr "مدرسة الغابة"
+
+msgid "background.vietnam.building.academy.desc"
+msgstr "هنا تُدرَس الدروس التي تعلّمك إياها القرى. كلما ارتفع مستواها أمكنها دراسة دروس أعمق."
 
 msgid "background.vietnam.troop.infantry.name"
 msgstr "المشاة الخفيفة"

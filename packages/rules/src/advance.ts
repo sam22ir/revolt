@@ -1,7 +1,7 @@
 import type { BaseState, MarchOutcome, MarchState } from "./base-state.ts";
 import { MARCH_RESCUE_GRACE_MS } from "./data/map.ts";
 import type { World } from "./liberation.ts";
-import { accrue, storageCap } from "./production.ts";
+import { accrue, storageCapFor } from "./production.ts";
 import { mapResources } from "./resources.ts";
 import { addTroops } from "./troops.ts";
 import { targetGone } from "./npc-battle.ts";
@@ -10,14 +10,16 @@ type Event =
   | { readonly at: number; readonly kind: "upgrade" }
   | { readonly at: number; readonly kind: "training" }
   | { readonly at: number; readonly kind: "healing" }
+  | { readonly at: number; readonly kind: "study" }
   | { readonly at: number; readonly kind: "return"; readonly id: string; readonly outcome: MarchOutcome };
 
-/** The earliest event due by `now`. Ties go upgrade, training, healing, then marches in order. */
+/** The earliest event due by `now`. Ties go upgrade, training, healing, study, then marches in order. */
 const nextEvent = (s: BaseState, now: number): Event | null => {
   const events: Event[] = [];
   if (s.queue !== null) events.push({ at: s.queue.endsAt, kind: "upgrade" });
   if (s.training !== null) events.push({ at: s.training.endsAt, kind: "training" });
   if (s.healing !== null) events.push({ at: s.healing.endsAt, kind: "healing" });
+  if (s.study !== null) events.push({ at: s.study.endsAt, kind: "study" });
   for (const m of s.marches) {
     if (m.outcome !== null) events.push({ at: m.returnAt, kind: "return", id: m.id, outcome: m.outcome });
     // Safety net: a march the map server never resolved comes home unharmed, without loot.
@@ -45,8 +47,12 @@ const apply = (s: BaseState, e: Event): BaseState => {
   if (e.kind === "healing" && s.healing !== null) {
     return { ...s, troops: addTroops(s.troops, s.healing.troops), healing: null };
   }
+  if (e.kind === "study" && s.study !== null) {
+    const lesson = s.study.lesson;
+    return { ...s, lessons: s.lessons.includes(lesson) ? s.lessons : [...s.lessons, lesson], study: null };
+  }
   if (e.kind === "return") {
-    const cap = storageCap(s.levels.hq);
+    const cap = storageCapFor(s);
     // Loot fills storage up to the cap, and never lowers an amount already above it.
     const resources = mapResources((id) => Math.max(s.resources[id], Math.min(cap[id], s.resources[id] + e.outcome.loot[id])));
     const home: BaseState = {

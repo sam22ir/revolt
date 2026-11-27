@@ -18,7 +18,7 @@ Five kinds, each with a speciality. Names are i18n keys `village.<kind>.*`; Viet
 | Kind | Speciality | Lessons (trust 1 → 2 → 3) |
 | --- | --- | --- |
 | `shepherds` | mountain paths | marches +6% speed → +6% → +8% |
-| `smiths` | metalwork | troop tier 2 → 3 → 4 |
+| `smiths` | metalwork | training −10% cost → −15% time → +25% batch (troop tiers 2–4 come back once tier-2 units exist) |
 | `healers` | remedies | healing −15% cost → +5 batch per infirmary level → −20% time |
 | `weavers` | cloth and bags | porters carry +15% → storage +10% → storage +10% |
 | `messengers` | networks | forecasts as if the watchtower were 1 level higher → alliance help −20% more time → support +15% |
@@ -54,5 +54,5 @@ A lesson of level N needs academy level N × 2 − 1 (1, 3, 5).
 
 1. Design and rules: villages, needs, trust with fading, lessons taught. Done (#12), with the first village art.
 2. Server: placement on the map (about 41 villages on a 192 map), the aid march and intent, protection credited after a solo victory (rallies not yet), trust stored in the base, villages in the map snapshot. Done.
-3. Academy and lesson effects in the rules (march speed, tiers, healing, carry, storage, forecast, help, support).
+3. Academy and lesson effects: the building (Blender art, in the barracks yard), the study job and intent, every lesson's effect in the rules and server. Done. The Godot client does not yet apply storage, support, training or healing lessons to its own numbers (slice 4).
 4. Godot: villages on the map, the aid sheet, the academy screen; Blender art for villages and the academy.

@@ -4,6 +4,7 @@ import { BUILDINGS } from "./data/buildings.ts";
 import { STORAGE_CAPS } from "./data/storage.ts";
 import { multiplierBreakpoints, productionMultiplier, type World } from "./liberation.ts";
 import { mapResources, ZERO_RESOURCES, type Resources } from "./resources.ts";
+import { lessonBonus } from "./effects.ts";
 
 const MS_PER_HOUR = 3_600_000;
 
@@ -14,6 +15,19 @@ const levelRow = <T>(rows: readonly T[], level: number): T => {
 };
 
 export const storageCap = (hqLevel: number): Resources => levelRow(STORAGE_CAPS, hqLevel);
+
+/** The storage cap of a base: the HQ's, raised by the weavers' storage lessons (rounded down). */
+export const storageCapFor = (state: Pick<BaseState, "levels" | "lessons">): Resources => {
+  const base = storageCap(state.levels.hq);
+  const more = 1 + lessonBonus(state, "storage");
+  return mapResources((id) => Math.floor(base[id] * more));
+};
+
+/** Hourly output of a base: the buildings' production, with the messengers' support lesson on popular support. */
+export const productionFor = (state: Pick<BaseState, "levels" | "lessons">, multiplier: number): Resources => {
+  const rate = productionPerHour(state.levels, multiplier);
+  return { ...rate, support: rate.support * (1 + lessonBonus(state, "support_rate")) };
+};
 
 /** Hourly output at the given levels; `multiplier` is the server-wide bonus (see `productionMultiplier`). */
 export const productionPerHour = (levels: Readonly<Record<BuildingId, number>>, multiplier: number): Resources => {
@@ -33,13 +47,13 @@ export const productionPerHour = (levels: Readonly<Record<BuildingId, number>>, 
  */
 export const accrue = (state: BaseState, t: number, world: World): BaseState => {
   if (!(t - state.lastUpdated > 0)) return state;
-  const cap = storageCap(state.levels.hq);
+  const cap = storageCapFor(state);
   const edges = [state.lastUpdated, ...multiplierBreakpoints(world, state.lastUpdated, t), t];
   let resources = state.resources;
   for (let i = 0; i + 1 < edges.length; i++) {
     const start = edges[i] ?? t;
     const dt = (edges[i + 1] ?? t) - start;
-    const rate = productionPerHour(state.levels, productionMultiplier(world, start));
+    const rate = productionFor(state, productionMultiplier(world, start));
     const before = resources;
     resources = mapResources((id) => {
       const stored = before[id];

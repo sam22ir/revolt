@@ -11,7 +11,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -44,7 +45,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -76,7 +78,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -109,7 +112,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -141,7 +145,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -174,7 +179,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -206,7 +212,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -239,7 +246,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -271,7 +279,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -304,7 +313,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -336,7 +346,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -369,7 +380,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -401,7 +413,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -426,7 +439,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -451,7 +465,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -476,7 +491,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -501,7 +517,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -534,7 +551,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -567,7 +585,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -600,7 +619,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -632,7 +652,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -665,7 +686,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -698,7 +720,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -731,7 +754,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -763,7 +787,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -796,7 +821,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -829,7 +855,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -862,7 +889,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -894,7 +922,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -919,7 +948,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -944,7 +974,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -969,7 +1000,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -994,7 +1026,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -1027,7 +1060,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -1060,7 +1094,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -1093,7 +1128,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -1125,7 +1161,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -1158,7 +1195,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -1191,7 +1229,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -1224,7 +1263,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -1256,7 +1296,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -1289,7 +1330,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -1322,7 +1364,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -1355,7 +1398,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -1387,7 +1431,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -1412,7 +1457,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -1437,7 +1483,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -1462,7 +1509,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -1487,7 +1535,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -1520,7 +1569,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -1553,7 +1603,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -1586,7 +1637,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -1618,7 +1670,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -1651,7 +1704,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -1684,7 +1738,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -1717,7 +1772,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -1749,7 +1805,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -1782,7 +1839,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -1815,7 +1873,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -1848,7 +1907,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -1880,7 +1940,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -1905,7 +1966,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -1930,7 +1992,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -1955,7 +2018,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -1980,7 +2044,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2013,7 +2078,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -2046,7 +2112,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2079,7 +2146,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -2111,7 +2179,8 @@
         "barracks": 2,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2144,7 +2213,8 @@
         "barracks": 2,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -2177,7 +2247,8 @@
         "barracks": 2,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2210,7 +2281,8 @@
         "barracks": 2,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -2242,7 +2314,8 @@
         "barracks": 9,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2275,7 +2348,8 @@
         "barracks": 9,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -2308,7 +2382,8 @@
         "barracks": 9,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2341,7 +2416,8 @@
         "barracks": 9,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -2373,7 +2449,8 @@
         "barracks": 10,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2398,7 +2475,8 @@
         "barracks": 10,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -2423,7 +2501,8 @@
         "barracks": 10,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2448,7 +2527,8 @@
         "barracks": 10,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -2473,7 +2553,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2506,7 +2587,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -2539,7 +2621,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2572,7 +2655,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -2604,7 +2688,8 @@
         "barracks": 1,
         "hero_hall": 2,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2637,7 +2722,8 @@
         "barracks": 1,
         "hero_hall": 2,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -2670,7 +2756,8 @@
         "barracks": 1,
         "hero_hall": 2,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2703,7 +2790,8 @@
         "barracks": 1,
         "hero_hall": 2,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -2735,7 +2823,8 @@
         "barracks": 1,
         "hero_hall": 9,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2768,7 +2857,8 @@
         "barracks": 1,
         "hero_hall": 9,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -2801,7 +2891,8 @@
         "barracks": 1,
         "hero_hall": 9,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2834,7 +2925,8 @@
         "barracks": 1,
         "hero_hall": 9,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -2866,7 +2958,8 @@
         "barracks": 1,
         "hero_hall": 10,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2891,7 +2984,8 @@
         "barracks": 1,
         "hero_hall": 10,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -2916,7 +3010,8 @@
         "barracks": 1,
         "hero_hall": 10,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2941,7 +3036,8 @@
         "barracks": 1,
         "hero_hall": 10,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -2966,7 +3062,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -2999,7 +3096,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -3032,7 +3130,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -3065,7 +3164,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -3097,7 +3197,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 2,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -3130,7 +3231,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 2,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -3163,7 +3265,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 2,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -3196,7 +3299,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 2,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -3228,7 +3332,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 9,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -3261,7 +3366,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 9,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -3294,7 +3400,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 9,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -3327,7 +3434,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 9,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -3359,7 +3467,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 10,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -3384,7 +3493,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 10,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -3409,7 +3519,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 10,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -3434,7 +3545,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 10,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -3459,7 +3571,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -3492,7 +3605,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -3525,7 +3639,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -3558,7 +3673,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -3590,7 +3706,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 2
+        "infirmary": 2,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -3623,7 +3740,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 2
+        "infirmary": 2,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -3656,7 +3774,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 2
+        "infirmary": 2,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -3689,7 +3808,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 2
+        "infirmary": 2,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -3721,7 +3841,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 9
+        "infirmary": 9,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -3754,7 +3875,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 9
+        "infirmary": 9,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -3787,7 +3909,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 9
+        "infirmary": 9,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -3820,7 +3943,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 9
+        "infirmary": 9,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -3852,7 +3976,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 10
+        "infirmary": 10,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -3877,7 +4002,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 10
+        "infirmary": 10,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -3902,7 +4028,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 10
+        "infirmary": 10,
+        "academy": 1
       },
       "resources": {
         "food": 0,
@@ -3927,7 +4054,517 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 10
+        "infirmary": 10,
+        "academy": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "academy L1 hq1 none",
+      "building": "academy",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 2,
+        "cost": {
+          "food": 100,
+          "materiel": 100,
+          "funds": 160,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "academy L1 hq1 rich",
+      "building": "academy",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 2,
+        "cost": {
+          "food": 100,
+          "materiel": 100,
+          "funds": 160,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "academy L1 hq10 none",
+      "building": "academy",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 2,
+        "cost": {
+          "food": 100,
+          "materiel": 100,
+          "funds": 160,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "academy L1 hq10 rich",
+      "building": "academy",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 2,
+        "cost": {
+          "food": 100,
+          "materiel": 100,
+          "funds": 160,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "academy L2 hq1 none",
+      "building": "academy",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 2
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 3,
+        "cost": {
+          "food": 230,
+          "materiel": 230,
+          "funds": 360,
+          "support": 0
+        },
+        "durationMs": 480000
+      }
+    },
+    {
+      "name": "academy L2 hq1 rich",
+      "building": "academy",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 2
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 3,
+        "cost": {
+          "food": 230,
+          "materiel": 230,
+          "funds": 360,
+          "support": 0
+        },
+        "durationMs": 480000
+      }
+    },
+    {
+      "name": "academy L2 hq10 none",
+      "building": "academy",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 2
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 3,
+        "cost": {
+          "food": 230,
+          "materiel": 230,
+          "funds": 360,
+          "support": 0
+        },
+        "durationMs": 480000
+      }
+    },
+    {
+      "name": "academy L2 hq10 rich",
+      "building": "academy",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 2
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 3,
+        "cost": {
+          "food": 230,
+          "materiel": 230,
+          "funds": 360,
+          "support": 0
+        },
+        "durationMs": 480000
+      }
+    },
+    {
+      "name": "academy L9 hq1 none",
+      "building": "academy",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 9
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 10,
+        "cost": {
+          "food": 14000,
+          "materiel": 14000,
+          "funds": 22000,
+          "support": 0
+        },
+        "durationMs": 64800000
+      }
+    },
+    {
+      "name": "academy L9 hq1 rich",
+      "building": "academy",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 9
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "hq_gate",
+        "toLevel": 10,
+        "cost": {
+          "food": 14000,
+          "materiel": 14000,
+          "funds": 22000,
+          "support": 0
+        },
+        "durationMs": 64800000
+      }
+    },
+    {
+      "name": "academy L9 hq10 none",
+      "building": "academy",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 9
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 10,
+        "cost": {
+          "food": 14000,
+          "materiel": 14000,
+          "funds": 22000,
+          "support": 0
+        },
+        "durationMs": 64800000
+      }
+    },
+    {
+      "name": "academy L9 hq10 rich",
+      "building": "academy",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 9
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 10,
+        "cost": {
+          "food": 14000,
+          "materiel": 14000,
+          "funds": 22000,
+          "support": 0
+        },
+        "durationMs": 64800000
+      }
+    },
+    {
+      "name": "academy L10 hq1 none",
+      "building": "academy",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 10
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "academy L10 hq1 rich",
+      "building": "academy",
+      "levels": {
+        "hq": 1,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 10
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "academy L10 hq10 none",
+      "building": "academy",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 10
+      },
+      "resources": {
+        "food": 0,
+        "materiel": 0,
+        "funds": 0,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "max_level"
+      }
+    },
+    {
+      "name": "academy L10 hq10 rich",
+      "building": "academy",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 10
       },
       "resources": {
         "food": 1000000,
@@ -3952,7 +4589,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 200,
@@ -3984,7 +4622,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 199,
@@ -4017,7 +4656,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 500,
@@ -4049,7 +4689,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 499,
@@ -4082,7 +4723,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 20000,
@@ -4114,7 +4756,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 19999,
@@ -4147,7 +4790,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 60,
@@ -4179,7 +4823,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 59,
@@ -4212,7 +4857,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 120,
@@ -4244,7 +4890,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 119,
@@ -4277,7 +4924,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 8000,
@@ -4309,7 +4957,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 7999,
@@ -4342,7 +4991,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 70,
@@ -4374,7 +5024,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 69,
@@ -4407,7 +5058,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 150,
@@ -4439,7 +5091,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 149,
@@ -4472,7 +5125,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 9600,
@@ -4504,7 +5158,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 9599,
@@ -4537,7 +5192,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 70,
@@ -4569,7 +5225,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 69,
@@ -4602,7 +5259,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 150,
@@ -4634,7 +5292,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 149,
@@ -4667,7 +5326,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 10000,
@@ -4699,7 +5359,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 9999,
@@ -4732,7 +5393,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 80,
@@ -4764,7 +5426,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 79,
@@ -4797,7 +5460,8 @@
         "barracks": 2,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 160,
@@ -4829,7 +5493,8 @@
         "barracks": 2,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 159,
@@ -4862,7 +5527,8 @@
         "barracks": 9,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 10000,
@@ -4894,7 +5560,8 @@
         "barracks": 9,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 9999,
@@ -4927,7 +5594,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 100,
@@ -4959,7 +5627,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 99,
@@ -4992,7 +5661,8 @@
         "barracks": 1,
         "hero_hall": 2,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 240,
@@ -5024,7 +5694,8 @@
         "barracks": 1,
         "hero_hall": 2,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 239,
@@ -5057,7 +5728,8 @@
         "barracks": 1,
         "hero_hall": 9,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 10500,
@@ -5089,7 +5761,8 @@
         "barracks": 1,
         "hero_hall": 9,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 10499,
@@ -5122,7 +5795,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 60,
@@ -5154,7 +5828,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 59,
@@ -5187,7 +5862,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 2,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 140,
@@ -5219,7 +5895,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 2,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 139,
@@ -5252,7 +5929,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 9,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 8800,
@@ -5284,7 +5962,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 9,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 8799,
@@ -5317,7 +5996,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 120,
@@ -5349,7 +6029,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 119,
@@ -5382,7 +6063,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 2
+        "infirmary": 2,
+        "academy": 1
       },
       "resources": {
         "food": 260,
@@ -5414,7 +6096,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 2
+        "infirmary": 2,
+        "academy": 1
       },
       "resources": {
         "food": 259,
@@ -5447,7 +6130,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 9
+        "infirmary": 9,
+        "academy": 1
       },
       "resources": {
         "food": 16000,
@@ -5479,7 +6163,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 9
+        "infirmary": 9,
+        "academy": 1
       },
       "resources": {
         "food": 15999,
@@ -5502,6 +6187,207 @@
       }
     },
     {
+      "name": "academy L1 exact",
+      "building": "academy",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
+      },
+      "resources": {
+        "food": 100,
+        "materiel": 100,
+        "funds": 160,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 2,
+        "cost": {
+          "food": 100,
+          "materiel": 100,
+          "funds": 160,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "academy L1 short by one",
+      "building": "academy",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
+      },
+      "resources": {
+        "food": 99,
+        "materiel": 100,
+        "funds": 160,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 2,
+        "cost": {
+          "food": 100,
+          "materiel": 100,
+          "funds": 160,
+          "support": 0
+        },
+        "durationMs": 120000
+      }
+    },
+    {
+      "name": "academy L2 exact",
+      "building": "academy",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 2
+      },
+      "resources": {
+        "food": 230,
+        "materiel": 230,
+        "funds": 360,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 3,
+        "cost": {
+          "food": 230,
+          "materiel": 230,
+          "funds": 360,
+          "support": 0
+        },
+        "durationMs": 480000
+      }
+    },
+    {
+      "name": "academy L2 short by one",
+      "building": "academy",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 2
+      },
+      "resources": {
+        "food": 229,
+        "materiel": 230,
+        "funds": 360,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 3,
+        "cost": {
+          "food": 230,
+          "materiel": 230,
+          "funds": 360,
+          "support": 0
+        },
+        "durationMs": 480000
+      }
+    },
+    {
+      "name": "academy L9 exact",
+      "building": "academy",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 9
+      },
+      "resources": {
+        "food": 14000,
+        "materiel": 14000,
+        "funds": 22000,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": true,
+        "toLevel": 10,
+        "cost": {
+          "food": 14000,
+          "materiel": 14000,
+          "funds": 22000,
+          "support": 0
+        },
+        "durationMs": 64800000
+      }
+    },
+    {
+      "name": "academy L9 short by one",
+      "building": "academy",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 9
+      },
+      "resources": {
+        "food": 13999,
+        "materiel": 14000,
+        "funds": 22000,
+        "support": 0
+      },
+      "queue": null,
+      "expected": {
+        "ok": false,
+        "reason": "insufficient",
+        "toLevel": 10,
+        "cost": {
+          "food": 14000,
+          "materiel": 14000,
+          "funds": 22000,
+          "support": 0
+        },
+        "durationMs": 64800000
+      }
+    },
+    {
       "name": "hq while the queue is busy",
       "building": "hq",
       "levels": {
@@ -5512,7 +6398,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -5550,7 +6437,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -5588,7 +6476,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -5626,7 +6515,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -5664,7 +6554,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -5702,7 +6593,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -5740,7 +6632,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -5778,7 +6671,8 @@
         "barracks": 1,
         "hero_hall": 1,
         "watchtower": 1,
-        "infirmary": 1
+        "infirmary": 1,
+        "academy": 1
       },
       "resources": {
         "food": 1000000,
@@ -5803,6 +6697,45 @@
           "support": 0
         },
         "durationMs": 90000
+      }
+    },
+    {
+      "name": "academy while the queue is busy",
+      "building": "academy",
+      "levels": {
+        "hq": 10,
+        "farm": 1,
+        "armory": 1,
+        "treasury": 1,
+        "barracks": 1,
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
+      },
+      "resources": {
+        "food": 1000000,
+        "materiel": 1000000,
+        "funds": 1000000,
+        "support": 1000000
+      },
+      "queue": {
+        "building": "farm",
+        "toLevel": 2,
+        "startedAt": 1000,
+        "endsAt": 31000
+      },
+      "expected": {
+        "ok": false,
+        "reason": "queue_busy",
+        "toLevel": 2,
+        "cost": {
+          "food": 100,
+          "materiel": 100,
+          "funds": 160,
+          "support": 0
+        },
+        "durationMs": 120000
       }
     }
   ]

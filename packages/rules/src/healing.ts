@@ -6,6 +6,7 @@ import { canAfford, mapResources, subtractResources, type Resources, ZERO_RESOUR
 import { RESOURCE_IDS } from "./resource-id.ts";
 import { TROOP_IDS, type TroopId } from "./troop-id.ts";
 import { subtractTroops, totalTroops, ZERO_TROOPS, type Troops } from "./troops.ts";
+import { lessonBonus } from "./effects.ts";
 
 export const HEALING_BLOCK_REASONS = ["infirmary_busy", "no_wounded", "insufficient"] as const;
 export type HealingBlockReason = (typeof HEALING_BLOCK_REASONS)[number];
@@ -14,23 +15,40 @@ export type HealingResult =
   | { readonly ok: true; readonly state: BaseState }
   | { readonly ok: false; readonly reason: HealingBlockReason; readonly state: BaseState };
 
+/** What the healers' lessons change: a share off the cost, wounded more per batch per infirmary level, a share off the time. */
+export interface HealingLessons {
+  readonly cost: number;
+  readonly batchPerLevel: number;
+  readonly time: number;
+}
+
+export const NO_HEALING_LESSONS: HealingLessons = { cost: 0, batchPerLevel: 0, time: 0 };
+
+export const healingLessons = (state: Pick<BaseState, "lessons">): HealingLessons => ({
+  cost: lessonBonus(state, "heal_cost"),
+  batchPerLevel: lessonBonus(state, "heal_batch_per_level"),
+  time: lessonBonus(state, "heal_time"),
+});
+
 /** Most wounded one batch can hold at this infirmary level. */
-export const maxHealingBatch = (infirmaryLevel: number): number => Math.max(0, Math.floor(infirmaryLevel)) * HEAL_BATCH_PER_LEVEL;
+export const maxHealingBatch = (infirmaryLevel: number, lessons: HealingLessons = NO_HEALING_LESSONS): number =>
+  Math.max(0, Math.floor(infirmaryLevel)) * (HEAL_BATCH_PER_LEVEL + Math.floor(lessons.batchPerLevel));
 
 /** What healing one unit of each type costs: a share of training it, rounded up so it is never free. */
 // The small epsilon keeps float error (15 × 0.4 = 6.000000000000001) from rounding a whole amount up.
-const unitCost = (troop: (typeof TROOP_IDS)[number]): Resources => mapResources((id) => Math.ceil(TROOPS[troop].cost[id] * HEAL_COST_SHARE - 1e-9));
+const unitCost = (troop: (typeof TROOP_IDS)[number], lessons: HealingLessons = NO_HEALING_LESSONS): Resources =>
+  mapResources((id) => Math.ceil(TROOPS[troop].cost[id] * HEAL_COST_SHARE * (1 - Math.min(0.9, lessons.cost)) - 1e-9));
 
 /** The cost and time of healing exactly `troops`. */
-export const healingQuote = (troops: Troops): { cost: Resources; durationMs: number } => {
+export const healingQuote = (troops: Troops, lessons: HealingLessons = NO_HEALING_LESSONS): { cost: Resources; durationMs: number } => {
   let cost = ZERO_RESOURCES;
   let ms = 0;
   for (const id of TROOP_IDS) {
     const n = troops[id];
     if (n <= 0) continue;
-    const per = unitCost(id);
+    const per = unitCost(id, lessons);
     cost = mapResources((r) => cost[r] + per[r] * n);
-    ms += Math.round(TROOPS[id].trainSecPerUnit * HEAL_TIME_SHARE * 1000) * n;
+    ms += Math.round(TROOPS[id].trainSecPerUnit * HEAL_TIME_SHARE * (1 - Math.min(0.9, lessons.time)) * 1000) * n;
   }
   return { cost, durationMs: ms };
 };
@@ -40,11 +58,12 @@ export const healingQuote = (troops: Troops): { cost: Resources; durationMs: num
  * many as the resources pay for (a unit at a time). Empty when nobody is wounded or nothing can be paid.
  */
 export const planHealing = (state: BaseState): Troops => {
-  let room = maxHealingBatch(state.levels.infirmary);
+  const lessons = healingLessons(state);
+  let room = maxHealingBatch(state.levels.infirmary, lessons);
   let left = state.resources;
   const take: Record<TroopId, number> = { ...ZERO_TROOPS };
   for (const id of TROOP_IDS) {
-    const per = unitCost(id);
+    const per = unitCost(id, lessons);
     const affordable = Math.min(...RESOURCE_IDS.map((r) => (per[r] > 0 ? Math.floor(left[r] / per[r]) : Infinity)));
     const n = Math.max(0, Math.min(state.wounded[id], room, affordable));
     if (n === 0) continue;
@@ -69,7 +88,7 @@ export const startHealing = (state: BaseState, now: number, world: World): Heali
   const reason = checkHealing(s);
   if (reason !== null) return { ok: false, reason, state: s };
   const troops = planHealing(s);
-  const { cost, durationMs } = healingQuote(troops);
+  const { cost, durationMs } = healingQuote(troops, healingLessons(s));
   if (!canAfford(s.resources, cost)) return { ok: false, reason: "insufficient", state: s };
   // As for upgrades and training: if the clock went backwards, `s.lastUpdated` is the latest time we trust.
   const startedAt = s.lastUpdated;

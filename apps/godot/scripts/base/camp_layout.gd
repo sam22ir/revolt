@@ -6,7 +6,7 @@ extends RefCounted
 
 const WORLD := Vector2(768.0, 1376.0)
 ## Farthest first, so the nearer one is drawn over it.
-const BUILDINGS: Array[String] = ["hq", "watchtower", "barracks", "armory", "hero_hall", "treasury", "farm", "infirmary"]
+const BUILDINGS: Array[String] = ["hq", "watchtower", "barracks", "armory", "academy", "hero_hall", "treasury", "farm", "infirmary"]
 ## How far the camp can be zoomed in from the fit that covers the screen; past it the pictures would blur.
 const MAX_ZOOM := 2.2
 ## A name goes this far below the building's front corner.
@@ -17,7 +17,8 @@ const ROUTES := {
 	# It stops at the foot of the slope: the farm terrace beyond is the infirmary's.
 	"road": [Vector2(768, 520), Vector2(700, 552), Vector2(600, 606), Vector2(500, 660), Vector2(400, 712), Vector2(305, 762), Vector2(230, 810), Vector2(190, 880), Vector2(225, 950), Vector2(290, 1005)],
 	"yard": [Vector2(395, 440), Vector2(400, 520), Vector2(300, 585), Vector2(215, 560)],
-	"cave": [Vector2(360, 436), Vector2(395, 455), Vector2(440, 520), Vector2(420, 570)],
+	# Bends west of the academy, which stands in the yard's middle.
+	"cave": [Vector2(360, 436), Vector2(395, 455), Vector2(405, 505), Vector2(385, 565)],
 }
 
 ## The people and animals on the ground. A walker goes back and forth along its route, starting `start` world units along it, at

@@ -52,6 +52,8 @@ export const importM1Save = (raw: unknown, now: number): BaseState => {
     marches: [],
     villages: {},
     lessonsTaught: [],
+    lessons: [],
+    study: null,
     lastUpdated: Math.min(candidate.lastUpdated, now),
   };
 };

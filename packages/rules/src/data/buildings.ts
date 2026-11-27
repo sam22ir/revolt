@@ -155,4 +155,20 @@ export const BUILDINGS: Readonly<Record<BuildingId, BuildingDef>> = {
       { cost: c(16000, 6800, 13700), durationSec: 57600, ratePerHour: 0 },
     ],
   },
+  // Placeholder balance. The academy studies the lessons villages teach; its level gates the deeper ones (data/academy.ts).
+  academy: {
+    produces: null,
+    levels: [
+      { cost: FREE, durationSec: 0, ratePerHour: 0 },
+      { cost: c(100, 100, 160), durationSec: 120, ratePerHour: 0 },
+      { cost: c(230, 230, 360), durationSec: 480, ratePerHour: 0 },
+      { cost: c(460, 460, 720), durationSec: 1500, ratePerHour: 0 },
+      { cost: c(920, 920, 1440), durationSec: 3000, ratePerHour: 0 },
+      { cost: c(1700, 1700, 2700), durationSec: 6000, ratePerHour: 0 },
+      { cost: c(3000, 3000, 4700), durationSec: 10800, ratePerHour: 0 },
+      { cost: c(5100, 5100, 8000), durationSec: 19800, ratePerHour: 0 },
+      { cost: c(8500, 8500, 13300), durationSec: 34200, ratePerHour: 0 },
+      { cost: c(14000, 14000, 22000), durationSec: 64800, ratePerHour: 0 },
+    ],
+  },
 };

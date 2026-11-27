@@ -1,4 +1,4 @@
-import { advance, battleOdds, checkLoadout, forecastFor, heroBattleModifier, parseHeroLoadout, parseTroops, snapshotHeroes, type ScoutView } from "@revolt/rules";
+import { advance, lessonBonus, battleOdds, checkLoadout, forecastFor, heroBattleModifier, parseHeroLoadout, parseTroops, snapshotHeroes, type ScoutView } from "@revolt/rules";
 import { loadBase } from "../db/bases.ts";
 import { loadWorld } from "../db/liberations.ts";
 import { HttpError, json, readJson } from "../http.ts";
@@ -25,6 +25,6 @@ export const postScout = async (ctx: Ctx): Promise<Response> => {
   }
   const modifier = heroBattleModifier(loadout === null ? undefined : snapshotHeroes(state.heroes, loadout));
   const odds = battleOdds(troops, b.level, modifier);
-  const body: ScoutView = { forecast: odds === null ? null : forecastFor(odds, state.levels.watchtower), watchtower: state.levels.watchtower, now: ctx.now };
+  const body: ScoutView = { forecast: odds === null ? null : forecastFor(odds, state.levels.watchtower + lessonBonus(state, "forecast_levels")), watchtower: state.levels.watchtower, now: ctx.now };
   return json(body);
 };

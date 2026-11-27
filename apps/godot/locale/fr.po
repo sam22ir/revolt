@@ -70,6 +70,12 @@ msgstr "Infirmerie"
 msgid "building.infirmary.desc"
 msgstr "Remet les blessés sur pied. Un niveau plus élevé en soigne davantage à la fois."
 
+msgid "building.academy.name"
+msgstr "Académie"
+
+msgid "building.academy.desc"
+msgstr "On y étudie les leçons que les villages vous enseignent. Une académie plus haute étudie des leçons plus profondes."
+
 msgid "panel.level"
 msgstr "Niveau {level}"
 
@@ -114,6 +120,21 @@ msgstr "Moins"
 
 msgid "panel.max"
 msgstr "Max"
+
+msgid "reason.unknown_lesson"
+msgstr "Cette leçon n’existe pas"
+
+msgid "reason.not_taught"
+msgstr "Aucun village ne vous a encore enseigné cette leçon"
+
+msgid "reason.already_studied"
+msgstr "Vous avez déjà étudié cette leçon"
+
+msgid "reason.study_busy"
+msgstr "L’académie étudie déjà une leçon"
+
+msgid "reason.academy_level"
+msgstr "Nécessite l’académie niveau {level}"
 
 msgid "reason.infirmary_busy"
 msgstr "L’infirmerie soigne déjà un groupe"
@@ -1371,6 +1392,12 @@ msgstr "Clinique de campagne"
 
 msgid "background.vietnam.building.infirmary.desc"
 msgstr "Remet les blessés sur pied. Un niveau plus élevé en soigne davantage à la fois."
+
+msgid "background.vietnam.building.academy.name"
+msgstr "École de la jungle"
+
+msgid "background.vietnam.building.academy.desc"
+msgstr "On y étudie les leçons que les villages vous enseignent. Une école plus haute étudie des leçons plus profondes."
 
 msgid "background.vietnam.troop.infantry.name"
 msgstr "Infanterie légère"

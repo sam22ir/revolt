@@ -21,10 +21,12 @@ PLACES = {
     "watchtower": ((1440, 545), land.MID, 0),
     # Open ground on the farm terrace, between the farm and the walled field.
     "infirmary": ((820, 2194), land.FARM, 4),
+    # The middle of the barracks yard: where the lessons villages teach are studied.
+    "academy": ((930, 1190), land.YARD, 2),
 }
 # How big the scaffolding round each is: along the front, along the right, height.
 SCAFFOLD = {"hq": (190, 240, 150), "barracks": (185, 245, 140), "armory": (190, 195, 140), "hero_hall": (240, 355, 190), "treasury": (115, 190, 160),
-            "farm": (240, 285, 165), "watchtower": (110, 110, 250), "infirmary": (160, 140, 120)}
+            "farm": (240, 285, 165), "watchtower": (110, 110, 250), "infirmary": (160, 140, 120), "academy": (110, 90, 115)}
 
 
 def frame(name):
@@ -591,4 +593,61 @@ def infirmary(k, look):
         washing(k, (d + 20, l + 10), (-40, l + 30), 4)
 
 
-BUILD = {"hq": hq, "barracks": barracks, "armory": armory, "hero_hall": hero_hall, "treasury": treasury, "farm": farm, "watchtower": watchtower, "infirmary": infirmary}
+BOARD = ck.rgb("39443a")
+
+
+def bench(k, a, b, h=14.0):
+    """A plank bench on two short legs."""
+    for p in (a, b):
+        k.rod((p[0], p[1], 0), (p[0], p[1], h), 1.6, 1.4)
+    k.box(min(a[0], b[0]) - 3, max(a[0], b[0]) + 3, min(a[1], b[1]) - 4, max(a[1], b[1]) + 4, h, h + 3, k.shade(ck.WOOD, 0.08), None, 0.8)
+
+
+def chalkboard(k, at, w=40.0, z=20.0, h=26.0):
+    """A dark board on two posts, facing the front."""
+    x, y = at
+    for dx in (-w / 2, w / 2):
+        k.rod((x + dx, y, 0), (x + dx, y, z + h + 4), 1.6, 1.4)
+    k.box(x - w / 2, x + w / 2, y - 1.5, y + 1.5, z, z + h, BOARD, None, 0.3)
+    k.box(x - w / 2 - 2, x + w / 2 + 2, y - 2.5, y + 2.5, z - 2, z, k.shade(ck.WOOD, 0.05), None, 0.8)
+
+
+def books(k, at, n=3):
+    """A crate of books: stacked covers in a few faded colours."""
+    k.crate(at, (24, 20, 14), 4)
+    for i in range(n):
+        col = (ck.rgb("8c3b2e"), ck.rgb("3f5578"), ck.rgb("5d6b3d"), ck.rgb("b48a3c"))[i % 4]
+        k.box(at[0] - 9, at[0] + 9, at[1] - 7 + i * 4.5, at[1] - 3 + i * 4.5, 14, 22 + i % 2 * 3, col, None, 0.4)
+
+
+def academy(k, look):
+    """Where the lessons villages teach are studied: an open-air class under canvas, then a schoolroom that grows a porch, a book
+    shed and a courtyard wall."""
+    if look == 1:
+        awning(k, (-104, -6, 78), (-8, -6, 78), (-8, 84, 78), (-104, 84, 78), sag=8)
+        chalkboard(k, (-56, 80))
+        for y in (16, 38, 60):
+            bench(k, (-88, y), (-26, y))
+        books(k, (12, 26, 0))
+        jar(k, (10, 58, 0))
+        return
+    w, l, h, ridge = ((100, 84, 84, 36), (108, 88, 90, 40), (112, 90, 96, 42))[look - 2]
+    k.gable_house(w, l, h, ridge)
+    k.door(l * 0.5, 34, 66)
+    for at in (0.2, 0.8):
+        k.window("right", l * at, 46, 22, 30)
+    k.window("front", -w * 0.3, 46, 22, 30)
+    k.window("front", -w * 0.72, 46, 22, 30)
+    k.worn("front", -w * 0.5, 12)
+    for y in (16, l - 16):
+        bench(k, (26, y - 10), (26, y + 10))
+    books(k, (-w * 0.5, -22, 0))
+    if look >= 3:
+        leanto(k, 44, 8, l - 8, 60, 76)
+        chalkboard(k, (52, l * 0.5), 26, 18, 20)
+    if look == 4:
+        k.sandbags([Vector((-w + 6, -36, 0)), Vector((-20, -40, 0))], 2)
+        books(k, (-w * 0.5 + 34, -24, 0), 4)
+
+
+BUILD = {"hq": hq, "barracks": barracks, "armory": armory, "hero_hall": hero_hall, "treasury": treasury, "farm": farm, "watchtower": watchtower, "infirmary": infirmary, "academy": academy}

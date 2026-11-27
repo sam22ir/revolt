@@ -48,7 +48,9 @@ export const VILLAGE_SITE_CLEARANCE = 4;
 /** What a lesson does once studied (applied in slice 3). Fractions are shares (0.06 = 6%); counts are whole numbers. */
 export const LESSON_STATS = [
   "march_speed",
-  "troop_tier",
+  "train_cost",
+  "train_time",
+  "train_batch",
   "heal_cost",
   "heal_batch_per_level",
   "heal_time",
@@ -93,9 +95,10 @@ export const LESSONS: Readonly<Record<LessonId, LessonDef>> = {
   hidden_paths: { village: "shepherds", level: 1, stat: "march_speed", value: 0.06 },
   night_marches: { village: "shepherds", level: 2, stat: "march_speed", value: 0.06 },
   high_passes: { village: "shepherds", level: 3, stat: "march_speed", value: 0.08 },
-  repair_work: { village: "smiths", level: 1, stat: "troop_tier", value: 2 },
-  metal_craft: { village: "smiths", level: 2, stat: "troop_tier", value: 3 },
-  master_smith: { village: "smiths", level: 3, stat: "troop_tier", value: 4 },
+  // Troop tiers 2-4 were planned here, but only tier-1 troops exist yet: the smiths make training cheaper, faster and bigger instead.
+  repair_work: { village: "smiths", level: 1, stat: "train_cost", value: 0.1 },
+  metal_craft: { village: "smiths", level: 2, stat: "train_time", value: 0.15 },
+  master_smith: { village: "smiths", level: 3, stat: "train_batch", value: 0.25 },
   herbal_remedies: { village: "healers", level: 1, stat: "heal_cost", value: 0.15 },
   bone_setting: { village: "healers", level: 2, stat: "heal_batch_per_level", value: 5 },
   convalescence: { village: "healers", level: 3, stat: "heal_time", value: 0.2 },

@@ -4,7 +4,7 @@ import type { BaseState } from "./base-state.ts";
 import { DEFAULT_BACKGROUND, type BackgroundId } from "./background.ts";
 import type { CosmeticId } from "./data/cosmetics.ts";
 import { addShardsToOwned } from "./hero-shards.ts";
-import { storageCap } from "./production.ts";
+import { storageCapFor } from "./production.ts";
 import { mapResources, type Resources } from "./resources.ts";
 
 /**
@@ -27,7 +27,7 @@ export const rewardHasBaseParts = (r: Reward): boolean => (r.shards ?? 0) > 0 ||
  */
 export const grantReward = (state: BaseState, reward: Reward, now: number, world: World, background: BackgroundId = DEFAULT_BACKGROUND): BaseState => {
   const s = advance(state, now, world);
-  const cap = storageCap(s.levels.hq);
+  const cap = storageCapFor(s);
   const give = reward.resources ?? {};
   const resources = mapResources((id) => Math.max(s.resources[id], Math.min(cap[id], s.resources[id] + Math.max(0, give[id] ?? 0))));
   return addShardsToOwned({ ...s, resources }, background, reward.shards ?? 0);

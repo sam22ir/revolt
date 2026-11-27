@@ -183,5 +183,5 @@ export const checkHarvest = (state: BaseState, troops: Troops, site: MapSite | u
 };
 
 /** Carry the troops can take home from a site: the capacity a battle loot uses, ZONE_CARRY_MULTIPLIER times that from a zone's site. */
-export const harvestCarry = (troops: Troops, site: { readonly zone?: number | null } = {}): number =>
-  carryCapacity(troops) * (site.zone == null ? 1 : ZONE_CARRY_MULTIPLIER);
+export const harvestCarry = (troops: Troops, site: { readonly zone?: number | null } = {}, porterBonus = 0): number =>
+  carryCapacity(troops, porterBonus) * (site.zone == null ? 1 : ZONE_CARRY_MULTIPLIER);
