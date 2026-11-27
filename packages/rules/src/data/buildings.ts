@@ -123,4 +123,52 @@ export const BUILDINGS: Readonly<Record<BuildingId, BuildingDef>> = {
       { cost: c(10500, 7100, 15000), durationSec: 57600, ratePerHour: 0 },
     ],
   },
+  // Placeholder balance. The watchtower's level sets how much a battle forecast shows (data/watchtower.ts).
+  watchtower: {
+    produces: null,
+    levels: [
+      { cost: FREE, durationSec: 0, ratePerHour: 0 },
+      { cost: c(60, 120, 80), durationSec: 90, ratePerHour: 0 },
+      { cost: c(140, 260, 180), durationSec: 360, ratePerHour: 0 },
+      { cost: c(280, 520, 360), durationSec: 1200, ratePerHour: 0 },
+      { cost: c(560, 1040, 720), durationSec: 2400, ratePerHour: 0 },
+      { cost: c(1050, 1950, 1350), durationSec: 4800, ratePerHour: 0 },
+      { cost: c(1850, 3400, 2350), durationSec: 9000, ratePerHour: 0 },
+      { cost: c(3150, 5800, 4000), durationSec: 16200, ratePerHour: 0 },
+      { cost: c(5300, 9700, 6700), durationSec: 28800, ratePerHour: 0 },
+      { cost: c(8800, 16000, 11000), durationSec: 57600, ratePerHour: 0 },
+    ],
+  },
+  // Placeholder balance. The infirmary heals wounded troops; its level sets the batch (data/troops.ts).
+  infirmary: {
+    produces: null,
+    levels: [
+      { cost: FREE, durationSec: 0, ratePerHour: 0 },
+      { cost: c(120, 50, 100), durationSec: 90, ratePerHour: 0 },
+      { cost: c(260, 110, 220), durationSec: 360, ratePerHour: 0 },
+      { cost: c(520, 220, 440), durationSec: 1200, ratePerHour: 0 },
+      { cost: c(1040, 440, 880), durationSec: 2400, ratePerHour: 0 },
+      { cost: c(1950, 820, 1650), durationSec: 4800, ratePerHour: 0 },
+      { cost: c(3400, 1450, 2900), durationSec: 9000, ratePerHour: 0 },
+      { cost: c(5800, 2450, 4950), durationSec: 16200, ratePerHour: 0 },
+      { cost: c(9700, 4100, 8300), durationSec: 28800, ratePerHour: 0 },
+      { cost: c(16000, 6800, 13700), durationSec: 57600, ratePerHour: 0 },
+    ],
+  },
+  // Placeholder balance. The academy studies the lessons villages teach; its level gates the deeper ones (data/academy.ts).
+  academy: {
+    produces: null,
+    levels: [
+      { cost: FREE, durationSec: 0, ratePerHour: 0 },
+      { cost: c(100, 100, 160), durationSec: 120, ratePerHour: 0 },
+      { cost: c(230, 230, 360), durationSec: 480, ratePerHour: 0 },
+      { cost: c(460, 460, 720), durationSec: 1500, ratePerHour: 0 },
+      { cost: c(920, 920, 1440), durationSec: 3000, ratePerHour: 0 },
+      { cost: c(1700, 1700, 2700), durationSec: 6000, ratePerHour: 0 },
+      { cost: c(3000, 3000, 4700), durationSec: 10800, ratePerHour: 0 },
+      { cost: c(5100, 5100, 8000), durationSec: 19800, ratePerHour: 0 },
+      { cost: c(8500, 8500, 13300), durationSec: 34200, ratePerHour: 0 },
+      { cost: c(14000, 14000, 22000), durationSec: 64800, ratePerHour: 0 },
+    ],
+  },
 };

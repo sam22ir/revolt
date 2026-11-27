@@ -5,6 +5,8 @@ import { START_LEVELS, START_RESOURCES, START_TROOPS } from "./data/start.ts";
 import type { Resources } from "./resources.ts";
 import type { TroopId } from "./troop-id.ts";
 import { ZERO_TROOPS, type Troops } from "./troops.ts";
+import type { LessonId, NeedKind } from "./data/villages.ts";
+import type { VillageTrust } from "./villages.ts";
 
 export interface UpgradeJob {
   readonly building: BuildingId;
@@ -19,6 +21,24 @@ export interface UpgradeJob {
 export interface TrainingJob {
   readonly troop: TroopId;
   readonly count: number;
+  /** Epoch ms. */
+  readonly startedAt: number;
+  /** Epoch ms. */
+  readonly endsAt: number;
+}
+
+/** One academy study: `lesson` is learned for good at `endsAt`. */
+export interface StudyJob {
+  readonly lesson: LessonId;
+  /** Epoch ms. */
+  readonly startedAt: number;
+  /** Epoch ms. */
+  readonly endsAt: number;
+}
+
+/** One infirmary batch: these wounded troops are being nursed and come home ready at `endsAt`. */
+export interface HealingJob {
+  readonly troops: Troops;
   /** Epoch ms. */
   readonly startedAt: number;
   /** Epoch ms. */
@@ -71,6 +91,11 @@ export interface MarchState {
   readonly rallyId?: string;
   /** A harvest march: the resource site it holds (`target.npcId` is then the site id too, `target.level` is 0). */
   readonly siteId?: string;
+  /**
+   * An aid march to a village (docs/villages-plan.md): the need it answers, on which village day, and what it carried (paid at
+   * departure; brought back if the village was already helped that day). `target.npcId` is the village id, `target.level` 0.
+   */
+  readonly aid?: { readonly village: string; readonly need: NeedKind; readonly day: number; readonly cost: Resources };
   /** Heroes leading the march, if any. Their battle effects use the levels recorded here. */
   readonly heroes?: MarchHeroes;
   /** Set by the map server when the march arrives; the march comes home lazily at `returnAt`. */
@@ -84,16 +109,26 @@ export interface BaseState {
   readonly queue: UpgradeJob | null;
   /** Troops at home, ready to march. */
   readonly troops: Troops;
-  /** Troops wounded in battle. Healing comes with the infirmary (later milestone). */
+  /** Troops wounded in battle, waiting for the infirmary. */
   readonly wounded: Troops;
   /** One barracks queue, separate from the build queue. */
   readonly training: TrainingJob | null;
+  /** One infirmary batch, separate from both. */
+  readonly healing: HealingJob | null;
   /** Recruited heroes, their levels and shards, and the pity counter. */
   readonly heroes: HeroRoster;
   /** Campaign progress (GDD §4.8). */
   readonly story: StoryProgress;
   /** Marches out on the map. */
   readonly marches: readonly MarchState[];
+  /** The player's trust with each village they have helped, by village id. */
+  readonly villages: Readonly<Record<string, VillageTrust>>;
+  /** Lessons the villages have taught, in the order taught: they can be studied at the academy. */
+  readonly lessonsTaught: readonly LessonId[];
+  /** Lessons studied: their effects apply (effects.ts). */
+  readonly lessons: readonly LessonId[];
+  /** The academy's one study in progress. */
+  readonly study: StudyJob | null;
   /** Epoch ms up to which production has been settled. Never moves backwards. */
   readonly lastUpdated: number;
 }
@@ -105,8 +140,13 @@ export const createBaseState = (now: number): BaseState => ({
   troops: START_TROOPS,
   wounded: ZERO_TROOPS,
   training: null,
+  healing: null,
   heroes: EMPTY_HERO_ROSTER,
   story: START_STORY,
   marches: [],
+  villages: {},
+  lessonsTaught: [],
+  lessons: [],
+  study: null,
   lastUpdated: now,
 });

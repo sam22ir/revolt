@@ -20,6 +20,9 @@ static func info(snapshot: Dictionary, x: int, y: int, terrain: String) -> Dicti
 	var site := SitesModel.site_at(snapshot, x, y)
 	if not site.is_empty():
 		return {"kind": "site", "site": site, "terrain": terrain}
+	var village := VillageModel.village_at(snapshot, x, y)
+	if not village.is_empty():
+		return {"kind": "village", "village": village, "terrain": terrain}
 	return {"kind": "empty", "terrain": terrain}
 
 ## The exported table row for a target level (`npcLevel` in the rules), or null.
@@ -34,12 +37,12 @@ static func npc_def(level: int) -> Variant:
 ## "lines": Array of String (a site's resource, rate and holder), "harvest_action": "" | "harvest" (free site) | "recall" (your march is at it), "recall_march": the march id to recall}.
 ## `alliance_name` is the player's own alliance's name for their own HQ, else "". Player text (an alliance's name) never goes through a translation template: it is appended after.
 ## `marches` and `now` (the viewer's marches and the synced clock, ms) decide a site's Recall button; a site needs neither otherwise.
-static func view(info: Dictionary, x: int, y: int, own_alliance_name: String, marches: Array = [], now := 0.0) -> Dictionary:
+static func view(info: Dictionary, x: int, y: int, own_alliance_name: String, marches: Array = [], now := 0.0, state: Dictionary = {}) -> Dictionary:
 	var lang := Fmt.lang()
 	var out := {
 		"title": "", "level": -1, "coords": Loc.t("map.coords", {"x": Fmt.amount(lang, x), "y": Fmt.amount(lang, y)}),
 		"desc": "", "defenders": null, "rally_only": false, "can_march": false, "alliance_name": "",
-		"lines": [], "harvest_action": "", "recall_march": "",
+		"lines": [], "harvest_action": "", "recall_march": "", "can_aid": false,
 	}
 	match info["kind"]:
 		"own":
@@ -66,6 +69,8 @@ static func view(info: Dictionary, x: int, y: int, own_alliance_name: String, ma
 			out["can_march"] = not out["rally_only"]
 		"site":
 			_site_view(out, info["site"], marches, now)
+		"village":
+			_village_view(out, info["village"], state, now)
 		_:
 			out["title"] = Loc.t("terrain." + String(info["terrain"]))
 			out["desc"] = Loc.t("map.nothingHere")
@@ -92,6 +97,38 @@ static func _site_view(out: Dictionary, site: Dictionary, marches: Array, now: f
 			out["recall_march"] = march
 	elif holder == "free":
 		out["harvest_action"] = "harvest"
+
+## A village's panel (docs/villages-plan.md): what it is, the player's trust (fading), today's need and how to answer it, and the next
+## lesson. Help is offered unless today is answered already or the need is protection (a battle nearby answers that).
+static func _village_view(out: Dictionary, v: Dictionary, state: Dictionary, now: float) -> void:
+	var lang := Fmt.lang()
+	var kind := String(v["kind"])
+	out["title"] = Loc.t("village.%s.name" % kind)
+	out["desc"] = Loc.t("village.%s.desc" % kind)
+	var t := VillageModel.trust(state, String(v["id"]), now)
+	var level := VillageModel.level_of(t)
+	var lines: Array = []
+	lines.append(Loc.t("village.trust", {"level": Fmt.amount(lang, level), "max": Fmt.amount(lang, VillageModel.max_level())}) if t > 0.0 else Loc.t("village.trustNone"))
+	var helped := VillageModel.helped_today(state, v)
+	if helped:
+		lines.append(Loc.t("village.helpedToday"))
+	else:
+		lines.append(Loc.t("village.needToday", {"need": Loc.t("need.%s.name" % v["need"])}))
+		var line := VillageModel.need_line(state, v, now)
+		var vars := {}
+		for k: String in line["vars"]:
+			vars[k] = Fmt.duration(float(line["vars"][k])) if k == "time_ms" else Fmt.amount(lang, line["vars"][k])
+		if vars.has("time_ms"):
+			vars["time"] = vars["time_ms"]
+		lines.append(Loc.t(line["key"], vars))
+		if v["need"] == "protection":
+			lines.append(Loc.t("village.protectionHint", {"tiles": Fmt.amount(lang, int(Balance.data()["villages"]["protectionRadius"]))}))
+	var next := VillageModel.next_lesson(state, v)
+	lines.append(Loc.t("village.next", {"level": Fmt.amount(lang, next["level"]), "lesson": Loc.t("lesson.%s.name" % next["lesson"])}) if not next.is_empty() else Loc.t("village.allTaught"))
+	if t > 0.0:
+		lines.append(Loc.t("village.fading"))
+	out["lines"] = lines
+	out["can_aid"] = not helped and v["need"] != "protection"
 
 ## Who holds a site for the viewer: "mine" when one of the viewer's marches on it has not yet come home (the base can still list one that
 ## has, until its next refresh) or the snapshot says so, else "taken" or "free" as the snapshot says.

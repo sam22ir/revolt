@@ -202,7 +202,7 @@ describe("the game store and the chosen background", () => {
     expect(asked).toBe(1);
 
     const legacy = fakeServer("algeria");
-    const save = memoryStorage({ [SAVE_KEY]: serializeSave({ ...createBaseState(T0), levels: { hq: 2, farm: 1, armory: 1, treasury: 1, barracks: 1, hero_hall: 1 } }) });
+    const save = memoryStorage({ [SAVE_KEY]: serializeSave({ ...createBaseState(T0), levels: { hq: 2, farm: 1, armory: 1, treasury: 1, barracks: 1, hero_hall: 1, watchtower: 1, infirmary: 1, academy: 1 } }) });
     await connectGameStore({ api: legacy.api, storage: save, clock: () => T0, chooseBackground: async () => (asked++, "vietnam") });
     expect(asked).toBe(1);
     expect(legacy.created).toEqual(["algeria"]);

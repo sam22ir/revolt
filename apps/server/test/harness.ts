@@ -127,6 +127,7 @@ export const testMapApi = (tm: TestMap, server: string): MapApi => {
     startRally: (v, npcId, troops, gatherMs, now) => run(now, (s) => s.startRally(v, npcId, troops, gatherMs, now)),
     joinRally: (v, rallyId, troops, now) => run(now, (s) => s.joinRally(v, rallyId, troops, now)),
     startHarvest: (v, siteId, troops, now) => run(now, (s) => s.startHarvest(v, siteId, troops, now)),
+    sendAid: (v, villageId, troops, now) => run(now, (s) => s.sendAid(v, villageId, troops, now)),
     recallHarvest: (v, marchId, now) => run(now, (s) => s.recallHarvest(v, marchId, now)),
     setHq: (v, x, y, now) => run(now, (s) => s.setHq(v, x, y, now)),
     hqOf: async (allianceId) => tm.host.service.hqOf(allianceId),

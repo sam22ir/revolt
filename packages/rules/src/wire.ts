@@ -17,6 +17,8 @@ import type { Liberation } from "./liberation.ts";
 import type { Resources } from "./resources.ts";
 import type { SiteKind, SiteLevel } from "./data/sites.ts";
 import type { Troops } from "./troops.ts";
+import type { Forecast } from "./scout.ts";
+import type { NeedKind, VillageKind } from "./data/villages.ts";
 
 export interface MapBaseView extends MapPoint {
   /** The player's public handle; account ids are never sent to other players. */
@@ -107,6 +109,17 @@ export interface MapGeographyWire {
   readonly oases: readonly number[];
 }
 
+/** A village on the map and what it needs today. The player's trust with it is in their base (`state.villages`). */
+export interface MapVillageView {
+  readonly id: string;
+  readonly kind: VillageKind;
+  readonly x: number;
+  readonly y: number;
+  readonly need: NeedKind;
+  /** The village day the need is for; an aid march sent now answers this day. */
+  readonly day: number;
+}
+
 export interface MapSnapshot {
   readonly map: string;
   /** Seed for `terrainAt`. */
@@ -117,6 +130,8 @@ export interface MapSnapshot {
   readonly marches: readonly MapMarchView[];
   /** Resource sites on the map. Optional so clients built before sites still read the snapshot. */
   readonly sites?: readonly MapSiteView[];
+  /** Villages with today's need (docs/villages-plan.md). Optional so clients built before villages still read the snapshot. */
+  readonly villages?: readonly MapVillageView[];
   /** Contested zones. Optional so clients built before zones still read the snapshot. */
   readonly zones?: readonly MapZoneView[];
   /** Only on `GET /v1/map` (never on the socket): the landmarks, so the client skips computing them. */
@@ -339,5 +354,12 @@ export interface MissionsView {
   readonly resetsAt: number;
   readonly daily: readonly DailyMissionView[];
   readonly quest: QuestView | null;
+  readonly now: number;
+}
+
+/** POST /v1/scout: the watchtower's forecast for a march (null: no NPC of that level, or nobody sent), and the tower's level. */
+export interface ScoutView {
+  readonly forecast: Forecast | null;
+  readonly watchtower: number;
   readonly now: number;
 }

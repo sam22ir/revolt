@@ -46,9 +46,14 @@ export const importM1Save = (raw: unknown, now: number): BaseState => {
     troops: START_TROOPS,
     wounded: ZERO_TROOPS,
     training: null,
+    healing: null,
     heroes: EMPTY_HERO_ROSTER,
     story: START_STORY,
     marches: [],
+    villages: {},
+    lessonsTaught: [],
+    lessons: [],
+    study: null,
     lastUpdated: Math.min(candidate.lastUpdated, now),
   };
 };

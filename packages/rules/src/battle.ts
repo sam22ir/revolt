@@ -64,7 +64,8 @@ const kills = (dmg: number, to: Troops): Troops => {
 
 const hasCombat = (t: Troops): boolean => COMBAT_TROOP_IDS.some((id) => t[id] > 0);
 
-export const carryCapacity = (t: Troops): number => TROOP_IDS.reduce((n, id) => n + t[id] * TROOPS[id].carry, 0);
+/** What `t` carries home. `porterBonus` is the weavers' lesson: porters (only) carry that share more. */
+export const carryCapacity = (t: Troops, porterBonus = 0): number => TROOP_IDS.reduce((n, id) => n + t[id] * TROOPS[id].carry * (id === "porters" ? 1 + Math.max(0, porterBonus) : 1), 0);
 
 /** Loot up to `capacity`, scaled evenly across resources and floored. */
 export const takeLoot = (available: Resources, capacity: number): Resources => {

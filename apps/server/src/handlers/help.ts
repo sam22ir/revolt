@@ -1,5 +1,5 @@
 import { loadWorld } from "../db/liberations.ts";
-import { advance, backgroundOfServer, HELP_REDUCTION_MS, missionTick, helpableJob, isHelpKind, MAX_HELPS_PER_REQUEST, reduceJob, type AllianceBlockReason, type HelpRequestView } from "@revolt/rules";
+import { advance, backgroundOfServer, lessonBonus, HELP_REDUCTION_MS, missionTick, helpableJob, isHelpKind, MAX_HELPS_PER_REQUEST, reduceJob, type AllianceBlockReason, type HelpRequestView } from "@revolt/rules";
 import { findAccountById } from "../db/accounts.ts";
 import { findMembership } from "../db/alliances.ts";
 import { loadBase } from "../db/bases.ts";
@@ -72,7 +72,8 @@ export const postHelpGive = async (ctx: Ctx): Promise<Response> => {
     const job = helpableJob(advanced, req.kind, ctx.now);
     // The job the request was made for must still be the running one.
     if (job === null || job.startedAt !== req.jobStartedAt) return refuse(ctx, "request_gone");
-    const reduced = reduceJob(advanced, req.kind, HELP_REDUCTION_MS, ctx.now);
+    // The requester's messengers' lesson makes each help count for more.
+    const reduced = reduceJob(advanced, req.kind, Math.floor(HELP_REDUCTION_MS * (1 + lessonBonus(advanced, "help_time"))), ctx.now);
     if (!reduced.changed) return refuse(ctx, "request_gone");
     const endsAt = (req.kind === "upgrade" ? reduced.state.queue : reduced.state.training)?.endsAt ?? req.endsAt;
     try {

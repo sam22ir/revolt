@@ -14,6 +14,8 @@ import {
   parseTroops,
   recruitHero,
   seededRng,
+  startHealing,
+  startStudy,
   startTraining,
   startUpgrade,
   TROOP_IDS,
@@ -43,6 +45,9 @@ export type Intent =
   | { readonly type: "rally_join"; readonly rally: string; readonly troops: Troops }
   | { readonly type: "harvest_start"; readonly site: string; readonly troops: Troops }
   | { readonly type: "harvest_recall"; readonly march: string }
+  | { readonly type: "aid"; readonly village: string; readonly troops: Troops }
+  | { readonly type: "heal" }
+  | { readonly type: "study"; readonly lesson: string }
   | { readonly type: "recruit" }
   | { readonly type: "hero_level"; readonly hero: HeroId }
   | { readonly type: "story_claim" }
@@ -54,7 +59,8 @@ const MAX_TARGET_ID = 64;
 export const parseIntent = (body: Record<string, unknown>): Intent => {
   const { type } = body;
   if (type === "upgrade" && BUILDING_IDS.some((id) => id === body.building)) return { type, building: body.building as BuildingId };
-  if (type === "recruit") return { type };
+  if (type === "recruit" || type === "heal") return { type };
+  if (type === "study" && typeof body.lesson === "string" && body.lesson.length > 0 && body.lesson.length <= MAX_TARGET_ID) return { type, lesson: body.lesson };
   if (type === "hero_level" && HERO_IDS.some((id) => id === body.hero)) return { type, hero: body.hero as HeroId };
   if (type === "train" && TROOP_IDS.some((id) => id === body.troop) && typeof body.count === "number") {
     return { type, troop: body.troop as TroopId, count: body.count };
@@ -79,6 +85,10 @@ export const parseIntent = (body: Record<string, unknown>): Intent => {
   if (type === "harvest_start" && typeof body.site === "string" && body.site.length > 0 && body.site.length <= MAX_TARGET_ID) {
     const troops = parseTroops(body.troops);
     if (troops !== null) return { type, site: body.site, troops };
+  }
+  if (type === "aid" && typeof body.village === "string" && body.village.length > 0 && body.village.length <= MAX_TARGET_ID) {
+    const troops = parseTroops(body.troops);
+    if (troops !== null) return { type, village: body.village, troops };
   }
   if (type === "harvest_recall" && typeof body.march === "string" && body.march.length > 0 && body.march.length <= MAX_TARGET_ID) {
     return { type, march: body.march };
@@ -163,6 +173,10 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
           return [job === null ? null : missionTick(backgroundOfServer(account.server), ctx.now, "troops_trained", `train:${job.troop}:${job.startedAt}`, job.count)];
         },
       );
+    case "study":
+      return changeBase(ctx, account, (s, w) => startStudy(s, intent.lesson, ctx.now, w));
+    case "heal":
+      return changeBase(ctx, account, (s, w) => startHealing(s, ctx.now, w));
     case "recruit":
       // The server picks the seed, so the client never chooses the draw.
       return changeBase(ctx, account, (s, w) => {
@@ -201,6 +215,12 @@ export const postIntent = async (ctx: Ctx): Promise<Response> => {
     case "harvest_start": {
       const { viewer } = await viewerFor(ctx, account);
       const r = await ctx.deps.map(ctx.env, account.server).startHarvest(viewer, intent.site, intent.troops, ctx.now);
+      if ("error" in r) throw new HttpError(r.error);
+      return json({ ...r, now: ctx.now });
+    }
+    case "aid": {
+      const { viewer } = await viewerFor(ctx, account);
+      const r = await ctx.deps.map(ctx.env, account.server).sendAid(viewer, intent.village, intent.troops, ctx.now);
       if ("error" in r) throw new HttpError(r.error);
       return json({ ...r, now: ctx.now });
     }

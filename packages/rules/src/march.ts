@@ -30,9 +30,9 @@ export const marchSpeed = (troops: Troops): number => {
   return speed === Infinity ? 0 : speed;
 };
 
-/** One-way travel time in whole milliseconds; at least one second. */
-export const travelMs = (from: MapPoint, to: MapPoint, troops: Troops): number => {
-  const speed = marchSpeed(troops);
+/** One-way travel time in whole milliseconds; at least one second. `speedBonus` is the shepherds' lessons (0.12 = 12% faster). */
+export const travelMs = (from: MapPoint, to: MapPoint, troops: Troops, speedBonus = 0): number => {
+  const speed = marchSpeed(troops) * (1 + Math.max(0, speedBonus));
   if (speed === 0) return Infinity;
   return Math.max(1000, Math.ceil((tileDistance(from, to) / speed) * 60_000));
 };
@@ -44,8 +44,8 @@ export interface MarchTiming {
 }
 
 /** Leaves at `now`, fights on arrival, comes back the same way at the same speed. */
-export const planMarch = (from: MapPoint, to: MapPoint, troops: Troops, now: number): MarchTiming => {
-  const leg = travelMs(from, to, troops);
+export const planMarch = (from: MapPoint, to: MapPoint, troops: Troops, now: number, speedBonus = 0): MarchTiming => {
+  const leg = travelMs(from, to, troops, speedBonus);
   return { departAt: now, arriveAt: now + leg, returnAt: now + 2 * leg };
 };
 

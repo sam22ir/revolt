@@ -325,8 +325,7 @@ def furnish(k):
         k.pine(k.ground(x, y, HQ), h, h * 0.24)
     for x, y, r in ((1010, 262, 20), (1200, 290, 22), (905, 230, 16)):
         k.bush(k.ground(x, y, HQ), r)
-    # Lookout terrace.
-    watchtower(k, k.ground(1415, 500, MID), 250)
+    # Lookout terrace. Its tower is the watchtower building (camp_houses.py), drawn with the buildings.
     for x, y, h in ((1270, 440, 230), (1345, 470, 190)):
         k.pine(k.ground(x, y, MID), h, h * 0.25)
     k.barrel(k.ground(1238, 488, MID))

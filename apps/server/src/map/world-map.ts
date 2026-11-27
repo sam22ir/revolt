@@ -83,6 +83,13 @@ export class WorldMap extends DurableObject<Env> {
     });
   }
 
+  async sendAid(map: string, viewer: MapViewer, villageId: string, troops: Troops, now: number): Promise<SendMarchResult> {
+    return this.mapHost().run(now, (s) => {
+      s.rememberName(map);
+      return s.sendAid(viewer, villageId, troops, now);
+    });
+  }
+
   async recallHarvest(map: string, viewer: MapViewer, marchId: string, now: number): Promise<RecallHarvestResult> {
     return this.mapHost().run(now, (s) => {
       s.rememberName(map);

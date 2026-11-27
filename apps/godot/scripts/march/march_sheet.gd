@@ -49,6 +49,12 @@ var _travel: Label
 var _carry: Label
 var _reason: PanelContainer
 var _submit: Button
+## The watchtower's forecast: its card's lines, what was last asked (a JSON key), and the wait before asking.
+var _forecast_box: VBoxContainer
+var _forecast_key := ""
+var _forecast_timer := Timer.new()
+## How long the choice must stay put before the server is asked, so tapping + ten times sends one request.
+const FORECAST_WAIT_S := 0.4
 
 func _init() -> void:
 	super("marches")
@@ -62,6 +68,9 @@ func _ready() -> void:
 	_footer.add_child(_footer_box)
 	column.add_child(_footer)
 	_picker.picked.connect(_on_picked)
+	_forecast_timer.one_shot = true
+	_forecast_timer.timeout.connect(_ask_forecast)
+	add_child(_forecast_timer)
 	add_child(_picker)
 
 ## Connects the sheet to the session it reads and sends through.
@@ -115,7 +124,7 @@ func _build() -> void:
 	_slot_key = ""
 	_gather_buttons = {}
 	_picker.close()
-	set_title(Loc.t({"march": "march.title", "rally_start": "rally.startTitle", "rally_join": "rally.joinTitle", "harvest": "harvest.sendTitle"}[_mode]), Loc.t("settings.back"))
+	set_title(Loc.t({"march": "march.title", "rally_start": "rally.startTitle", "rally_join": "rally.joinTitle", "harvest": "harvest.sendTitle", "aid": "aid.title"}[_mode]), Loc.t("settings.back"))
 	body.add_child(_target_card())
 	if _mode == "rally_start":
 		body.add_child(_gather_card())
@@ -127,6 +136,7 @@ func _build() -> void:
 	body.add_child(troops)
 	if _mode == "march":
 		body.add_child(_heroes_card())
+		body.add_child(_forecast_card())
 	if _mode == "harvest":
 		body.add_child(_harvest_card())
 	_build_footer()
@@ -134,6 +144,8 @@ func _build() -> void:
 
 ## What is marched at: its medallion, name and level, and who defends it.
 func _target_card() -> Control:
+	if _mode == "aid":
+		return _aid_card()
 	var lang := Fmt.lang()
 	var card := UiKit.card()
 	var row := HBoxContainer.new()
@@ -153,6 +165,72 @@ func _target_card() -> Control:
 	if def != null:
 		words.add_child(UiKit.label(Loc.t("map.defenders"), UiKit.SMALL, HudTheme.TEXT_SECOND))
 		words.add_child(TilePanel.troop_chips(def["defenders"]))
+	row.add_child(words)
+	UiKit.card_body(card).add_child(row)
+	return card
+
+## The watchtower's forecast for the troops and heroes chosen; its lines come in when the server answers.
+func _forecast_card() -> Control:
+	var card := UiKit.section("power", Loc.t("forecast.title"))
+	_forecast_box = VBoxContainer.new()
+	_forecast_box.add_theme_constant_override("separation", roundi(HudTheme.px(4)))
+	UiKit.card_body(card).add_child(_forecast_box)
+	_forecast_key = ""
+	return card
+
+## The choice changed: say so, and ask the server once it has stayed put for FORECAST_WAIT_S.
+func _queue_forecast(key: String) -> void:
+	_forecast_key = key
+	_show_forecast([{"key": "forecast.loading", "vars": {}, "tone": ""}])
+	_forecast_timer.start(FORECAST_WAIT_S)
+
+func _ask_forecast() -> void:
+	var asked := _forecast_key
+	var request: Variant = ForecastModel.request(int(_npc.get("level", 0)), _counts, _loadout())
+	if request == null or _session == null:
+		_show_forecast(ForecastModel.lines({"watchtower": 0, "forecast": null}))
+		return
+	var view := await _session.scout(request)
+	# An answer for a choice that has changed since, or a sheet closed meanwhile, is dropped.
+	if asked != _forecast_key or not is_open() or _forecast_box == null:
+		return
+	_show_forecast(ForecastModel.lines(view) if not view.is_empty() else [{"key": "forecast.unavailable", "vars": {}, "tone": ""}])
+
+func _show_forecast(list: Array) -> void:
+	if _forecast_box == null or not is_instance_valid(_forecast_box):
+		return
+	for child in _forecast_box.get_children():
+		_forecast_box.remove_child(child)
+		child.queue_free()
+	var lang := Fmt.lang()
+	for line: Dictionary in list:
+		var vars := {}
+		for k: String in line["vars"]:
+			vars[k] = Fmt.amount(lang, line["vars"][k])
+		var tone := String(line["tone"])
+		var colour: Color = {"good": Color("7fbf6a"), "even": HudTheme.GOLD, "bad": HudTheme.LACKING}.get(tone, HudTheme.TEXT_SECOND)
+		_forecast_box.add_child(UiKit.label(Loc.t(line["key"], vars), UiKit.BODY + (1.0 if tone != "" else 0.0), colour, tone != "", true))
+
+## The village helped: its name, today's need and what answering it takes (the trust it brings and lessons are on the tile sheet).
+func _aid_card() -> Control:
+	var lang := Fmt.lang()
+	var card := UiKit.card()
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", roundi(HudTheme.px(11)))
+	var icon := HudIcon.new(String(VillageModel.NEED_ICONS.get(String(_npc["need"]), "info")), 56.0)
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(icon)
+	var words := VBoxContainer.new()
+	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	words.add_theme_constant_override("separation", roundi(HudTheme.px(4)))
+	words.add_child(UiKit.label(Loc.t("village.%s.name" % _npc["kind"]), UiKit.BODY + 2.0, HudTheme.TEXT, true, true))
+	var line := VillageModel.need_line(_session.state if _session != null else {}, _npc, float(_session.clock.now_ms(Time.get_ticks_msec())) if _session != null else 0.0)
+	var vars := {}
+	for k: String in line["vars"]:
+		vars[k] = Fmt.duration(float(line["vars"][k])) if k == "time_ms" else Fmt.amount(lang, line["vars"][k])
+	if vars.has("time_ms"):
+		vars["time"] = vars["time_ms"]
+	words.add_child(UiKit.label(Loc.t(line["key"], vars), UiKit.BODY, HudTheme.TEXT_SECOND, false, true))
 	row.add_child(words)
 	UiKit.card_body(card).add_child(row)
 	return card
@@ -421,19 +499,29 @@ func _refresh() -> void:
 		_away_label.text = Fmt.duration(p["away_ms"]) if int(p["away_ms"]) >= 0 else "—"
 	else:
 		p = MarchModel.preview(state, _from, Vector2i(int(_npc["x"]), int(_npc["y"])), _counts, loadout)
-	if _mode != "march" and _mode != "harvest" and int(p["travel_ms"]) >= 0:
+	if _mode == "aid":
+		# The aid rules first (need, carry, the day's help), then the march rules; the server checks both again.
+		var aid_why := VillageModel.check(state, _npc, _counts, state.get("resources", {}), float(_session.clock.now_ms(Time.get_ticks_msec())))
+		if aid_why != "" and aid_why != "no_troops":
+			p["reason"] = aid_why
+	if _mode != "march" and _mode != "harvest" and _mode != "aid" and int(p["travel_ms"]) >= 0:
 		p["travel_ms"] = _rally_leg()
 	var bonus := MarchModel.hero_bonus(state, loadout)
+	if _mode == "march" and _forecast_box != null:
+		var key := JSON.stringify([_npc.get("level", 0), _counts, loadout])
+		if key != _forecast_key:
+			_queue_forecast(key)
 	if _mode == "march":
 		_bonus.visible = loadout != null
 		_bonus.text = Loc.t("march.heroBonus", {"attack": Fmt.amount(lang, bonus["attack"]), "defense": Fmt.amount(lang, bonus["defense"])})
 	_travel.text = Fmt.duration(p["travel_ms"]) if int(p["travel_ms"]) >= 0 else "—"
 	_carry.text = Fmt.amount(lang, p["carry"])
 	var why := _server_reason if _server_reason != "" else String(p["reason"])
-	UiKit.set_warning(_reason, Loc.t("reason." + why) if why != "" else "")
+	var why_vars := {"count": Fmt.amount(lang, int(Balance.data()["villages"]["laborTroops"])), "level": Fmt.amount(lang, int(Balance.data()["villages"]["careInfirmaryLevel"]))}
+	UiKit.set_warning(_reason, Loc.t("reason." + why, why_vars) if why != "" else "")
 	# Its room is kept, so the rows do not move under the finger that makes the march possible.
 	_reason.modulate.a = 1.0 if why != "" else 0.0
-	_submit.text = Loc.t("march.sending" if _sending else {"march": "march.send", "rally_start": "rally.start", "rally_join": "rally.join", "harvest": "harvest.send"}[_mode])
+	_submit.text = Loc.t("march.sending" if _sending else {"march": "march.send", "rally_start": "rally.start", "rally_join": "rally.join", "harvest": "harvest.send", "aid": "aid.send"}[_mode])
 	_submit.disabled = _sending or p["reason"] != ""
 
 ## The one-way leg a rally shows: from your camp at the fixed rally speed when you start it; the rally's own when you join (the server
@@ -481,6 +569,8 @@ func _on_send() -> void:
 			verdict = await _session.rally_join(String(_rally["id"]), _counts)
 		"harvest":
 			verdict = await _session.harvest_start(String(_npc["id"]), _counts)
+		"aid":
+			verdict = await _session.aid(String(_npc["id"]), _counts)
 		_:
 			verdict = await _session.march(String(_npc["id"]), _counts, _loadout())
 	_sending = false

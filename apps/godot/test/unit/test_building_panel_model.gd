@@ -4,7 +4,7 @@ extends GutTest
 const NOW := 1_000_000
 
 func _levels(over: Dictionary = {}) -> Dictionary:
-	var l := {"hq": 3, "farm": 1, "armory": 1, "treasury": 1, "barracks": 1, "hero_hall": 1}
+	var l := {"hq": 3, "farm": 1, "armory": 1, "treasury": 1, "barracks": 1, "hero_hall": 1, "watchtower": 1, "infirmary": 1, "academy": 1}
 	l.merge(over, true)
 	return l
 

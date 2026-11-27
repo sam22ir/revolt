@@ -39,6 +39,8 @@ func _ready() -> void:
 	panel.upgrade_pressed.connect(_on_upgrade_pressed)
 	panel.train_pressed.connect(_on_train_pressed)
 	panel.training.help_pressed.connect(_on_training_help_pressed)
+	panel.healing.heal_pressed.connect(_on_heal_pressed)
+	panel.studies.study_pressed.connect(_on_study_pressed)
 	panel.upgrade_speedup.pressed.connect(_on_speedup_pressed.bind("upgrade", panel.upgrade_speedup))
 	panel.training.speedup.pressed.connect(_on_speedup_pressed.bind("training", panel.training.speedup))
 	panel.closed.connect(deselect)
@@ -130,6 +132,23 @@ func update(now_ms: int, resources: Dictionary) -> void:
 			"can_help": HelpModel.can_ask(_session.alliance, _session.help, "training", now_ms),
 			"speedup": SpeedupModel.view("training", _session.state.get("training"), _session.wallet, now_ms),
 		})
+		panel.update_healing({
+			"infirmary": int(_session.levels.get("infirmary", 1)),
+			"wounded": _session.state.get("wounded", {}),
+			"healing": _session.state.get("healing"),
+			"amounts": resources,
+			"now_ms": now_ms,
+			"lang": Fmt.lang(),
+		})
+		panel.update_study({
+			"academy": int(_session.levels.get("academy", 1)),
+			"taught": _session.state.get("lessonsTaught", []),
+			"studied": _session.state.get("lessons", []),
+			"study": _session.state.get("study"),
+			"amounts": resources,
+			"now_ms": now_ms,
+			"lang": Fmt.lang(),
+		})
 		panel.update_speedup(SpeedupModel.view("upgrade", queue, _session.wallet, now_ms))
 
 func _on_upgrade_pressed(id: String) -> void:
@@ -152,6 +171,28 @@ func _on_train_pressed(troop: String, count: int) -> void:
 	panel.set_pending(false)
 	panel.training.set_pending(false)
 	panel.training.set_notice("" if verdict["ok"] else String(verdict["reason"]))
+
+## The heal intent: one request at a time; a refusal's reason is shown under the button.
+func _on_heal_pressed() -> void:
+	if panel.is_pending():
+		return
+	panel.set_pending(true)
+	panel.healing.set_pending(true)
+	var verdict := await _session.send_intent({"type": "heal"})
+	panel.set_pending(false)
+	panel.healing.set_pending(false)
+	panel.healing.set_notice("" if verdict["ok"] else String(verdict["reason"]))
+
+## The study intent: one request at a time; a refusal's reason is shown under that lesson.
+func _on_study_pressed(lesson: String) -> void:
+	if panel.is_pending():
+		return
+	panel.set_pending(true)
+	panel.studies.set_pending(true)
+	var verdict := await _session.send_intent({"type": "study", "lesson": lesson})
+	panel.set_pending(false)
+	panel.studies.set_pending(false)
+	panel.studies.set_notice(lesson, "" if verdict["ok"] else String(verdict["reason"]))
 
 ## Asks the alliance for help with the running batch; a refusal's reason shows under the batch for a moment.
 func _on_training_help_pressed() -> void:

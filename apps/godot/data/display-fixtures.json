@@ -14,7 +14,10 @@
         "armory": 1,
         "treasury": 1,
         "barracks": 1,
-        "hero_hall": 1
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
       },
       "lastUpdated": 1700000000000,
       "now": 1700003600000,
@@ -54,7 +57,10 @@
         "armory": 1,
         "treasury": 1,
         "barracks": 1,
-        "hero_hall": 1
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
       },
       "lastUpdated": 1700000000000,
       "now": 1700000000000,
@@ -94,7 +100,10 @@
         "armory": 1,
         "treasury": 1,
         "barracks": 1,
-        "hero_hall": 1
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
       },
       "lastUpdated": 1700000000000,
       "now": 1699982000000,
@@ -134,7 +143,10 @@
         "armory": 1,
         "treasury": 1,
         "barracks": 1,
-        "hero_hall": 1
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
       },
       "lastUpdated": 1700000000000,
       "now": 1700036000000,
@@ -174,7 +186,10 @@
         "armory": 1,
         "treasury": 1,
         "barracks": 1,
-        "hero_hall": 1
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
       },
       "lastUpdated": 1700000000000,
       "now": 1700010800000,
@@ -214,7 +229,10 @@
         "armory": 1,
         "treasury": 1,
         "barracks": 1,
-        "hero_hall": 1
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
       },
       "lastUpdated": 1700000000000,
       "now": 1700003600000,
@@ -254,7 +272,10 @@
         "armory": 3,
         "treasury": 3,
         "barracks": 1,
-        "hero_hall": 1
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
       },
       "lastUpdated": 1700000000000,
       "now": 2015360000000,
@@ -294,7 +315,10 @@
         "armory": 4,
         "treasury": 7,
         "barracks": 1,
-        "hero_hall": 1
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
       },
       "lastUpdated": 1700000000000,
       "now": 1700008532000,
@@ -334,7 +358,10 @@
         "armory": 10,
         "treasury": 10,
         "barracks": 1,
-        "hero_hall": 1
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
       },
       "lastUpdated": 1700000000000,
       "now": 1700025200000,
@@ -374,7 +401,10 @@
         "armory": 3,
         "treasury": 3,
         "barracks": 1,
-        "hero_hall": 1
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
       },
       "lastUpdated": 1700000000000,
       "now": 1700007200000,
@@ -420,7 +450,10 @@
         "armory": 3,
         "treasury": 3,
         "barracks": 1,
-        "hero_hall": 1
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
       },
       "lastUpdated": 1700000000000,
       "now": 1700014400000,
@@ -471,7 +504,10 @@
         "armory": 3,
         "treasury": 3,
         "barracks": 1,
-        "hero_hall": 1
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
       },
       "lastUpdated": 1700000000000,
       "now": 1700010800000,
@@ -517,7 +553,10 @@
         "armory": 1,
         "treasury": 1,
         "barracks": 1,
-        "hero_hall": 1
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
       },
       "lastUpdated": 1700000000000,
       "now": 1700003600000,
@@ -563,7 +602,10 @@
         "armory": 3,
         "treasury": 3,
         "barracks": 1,
-        "hero_hall": 1
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
       },
       "lastUpdated": 1700000000000,
       "now": 1700003600000,
@@ -614,7 +656,10 @@
         "armory": 6,
         "treasury": 6,
         "barracks": 1,
-        "hero_hall": 1
+        "hero_hall": 1,
+        "watchtower": 1,
+        "infirmary": 1,
+        "academy": 1
       },
       "lastUpdated": 1700000000000,
       "now": 1700003600000,

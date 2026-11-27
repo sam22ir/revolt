@@ -1,4 +1,4 @@
-"""The six buildings, each in four looks, and the scaffolding shown while one is upgraded. The looks are listed in
+"""The eight buildings, each in four looks, and the scaffolding shown while one is upgraded. The looks are listed in
 docs/camp-3d-plan.md. A house stands in its own frame: front corner at the origin, one face along -X ("front", lit), the other
 along +Y ("right")."""
 
@@ -17,10 +17,16 @@ PLACES = {
     "hero_hall": ((250, 1590), land.ROAD, 0),
     "treasury": ((1350, 1735), land.FARM, 0),
     "farm": ((1093, 1985), land.FARM, 3),
+    # The lookout terrace's tower (it was part of the ground until the watchtower became a building).
+    "watchtower": ((1440, 545), land.MID, 0),
+    # Open ground on the farm terrace, between the farm and the walled field.
+    "infirmary": ((820, 2194), land.FARM, 4),
+    # The middle of the barracks yard: where the lessons villages teach are studied.
+    "academy": ((930, 1190), land.YARD, 2),
 }
 # How big the scaffolding round each is: along the front, along the right, height.
 SCAFFOLD = {"hq": (190, 240, 150), "barracks": (185, 245, 140), "armory": (190, 195, 140), "hero_hall": (240, 355, 190), "treasury": (115, 190, 160),
-            "farm": (240, 285, 165)}
+            "farm": (240, 285, 165), "watchtower": (110, 110, 250), "infirmary": (160, 140, 120), "academy": (110, 90, 115)}
 
 
 def frame(name):
@@ -476,4 +482,172 @@ def farm(k, look):
     k.parapet([Vector((96, l - 100, 3)), Vector((98, l - 40, 3)), Vector((96, l + 16, 3))], 40)
 
 
-BUILD = {"hq": hq, "barracks": barracks, "armory": armory, "hero_hall": hero_hall, "treasury": treasury, "farm": farm}
+WHITE = ck.rgb("e7dfcd")
+
+
+def cot(k, at, turn=0.0, long=62.0, wide=22.0):
+    """A field stretcher on short legs: two poles, canvas between."""
+    keep = k.frame
+    k.frame = k.frame @ Matrix.Translation(at) @ Matrix.Rotation(math.radians(turn), 4, "Z")
+    for y in (-wide / 2, wide / 2):
+        k.rod((-long / 2 - 6, y, 12), (long / 2 + 6, y, 12), 1.8, 1.8)
+        for x in (-long / 2 + 4, long / 2 - 4):
+            k.rod((x, y, 0), (x, y, 12), 1.5, 1.5)
+    k.canvas([(-long / 2, -wide / 2, 12.5), (long / 2, -wide / 2, 12.5), (long / 2, wide / 2, 12.5), (-long / 2, wide / 2, 12.5)], sag=2.5, col=k.shade(WHITE, 0.04), n=8)
+    k.frame = keep
+
+
+def washing(k, a, b, n=4):
+    """Two poles and a line between them, with cloths hung out to dry."""
+    h = 54.0
+    for p in (a, b):
+        k.rod((p[0], p[1], 0), (p[0], p[1], h + 4), 2.0, 1.8)
+    k.rod((a[0], a[1], h), (b[0], b[1], h), 0.5, 0.5, ck.DARK, ck.THIN, sides=4)
+    for i in range(n):
+        t0, t1 = (i + 0.3) / (n + 0.4), (i + 0.95) / (n + 0.4)
+        p0 = [a[j] + (b[j] - a[j]) * t0 for j in (0, 1)]
+        p1 = [a[j] + (b[j] - a[j]) * t1 for j in (0, 1)]
+        drop = k.rng.uniform(16, 24)
+        k.canvas([(p0[0], p0[1], h - 1), (p1[0], p1[1], h - 1), (p1[0], p1[1], h - drop), (p0[0], p0[1], h - drop)], sag=0, col=k.shade(WHITE, 0.05), n=6, folds=0.4)
+
+
+def ridge_tent(k, at, turn=0.0, scale=1.0):
+    """The camp's ridge tent (camp_still.tent), set down at `at`."""
+    import camp_still
+    keep = k.frame
+    k.frame = k.frame @ Matrix.Translation(at) @ Matrix.Rotation(math.radians(turn), 4, "Z") @ Matrix.Scale(scale, 4)
+    camp_still.tent(k)
+    k.frame = keep
+
+
+def watchtower(k, look):
+    """A timber lookout that grows: a bare frame, a cabin on top, a stone footing, then a plastered tower with a timber roof."""
+    w = (52.0, 60.0, 64.0, 70.0)[look - 1]
+    mid = Vector((-55, 55, 0))
+    if look <= 3:
+        h = (175.0, 215.0, 235.0)[look - 1]
+        keep = k.frame
+        foot = 0.0
+        if look == 3:
+            k.box(-100, -10, 10, 100, 0, 34, k.shade(ck.STONE, 0.08), None, 0.8)
+            for x, y in ((-10.0, 10.0), (-10.0, 100.0), (-100.0, 10.0)):
+                k.quoins(x, y, 34)
+            foot = 34.0
+        land.watchtower(k, mid + Vector((0, 0, foot)), h, w)
+        k.frame = keep
+        # A ladder up the front face.
+        for i in range(int(h / 22)):
+            z = foot + 12 + i * 22
+            k.rod((-55 - 10, 55 - w / 2 - 16, z), (-55 + 10, 55 - w / 2 - 16, z), 1.4, 1.4)
+        for x in (-65, -45):
+            k.rod((x, 55 - w / 2 - 18, foot), (x, 55 - w / 2 - 10, foot + h), 2.0, 2.0)
+    else:
+        lookout(k, (-14, 14, 0), 82, 205, "timber")
+    k.crate((14, 20, 0), (26, 24, 22), 6)
+    if look >= 2:
+        k.barrel((-112, 18, 0))
+        k.sandbags([Vector((-120, -14, 0)), Vector((-60, -30, 0)), Vector((4, -22, 0))], 2 if look == 2 else 3)
+    if look >= 3:
+        k.sandbags([Vector((26, 10, 0)), Vector((30, 80, 0))], 3)
+
+
+def infirmary(k, look):
+    """Where the wounded are nursed: a tent with stretchers, then two tents and an awning, then a small stone house, then a bigger
+    house with a porch. No emblem on any of it."""
+    if look == 1:
+        ridge_tent(k, (-72, 72, 0), -45, 1.45)
+        cot(k, (-30, -22, 0), 8)
+        cot(k, (-92, -16, 0), -6)
+        cot(k, (-140, 20, 0), 84)
+        jar(k, (12, 30, 0))
+        washing(k, (14, 52), (16, 120), 3)
+    elif look == 2:
+        ridge_tent(k, (-118, 92, 0), -45, 1.4)
+        ridge_tent(k, (-30, 104, 0), -45, 1.3)
+        awning(k, (-130, -40, 70), (-20, -40, 70), (-20, 20, 84), (-130, 20, 84), sag=8)
+        for x in (-110, -75, -40):
+            cot(k, (x, -12, 0), 90)
+        jar(k, (12, 20, 0))
+        jar(k, (18, 40, 0), 7)
+        washing(k, (20, 60), (22, 140), 4)
+    else:
+        w, l, h, ridge = ((126, 118, 88, 36), (156, 136, 96, 42))[look - 3]
+        k.gable_house(w, l, h, ridge)
+        k.door(l * 0.5, 36, 68)
+        k.window("front", -w * 0.3, 44, 20, 26)
+        k.window("front", -w * 0.75, 44, 20, 26)
+        k.window("right", l * 0.18, 46, 18, 24)
+        k.worn("front", -w * 0.52, 12)
+        d = 56.0
+        leanto(k, d, 10, l - 10, 66, 82)
+        for y in (24, 66) if look == 3 else (20, 56, 92):
+            cot(k, (d * 0.5, y, 0), 90, 50, 20)
+        jar(k, (-w + 10, -18, 0))
+        jar(k, (-w + 30, -24, 0), 7)
+        k.barrel((-w * 0.5, -26, 0))
+        if look == 4:
+            ridge_tent(k, (-w - 46, 70, 0), -45, 0.95)
+            awning(k, (-w + 10, -70, 70), (-30, -70, 70), (-30, -4, h - 10), (-w + 10, -4, h - 10), sag=9)
+            for x in (-w + 30, -64):
+                cot(k, (x, -40, 0), 0, 56, 20)
+        washing(k, (d + 20, l + 10), (-40, l + 30), 4)
+
+
+BOARD = ck.rgb("39443a")
+
+
+def bench(k, a, b, h=14.0):
+    """A plank bench on two short legs."""
+    for p in (a, b):
+        k.rod((p[0], p[1], 0), (p[0], p[1], h), 1.6, 1.4)
+    k.box(min(a[0], b[0]) - 3, max(a[0], b[0]) + 3, min(a[1], b[1]) - 4, max(a[1], b[1]) + 4, h, h + 3, k.shade(ck.WOOD, 0.08), None, 0.8)
+
+
+def chalkboard(k, at, w=40.0, z=20.0, h=26.0):
+    """A dark board on two posts, facing the front."""
+    x, y = at
+    for dx in (-w / 2, w / 2):
+        k.rod((x + dx, y, 0), (x + dx, y, z + h + 4), 1.6, 1.4)
+    k.box(x - w / 2, x + w / 2, y - 1.5, y + 1.5, z, z + h, BOARD, None, 0.3)
+    k.box(x - w / 2 - 2, x + w / 2 + 2, y - 2.5, y + 2.5, z - 2, z, k.shade(ck.WOOD, 0.05), None, 0.8)
+
+
+def books(k, at, n=3):
+    """A crate of books: stacked covers in a few faded colours."""
+    k.crate(at, (24, 20, 14), 4)
+    for i in range(n):
+        col = (ck.rgb("8c3b2e"), ck.rgb("3f5578"), ck.rgb("5d6b3d"), ck.rgb("b48a3c"))[i % 4]
+        k.box(at[0] - 9, at[0] + 9, at[1] - 7 + i * 4.5, at[1] - 3 + i * 4.5, 14, 22 + i % 2 * 3, col, None, 0.4)
+
+
+def academy(k, look):
+    """Where the lessons villages teach are studied: an open-air class under canvas, then a schoolroom that grows a porch, a book
+    shed and a courtyard wall."""
+    if look == 1:
+        awning(k, (-104, -6, 78), (-8, -6, 78), (-8, 84, 78), (-104, 84, 78), sag=8)
+        chalkboard(k, (-56, 80))
+        for y in (16, 38, 60):
+            bench(k, (-88, y), (-26, y))
+        books(k, (12, 26, 0))
+        jar(k, (10, 58, 0))
+        return
+    w, l, h, ridge = ((100, 84, 84, 36), (108, 88, 90, 40), (112, 90, 96, 42))[look - 2]
+    k.gable_house(w, l, h, ridge)
+    k.door(l * 0.5, 34, 66)
+    for at in (0.2, 0.8):
+        k.window("right", l * at, 46, 22, 30)
+    k.window("front", -w * 0.3, 46, 22, 30)
+    k.window("front", -w * 0.72, 46, 22, 30)
+    k.worn("front", -w * 0.5, 12)
+    for y in (16, l - 16):
+        bench(k, (26, y - 10), (26, y + 10))
+    books(k, (-w * 0.5, -22, 0))
+    if look >= 3:
+        leanto(k, 44, 8, l - 8, 60, 76)
+        chalkboard(k, (52, l * 0.5), 26, 18, 20)
+    if look == 4:
+        k.sandbags([Vector((-w + 6, -36, 0)), Vector((-20, -40, 0))], 2)
+        books(k, (-w * 0.5 + 34, -24, 0), 4)
+
+
+BUILD = {"hq": hq, "barracks": barracks, "armory": armory, "hero_hall": hero_hall, "treasury": treasury, "farm": farm, "watchtower": watchtower, "infirmary": infirmary, "academy": academy}

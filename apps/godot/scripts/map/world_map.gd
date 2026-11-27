@@ -17,6 +17,8 @@ const LOAD_MARGIN := 900.0
 var size: int = 0
 var terrain_seed: int = 0
 var snapshot: Dictionary = {}
+## The ids of the villages the player has helped today (their need badge is not drawn). Set with `set_helped_villages`.
+var helped_villages: Dictionary = {}
 var liberated: Dictionary = {}
 ## Tile indices of liberated regions (for the gold wash).
 var liberated_tiles := PackedInt32Array()
@@ -113,6 +115,13 @@ func overlay() -> MapOverlay:
 	return _objects
 
 ## The marching columns, drawn above the objects.
+## Takes the villages helped today; the objects are drawn again only when the set changed.
+func set_helped_villages(ids: Dictionary) -> void:
+	if ids == helped_villages:
+		return
+	helped_villages = ids
+	_objects.queue_redraw()
+
 func markers() -> MarchMarkers:
 	return _markers
 

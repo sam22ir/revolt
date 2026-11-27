@@ -31,6 +31,8 @@ export {
   type MarchResult,
   type MarchState,
   type TrainingJob,
+  type HealingJob,
+  type StudyJob,
   type UpgradeJob,
 } from "./base-state.ts";
 export { carryCapacity, counterFactor, resolveBattle, takeLoot, type BattleResult, type BattleRound } from "./battle.ts";
@@ -177,6 +179,8 @@ export {
   type LeaderboardResponse,
   type MarchPhase,
   type PassView,
+  type ScoutView,
+  type MapVillageView,
   type ProductView,
   type StoreView,
   type WalletView,
@@ -303,3 +307,44 @@ export {
   type QuestContext,
   type QuestStatus,
 } from "./missions.ts";
+export { HEAL_BATCH_PER_LEVEL, HEAL_COST_SHARE, HEAL_TIME_SHARE } from "./data/troops.ts";
+export { checkHealing, HEALING_BLOCK_REASONS, healingQuote, maxHealingBatch, planHealing, startHealing, type HealingBlockReason, type HealingResult } from "./healing.ts";
+export { CLOSE_FROM, FORECAST_CHANCE_LEVEL, FORECAST_LOSSES_LEVEL, FORECAST_SAMPLES, LIKELY_WIN_FROM } from "./data/watchtower.ts";
+export { battleOdds, FORECAST_VERDICTS, forecastFor, verdictOf, type BattleOdds, type Forecast, type ForecastVerdict } from "./scout.ts";
+export {
+  CARE_COST,
+  CARE_INFIRMARY_LEVEL,
+  isLessonId,
+  isVillageKind,
+  LABOR_MS,
+  LABOR_TROOPS,
+  LESSON_IDS,
+  LESSON_STATS,
+  LESSONS,
+  MAX_TRUST_LEVEL,
+  NEED_KINDS,
+  PROTECTION_RADIUS,
+  TRUST_DECAY_PER_DAY,
+  TRUST_LEVELS,
+  TRUST_MAX,
+  TRUST_PER_HELP,
+  VILLAGE_DAY_OFFSET_MS,
+  VILLAGE_KINDS,
+  VILLAGE_MIN_SPACING,
+  VILLAGE_SITE_CLEARANCE,
+  VILLAGE_TILES_PER_VILLAGE,
+  type LessonDef,
+  type LessonId,
+  type LessonStat,
+  type NeedKind,
+  type VillageKind,
+} from "./data/villages.ts";
+export { VILLAGE_HELP_BLOCK_REASONS, helpVillage, lessonAt, needAmount, NO_TRUST, trustAt, trustLevel, villageDay, villageNeed, type VillageHelpBlockReason, type VillageHelpResult, type VillageTrust } from "./villages.ts";
+export { placeVillages, type MapVillage } from "./village-map.ts";
+export { AID_BLOCK_REASONS, aidOutcome, aidPlan, checkAid, recordHelp, startAid, trustLevelWith, trustWith, type AidBlockReason, type AidStartResult, type AidVillage } from "./aid.ts";
+export { ACADEMY_LEVEL_FOR, STUDY_COST, STUDY_MS } from "./data/academy.ts";
+export { checkStudy, startStudy, STUDY_BLOCK_REASONS, studyQuote, type StudyBlockReason, type StudyResult } from "./study.ts";
+export { lessonBonus } from "./effects.ts";
+export { productionFor, storageCapFor } from "./production.ts";
+export { healingLessons, NO_HEALING_LESSONS, type HealingLessons } from "./healing.ts";
+export { NO_TRAINING_LESSONS, trainingLessons, type TrainingLessons } from "./training.ts";

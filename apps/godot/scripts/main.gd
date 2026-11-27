@@ -594,6 +594,10 @@ func _build_hud() -> void:
 	_tile_panel.rally_start_requested.connect(func(npc: Dictionary) -> void: _open_march_sheet(npc, "rally_start"))
 	_tile_panel.rally_join_requested.connect(func(npc: Dictionary, rally: Dictionary) -> void: _open_march_sheet(npc, "rally_join", rally))
 	_tile_panel.harvest_requested.connect(_open_harvest_sheet)
+	_tile_panel.aid_requested.connect(func(v: Dictionary) -> void:
+		var from := _map.own_base_tile()
+		if from.x >= 0 and not _session.state.is_empty():
+			_march_sheet.open(v, from, "aid"))
 	_tile_panel.recall_requested.connect(func(march_id: String) -> void: _recall_harvest(march_id, true))
 	_marches_list.recall_requested.connect(func(march_id: String) -> void: _recall_harvest(march_id, false))
 	_alliance_screen.rally_join_requested.connect(func(rally: Dictionary) -> void: _open_march_sheet(RallyModel.npc_of(rally), "rally_join", rally))
@@ -803,10 +807,11 @@ func _process(_delta: float) -> void:
 		_missions_screen.tick(now)
 	if _tile_panel.visible and not _map.snapshot.is_empty():
 		var tile := _tile_panel.tile()
-		_tile_panel.update_view(_map.snapshot, _map.terrain_at_tile(tile.x, tile.y), String(_session.alliance["name"]) if _session.alliance is Dictionary else "", String(_session.alliance["myRank"]) if _session.alliance is Dictionary else "", now, _session.state.get("marches", []))
+		_tile_panel.update_view(_map.snapshot, _map.terrain_at_tile(tile.x, tile.y), String(_session.alliance["name"]) if _session.alliance is Dictionary else "", String(_session.alliance["myRank"]) if _session.alliance is Dictionary else "", now, _session.state.get("marches", []), _session.state)
 	if _find_sheet.visible:
 		_lift_find_sheet()
 	if _screen == "map" and _loaded:
+		_map.set_helped_villages(VillageModel.helped_ids(_map.snapshot, _session.state))
 		_map.markers().set_own(_session.state.get("marches", []))
 		_map.markers().tick(now, _camera.view_zoom)
 		# The minimap takes the snapshot once a second: its dots follow the map, its regions rebake only on a liberation.

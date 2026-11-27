@@ -58,6 +58,24 @@ msgstr "Hero hall"
 msgid "building.hero_hall.desc"
 msgstr "Recruits heroes and raises their level limit."
 
+msgid "building.watchtower.name"
+msgstr "Watchtower"
+
+msgid "building.watchtower.desc"
+msgstr "Looks out over the hills. A higher tower tells you more about how a battle would go before you march."
+
+msgid "building.infirmary.name"
+msgstr "Infirmary"
+
+msgid "building.infirmary.desc"
+msgstr "Nurses the wounded back on their feet. A higher level treats more of them at once."
+
+msgid "building.academy.name"
+msgstr "Academy"
+
+msgid "building.academy.desc"
+msgstr "Where the lessons villages teach you are studied. A higher academy can study deeper lessons."
+
 msgid "panel.level"
 msgstr "Level {level}"
 
@@ -111,6 +129,48 @@ msgstr "Finish the earlier step first"
 
 msgid "reason.unknown_mission"
 msgstr "That mission does not exist"
+
+msgid "reason.no_such_village"
+msgstr "That village is not on the map"
+
+msgid "reason.already_helped_today"
+msgstr "You already helped this village today"
+
+msgid "reason.already_on_the_way"
+msgstr "Your help is already on the way"
+
+msgid "reason.not_this_need"
+msgstr "Protect them by beating a colonial target nearby"
+
+msgid "reason.not_enough_carry"
+msgstr "Not enough carry room: send more porters"
+
+msgid "reason.infirmary_level"
+msgstr "Requires infirmary level {level}"
+
+msgid "reason.labor_troops"
+msgstr "Send at least {count} troops"
+
+msgid "reason.unknown_lesson"
+msgstr "That lesson does not exist"
+
+msgid "reason.not_taught"
+msgstr "No village has taught you that lesson yet"
+
+msgid "reason.already_studied"
+msgstr "You have already studied that lesson"
+
+msgid "reason.study_busy"
+msgstr "The academy is already studying a lesson"
+
+msgid "reason.academy_level"
+msgstr "Requires academy level {level}"
+
+msgid "reason.infirmary_busy"
+msgstr "The infirmary is already treating a group"
+
+msgid "reason.no_wounded"
+msgstr "Nobody is wounded"
 
 msgid "reason.hero_hall_level"
 msgstr "Requires hero hall level {level}"
@@ -672,6 +732,261 @@ msgstr "Hero bonus: attack +{attack}%, damage taken −{defense}%"
 
 msgid "march.ledBy"
 msgstr "Led by {names}"
+
+msgid "village.shepherds.name"
+msgstr "Shepherds' village"
+
+msgid "village.shepherds.desc"
+msgstr "Herders who know every path through the hills."
+
+msgid "village.smiths.name"
+msgstr "Smiths' village"
+
+msgid "village.smiths.desc"
+msgstr "Metalworkers who mend tools and make what a camp needs."
+
+msgid "village.healers.name"
+msgstr "Healers' village"
+
+msgid "village.healers.desc"
+msgstr "Families who know the plants and remedies of the mountains."
+
+msgid "village.weavers.name"
+msgstr "Weavers' village"
+
+msgid "village.weavers.desc"
+msgstr "Weavers of cloth, bags and baskets that carry and keep."
+
+msgid "village.messengers.name"
+msgstr "Messengers' village"
+
+msgid "village.messengers.desc"
+msgstr "Runners and riders who carry word between the villages."
+
+msgid "village.trust"
+msgstr "Trust: level {level} of {max}"
+
+msgid "village.trustNone"
+msgstr "They do not know you yet"
+
+msgid "village.fading"
+msgstr "Trust fades slowly if you stay away"
+
+msgid "village.needToday"
+msgstr "Today they need: {need}"
+
+msgid "village.helpedToday"
+msgstr "You helped them today. Come back tomorrow."
+
+msgid "village.help"
+msgstr "Help this village"
+
+msgid "village.next"
+msgstr "Next lesson at trust level {level}: {lesson}"
+
+msgid "village.allTaught"
+msgstr "They have taught you everything they know"
+
+msgid "village.protectionHint"
+msgstr "Beat a colonial patrol, convoy or outpost within {tiles} tiles to protect them"
+
+msgid "need.food.name"
+msgstr "Provisions"
+
+msgid "need.food.line"
+msgstr "Bring {amount} provisions"
+
+msgid "need.funds.name"
+msgstr "Funds"
+
+msgid "need.funds.line"
+msgstr "Bring {amount} funds"
+
+msgid "need.care.name"
+msgstr "Care for their sick"
+
+msgid "need.care.line"
+msgstr "Send care from your infirmary (level {level} or more)"
+
+msgid "need.labor.name"
+msgstr "Hands for the harvest"
+
+msgid "need.labor.line"
+msgstr "Lend {count} troops for {time}"
+
+msgid "need.protection.name"
+msgstr "Protection"
+
+msgid "need.protection.line"
+msgstr "Drive off the colonial forces camped nearby"
+
+msgid "lesson.hidden_paths.name"
+msgstr "Hidden paths"
+
+msgid "lesson.hidden_paths.desc"
+msgstr "Marches are 6% faster."
+
+msgid "lesson.night_marches.name"
+msgstr "Night marches"
+
+msgid "lesson.night_marches.desc"
+msgstr "Marches are another 6% faster."
+
+msgid "lesson.high_passes.name"
+msgstr "High passes"
+
+msgid "lesson.high_passes.desc"
+msgstr "Marches are another 8% faster."
+
+msgid "lesson.repair_work.name"
+msgstr "Repair work"
+
+msgid "lesson.repair_work.desc"
+msgstr "Training costs 10% less."
+
+msgid "lesson.metal_craft.name"
+msgstr "Metal craft"
+
+msgid "lesson.metal_craft.desc"
+msgstr "Training takes 15% less time."
+
+msgid "lesson.master_smith.name"
+msgstr "Master smith"
+
+msgid "lesson.master_smith.desc"
+msgstr "Training batches are 25% bigger."
+
+msgid "lesson.herbal_remedies.name"
+msgstr "Herbal remedies"
+
+msgid "lesson.herbal_remedies.desc"
+msgstr "Healing costs 15% less."
+
+msgid "lesson.bone_setting.name"
+msgstr "Bone setting"
+
+msgid "lesson.bone_setting.desc"
+msgstr "The infirmary treats 5 more per level."
+
+msgid "lesson.convalescence.name"
+msgstr "Convalescence"
+
+msgid "lesson.convalescence.desc"
+msgstr "Healing takes 20% less time."
+
+msgid "lesson.strong_packs.name"
+msgstr "Strong packs"
+
+msgid "lesson.strong_packs.desc"
+msgstr "Porters carry 15% more."
+
+msgid "lesson.grain_sacks.name"
+msgstr "Grain sacks"
+
+msgid "lesson.grain_sacks.desc"
+msgstr "Storage holds 10% more."
+
+msgid "lesson.woven_stores.name"
+msgstr "Woven stores"
+
+msgid "lesson.woven_stores.desc"
+msgstr "Storage holds another 10% more."
+
+msgid "lesson.lookout_network.name"
+msgstr "Lookout network"
+
+msgid "lesson.lookout_network.desc"
+msgstr "Forecasts as if the watchtower were one level higher."
+
+msgid "lesson.relay_runners.name"
+msgstr "Relay runners"
+
+msgid "lesson.relay_runners.desc"
+msgstr "Each alliance help counts 20% more."
+
+msgid "lesson.safe_houses.name"
+msgstr "Safe houses"
+
+msgid "lesson.safe_houses.desc"
+msgstr "Popular support grows 15% faster."
+
+msgid "study.title"
+msgstr "Lessons"
+
+msgid "study.none"
+msgstr "Help villages on the map: each trust level they reach teaches you a lesson to study here."
+
+msgid "study.studying"
+msgstr "Studying: {lesson}"
+
+msgid "study.studied"
+msgstr "Studied"
+
+msgid "study.button"
+msgstr "Study"
+
+msgid "study.from"
+msgstr "From the {village}"
+
+msgid "aid.title"
+msgstr "Help a village"
+
+msgid "aid.send"
+msgstr "Send help"
+
+msgid "aid.carry"
+msgstr "Carry room: {have} of {need}"
+
+msgid "aid.stays"
+msgstr "They stay {time} to help"
+
+msgid "heal.title"
+msgstr "The wounded"
+
+msgid "heal.wounded"
+msgstr "Wounded: {count}"
+
+msgid "heal.batch"
+msgstr "Treats up to {count} at once"
+
+msgid "heal.next"
+msgstr "Next group: {count}"
+
+msgid "heal.button"
+msgstr "Treat the wounded"
+
+msgid "heal.inCare"
+msgstr "In care: {count}"
+
+msgid "heal.none"
+msgstr "Nobody is wounded. Wounded troops from battles come here."
+
+msgid "forecast.title"
+msgstr "Watchtower forecast"
+
+msgid "forecast.likely_victory"
+msgstr "Likely victory"
+
+msgid "forecast.close"
+msgstr "Too close to call"
+
+msgid "forecast.likely_defeat"
+msgstr "Likely defeat"
+
+msgid "forecast.losses"
+msgstr "Expected: {lost} lost, {wounded} wounded"
+
+msgid "forecast.chance"
+msgstr "Chance of victory: {chance}%"
+
+msgid "forecast.more"
+msgstr "Watchtower level {level} tells you more"
+
+msgid "forecast.loading"
+msgstr "Scouting…"
+
+msgid "forecast.unavailable"
+msgstr "No forecast right now"
 
 msgid "train.title"
 msgstr "Training"
@@ -1305,6 +1620,24 @@ msgstr "Leaders' hall"
 
 msgid "background.vietnam.building.hero_hall.desc"
 msgstr "Recruits and trains heroes. Higher levels let heroes reach higher levels."
+
+msgid "background.vietnam.building.watchtower.name"
+msgstr "Lookout post"
+
+msgid "background.vietnam.building.watchtower.desc"
+msgstr "Watches the valley from the trees. A higher post tells you more about how a battle would go before you march."
+
+msgid "background.vietnam.building.infirmary.name"
+msgstr "Field clinic"
+
+msgid "background.vietnam.building.infirmary.desc"
+msgstr "Nurses the wounded back on their feet. A higher level treats more of them at once."
+
+msgid "background.vietnam.building.academy.name"
+msgstr "Jungle school"
+
+msgid "background.vietnam.building.academy.desc"
+msgstr "Where the lessons villages teach you are studied. A higher school can study deeper lessons."
 
 msgid "background.vietnam.troop.infantry.name"
 msgstr "Light infantry"
