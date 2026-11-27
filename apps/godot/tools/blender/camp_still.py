@@ -15,7 +15,7 @@ SIZE = {
     "sacks_small": (84, 64), "sacks_big": (90, 76),
     "crates_small": (64, 56), "crates_big": (90, 84),
     "chest_small": (56, 48), "chest_big": (84, 66),
-    "fire": (64, 76),
+    "fire": (64, 76), "fire_cold": (64, 76),
 }
 FOOT = 0.8
 STILLS = tuple(SIZE)
@@ -74,16 +74,16 @@ def chests(k, big):
             k.stone(Vector((x, y, 6)), (13, 11, 12), k.rng.uniform(0, 90), ck.SACK, jitter=0.05, round_=1.0, tex=0.5)
 
 
-def fire(k):
-    """A cooking fire in a ring of stones, a pot hung from a tripod over it."""
+def fire(k, lit=True):
+    """A cooking fire in a ring of stones, a pot hung from a tripod over it; out, only cold ash and charred logs."""
     for i in range(9):
         t = math.tau * i / 9
         k.stone(Vector((math.cos(t) * 15, math.sin(t) * 15, 3)), (8, 7, 6), math.degrees(t), k.shade(ck.STONE, 0.1), jitter=0.1, round_=0.8)
     k.stone(Vector((0, 0, 1)), (24, 24, 2), 0, ASH, jitter=0.05, round_=1.0, tex=0.3)
     for t in (20, 80, 140):
         a = math.radians(t)
-        k.rod((math.cos(a) * 11, math.sin(a) * 11, 2), (-math.cos(a) * 9, -math.sin(a) * 9, 6), 2.0, 1.8, ck.WOOD, None, 6)
-    for x, y, z, r, col in ((0, 0, 9, 7, FLAME), (3, -2, 15, 5, FLAME), (-2, 2, 17, 3.5, EMBER), (1, 0, 21, 2.5, EMBER)):
+        k.rod((math.cos(a) * 11, math.sin(a) * 11, 2), (-math.cos(a) * 9, -math.sin(a) * 9, 6), 2.0, 1.8, ck.WOOD if lit else ck.DARK, None, 6)
+    for x, y, z, r, col in () if not lit else ((0, 0, 9, 7, FLAME), (3, -2, 15, 5, FLAME), (-2, 2, 17, 3.5, EMBER), (1, 0, 21, 2.5, EMBER)):
         k.stone(Vector((x, y, z)), (r * 2, r * 2, r * 2.6), 0, col, jitter=0.15, round_=1.0, tex=0.1)
     top = Vector((0, 0, 50))
     for t in (0, 120, 240):
@@ -99,8 +99,8 @@ def build(name):
     k.frame = Matrix.Translation(k.ground(*ck.CENTRE))
     if name == "tent":
         tent(k)
-    elif name == "fire":
-        fire(k)
+    elif name in ("fire", "fire_cold"):
+        fire(k, name == "fire")
     else:
         kind, size = name.split("_")
         {"sacks": sacks, "crates": crates, "chest": chests}[kind](k, size == "big")

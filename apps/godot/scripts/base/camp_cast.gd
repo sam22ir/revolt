@@ -31,7 +31,8 @@ static func cast(summary: Dictionary, now_ms: int) -> Array:
 			out.append({"kind": "sitting", "at": t["at"] + CampLayout.BY_TENT, "dir": 5, "frame": 0})
 	var by_fire := clampi(roundi(float(summary.get("support_fill", 0.0)) * CampLayout.FIRE_PEOPLE), 0, CampLayout.FIRE_PEOPLE)
 	if by_fire > 0:
-		out.append({"kind": "fire", "at": CampLayout.FIRE, "dir": 0, "frame": 0})
+		# With food running low there is nothing to cook: the fire is out, though people still sit by it.
+		out.append({"kind": "fire_cold" if summary.get("food_low", false) else "fire", "at": CampLayout.FIRE, "dir": 0, "frame": 0})
 	for i in by_fire:
 		var turn := TAU * (0.15 + float(i) / CampLayout.FIRE_PEOPLE)
 		var at := CampLayout.FIRE + Vector2(cos(turn), sin(turn) * 0.5) * CampLayout.FIRE_RADIUS

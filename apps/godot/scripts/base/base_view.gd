@@ -111,7 +111,7 @@ func set_state(levels: Dictionary, queue: Variant, now_ms: int, summary: Diction
 	_queue = queue
 	_now_ms = now_ms
 	_picture.set_state(levels, "" if queue == null else String(queue["building"]), now_ms, summary)
-	_life.tick(now_ms, CampArt.chimney(look("farm")), not summary.get("food_low", false))
+	_life.tick(now_ms, CampArt.chimney(look("farm")), not summary.get("food_low", false), CampLife.dust_spots(summary, now_ms))
 	_refresh_labels()
 	_place_talk()
 	_overlay.queue_redraw()

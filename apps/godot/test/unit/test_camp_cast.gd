@@ -77,7 +77,7 @@ func test_support_brings_people_round_the_fire() -> void:
 	var cap := Balance.storage_cap(1)
 	var none := CampCast.cast(_sum(LEVELS, null, {}, {"support": 0.0}), NOW)
 	assert_eq(_count(none, "fire"), 0)
-	var full := CampCast.cast(_sum(LEVELS, null, {}, {"support": cap["support"]}), NOW)
+	var full := CampCast.cast(_sum(LEVELS, null, {}, {"food": cap["food"] * 0.5, "support": cap["support"]}), NOW)
 	assert_eq(_count(full, "fire"), 1)
 	assert_eq(_count(full, "sitting"), CampLayout.FIRE_PEOPLE)
 
@@ -115,3 +115,22 @@ func test_summary_ignores_odd_state() -> void:
 	assert_eq(s["wounded"], 0)
 	assert_eq(s["marches"], [])
 	assert_false(s["training"])
+
+func test_with_food_low_the_fire_is_out_but_people_still_sit_by_it() -> void:
+	var cap := Balance.storage_cap(1)
+	var low := CampCast.cast(_sum(LEVELS, null, {}, {"food": cap["food"] * 0.05, "support": cap["support"]}), NOW)
+	assert_eq(_count(low, "fire_cold"), 1)
+	assert_eq(_count(low, "fire"), 0)
+	assert_eq(_count(low, "sitting"), CampLayout.FIRE_PEOPLE)
+	assert_not_null(CampLife.still("fire_cold"), "the cold fire is rendered")
+
+func test_dust_rises_only_where_the_workers_are() -> void:
+	assert_eq(CampLife.dust_spots(_sum(), NOW), [])
+	var busy := _sum(LEVELS, {"building": "armory", "toLevel": 2, "startedAt": NOW, "endsAt": NOW + 60000})
+	var spots := CampLife.dust_spots(busy, NOW)
+	assert_eq(spots.size(), 2)
+	for t in range(0, 3000, 100):
+		for i in CampLife.DUST_PUFFS:
+			var d := CampLife.dust(i, NOW + t)
+			assert_between(float(d["alpha"]), 0.0, CampLife.DUST_COLOR.a)
+			assert_lt(absf(d["at"].y), CampLife.DUST_RISE + 0.01, "stays low")
