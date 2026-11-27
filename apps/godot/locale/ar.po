@@ -1318,6 +1318,75 @@ msgstr "أرتال الحمّالين"
 msgid "background.vietnam.troop.porters.desc"
 msgstr "ينقلون الموارد إلى القاعدة سيرًا على الأقدام. لا يقاتلون."
 
+msgid "camp.talk.worker.one"
+msgstr "ثبّتها جيدًا، أوشكنا على الانتهاء."
+
+msgid "camp.talk.worker.two"
+msgstr "عارضة أخرى ويقوم البناء."
+
+msgid "camp.talk.worker.three"
+msgstr "انتبه لأصابعك!"
+
+msgid "camp.talk.drill.one"
+msgstr "حافظوا على الخطوة!"
+
+msgid "camp.talk.drill.two"
+msgstr "مرة أخرى، من البداية."
+
+msgid "camp.talk.drill.three"
+msgstr "انظروا إلى الأمام."
+
+msgid "camp.talk.wounded.one"
+msgstr "مجرد خدش... تقريبًا."
+
+msgid "camp.talk.wounded.two"
+msgstr "سأقف على قدميّ قريبًا."
+
+msgid "camp.talk.wounded.three"
+msgstr "هذه الضمادة تثير الحكّة."
+
+msgid "camp.talk.rest.one"
+msgstr "ناولني الشاي."
+
+msgid "camp.talk.rest.two"
+msgstr "ليلة هادئة، أخيرًا."
+
+msgid "camp.talk.rest.three"
+msgstr "حذائي يحتاج إلى إصلاح."
+
+msgid "camp.talk.watch.one"
+msgstr "لا شيء يُذكر من هذه الجهة."
+
+msgid "camp.talk.watch.two"
+msgstr "لا شيء يتحرك هناك."
+
+msgid "camp.talk.fields.one"
+msgstr "المحصول ينمو جيدًا."
+
+msgid "camp.talk.fields.two"
+msgstr "قليل من المطر سيفيدنا."
+
+msgid "camp.talk.carry.one"
+msgstr "الحمل ثقيل اليوم."
+
+msgid "camp.talk.carry.two"
+msgstr "لهذا البغل رأيه الخاص."
+
+msgid "camp.talk.carry.three"
+msgstr "أين أضع هذا؟"
+
+msgid "camp.talk.hint.full"
+msgstr "المخازن ممتلئة: {resource}."
+
+msgid "camp.talk.hint.low"
+msgstr "المؤن بدأت تنفد."
+
+msgid "camp.talk.hint.idle"
+msgstr "البنّاؤون ينتظرون عملًا."
+
+msgid "camp.talk.hint.hurt"
+msgstr "جرحانا بحاجة إلى الراحة."
+
 msgid "queue.idle"
 msgstr "العمال متفرغون — اضغط على مبنى"
 

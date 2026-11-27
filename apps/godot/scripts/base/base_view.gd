@@ -21,6 +21,10 @@ const LABEL_SCALE := 0.5
 ## How close a name plate may come to the painting's sides, in world units.
 const LABEL_MARGIN := 6.0
 const BAR_WIDTH := 120.0
+## A speech bubble shows this long, this far above the feet (world units).
+const TALK_MS := 4000
+const TALK_ABOVE := 46.0
+const TALK_FILL := Color("efe2c2")
 ## One notch of the mouse wheel.
 const WHEEL_ZOOM := 1.1
 const MOUSE := -1
@@ -36,7 +40,13 @@ var _life := CampLife.new()
 var _labels := {}
 var _overlay := Node2D.new()
 var _levels: Dictionary = {}
+var _summary: Dictionary = {}
 var _queue: Variant = null
+## The speech bubble of whoever was tapped last (CampTalk): who it follows, until when, and how many taps so far.
+var _talk: Label
+var _talk_id := ""
+var _talk_until := 0
+var _taps := 0
 var _now_ms := 0
 var _label_key := ""
 var _gestures := CampGestures.new()
@@ -68,6 +78,18 @@ func build() -> void:
 	for id in CampLayout.BUILDINGS:
 		_labels[id] = _make_label()
 		add_child(_labels[id])
+	_talk = _make_label()
+	# Speech, not a name: parchment with dark ink, so it never reads as a building's plate.
+	var speech := HudTheme.flat(TALK_FILL, 14.0, HudTheme.BUTTON_INK, 2.0)
+	speech.content_margin_left = 18.0
+	speech.content_margin_right = 18.0
+	speech.content_margin_top = 6.0
+	speech.content_margin_bottom = 8.0
+	_talk.add_theme_stylebox_override("normal", speech)
+	_talk.add_theme_color_override("font_color", HudTheme.ON_GOLD)
+	_talk.z_index = D_LABEL + 1
+	_talk.visible = false
+	add_child(_talk)
 
 func _make_label() -> Label:
 	var label := Label.new()
@@ -81,14 +103,17 @@ func _make_label() -> Label:
 	label.add_theme_stylebox_override("normal", plate)
 	return label
 
-## Takes what the screen shows: building levels, the running upgrade (or null) and server time.
-func set_state(levels: Dictionary, queue: Variant, now_ms: int) -> void:
+## Takes what the screen shows: building levels, the running upgrade (or null), server time and what the camp shows of the
+## player's game (CampSummary; empty for none).
+func set_state(levels: Dictionary, queue: Variant, now_ms: int, summary: Dictionary = {}) -> void:
 	_levels = levels
+	_summary = summary
 	_queue = queue
 	_now_ms = now_ms
-	_picture.set_state(levels, "" if queue == null else String(queue["building"]), now_ms)
-	_life.tick(now_ms, CampArt.chimney(look("farm")))
+	_picture.set_state(levels, "" if queue == null else String(queue["building"]), now_ms, summary)
+	_life.tick(now_ms, CampArt.chimney(look("farm")), not summary.get("food_low", false))
 	_refresh_labels()
+	_place_talk()
 	_overlay.queue_redraw()
 
 ## The look a building shows.
@@ -118,6 +143,43 @@ func _refresh_labels() -> void:
 
 func _label_scale() -> float:
 	return LABEL_SCALE / _zoom_by
+
+## Shows what the person at `world` says, if someone who talks is there. True when someone was tapped.
+func talk_at(world: Vector2) -> bool:
+	var who := CampLife.talker_at(CampLife.figures(_now_ms, _summary), world)
+	if who.is_empty():
+		return false
+	var said := CampTalk.line(who["kind"], _summary, _taps + String(who["id"]).hash())
+	_taps += 1
+	var resource := String(said["resource"])
+	_talk.text = Loc.t(said["key"], {"resource": Loc.t("resource." + resource, {}, background)} if resource != "" else {}, background)
+	_talk.reset_size()
+	_talk_id = who["id"]
+	_talk_until = _now_ms + TALK_MS
+	_place_talk()
+	return true
+
+## The line being said, or "" when no one is talking.
+func talk_text() -> String:
+	return _talk.text if _talk.visible else ""
+
+## Keeps the bubble over the head of whoever is talking, and lets it go after TALK_MS or when they are gone.
+func _place_talk() -> void:
+	if _talk == null:
+		return
+	var who := {}
+	if _talk_id != "" and _now_ms < _talk_until:
+		for f: Dictionary in CampLife.figures(_now_ms, _summary):
+			if f["id"] == _talk_id:
+				who = f
+	_talk.visible = not who.is_empty()
+	if who.is_empty():
+		_talk_id = ""
+		return
+	_talk.scale = Vector2.ONE * _label_scale()
+	var width := _talk.size.x * _label_scale()
+	var top: Vector2 = who["at"] - Vector2(0.0, TALK_ABOVE + _talk.size.y * _label_scale())
+	_talk.position = Vector2(clampf(top.x - width * 0.5, LABEL_MARGIN, CampLayout.WORLD.x - width - LABEL_MARGIN), maxf(top.y, LABEL_MARGIN))
 
 ## The id of the building at `world` (this node's coordinates), or "" for empty ground. A name plate counts as its building.
 func hit_building(world: Vector2) -> String:
@@ -220,7 +282,10 @@ func _on_press(index: int, pos: Vector2, pressed: bool) -> void:
 		return
 	if not _gestures.release(index, pos):
 		return
-	var id := hit_building(get_global_transform_with_canvas().affine_inverse() * pos)
+	var world := get_global_transform_with_canvas().affine_inverse() * pos
+	if talk_at(world):
+		return
+	var id := hit_building(world)
 	if id == "":
 		ground_tapped.emit()
 	else:

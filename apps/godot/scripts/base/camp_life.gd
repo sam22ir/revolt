@@ -8,7 +8,11 @@ extends Node2D
 const ART := "res://art/camp/life/"
 ## A sheet has a row per step of the walk and a column per direction (tools/blender/camp_figures.py): 0 is to the right of the
 ## screen and they go anticlockwise on the ground, so 2 is away from the viewer and 6 towards.
-const KINDS: Array[String] = ["crate", "pack", "mule", "guard", "farmer"]
+const KINDS: Array[String] = ["crate", "pack", "mule", "guard", "farmer", "worker", "drill", "sitting", "wounded"]
+## Things that keep still (tents, piles, the fire): one picture each, at the sheets' scale, its foot at the bottom middle
+## STILL_FOOT of the way down. One not rendered yet is not drawn.
+const STILL_ART := "res://art/camp/still/"
+const STILL_FOOT := 0.8
 const STEPS := 6
 const WAYS := 8
 ## One cell in sheet px, and where the feet are in it.
@@ -17,6 +21,10 @@ const FOOT := Vector2(84.0, 138.0)
 ## World units per sheet px (the sheets have 1.5 px per painting px, the world half).
 const FIGURE_SCALE := 1.0 / 3.0
 const STEP_MS := 140.0
+## The area a tap on someone lands on, in world units round their feet: wider than they are, so a finger finds them.
+const TAP_WIDTH := 26.0
+const TAP_HEIGHT := 48.0
+const TAP_BELOW := 8.0
 const GROUND_SHADOW := Color(0.2, 0.13, 0.07, 0.34)
 const SMOKE_PUFFS := 5
 const SMOKE_LIFE_S := 6.0
@@ -29,10 +37,12 @@ var draw_count := 0
 
 ## Kept, so a sheet is read from disk once.
 static var _sheets := {}
+static var _stills := {}
 
 var _puff: GradientTexture2D
 var _now_ms := 0
 var _chimney := Vector2.ZERO
+var _smoke := true
 
 ## Makes the smoke puff. Called once.
 func build() -> void:
@@ -57,22 +67,39 @@ static func sheet(kind: String) -> Texture2D:
 		_sheets[kind] = load(ART + kind + ".webp")
 	return _sheets[kind]
 
+## The sheet a kind walks or works with, or "" for a thing that keeps still.
+static func sheet_kind(kind: String) -> String:
+	return kind if KINDS.has(kind) else ""
+
+## A still thing's picture, or null while it has none.
+static func still(kind: String) -> Texture2D:
+	if not _stills.has(kind):
+		var path := STILL_ART + kind + ".webp"
+		_stills[kind] = load(path) if ResourceLoader.exists(path) else null
+	return _stills[kind]
+
 ## The part of a kind's sheet that shows a direction and step.
 static func cell(_kind: String, dir: int, frame: int) -> Rect2:
 	return Rect2(Vector2(dir, frame) * CELL, CELL)
 
 ## How wide its shadow is, in world units.
 static func width_of(kind: String) -> float:
-	return 34.0 if kind == "mule" else 17.0
+	match kind:
+		"mule":
+			return 34.0
+		"sitting", "wounded":
+			return 24.0
+	return 17.0
 
 ## The direction (0 to 7) that walks the way `step` points on the screen. The ground is seen from 30° up, so away counts double.
 static func way(step: Vector2) -> int:
 	return posmod(roundi(Vector2(step.x, -step.y * 2.0).angle() / (TAU / WAYS)), WAYS)
 
-## The time to draw at, and the top of the farm's chimney.
-func tick(now_ms: int, chimney: Vector2) -> void:
+## The time to draw at, the top of the farm's chimney, and whether it smokes (not when food runs low).
+func tick(now_ms: int, chimney: Vector2, smoke := true) -> void:
 	_now_ms = now_ms
 	_chimney = chimney
+	_smoke = smoke
 	queue_redraw()
 
 ## Where a walker is, `distance` world units into its walk back and forth along `points`: {at, way} where `way` is the direction it
@@ -104,19 +131,39 @@ static func puff(index: int, now_ms: int) -> Dictionary:
 		"alpha": SMOKE_COLOR.a * smoothstep(0.0, 0.12, t) * (1.0 - t),
 	}
 
-## Everyone at `now_ms`, farthest first: {kind, at, dir, frame}.
-static func figures(now_ms: int) -> Array:
+## Everyone at `now_ms`, farthest first: {id, kind, at, dir, frame}; `id` names who it is, so a speech bubble can follow them. `summary` (CampSummary) adds what shows the player's game
+## (CampCast); with food low the farmer is gone.
+static func figures(now_ms: int, summary: Dictionary = {}) -> Array:
 	var out := []
-	for w: Dictionary in CampLayout.WALKERS:
+	for i in CampLayout.WALKERS.size():
+		var w: Dictionary = CampLayout.WALKERS[i]
 		var pose := along(CampLayout.ROUTES[w["route"]], float(w["start"]) + float(w["speed"]) * now_ms / 1000.0)
-		out.append({"kind": w["kind"], "at": pose["at"], "dir": pose["way"], "frame": posmod(floori(now_ms / STEP_MS + float(w["start"])), STEPS)})
-	for s: Dictionary in CampLayout.STANDING:
-		out.append({"kind": s["kind"], "at": s["at"], "dir": s["dir"], "frame": 0})
+		out.append({"id": "walk%d" % i, "kind": w["kind"], "at": pose["at"], "dir": pose["way"], "frame": posmod(floori(now_ms / STEP_MS + float(w["start"])), STEPS)})
+	for i in CampLayout.STANDING.size():
+		var s: Dictionary = CampLayout.STANDING[i]
+		if s["kind"] == "farmer" and summary.get("food_low", false):
+			continue
+		out.append({"id": "stand%d" % i, "kind": s["kind"], "at": s["at"], "dir": s["dir"], "frame": 0})
+	out.append_array(CampCast.cast(summary, now_ms))
 	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["at"].y < b["at"].y)
 	return out
 
+## Who talks at `world` among `list` (CampLife.figures): the one in front whose body holds the point, or {} for no one.
+static func talker_at(list: Array, world: Vector2) -> Dictionary:
+	var best := {}
+	for f: Dictionary in list:
+		if not CampTalk.talks(f["kind"]):
+			continue
+		var at: Vector2 = f["at"]
+		var half := TAP_WIDTH * (2.0 if f["kind"] == "mule" else 1.0) * 0.5
+		if Rect2(at.x - half, at.y - TAP_HEIGHT, half * 2.0, TAP_HEIGHT + TAP_BELOW).has_point(world) and (best.is_empty() or at.y > best["at"].y):
+			best = f
+	return best
+
 func _draw() -> void:
 	draw_count += 1
+	if not _smoke:
+		return
 	for i in SMOKE_PUFFS:
 		var p := puff(i, _now_ms)
 		var r: float = p["radius"]

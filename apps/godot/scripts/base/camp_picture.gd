@@ -8,6 +8,7 @@ var draw_count := 0
 var _ground := Node2D.new()
 var _levels: Dictionary = {}
 var _upgrading := ""
+var _summary: Dictionary = {}
 var _now_ms := 0
 var _tiles: Array[Texture2D] = []
 var _bodies := {}
@@ -26,10 +27,12 @@ func build() -> void:
 	_ground.draw.connect(_draw_ground)
 	add_child(_ground)
 
-## What to draw: building levels, the building being upgraded ("" for none) and the time.
-func set_state(levels: Dictionary, upgrading: String, now_ms: int) -> void:
+## What to draw: building levels, the building being upgraded ("" for none), the time, and what the camp shows of the
+## player's game (CampSummary; empty for none).
+func set_state(levels: Dictionary, upgrading: String, now_ms: int, summary: Dictionary = {}) -> void:
 	_levels = levels
 	_upgrading = upgrading
+	_summary = summary
 	_now_ms = now_ms
 	queue_redraw()
 
@@ -40,7 +43,7 @@ func look(id: String) -> int:
 func sorted_figures() -> Array:
 	var behind := []
 	var front := []
-	for f: Dictionary in CampLife.figures(_now_ms):
+	for f: Dictionary in CampLife.figures(_now_ms, _summary):
 		var hidden := false
 		for id: String in CampLayout.BUILDINGS:
 			hidden = hidden or CampArt.is_behind(id, look(id), f["at"])
@@ -84,7 +87,18 @@ func _draw() -> void:
 
 func _draw_figures(list: Array) -> void:
 	for f: Dictionary in list:
-		var width := CampLife.width_of(f["kind"])
-		draw_texture_rect(_puff, Rect2(f["at"] - Vector2(width, width * 0.5) * 0.5, Vector2(width, width * 0.5)), false, CampLife.GROUND_SHADOW)
-		var cell := CampLife.cell(f["kind"], f["dir"], f["frame"])
-		draw_texture_rect_region(CampLife.sheet(f["kind"]), Rect2(f["at"] - CampLife.FOOT * CampLife.FIGURE_SCALE, CampLife.CELL * CampLife.FIGURE_SCALE), cell)
+		var kind: String = f["kind"]
+		var sheet := CampLife.sheet_kind(kind)
+		var picture: Texture2D = CampLife.still(kind) if sheet == "" else null
+		if sheet == "" and picture == null:
+			continue
+		# A still thing's picture has its shade in it.
+		var width := CampLife.width_of(kind)
+		if sheet != "":
+			draw_texture_rect(_puff, Rect2(f["at"] - Vector2(width, width * 0.5) * 0.5, Vector2(width, width * 0.5)), false, CampLife.GROUND_SHADOW)
+		if sheet != "":
+			var cell := CampLife.cell(sheet, f["dir"], f["frame"])
+			draw_texture_rect_region(CampLife.sheet(sheet), Rect2(f["at"] - CampLife.FOOT * CampLife.FIGURE_SCALE, CampLife.CELL * CampLife.FIGURE_SCALE), cell)
+		else:
+			var size := picture.get_size() * CampLife.FIGURE_SCALE
+			draw_texture_rect(picture, Rect2(f["at"] - Vector2(size.x * 0.5, size.y * CampLife.STILL_FOOT), size), false)

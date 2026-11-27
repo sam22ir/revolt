@@ -1318,6 +1318,75 @@ msgstr "Porter columns"
 msgid "background.vietnam.troop.porters.desc"
 msgstr "Carry resources home on foot. They do not fight."
 
+msgid "camp.talk.worker.one"
+msgstr "Hold it steady, nearly done."
+
+msgid "camp.talk.worker.two"
+msgstr "One more beam and it stands."
+
+msgid "camp.talk.worker.three"
+msgstr "Mind your fingers!"
+
+msgid "camp.talk.drill.one"
+msgstr "Keep in step!"
+
+msgid "camp.talk.drill.two"
+msgstr "Again, from the top."
+
+msgid "camp.talk.drill.three"
+msgstr "Eyes front."
+
+msgid "camp.talk.wounded.one"
+msgstr "Just a scratch. Mostly."
+
+msgid "camp.talk.wounded.two"
+msgstr "I'll be on my feet soon."
+
+msgid "camp.talk.wounded.three"
+msgstr "This bandage itches."
+
+msgid "camp.talk.rest.one"
+msgstr "Pass the tea."
+
+msgid "camp.talk.rest.two"
+msgstr "A quiet night, for once."
+
+msgid "camp.talk.rest.three"
+msgstr "My boots need mending."
+
+msgid "camp.talk.watch.one"
+msgstr "All clear on this side."
+
+msgid "camp.talk.watch.two"
+msgstr "Nothing moves out there."
+
+msgid "camp.talk.fields.one"
+msgstr "The crop is coming up well."
+
+msgid "camp.talk.fields.two"
+msgstr "A little rain would help."
+
+msgid "camp.talk.carry.one"
+msgstr "Heavy load today."
+
+msgid "camp.talk.carry.two"
+msgstr "This mule has opinions."
+
+msgid "camp.talk.carry.three"
+msgstr "Where does this one go?"
+
+msgid "camp.talk.hint.full"
+msgstr "The stores are full: {resource}."
+
+msgid "camp.talk.hint.low"
+msgstr "Supplies are running low."
+
+msgid "camp.talk.hint.idle"
+msgstr "The builders are waiting for work."
+
+msgid "camp.talk.hint.hurt"
+msgstr "Our wounded need rest."
+
 msgid "queue.idle"
 msgstr "Builders idle — tap a building"
 

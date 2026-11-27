@@ -1318,6 +1318,75 @@ msgstr "Colonnes de porteurs"
 msgid "background.vietnam.troop.porters.desc"
 msgstr "Rapportent les ressources à pied. Ils ne combattent pas."
 
+msgid "camp.talk.worker.one"
+msgstr "Tiens bon, on a presque fini."
+
+msgid "camp.talk.worker.two"
+msgstr "Encore une poutre et ça tient."
+
+msgid "camp.talk.worker.three"
+msgstr "Attention à tes doigts !"
+
+msgid "camp.talk.drill.one"
+msgstr "Gardez le pas !"
+
+msgid "camp.talk.drill.two"
+msgstr "Encore une fois, depuis le début."
+
+msgid "camp.talk.drill.three"
+msgstr "Regard devant."
+
+msgid "camp.talk.wounded.one"
+msgstr "Juste une égratignure. Enfin, presque."
+
+msgid "camp.talk.wounded.two"
+msgstr "Je serai vite debout."
+
+msgid "camp.talk.wounded.three"
+msgstr "Ce bandage me gratte."
+
+msgid "camp.talk.rest.one"
+msgstr "Passe-moi le thé."
+
+msgid "camp.talk.rest.two"
+msgstr "Une nuit calme, pour une fois."
+
+msgid "camp.talk.rest.three"
+msgstr "Mes bottes sont à recoudre."
+
+msgid "camp.talk.watch.one"
+msgstr "Rien à signaler de ce côté."
+
+msgid "camp.talk.watch.two"
+msgstr "Rien ne bouge là-bas."
+
+msgid "camp.talk.fields.one"
+msgstr "La récolte s'annonce bien."
+
+msgid "camp.talk.fields.two"
+msgstr "Un peu de pluie ferait du bien."
+
+msgid "camp.talk.carry.one"
+msgstr "Lourde charge aujourd'hui."
+
+msgid "camp.talk.carry.two"
+msgstr "Cette mule a son caractère."
+
+msgid "camp.talk.carry.three"
+msgstr "Celui-là, je le pose où ?"
+
+msgid "camp.talk.hint.full"
+msgstr "Les réserves sont pleines : {resource}."
+
+msgid "camp.talk.hint.low"
+msgstr "Les vivres commencent à manquer."
+
+msgid "camp.talk.hint.idle"
+msgstr "Les bâtisseurs attendent du travail."
+
+msgid "camp.talk.hint.hurt"
+msgstr "Nos blessés ont besoin de repos."
+
 msgid "queue.idle"
 msgstr "Ouvriers libres — touchez un bâtiment"
 

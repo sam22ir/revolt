@@ -1,4 +1,5 @@
-"""People and mules, posed in code: a walk cycle of 6 steps in 8 directions each. No faces: scarves, hoods and hats hide them.
+"""People and mules, posed in code: a cycle of 6 steps in 8 directions each (a walk, or work on the spot: hammering, drilling,
+sitting, resting wounded). No faces: scarves, hoods and hats hide them.
 
 A sheet has a row per step and a column per direction. Direction 0 walks to the right of the screen and they go anticlockwise on
 the ground: 2 is away from the viewer, 4 left, 6 towards the viewer.
@@ -14,11 +15,15 @@ STEPS, WAYS = 6, 8
 # A cell's size in painting px, and where the feet stand in it.
 CELL = (112, 112)
 FOOT = (56, 92)
-KINDS = ("crate", "pack", "mule", "guard", "farmer")
+KINDS = ("crate", "pack", "mule", "guard", "farmer", "worker", "drill", "sitting", "wounded")
 
 SKIN, WOOL, LINEN, SCARF = ck.rgb("9c6f50"), ck.rgb("7a6650"), ck.rgb("cbbd9f"), ck.rgb("b9a67f")
 DARK_WOOL, OLIVE, BOOT, STRAW = ck.rgb("59493a"), ck.rgb("74704f"), ck.rgb("40322a"), ck.rgb("d0ac6a")
 HIDE, MANE = ck.rgb("7c5b41"), ck.rgb("3d2e26")
+CLOTHES = {
+    "crate": (LINEN, WOOL), "pack": (OLIVE, DARK_WOOL), "guard": (OLIVE, ck.rgb("8a7a58")), "farmer": (LINEN, ck.rgb("a08a66")),
+    "worker": (LINEN, ck.rgb("8b7458")), "drill": (OLIVE, ck.rgb("6f6a48")), "sitting": (LINEN, ck.rgb("94805f")), "wounded": (OLIVE, DARK_WOOL),
+}
 
 
 def limb(k, top, length, swing, bend, r, col, foot_col, ink):
@@ -42,7 +47,7 @@ def person(k, kind, step, walking=True):
     s = math.sin(p) if walking else 0.0
     bob = 1.2 * abs(math.cos(p)) if walking else 0.0
     hip, shoulder = 33.0 + bob, 56.0 + bob
-    trousers, coat = {"crate": (LINEN, WOOL), "pack": (OLIVE, DARK_WOOL), "guard": (OLIVE, ck.rgb("8a7a58")), "farmer": (LINEN, ck.rgb("a08a66"))}[kind]
+    trousers, coat = CLOTHES[kind]
     for side, phase in ((1, 1), (-1, -1)):
         sw = 30 * s * phase
         knee = max(0.0, -math.cos(p) * phase) * 38 if walking else 0
@@ -74,6 +79,19 @@ def person(k, kind, step, walking=True):
         blob(k, (-13, 0, shoulder + 9), (14, 27, 10), ck.rgb("8d7c66"), round_=1.2)
         for side in (1, -1):
             k.rod((-6, side * 6, shoulder + 1), (9, side * 6, shoulder - 12), 1.4, 1.4, BOOT, ck.THIN, 6)
+    elif kind == "worker":
+        # Hammering a peg: the hammer arm rises and falls once a cycle, the other hand holds the work.
+        end = limb(k, arm + Vector((0, 9.5, 0)), 24, 95 + 60 * math.cos(p), -35, 3.4, coat, SKIN, k.ink())
+        a = math.radians(95 + 60 * math.cos(p) + 35)
+        head = end + Vector((math.sin(a), 0, -math.cos(a))) * 14
+        k.rod(end, head, 1.3, 1.3, ck.WOOD, None, 6)
+        k.obox(head + Vector((0, 0, -3)), (6, 9, 6), 0, ck.IRON, None, 0.2)
+        limb(k, arm + Vector((0, -9.5, 0)), 24, 62, -30, 3.4, coat, SKIN, k.ink())
+    elif kind == "drill":
+        # Marching on the spot with a staff on the shoulder, the free arm swinging.
+        limb(k, arm + Vector((0, 9.5, 0)), 25, 26 * s, -18, 3.4, coat, SKIN, k.ink())
+        limb(k, arm + Vector((0, -9.5, 0)), 20, 40, -125, 3.4, coat, SKIN, k.ink())
+        k.rod((10, -12, shoulder - 22), (-14, -12, shoulder + 34), 1.6, 1.5, ck.WOOD, None, 6)
     elif kind == "guard":
         limb(k, arm + Vector((0, 9.5, 0)), 25, 10 - 14 * s, -20, 3.4, coat, SKIN, k.ink())
         limb(k, arm + Vector((0, -9.5, 0)), 25, 24, -70, 3.4, coat, SKIN, k.ink())
@@ -84,6 +102,37 @@ def person(k, kind, step, walking=True):
         limb(k, arm + Vector((0, -9.5, 0)), 25, 40, -40, 3.4, coat, SKIN, k.ink())
         k.rod((17, -12, 2), (16, -10, 66), 1.5, 1.4, ck.WOOD, None, 6)
         k.obox(Vector((20, -12, 1)), (12, 8, 3), 0, ck.IRON, None, 0.2)
+
+
+def seated(k, kind, step):
+    """Someone sitting on the ground, knees up: by a tent or the fire, talking with their hands; or resting wounded, leaning
+    back with a bandaged head and an arm in a sling, nearly still."""
+    p = math.tau * step / STEPS
+    s = math.sin(p)
+    hurt = kind == "wounded"
+    hip = 9.0
+    trousers, coat = CLOTHES[kind]
+    for side in (1, -1):
+        knee = Vector((16, side * 5, hip + (5 if hurt else 10)))
+        foot = Vector((27 if hurt else 24, side * 6.5, 2))
+        k.rod((0, side * 4.6, hip), knee, 4.4, 4.0, trousers, k.ink(), 10, 0.3)
+        k.rod(knee, foot, 4.0, 3.4, trousers, k.ink(), 10, 0.3)
+        k.stone(foot + Vector((2, 0, 0)), (11.4, 8, 6.6), 0, BOOT, jitter=0.02, round_=1.2, tex=0.2)
+    lean = -5.0 if hurt else 2.0
+    k.lathe((lean * 0.2, 0, hip - 2), [(10.4, 0, None), (9.2, 8, coat), (8.0, 15, coat), (9.6, 27, coat), (7.6, 31, coat), (0.1, 33, coat)], coat, sides=16, tex=0.5)
+    shoulder = hip + 27 + (0.4 * s if hurt else 0.0)
+    head = Vector((lean * 0.6, 0, shoulder + 11))
+    blob(k, head, (12, 11.5, 14), SKIN)
+    blob(k, head + Vector((-0.6, 0, 3.6)), (14, 13.5, 9 if hurt else 10), LINEN if hurt else SCARF)
+    blob(k, head + Vector((1.0, 0, -5.0)), (13.5, 13, 7.5), SCARF)
+    arm = Vector((lean * 0.3, 0, shoulder - 3))
+    if hurt:
+        limb(k, arm + Vector((0, 9.5, 0)), 18, 10, -115, 3.4, coat, SKIN, k.ink())
+        k.rod(arm + Vector((6, 9, -14)), arm + Vector((2, -8, 4)), 2.6, 2.6, LINEN, None, 8)
+        limb(k, arm + Vector((0, -9.5, 0)), 24, -28, 10, 3.4, coat, SKIN, k.ink())
+    else:
+        for side in (1, -1):
+            limb(k, arm + Vector((0, side * 9.5, 0)), 22, 62 + 14 * s * side, -38, 3.4, coat, SKIN, k.ink())
 
 
 def mule(k, step):
@@ -123,6 +172,8 @@ def build(kind):
             k.rng.seed(sum(map(ord, kind)))
             if kind == "mule":
                 mule(k, r)
+            elif kind in ("sitting", "wounded"):
+                seated(k, kind, r)
             else:
-                person(k, kind, r, kind != "guard")
+                person(k, kind, r, kind not in ("guard", "worker"))
     return k

@@ -445,6 +445,23 @@ export const fr: LocaleShape = {
       },
     },
   },
+  camp: {
+    talk: {
+      worker: { one: "Tiens bon, on a presque fini.", two: "Encore une poutre et ça tient.", three: "Attention à tes doigts !" },
+      drill: { one: "Gardez le pas !", two: "Encore une fois, depuis le début.", three: "Regard devant." },
+      wounded: { one: "Juste une égratignure. Enfin, presque.", two: "Je serai vite debout.", three: "Ce bandage me gratte." },
+      rest: { one: "Passe-moi le thé.", two: "Une nuit calme, pour une fois.", three: "Mes bottes sont à recoudre." },
+      watch: { one: "Rien à signaler de ce côté.", two: "Rien ne bouge là-bas." },
+      fields: { one: "La récolte s'annonce bien.", two: "Un peu de pluie ferait du bien." },
+      carry: { one: "Lourde charge aujourd'hui.", two: "Cette mule a son caractère.", three: "Celui-là, je le pose où ?" },
+      hint: {
+        full: "Les réserves sont pleines : {{resource}}.",
+        low: "Les vivres commencent à manquer.",
+        idle: "Les bâtisseurs attendent du travail.",
+        hurt: "Nos blessés ont besoin de repos.",
+      },
+    },
+  },
   queue: { idle: "Ouvriers libres — touchez un bâtiment", busy: "{{building}} → niveau {{level}}" },
   time: { h: "{{count}} h", m: "{{count}} min", s: "{{count}} s", done: "Terminé" },
   settings: {

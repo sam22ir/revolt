@@ -35,6 +35,45 @@ const STANDING := [
 	{"kind": "farmer", "at": Vector2(600, 1112), "dir": 1},
 ]
 
+## What the camp shows of the player's game (CampCast, docs/camp-life-plan.md). Spots are world units on open ground, clear of
+## every building's outline and the walkers' routes.
+## Fighters drilling in the barracks yard while troops train, facing the barracks, to the right of its name plate.
+const DRILL := [Vector2(330, 575), Vector2(362, 583), Vector2(394, 591)]
+const DRILL_DIR := 3
+## The wounded rest beside the hero hall, clear of its name plate: one figure per this many wounded, up to the spots there are.
+const WOUNDED := [Vector2(268, 706), Vector2(292, 716), Vector2(250, 694)]
+const WOUNDED_PER_FIGURE := 10
+## Where a full or nearly full producer piles its stock, by resource, clear of the name plates.
+const PILES := {"food": Vector2(470, 1012), "materiel": Vector2(692, 478), "funds": Vector2(618, 772)}
+## Food below this share of its cap: the farm's chimney goes cold and the farmer leaves.
+const FOOD_LOW := 0.15
+## The way out of the camp, from the bend below the hero hall to the top of the road; a march walks it out after it leaves
+## and in again before it is back, at COLUMN_SPEED world units a second, its people COLUMN_GAP apart.
+const WAY_OUT := [Vector2(190, 880), Vector2(230, 810), Vector2(305, 762), Vector2(400, 712), Vector2(500, 660), Vector2(600, 606), Vector2(700, 552), Vector2(768, 520)]
+const COLUMN_SPEED := 18.0
+const COLUMN_GAP := 22.0
+const COLUMN_OUT: Array[String] = ["pack", "pack", "mule"]
+const COLUMN_IN: Array[String] = ["mule", "crate", "mule"]
+## Tents go up as the HQ grows, one at each level here, with someone sitting by each.
+const TENTS := [
+	{"hq": 2, "at": Vector2(110, 910)},
+	{"hq": 4, "at": Vector2(645, 1210)},
+	{"hq": 6, "at": Vector2(165, 1265)},
+	{"hq": 8, "at": Vector2(600, 290)},
+]
+const BY_TENT := Vector2(24, 10)
+## Support brings up to FIRE_PEOPLE more round the cooking fire, sitting FIRE_RADIUS from it.
+const FIRE := Vector2(580, 1070)
+const FIRE_PEOPLE := 3
+const FIRE_RADIUS := 24.0
+## Two workers stand in front of the building being upgraded, WORKER_ALONG of the way in from its side corners (the name plate
+## hangs under the front corner): WORKER_DROP below its outline, looked for in steps of WORKER_STEP.
+const WORKER_ALONG := 0.2
+const WORKER_DROP := 4.0
+const WORKER_STEP := 4.0
+## At most this many people and props on top of the walkers and the standing ones, so a phone stays fast.
+const MAX_CAST := 30
+
 ## The building whose outline holds `world`, or "" for empty ground. `looks` is the look each building shows (none: the first).
 static func building_at(world: Vector2, looks: Dictionary = {}) -> String:
 	for id in BUILDINGS:

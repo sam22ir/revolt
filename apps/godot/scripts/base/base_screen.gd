@@ -113,7 +113,7 @@ func update(now_ms: int, resources: Dictionary) -> void:
 		return
 	var queue: Variant = _session.queue()
 	view.background = _session.background
-	view.set_state(_session.levels, queue, now_ms)
+	view.set_state(_session.levels, queue, now_ms, CampSummary.build(_session.levels, queue, _session.state, resources))
 	if ring.visible:
 		var anchors := view.ring_anchors(ring.shown_id)
 		ring.place(anchors[0], anchors[1], _band_top, _band_bottom)

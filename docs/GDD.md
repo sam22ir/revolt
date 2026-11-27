@@ -141,6 +141,13 @@ collect resources → spend on buildings / troops / research
 - **Story missions:** a chapter-based campaign per background, told with short illustrated scenes (text first; voice narration deferred).
 - **Daily/weekly missions:** routine goals for rewards.
 - Every story chapter is reviewed against the sensitivity rules (§6).
+- **Planned: the camp moves.** Real camps moved often to stay hidden; a story chapter moves the player's camp to a new site (new ground rendered in Blender, a short scene of the column leaving). Needs its own chapter text and historian review. See `docs/camp-life-plan.md`.
+
+### 4.10 Camp life
+
+- The camp shows the player's game state with zero extra taps: workers at an upgrading building, fighters drilling while troops train, wounded resting, piles at full producers, columns leaving and coming back, cold chimneys when food runs low.
+- The camp grows: tents with the HQ level, more people round the fire with support.
+- Later, tapping a figure gives one short everyday line. All cosmetic, worked out from `(state, now)`. Plan: `docs/camp-life-plan.md`.
 
 ### 4.9 Events and leaderboards
 
