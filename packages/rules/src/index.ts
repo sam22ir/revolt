@@ -270,3 +270,29 @@ export { HEAL_BATCH_PER_LEVEL, HEAL_COST_SHARE, HEAL_TIME_SHARE } from "./data/t
 export { checkHealing, HEALING_BLOCK_REASONS, healingQuote, maxHealingBatch, planHealing, startHealing, type HealingBlockReason, type HealingResult } from "./healing.ts";
 export { CLOSE_FROM, FORECAST_CHANCE_LEVEL, FORECAST_LOSSES_LEVEL, FORECAST_SAMPLES, LIKELY_WIN_FROM } from "./data/watchtower.ts";
 export { battleOdds, FORECAST_VERDICTS, forecastFor, verdictOf, type BattleOdds, type Forecast, type ForecastVerdict } from "./scout.ts";
+export {
+  CARE_COST,
+  CARE_INFIRMARY_LEVEL,
+  isLessonId,
+  isVillageKind,
+  LABOR_MS,
+  LABOR_TROOPS,
+  LESSON_IDS,
+  LESSON_STATS,
+  LESSONS,
+  MAX_TRUST_LEVEL,
+  NEED_KINDS,
+  PROTECTION_RADIUS,
+  TRUST_DECAY_PER_DAY,
+  TRUST_LEVELS,
+  TRUST_MAX,
+  TRUST_PER_HELP,
+  VILLAGE_DAY_OFFSET_MS,
+  VILLAGE_KINDS,
+  type LessonDef,
+  type LessonId,
+  type LessonStat,
+  type NeedKind,
+  type VillageKind,
+} from "./data/villages.ts";
+export { VILLAGE_HELP_BLOCK_REASONS, helpVillage, lessonAt, needAmount, NO_TRUST, trustAt, trustLevel, villageDay, villageNeed, type VillageHelpBlockReason, type VillageHelpResult, type VillageTrust } from "./villages.ts";
