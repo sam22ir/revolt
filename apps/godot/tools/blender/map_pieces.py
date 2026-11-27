@@ -552,3 +552,11 @@ PIECES = {
     **{"farmland_%d" % n: (lambda k, n=n: field(k, n)) for n in (1, 2, 3)},
     **{"quarry_%d" % n: (lambda k, n=n: quarry(k, n)) for n in (1, 2, 3)},
 }
+
+
+def _villages():
+    import map_villages
+    return map_villages.VILLAGES
+
+
+PIECES.update(_villages())
