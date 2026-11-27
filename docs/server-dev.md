@@ -137,6 +137,7 @@ Routes (all bearer-auth, all scoped to the account's server; players are named b
 | `POST /v1/events/claim {event}` | After a window ends (7 days grace) pays the highest tier reached, once. |
 | `GET /v1/leaderboard?board=power\|regions\|alliance\|event[&event=key]` | Top 50 and the viewer's own place. |
 | `GET /v1/pass`, `POST /v1/pass/claim {tier, track}` | The season's pass; each tier pays once per track; premium needs the purchase. |
+| `GET /v1/missions`, `POST /v1/missions/claim {mission}`, `POST /v1/quests/claim {quest}` | Daily missions (reset at local midnight per background, progress from `mission_ticks` rows written once per accepted upgrade or training, NPC victory and help given; a claim pays the reward and the mission's pass XP together) and the beginner quest chain (checked against the base, claimed in order, never pruned). |
 | `GET /v1/store`, `POST /v1/store/redeem {sku, provider, receipt}`, `POST /v1/cosmetics/equip {slot, cosmetic}` | Catalog and wallet; receipt redemption; wearing cosmetics. |
 | `POST /v1/intent {type:"speedup", job, tokens}` | Spends speed-up tokens on the running upgrade or training. |
 

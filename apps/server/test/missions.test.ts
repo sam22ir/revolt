@@ -108,7 +108,7 @@ describe("daily missions", () => {
 describe("beginner quests", () => {
   test("the chain starts at the first quest and is claimed in order", async () => {
     const f = await fighter(server);
-    expect((await get(server, f.token, "/v1/missions")).quest).toMatchObject({ id: QUEST_IDS[0], step: 1, steps: QUEST_IDS.length, done: false });
+    expect((await get(server, f.token, "/v1/missions")).quest).toMatchObject({ id: QUEST_IDS[0], goal: QUESTS.first_farm.goal, step: 1, steps: QUEST_IDS.length, done: false });
     expect(await post(server, f.token, "/v1/quests/claim", { quest: "first_farm" })).toMatchObject({ ok: false, reason: "not_done" });
     await editBase(server, f.id, (s) => {
       s.levels.farm = 2;

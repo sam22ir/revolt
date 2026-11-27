@@ -53,7 +53,7 @@ export const getMissions = async (ctx: Ctx): Promise<Response> => {
     day,
     resetsAt: missionDayStart(day + 1, bg),
     daily: statuses.map((m) => ({ ...m, reward: DAILY_MISSIONS[m.id].reward, passXp: DAILY_MISSIONS[m.id].passXp })),
-    quest: q === null ? null : { ...q, reward: QUESTS[q.id].reward, step: QUEST_IDS.indexOf(q.id) + 1, steps: QUEST_IDS.length },
+    quest: q === null ? null : { ...q, goal: QUESTS[q.id].goal, reward: QUESTS[q.id].reward, step: QUEST_IDS.indexOf(q.id) + 1, steps: QUEST_IDS.length },
     now: ctx.now,
   };
   return json(body);

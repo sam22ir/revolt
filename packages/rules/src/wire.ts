@@ -9,7 +9,7 @@ import type { HeroId } from "./hero-id.ts";
 import type { HelpKind } from "./help.ts";
 import type { CosmeticId, CosmeticSlot } from "./data/cosmetics.ts";
 import type { EventId } from "./data/events.ts";
-import type { DailyMissionId, MissionMetric, QuestId } from "./data/missions.ts";
+import type { DailyMissionId, MissionMetric, QuestGoal, QuestId } from "./data/missions.ts";
 import type { Reward } from "./reward.ts";
 import type { ProductKind, ProductSku } from "./data/store.ts";
 import type { LeaderboardId } from "./leaderboard.ts";
@@ -321,6 +321,8 @@ export interface DailyMissionView {
 
 export interface QuestView {
   readonly id: QuestId;
+  /** What the quest asks, so the client can name the building in its text. */
+  readonly goal: QuestGoal;
   readonly progress: number;
   readonly target: number;
   readonly done: boolean;

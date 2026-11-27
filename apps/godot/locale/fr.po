@@ -103,6 +103,15 @@ msgstr "Moins"
 msgid "panel.max"
 msgstr "Max"
 
+msgid "reason.not_done"
+msgstr "Pas encore terminé"
+
+msgid "reason.not_current"
+msgstr "Terminez d’abord l’étape précédente"
+
+msgid "reason.unknown_mission"
+msgstr "Cette mission n’existe pas"
+
 msgid "reason.hero_hall_level"
 msgstr "Requiert la salle des héros niveau {level}"
 
@@ -339,6 +348,9 @@ msgstr "L’amélioration du poste de commandement ne peut pas être accéléré
 
 msgid "reason.daily_cap"
 msgstr "Vous avez atteint la limite d’accélération du jour"
+
+msgid "nav.missions"
+msgstr "Missions"
 
 msgid "nav.map"
 msgstr "Carte"
@@ -1722,6 +1734,84 @@ msgstr "Vous ne possédez encore aucun aspect."
 
 msgid "live.store.worn"
 msgstr "porté"
+
+msgid "missions.title"
+msgstr "Missions"
+
+msgid "missions.daily"
+msgstr "Missions du jour"
+
+msgid "missions.resets"
+msgstr "Nouvelles missions dans {time}"
+
+msgid "missions.quests"
+msgstr "Premiers pas"
+
+msgid "missions.step"
+msgstr "Étape {step} sur {steps}"
+
+msgid "missions.progress"
+msgstr "{have} / {need}"
+
+msgid "missions.claim"
+msgstr "Récupérer"
+
+msgid "missions.claimed"
+msgstr "Récupéré"
+
+msgid "missions.passXp"
+msgstr "+{count} XP de passe"
+
+msgid "missions.allDone"
+msgstr "Vous avez terminé tous les premiers pas. Les missions du jour reviennent chaque jour."
+
+msgid "missions.loading"
+msgstr "Chargement des missions…"
+
+msgid "missions.offline"
+msgstr "Impossible de charger les missions. Réessayez dans un instant."
+
+msgid "mission.daily_build"
+msgstr "Lancer {count} améliorations"
+
+msgid "mission.daily_train"
+msgstr "Entraîner {count} soldats"
+
+msgid "mission.daily_fight"
+msgstr "Battre {count} patrouilles, convois ou postes coloniaux"
+
+msgid "mission.daily_help"
+msgstr "Aider des membres de l’alliance {count} fois"
+
+msgid "quest.first_farm"
+msgstr "Améliorer {building} au niveau {count}"
+
+msgid "quest.first_armory"
+msgstr "Améliorer {building} au niveau {count}"
+
+msgid "quest.first_treasury"
+msgstr "Améliorer {building} au niveau {count}"
+
+msgid "quest.first_troops"
+msgstr "Avoir {count} soldats prêts"
+
+msgid "quest.first_barracks"
+msgstr "Améliorer {building} au niveau {count}"
+
+msgid "quest.first_hero"
+msgstr "Recruter votre premier héros"
+
+msgid "quest.first_victory"
+msgstr "Gagner une bataille avec un héros à la tête de la marche"
+
+msgid "quest.first_chapter"
+msgstr "Terminer le premier chapitre de l’histoire"
+
+msgid "quest.first_alliance"
+msgstr "Rejoindre ou fonder une alliance"
+
+msgid "quest.first_hq"
+msgstr "Améliorer {building} au niveau {count}"
 
 msgid "reward.shards"
 msgstr "{count} fragments pour {hero}"

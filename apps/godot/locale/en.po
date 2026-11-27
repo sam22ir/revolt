@@ -103,6 +103,15 @@ msgstr "Fewer"
 msgid "panel.max"
 msgstr "Max"
 
+msgid "reason.not_done"
+msgstr "Not finished yet"
+
+msgid "reason.not_current"
+msgstr "Finish the earlier step first"
+
+msgid "reason.unknown_mission"
+msgstr "That mission does not exist"
+
 msgid "reason.hero_hall_level"
 msgstr "Requires hero hall level {level}"
 
@@ -339,6 +348,9 @@ msgstr "The command post upgrade cannot be sped up"
 
 msgid "reason.daily_cap"
 msgstr "You reached today’s speed-up limit"
+
+msgid "nav.missions"
+msgstr "Missions"
 
 msgid "nav.map"
 msgstr "Map"
@@ -1722,6 +1734,84 @@ msgstr "You do not own any looks yet."
 
 msgid "live.store.worn"
 msgstr "worn"
+
+msgid "missions.title"
+msgstr "Missions"
+
+msgid "missions.daily"
+msgstr "Today's missions"
+
+msgid "missions.resets"
+msgstr "New missions in {time}"
+
+msgid "missions.quests"
+msgstr "First steps"
+
+msgid "missions.step"
+msgstr "Step {step} of {steps}"
+
+msgid "missions.progress"
+msgstr "{have} / {need}"
+
+msgid "missions.claim"
+msgstr "Claim"
+
+msgid "missions.claimed"
+msgstr "Claimed"
+
+msgid "missions.passXp"
+msgstr "+{count} pass XP"
+
+msgid "missions.allDone"
+msgstr "You have finished every first step. Daily missions come back each day."
+
+msgid "missions.loading"
+msgstr "Loading missions…"
+
+msgid "missions.offline"
+msgstr "Could not load missions. Try again in a moment."
+
+msgid "mission.daily_build"
+msgstr "Start {count} upgrades"
+
+msgid "mission.daily_train"
+msgstr "Train {count} troops"
+
+msgid "mission.daily_fight"
+msgstr "Beat {count} colonial patrols, convoys or outposts"
+
+msgid "mission.daily_help"
+msgstr "Help alliance members {count} times"
+
+msgid "quest.first_farm"
+msgstr "Upgrade {building} to level {count}"
+
+msgid "quest.first_armory"
+msgstr "Upgrade {building} to level {count}"
+
+msgid "quest.first_treasury"
+msgstr "Upgrade {building} to level {count}"
+
+msgid "quest.first_troops"
+msgstr "Have {count} troops ready"
+
+msgid "quest.first_barracks"
+msgstr "Upgrade {building} to level {count}"
+
+msgid "quest.first_hero"
+msgstr "Recruit your first hero"
+
+msgid "quest.first_victory"
+msgstr "Win a battle with a hero leading the march"
+
+msgid "quest.first_chapter"
+msgstr "Finish the first story chapter"
+
+msgid "quest.first_alliance"
+msgstr "Join or found an alliance"
+
+msgid "quest.first_hq"
+msgstr "Upgrade {building} to level {count}"
 
 msgid "reward.shards"
 msgstr "{count} shards for {hero}"
