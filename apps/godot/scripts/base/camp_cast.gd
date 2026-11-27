@@ -4,7 +4,7 @@ extends RefCounted
 ## upgraded, fighters drilling, the wounded resting, piles at full producers, columns going out and coming back, tents and people
 ## as the camp grows. A pure function of a CampSummary and the time: nothing ticks, and a clock that steps back only moves them back.
 
-## Everyone and everything the summary calls for at `now_ms`, as {kind, at, dir, frame}, at most CampLayout.MAX_CAST. What
+## Everyone and everything the summary calls for at `now_ms`, as {id, kind, at, dir, frame}, at most CampLayout.MAX_CAST. What
 ## matters most comes first, so the cap drops the camp's growth before the game's state.
 static func cast(summary: Dictionary, now_ms: int) -> Array:
 	var out := []
@@ -36,7 +36,10 @@ static func cast(summary: Dictionary, now_ms: int) -> Array:
 		var turn := TAU * (0.15 + float(i) / CampLayout.FIRE_PEOPLE)
 		var at := CampLayout.FIRE + Vector2(cos(turn), sin(turn) * 0.5) * CampLayout.FIRE_RADIUS
 		out.append({"kind": "sitting", "at": at, "dir": CampLife.way(CampLayout.FIRE - at), "frame": 0})
-	return out.slice(0, CampLayout.MAX_CAST)
+	out = out.slice(0, CampLayout.MAX_CAST)
+	for i in out.size():
+		out[i]["id"] = "cast%d:%s" % [i, out[i]["kind"]]
+	return out
 
 ## The pile a producer shows: a small one when nearly full, a big one when full.
 static func pile_of(resource: String, full: bool) -> String:

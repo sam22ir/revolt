@@ -43,6 +43,14 @@ The base view gets only `levels`, `queue` and `now_ms` (`base_view.gd:85`). The 
 
 Each state above shows in the browser at phone size (en and ar), screenshots in `map-shots/`, the world map still draws its columns (screenshot), GUT passes, phone check by the user later (no APK unless asked).
 
+## Step 3: camp talk
+
+Tapping someone (people and mules; not tents, piles or the fire) shows one short everyday line over their head for 4 s, in the
+UI's own label style. Pools per kind (`camp.talk.<pool>.*`: worker, drill, wounded, rest, watch, fields, carry); when the camp
+needs something, every other tap is a hint instead (`camp.talk.hint.*`: stores full, food low, builders idle, wounded). Tapping
+again gives the next line. Lines are generic and everyday, no history (no historian review needed); the Arabic needs the usual
+Arabic review. Code: `CampTalk` (pure), `CampLife.talker_at`, `BaseView.talk_at`; a tap on someone wins over the building under them.
+
 ## Later: the camp moves (story)
 
 Real camps moved often to stay hidden. A story chapter will move the camp to a new site: a new ground and cliff set rendered in Blender, the same buildings at new spots, a short scene of the column leaving. It needs its own chapter text (historian review) and its own plan.

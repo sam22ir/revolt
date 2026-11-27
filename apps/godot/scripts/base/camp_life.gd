@@ -21,6 +21,10 @@ const FOOT := Vector2(84.0, 138.0)
 ## World units per sheet px (the sheets have 1.5 px per painting px, the world half).
 const FIGURE_SCALE := 1.0 / 3.0
 const STEP_MS := 140.0
+## The area a tap on someone lands on, in world units round their feet: wider than they are, so a finger finds them.
+const TAP_WIDTH := 26.0
+const TAP_HEIGHT := 48.0
+const TAP_BELOW := 8.0
 const GROUND_SHADOW := Color(0.2, 0.13, 0.07, 0.34)
 const SMOKE_PUFFS := 5
 const SMOKE_LIFE_S := 6.0
@@ -127,20 +131,34 @@ static func puff(index: int, now_ms: int) -> Dictionary:
 		"alpha": SMOKE_COLOR.a * smoothstep(0.0, 0.12, t) * (1.0 - t),
 	}
 
-## Everyone at `now_ms`, farthest first: {kind, at, dir, frame}. `summary` (CampSummary) adds what shows the player's game
+## Everyone at `now_ms`, farthest first: {id, kind, at, dir, frame}; `id` names who it is, so a speech bubble can follow them. `summary` (CampSummary) adds what shows the player's game
 ## (CampCast); with food low the farmer is gone.
 static func figures(now_ms: int, summary: Dictionary = {}) -> Array:
 	var out := []
-	for w: Dictionary in CampLayout.WALKERS:
+	for i in CampLayout.WALKERS.size():
+		var w: Dictionary = CampLayout.WALKERS[i]
 		var pose := along(CampLayout.ROUTES[w["route"]], float(w["start"]) + float(w["speed"]) * now_ms / 1000.0)
-		out.append({"kind": w["kind"], "at": pose["at"], "dir": pose["way"], "frame": posmod(floori(now_ms / STEP_MS + float(w["start"])), STEPS)})
-	for s: Dictionary in CampLayout.STANDING:
+		out.append({"id": "walk%d" % i, "kind": w["kind"], "at": pose["at"], "dir": pose["way"], "frame": posmod(floori(now_ms / STEP_MS + float(w["start"])), STEPS)})
+	for i in CampLayout.STANDING.size():
+		var s: Dictionary = CampLayout.STANDING[i]
 		if s["kind"] == "farmer" and summary.get("food_low", false):
 			continue
-		out.append({"kind": s["kind"], "at": s["at"], "dir": s["dir"], "frame": 0})
+		out.append({"id": "stand%d" % i, "kind": s["kind"], "at": s["at"], "dir": s["dir"], "frame": 0})
 	out.append_array(CampCast.cast(summary, now_ms))
 	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["at"].y < b["at"].y)
 	return out
+
+## Who talks at `world` among `list` (CampLife.figures): the one in front whose body holds the point, or {} for no one.
+static func talker_at(list: Array, world: Vector2) -> Dictionary:
+	var best := {}
+	for f: Dictionary in list:
+		if not CampTalk.talks(f["kind"]):
+			continue
+		var at: Vector2 = f["at"]
+		var half := TAP_WIDTH * (2.0 if f["kind"] == "mule" else 1.0) * 0.5
+		if Rect2(at.x - half, at.y - TAP_HEIGHT, half * 2.0, TAP_HEIGHT + TAP_BELOW).has_point(world) and (best.is_empty() or at.y > best["at"].y):
+			best = f
+	return best
 
 func _draw() -> void:
 	draw_count += 1

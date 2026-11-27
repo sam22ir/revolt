@@ -440,6 +440,23 @@ export const en = {
       },
     },
   },
+  camp: {
+    talk: {
+      worker: { one: "Hold it steady, nearly done.", two: "One more beam and it stands.", three: "Mind your fingers!" },
+      drill: { one: "Keep in step!", two: "Again, from the top.", three: "Eyes front." },
+      wounded: { one: "Just a scratch. Mostly.", two: "I'll be on my feet soon.", three: "This bandage itches." },
+      rest: { one: "Pass the tea.", two: "A quiet night, for once.", three: "My boots need mending." },
+      watch: { one: "All clear on this side.", two: "Nothing moves out there." },
+      fields: { one: "The crop is coming up well.", two: "A little rain would help." },
+      carry: { one: "Heavy load today.", two: "This mule has opinions.", three: "Where does this one go?" },
+      hint: {
+        full: "The stores are full: {{resource}}.",
+        low: "Supplies are running low.",
+        idle: "The builders are waiting for work.",
+        hurt: "Our wounded need rest.",
+      },
+    },
+  },
   queue: { idle: "Builders idle — tap a building", busy: "{{building}} → level {{level}}" },
   time: { h: "{{count}} h", m: "{{count}} min", s: "{{count}} s", done: "Done" },
   settings: {
