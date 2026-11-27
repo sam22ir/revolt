@@ -170,6 +170,9 @@ export {
   type MapServerMessage,
   type MapGeographyWire,
   type MapSnapshot,
+  type DailyMissionView,
+  type MissionsView,
+  type QuestView,
   type EventsResponse,
   type EventView,
   type LeaderboardEntryView,
@@ -268,6 +271,42 @@ export {
 export { LIBERATION_BONUS_CAP, LIBERATION_BONUS_PER_REGION } from "./data/liberation.ts";
 export { liberatedCount, liberatedRegions, multiplierBreakpoints, NO_WORLD, productionMultiplier, strongholdTile, type Liberation, type TakenTile, type World } from "./liberation.ts";
 
+export {
+  DAILY_MISSION_IDS,
+  DAILY_MISSIONS,
+  DAILY_RESET_OFFSET_MS,
+  isDailyMissionId,
+  isQuestId,
+  MISSION_METRICS,
+  QUEST_IDS,
+  QUESTS,
+  type DailyMissionDef,
+  type DailyMissionId,
+  type MissionMetric,
+  type QuestDef,
+  type QuestGoal,
+  type QuestId,
+} from "./data/missions.ts";
+export {
+  checkDailyClaim,
+  checkQuestClaim,
+  currentQuest,
+  dailyClaimKey,
+  dailyMissions,
+  goalProgress,
+  goalTarget,
+  metricKey,
+  MISSION_BLOCK_REASONS,
+  missionDay,
+  missionDayStart,
+  missionTick,
+  questClaimKey,
+  type DailyMissionStatus,
+  type MissionBlockReason,
+  type MissionTick,
+  type QuestContext,
+  type QuestStatus,
+} from "./missions.ts";
 export { HEAL_BATCH_PER_LEVEL, HEAL_COST_SHARE, HEAL_TIME_SHARE } from "./data/troops.ts";
 export { checkHealing, HEALING_BLOCK_REASONS, healingQuote, maxHealingBatch, planHealing, startHealing, type HealingBlockReason, type HealingResult } from "./healing.ts";
 export { CLOSE_FROM, FORECAST_CHANCE_LEVEL, FORECAST_LOSSES_LEVEL, FORECAST_SAMPLES, LIKELY_WIN_FROM } from "./data/watchtower.ts";

@@ -35,6 +35,12 @@ var _base := BaseScreen.new()
 var _reports_screen := ReportsScreen.new()
 var _alliance_screen := AllianceScreen.new()
 var _heroes_screen := HeroesScreen.new()
+var _missions_screen := MissionsScreen.new()
+## The base's corner button that opens Missions; its dot says a reward waits.
+var _missions_button := RoundButton.new("victory", 44.0)
+## When missions were last fetched because the base changed (ticks ms), so a burst of state replies fetches once.
+var _missions_fetched_ms := -100000
+const MISSIONS_REFETCH_MS := 20000
 var _tile_panel := TilePanel.new()
 var _march_sheet := MarchSheet.new()
 var _marches_list := MarchesList.new()
@@ -103,6 +109,7 @@ func _start() -> void:
 	# The alliance (and the help buttons that depend on it) does not wait for the map build.
 	_session.refresh_alliance()
 	_session.load_wallet()
+	_session.load_missions()
 	var reply := await _retry_start(_api.get_json.bind("/v1/map"))
 	if not reply["ok"]:
 		_show_error()
@@ -359,6 +366,7 @@ func _notification(what: int) -> void:
 		_session.load_reports()
 		_session.refresh_alliance()
 		_session.load_wallet()
+		_session.load_missions()
 		_map_socket.ensure_open(now)
 		_alliance_socket.ensure_open(now)
 
@@ -399,6 +407,8 @@ func _show_screen(screen: String) -> void:
 	_reports_screen.visible = screen == "reports"
 	_alliance_screen.visible = screen == "alliance"
 	_heroes_screen.visible = screen == "heroes"
+	_missions_screen.visible = screen == "missions"
+	_missions_button.visible = screen == "base"
 	_settings.visible = screen == "settings"
 	# The tab bar is on every screen; the resource bar is not on Settings.
 	_top.visible = screen != "settings"
@@ -441,6 +451,9 @@ func _refit() -> void:
 	_alliance_screen.offset_bottom = -NAV_HEIGHT
 	_heroes_screen.offset_top = top
 	_heroes_screen.offset_bottom = -NAV_HEIGHT
+	_missions_screen.offset_top = top
+	_missions_screen.offset_bottom = -NAV_HEIGHT
+	_place_missions_button()
 	_march_sheet.offset_top = top
 	_march_sheet.offset_bottom = -NAV_HEIGHT
 	_toast.offset_top = top + TOAST_GAP
@@ -502,6 +515,8 @@ func _build_hud() -> void:
 	# The round buttons over a tapped building, and the building card centred between the counters and the nav bar on a dim
 	# backdrop (its band is set in _refit).
 	_base.ring.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Under the ring and the card, so an open building card's backdrop covers it.
+	_hud_root.add_child(_missions_button)
 	_hud_root.add_child(_base.ring)
 	_base.card_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_base.card_layer.offset_bottom = -NAV_HEIGHT
@@ -535,6 +550,19 @@ func _build_hud() -> void:
 	_heroes_screen.closed.connect(func() -> void: _show_screen(_home))
 	_base.heroes_requested.connect(func() -> void: _show_screen("heroes"))
 	_hud_root.add_child(_heroes_screen)
+	# Missions: a page opened from the base's corner button (the tab bar is full); its back button goes home.
+	_missions_screen.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_missions_screen.visible = false
+	_missions_screen.setup(_session)
+	_missions_screen.closed.connect(func() -> void: _show_screen(_home))
+	_hud_root.add_child(_missions_screen)
+	_missions_button.pressed.connect(func() -> void: _show_screen("missions"))
+	_session.missions_changed.connect(_update_dots)
+	# Progress moves with play (an upgrade, a battle, a help): fetch again when the base changes, at most every 20 s.
+	_session.state_changed.connect(func() -> void:
+		if Time.get_ticks_msec() - _missions_fetched_ms >= MISSIONS_REFETCH_MS:
+			_missions_fetched_ms = Time.get_ticks_msec()
+			_session.load_missions())
 	# The tapped tile's sheet sits above the nav bar, under the offline badge; the coordinates label hides while it shows.
 	_tile_panel.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_tile_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -624,6 +652,16 @@ func _update_dots() -> void:
 	var now := _clock.now_ms(Time.get_ticks_msec())
 	_bottom.buttons["alliance"].set_dot(HudModel.alliance_dot(_session.unread(), HelpModel.open_requests(_session.help, now).size()))
 	_bottom.buttons["reports"].set_dot(_reports_unseen)
+	_missions_button.set_dot(MissionsModel.claimable(_session.missions) > 0)
+
+## The Missions button sits in the base's bottom corner at the reading start, above the tab bar (the map has its tools in the other corner).
+func _place_missions_button() -> void:
+	var vp := get_viewport().get_visible_rect().size
+	var want := _missions_button.get_combined_minimum_size()
+	var side := HudTheme.px(MapTools.GAP)
+	var rtl := TranslationServer.get_locale().begins_with("ar")
+	_missions_button.size = want
+	_missions_button.position = Vector2(vp.x - side - want.x if rtl else side, vp.y - float(NAV_HEIGHT) - HudTheme.px(NavTab.RISE) - side - want.y)
 
 ## "Offline — reconnecting…", centred over the tab bar, above the map's coordinates. It is outside the top box, so it never moves the base.
 func _build_offline_badge() -> void:
@@ -651,6 +689,10 @@ func _apply_language(lang: String) -> void:
 	_reports_screen.refresh()
 	_alliance_screen.refresh()
 	_heroes_screen.refresh()
+	_missions_screen.refresh()
+	_missions_button.set_label(Loc.t("nav.missions"))
+	_missions_button.place_dot(lang)
+	_place_missions_button()
 	_tile_panel.refresh()
 	_find_sheet.refresh()
 	_map_tools.refresh_language()
@@ -761,6 +803,8 @@ func _process(_delta: float) -> void:
 		_alliance_screen.tick(now, _map.snapshot.get("rallies", []))
 	if _heroes_screen.is_visible_in_tree():
 		_heroes_screen.tick(amounts)
+	if _missions_screen.is_visible_in_tree():
+		_missions_screen.tick(now)
 	if _tile_panel.visible and not _map.snapshot.is_empty():
 		var tile := _tile_panel.tile()
 		_tile_panel.update_view(_map.snapshot, _map.terrain_at_tile(tile.x, tile.y), String(_session.alliance["name"]) if _session.alliance is Dictionary else "", String(_session.alliance["myRank"]) if _session.alliance is Dictionary else "", now, _session.state.get("marches", []), _session.state)

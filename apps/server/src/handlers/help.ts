@@ -1,10 +1,11 @@
 import { loadWorld } from "../db/liberations.ts";
-import { advance, lessonBonus, HELP_REDUCTION_MS, helpableJob, isHelpKind, MAX_HELPS_PER_REQUEST, reduceJob, type AllianceBlockReason, type HelpRequestView } from "@revolt/rules";
+import { advance, backgroundOfServer, lessonBonus, HELP_REDUCTION_MS, missionTick, helpableJob, isHelpKind, MAX_HELPS_PER_REQUEST, reduceJob, type AllianceBlockReason, type HelpRequestView } from "@revolt/rules";
 import { findAccountById } from "../db/accounts.ts";
 import { findMembership } from "../db/alliances.ts";
 import { loadBase } from "../db/bases.ts";
 import { isUniqueViolation } from "../db/db.ts";
 import { findRequest } from "../db/help.ts";
+import { writeTicks } from "../db/missions.ts";
 import { HttpError, json, readJson } from "../http.ts";
 import { authenticate, type Ctx } from "./context.ts";
 import { bestEffort } from "./viewer.ts";
@@ -103,6 +104,9 @@ export const postHelpGive = async (ctx: Ctx): Promise<Response> => {
       throw e;
     }
     await notifyHelp(ctx, m.allianceId);
+    await bestEffort("mission ticks", () =>
+      writeTicks(db, account.id, [missionTick(backgroundOfServer(account.server), ctx.now, "helps_given", `help:${req.id}`, 1)], ctx.now),
+    );
     const owner = await findAccountById(db, req.accountId);
     const request: HelpRequestView = {
       id: req.id,

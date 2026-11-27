@@ -13,7 +13,9 @@ export const PASS_SEASONS_KEPT = 3;
 export const pruneLive = async (db: Db, now: number): Promise<{ awards: number; claims: number; premium: number }> => {
   const cutoff = now - LIVE_RETENTION_MS;
   const awards = await db.prepare("DELETE FROM live_awards WHERE at < ?").bind(cutoff).run();
-  const claims = await db.prepare("DELETE FROM claims WHERE at < ?").bind(cutoff).run();
+  // Beginner quests are claimed once for the account's whole life, so their claims are never pruned.
+  const claims = await db.prepare("DELETE FROM claims WHERE at < ? AND key NOT LIKE 'quest:%'").bind(cutoff).run();
+  await db.prepare("DELETE FROM mission_ticks WHERE at < ?").bind(cutoff).run();
   const premium = await db.prepare("DELETE FROM pass_premium WHERE season < ?").bind(passSeasonAt(now).index - PASS_SEASONS_KEPT).run();
   return { awards: awards.meta.changes, claims: claims.meta.changes, premium: premium.meta.changes };
 };

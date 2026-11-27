@@ -121,6 +121,15 @@ msgstr "إنقاص"
 msgid "panel.max"
 msgstr "الأقصى"
 
+msgid "reason.not_done"
+msgstr "لم تكتمل بعد"
+
+msgid "reason.not_current"
+msgstr "أكمل الخطوة السابقة أولًا"
+
+msgid "reason.unknown_mission"
+msgstr "هذه المهمة غير موجودة"
+
 msgid "reason.no_such_village"
 msgstr "هذه القرية ليست على الخريطة"
 
@@ -399,6 +408,9 @@ msgstr "لا يمكن تسريع ترقية مركز القيادة"
 
 msgid "reason.daily_cap"
 msgstr "بلغت حدّ التسريع اليومي"
+
+msgid "nav.missions"
+msgstr "المهام"
 
 msgid "nav.map"
 msgstr "الخريطة"
@@ -2055,6 +2067,84 @@ msgstr "لا تملك أي مظهر بعد."
 
 msgid "live.store.worn"
 msgstr "مُرتدى"
+
+msgid "missions.title"
+msgstr "المهام"
+
+msgid "missions.daily"
+msgstr "مهام اليوم"
+
+msgid "missions.resets"
+msgstr "مهام جديدة بعد {time}"
+
+msgid "missions.quests"
+msgstr "الخطوات الأولى"
+
+msgid "missions.step"
+msgstr "الخطوة {step} من {steps}"
+
+msgid "missions.progress"
+msgstr "{have} / {need}"
+
+msgid "missions.claim"
+msgstr "استلم"
+
+msgid "missions.claimed"
+msgstr "تم الاستلام"
+
+msgid "missions.passXp"
+msgstr "+{count} نقطة خبرة في التذكرة"
+
+msgid "missions.allDone"
+msgstr "أنهيت كل الخطوات الأولى. تعود المهام اليومية كل يوم."
+
+msgid "missions.loading"
+msgstr "جارٍ تحميل المهام…"
+
+msgid "missions.offline"
+msgstr "تعذّر تحميل المهام. حاول بعد قليل."
+
+msgid "mission.daily_build"
+msgstr "ابدأ {count} ترقيات"
+
+msgid "mission.daily_train"
+msgstr "درّب {count} جنديًا"
+
+msgid "mission.daily_fight"
+msgstr "انتصر على {count} من الدوريات أو القوافل أو المواقع الاستعمارية"
+
+msgid "mission.daily_help"
+msgstr "ساعد أعضاء التحالف {count} مرات"
+
+msgid "quest.first_farm"
+msgstr "رقِّ {building} إلى المستوى {count}"
+
+msgid "quest.first_armory"
+msgstr "رقِّ {building} إلى المستوى {count}"
+
+msgid "quest.first_treasury"
+msgstr "رقِّ {building} إلى المستوى {count}"
+
+msgid "quest.first_troops"
+msgstr "جهّز {count} جنديًا"
+
+msgid "quest.first_barracks"
+msgstr "رقِّ {building} إلى المستوى {count}"
+
+msgid "quest.first_hero"
+msgstr "جنّد بطلك الأول"
+
+msgid "quest.first_victory"
+msgstr "انتصر في معركة يقودها بطل"
+
+msgid "quest.first_chapter"
+msgstr "أنهِ الفصل الأول من القصة"
+
+msgid "quest.first_alliance"
+msgstr "انضم إلى تحالف أو أسّس تحالفًا"
+
+msgid "quest.first_hq"
+msgstr "رقِّ {building} إلى المستوى {count}"
 
 msgid "reward.shards"
 msgstr "{count} شظايا لـ{hero}"

@@ -26,6 +26,8 @@ signal alliance_changed
 signal help_changed
 ## The player is in another alliance than before (or in none): the id, "" for none. The alliance feed follows this.
 signal alliance_id_changed(id: String)
+## Today's missions or the quest chain changed (a fetch or a claim answered).
+signal missions_changed
 
 const MAX_REPORTS := 20
 const MAX_CHAT := 200
@@ -80,6 +82,11 @@ var _alliance_refreshing := false
 var _alliance_again := false
 var _help_pending := {}
 var _give_pending := {}
+## Today's missions and the current beginner quest (the server's MissionsView), or {} until the server has said.
+var missions: Dictionary = {}
+var _missions_loading := false
+var _missions_again := false
+var _claim_pending := {}
 var _refresh_again := false
 var _offline_asked_at_ms := 0
 var _watched := {}
@@ -280,6 +287,39 @@ func give_help(request_id: String) -> Dictionary:
 		return {"ok": ok, "reason": reason}
 	return {"ok": false, "reason": "unreachable" if int(result["status"]) == 0 else "error"}
 
+## Fetches `GET /v1/missions`. A call during a fetch is folded into one more fetch afterwards; a failed fetch keeps what is held.
+func load_missions() -> void:
+	if _missions_loading:
+		_missions_again = true
+		return
+	_missions_loading = true
+	while true:
+		_missions_again = false
+		var result: Dictionary = await api.get_json("/v1/missions")
+		_take(result)
+		if result["ok"] and MissionsModel.is_view(result["data"]):
+			missions = result["data"]
+			missions_changed.emit()
+		if not _missions_again:
+			break
+	_missions_loading = false
+
+## Claims a daily mission (`kind` "daily") or the current beginner quest (`kind` "quest"). Returns {"ok", "reason"}; "" as the reason
+## means nothing was sent (a claim of that one is already out). The base in the answer is applied, then the missions are fetched again.
+func claim_mission(kind: String, id: String) -> Dictionary:
+	var key := kind + ":" + id
+	if _claim_pending.has(key):
+		return {"ok": false, "reason": ""}
+	_claim_pending[key] = true
+	var path := "/v1/quests/claim" if kind == "quest" else "/v1/missions/claim"
+	var result: Dictionary = await api.post_json(path, {"quest": id} if kind == "quest" else {"mission": id})
+	_claim_pending.erase(key)
+	_take(result)
+	var data: Variant = result["data"]
+	if data is Dictionary and data.has("ok"):
+		await load_missions()
+		return {"ok": bool(data["ok"]), "reason": String(data.get("reason", ""))}
+	return {"ok": false, "reason": "unreachable" if int(result["status"]) == 0 else "error"}
 ## Asks the watchtower for a forecast (`POST /v1/scout` with ForecastModel.request's body). Returns the ScoutView, or {} when the
 ## request failed or was refused (a hero away since the sheet was drawn); nothing in the base changes.
 func scout(body: Dictionary) -> Dictionary:
