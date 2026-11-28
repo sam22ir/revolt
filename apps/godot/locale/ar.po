@@ -1825,6 +1825,57 @@ msgstr "الحملات: {count}"
 msgid "hud.marchesNone"
 msgstr "لا حملات"
 
+msgid "resourceSheet.stored"
+msgstr "{amount} / {cap}"
+
+msgid "resourceSheet.fullIn"
+msgstr "يمتلئ خلال {time}"
+
+msgid "resourceSheet.full"
+msgstr "المخازن ممتلئة: توقف الإنتاج. أنفق بعضها، أو طوّر {building} لمزيد من السعة."
+
+msgid "resourceSheet.noProduction"
+msgstr "لا شيء ينتج هذا المورد بعد."
+
+msgid "resourceSheet.perHour"
+msgstr "في الساعة"
+
+msgid "resourceSheet.source"
+msgstr "{building} (المستوى {level})"
+
+msgid "resourceSheet.liberation"
+msgstr "المناطق المحرّرة"
+
+msgid "resourceSheet.lessons"
+msgstr "الدروس"
+
+msgid "resourceSheet.total"
+msgstr "المجموع"
+
+msgid "resourceSheet.percent"
+msgstr "+{amount}٪"
+
+msgid "resourceSheet.storage"
+msgstr "سعة التخزين تأتي من {building} (المستوى {level})."
+
+msgid "resourceSheet.goTo"
+msgstr "اذهب إلى {building}"
+
+msgid "resourceSheet.moreRoom"
+msgstr "سعة أكبر"
+
+msgid "resourceSheet.use.food"
+msgstr "يُطعم المقاتلين: يُنفق على تدريب القوات وعلى البناء."
+
+msgid "resourceSheet.use.materiel"
+msgstr "السلاح والعتاد: يُنفقان على تدريب القوات وعلى البناء."
+
+msgid "resourceSheet.use.funds"
+msgstr "تدفع تكاليف البناء وتدريب القوات."
+
+msgid "resourceSheet.use.support"
+msgstr "الشعب خلف النضال: ضروري لرفع مستوى {building}."
+
 msgid "account.button"
 msgstr "الحساب"
 
@@ -2145,6 +2196,33 @@ msgstr "انضم إلى تحالف أو أسّس تحالفًا"
 
 msgid "quest.first_hq"
 msgstr "رقِّ {building} إلى المستوى {count}"
+
+msgid "reward.missionDone"
+msgstr "اكتملت المهمة!"
+
+msgid "reward.questDone"
+msgstr "اكتملت الخطوة!"
+
+msgid "reward.collect"
+msgstr "استلام"
+
+msgid "reward.collecting"
+msgstr "جارٍ الاستلام…"
+
+msgid "reward.close"
+msgstr "إغلاق"
+
+msgid "reward.overflow"
+msgstr "مخازنك ممتلئة تقريبًا: لن يتسع بعض هذا. طوّر {building} لمزيد من السعة."
+
+msgid "reward.itemShards"
+msgstr "شظايا الأبطال"
+
+msgid "reward.itemTokens"
+msgstr "تسريعات"
+
+msgid "reward.itemPassXp"
+msgstr "خبرة التذكرة"
 
 msgid "reward.shards"
 msgstr "{count} شظايا لـ{hero}"
