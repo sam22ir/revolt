@@ -72,6 +72,7 @@ var _wallet_now := -1
 var _speedup_pending := {}
 var _hero_pending := {}
 var _recruit_pending := false
+var _story_pending := false
 var _march_pending := false
 var _rally_pending := false
 var _harvest_pending := false
@@ -360,6 +361,16 @@ func recruit() -> Dictionary:
 	_recruit_pending = true
 	var verdict: Dictionary = await send_intent({"type": "recruit"})
 	_recruit_pending = false
+	return verdict
+
+## Claims the current story chapter's reward (the intent `story_claim`; the server checks the objectives). Returns the verdict like an
+## intent; "" as the reason means nothing was sent (a claim is already out). The base in the answer is applied, a refusal included.
+func claim_story() -> Dictionary:
+	if _story_pending:
+		return {"ok": false, "reason": ""}
+	_story_pending = true
+	var verdict: Dictionary = await send_intent({"type": "story_claim"})
+	_story_pending = false
 	return verdict
 
 ## Sends a march at an NPC target (the intent `march`): `troops` are counts per troop id, `loadout` is {lead, deputies} or null. Returns

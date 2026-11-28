@@ -38,6 +38,9 @@ var _heroes_screen := HeroesScreen.new()
 var _missions_screen := MissionsScreen.new()
 ## The base's corner button that opens Missions; its dot says a reward waits.
 var _missions_button := RoundButton.new("victory", 44.0)
+var _story_screen := StoryScreen.new()
+## The base's Story button, above Missions; its dot says a chapter reward waits.
+var _story_button := RoundButton.new("info", 44.0)
 ## A reward being collected (missions and quests; any reward can use it), and the sheet a tapped resource counter opens.
 var _reward_popup := RewardPopup.new()
 var _resource_sheet := ResourceSheet.new()
@@ -412,6 +415,8 @@ func _show_screen(screen: String) -> void:
 	_heroes_screen.visible = screen == "heroes"
 	_missions_screen.visible = screen == "missions"
 	_missions_button.visible = screen == "base"
+	_story_screen.visible = screen == "story"
+	_story_button.visible = screen == "base"
 	_settings.visible = screen == "settings"
 	# The tab bar is on every screen; the resource bar is not on Settings.
 	_top.visible = screen != "settings"
@@ -456,6 +461,8 @@ func _refit() -> void:
 	_heroes_screen.offset_bottom = -NAV_HEIGHT
 	_missions_screen.offset_top = top
 	_missions_screen.offset_bottom = -NAV_HEIGHT
+	_story_screen.offset_top = top
+	_story_screen.offset_bottom = -NAV_HEIGHT
 	_place_missions_button()
 	_march_sheet.offset_top = top
 	_march_sheet.offset_bottom = -NAV_HEIGHT
@@ -520,6 +527,7 @@ func _build_hud() -> void:
 	_base.ring.set_anchors_preset(Control.PRESET_FULL_RECT)
 	# Under the ring and the card, so an open building card's backdrop covers it.
 	_hud_root.add_child(_missions_button)
+	_hud_root.add_child(_story_button)
 	_hud_root.add_child(_base.ring)
 	_base.card_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_base.card_layer.offset_bottom = -NAV_HEIGHT
@@ -560,6 +568,14 @@ func _build_hud() -> void:
 	_missions_screen.closed.connect(func() -> void: _show_screen(_home))
 	_hud_root.add_child(_missions_screen)
 	_missions_button.pressed.connect(func() -> void: _show_screen("missions"))
+	# Story: a page opened from the round button above Missions; its back button goes home (or out of a chapter being read again).
+	_story_screen.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_story_screen.visible = false
+	_story_screen.setup(_session)
+	_story_screen.closed.connect(func() -> void: _show_screen(_home))
+	_story_screen.claim_requested.connect(_offer_story_reward)
+	_hud_root.add_child(_story_screen)
+	_story_button.pressed.connect(func() -> void: _show_screen("story"))
 	_session.missions_changed.connect(_update_dots)
 	# Progress moves with play (an upgrade, a battle, a help): fetch again when the base changes, at most every 20 s.
 	_session.state_changed.connect(func() -> void:
@@ -676,6 +692,16 @@ func _offer_mission_reward(kind: String, id: String, title: String, subtitle: St
 			overflow = ResourceSheetModel.STORAGE_BUILDING
 	_reward_popup.open(title, subtitle, items, _session.claim_mission.bind(kind, id), overflow)
 
+## The reward popup for a story chapter whose objectives are met; Collect sends `story_claim` through the Session.
+func _offer_story_reward(title: String, subtitle: String, items: Array) -> void:
+	var overflow := ""
+	if not _session.resources.is_empty() and _clock.is_synced():
+		var now := _clock.now_ms(Time.get_ticks_msec())
+		var amounts := ResourceDisplay.amounts(_session.resources, _session.levels, _session.last_updated, now, _session.liberations)
+		if RewardPopup.overflows(items, amounts, Balance.storage_cap(int(_session.levels["hq"]))):
+			overflow = ResourceSheetModel.STORAGE_BUILDING
+	_reward_popup.open(title, subtitle, items, _session.claim_story, overflow)
+
 func _resource_model(id: String) -> Dictionary:
 	var now := _clock.now_ms(Time.get_ticks_msec())
 	var amounts := ResourceDisplay.amounts(_session.resources, _session.levels, _session.last_updated, now, _session.liberations)
@@ -698,6 +724,7 @@ func _update_dots() -> void:
 	_bottom.buttons["alliance"].set_dot(HudModel.alliance_dot(_session.unread(), HelpModel.open_requests(_session.help, now).size()))
 	_bottom.buttons["reports"].set_dot(_reports_unseen)
 	_missions_button.set_dot(MissionsModel.claimable(_session.missions) > 0)
+	_story_button.set_dot(StoryModel.claimable(_session.state, _session.background))
 
 ## The Missions button sits in the base's bottom corner at the reading start, above the tab bar (the map has its tools in the other corner).
 func _place_missions_button() -> void:
@@ -707,6 +734,10 @@ func _place_missions_button() -> void:
 	var rtl := TranslationServer.get_locale().begins_with("ar")
 	_missions_button.size = want
 	_missions_button.position = Vector2(vp.x - side - want.x if rtl else side, vp.y - float(NAV_HEIGHT) - HudTheme.px(NavTab.RISE) - side - want.y)
+	# Story stacks above Missions, in the same corner.
+	var story_want := _story_button.get_combined_minimum_size()
+	_story_button.size = story_want
+	_story_button.position = Vector2(vp.x - side - story_want.x if rtl else side, _missions_button.position.y - side - story_want.y)
 
 ## "Offline — reconnecting…", centred over the tab bar, above the map's coordinates. It is outside the top box, so it never moves the base.
 func _build_offline_badge() -> void:
@@ -737,6 +768,9 @@ func _apply_language(lang: String) -> void:
 	_missions_screen.refresh()
 	_missions_button.set_label(Loc.t("nav.missions"))
 	_missions_button.place_dot(lang)
+	_story_screen.refresh()
+	_story_button.set_label(Loc.t("nav.story"))
+	_story_button.place_dot(lang)
 	_place_missions_button()
 	_tile_panel.refresh()
 	_find_sheet.refresh()
