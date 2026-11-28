@@ -1,11 +1,11 @@
 class_name HudTop
 extends VBoxContainer
-## The top of the Base and the Map: one board hanging from the screen's edge, round at the foot like the tab bar's top. Four resource
-## trays, then the player at the start edge with the status beside it (builders on the base, marches on the map). The player opens
+## The top of the Base and the Map: one board hanging from the screen's edge, round at the foot like the tab bar's top. A slim row of
+## four resource pills (icon, amount and a line for how full the store is; the rate is in the sheet a tap opens), then the player at the start edge with the status beside it (builders on the base, marches on the map). The player opens
 ## Settings.
 
 signal chip_pressed
-## A resource tray was tapped (its id).
+## A resource pill was tapped (its id).
 signal resource_pressed(id: String)
 
 var cells := {}
@@ -14,7 +14,7 @@ var pill := QueuePill.new()
 var marches := MarchesStrip.new()
 
 ## The board's whole height, in viewport px: the camp and the pages are fitted under it, so it must not change.
-const HEIGHT := 313.0
+const HEIGHT := 272.0
 
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -34,7 +34,7 @@ func _init() -> void:
 	header.add_child(rows)
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", roundi(HudTheme.px(4)))
+	row.add_theme_constant_override("separation", roundi(HudTheme.px(5)))
 	rows.add_child(row)
 	for id: String in Balance.data()["resourceIds"]:
 		var cell := ResourceCell.new(id)
@@ -58,13 +58,11 @@ func _share_row() -> void:
 	marches.set_compact(pill.visible)
 	pill.set_compact(marches.visible)
 
-## Fills the cells from the amounts accrued to now, `rates` (HudModel.rates) and the chips' states (HudModel.chips).
-func set_resources(chips: Array, rates: Dictionary) -> void:
+## Fills the cells from the chips (HudModel.chips): the amounts accrued to now and how full each store is.
+func set_resources(chips: Array) -> void:
 	var lang := Fmt.lang()
 	for c: Dictionary in chips:
-		var id: String = c["id"]
-		var rate_text := Loc.t("hud.rate", {"amount": Fmt.amount(lang, float(rates.get(id, 0.0)))})
-		cells[id].set_values(Fmt.amount(lang, c["amount"]), rate_text, c["state"], float(c["fraction"]))
+		cells[String(c["id"])].set_values(Fmt.amount(lang, c["amount"]), c["state"], float(c["fraction"]))
 
 ## The strip shows the builders on the base and the marches on the map.
 func show_context(screen: String) -> void:

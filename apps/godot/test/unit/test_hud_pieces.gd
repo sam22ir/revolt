@@ -5,40 +5,57 @@ extends GutTest
 func after_each() -> void:
 	TranslationServer.set_locale("en")
 
-func test_a_full_cell_turns_gold_and_says_full_instead_of_the_rate() -> void:
+func test_a_full_pill_turns_its_amount_and_line_gold() -> void:
 	var cell: ResourceCell = add_child_autofree(ResourceCell.new("food"))
-	cell.set_values("1,200", "+150/h", "normal")
-	assert_eq(cell.rate_text(), "+150/h")
+	cell.set_values("1,200", "normal", 0.3)
 	assert_false(cell.is_full())
-	cell.set_values("5,500", "+150/h", "full")
-	assert_eq(cell.rate_text(), Loc.t("hud.full"))
+	assert_eq(cell.amount_colour(), HudTheme.BUTTON_TEXT)
+	cell.set_values("5,500", "full", 1.0)
 	assert_true(cell.is_full())
-	cell.set_values("5,000", "+150/h", "near")
+	assert_eq(cell.amount_colour(), ResourceCell.FULL)
+	assert_eq(cell.bar_colour(), ResourceCell.FULL)
+	cell.set_values("5,000", "near", 0.95)
 	assert_false(cell.is_full(), "near the cap is not full")
+	assert_eq(cell.amount_colour(), HudTheme.BUTTON_TEXT)
 
-func test_the_store_bar_fills_and_changes_colour_near_and_at_the_cap() -> void:
+func test_the_store_line_fills_and_changes_colour_near_and_at_the_cap() -> void:
 	var cell: ResourceCell = add_child_autofree(ResourceCell.new("funds"))
-	cell.set_values("1,000", "+10/h", "normal", 0.25)
+	cell.set_values("1,000", "normal", 0.25)
 	assert_almost_eq(cell.bar_value(), 25.0, 0.01)
 	assert_eq(cell.bar_colour(), ResourceCell.COLOURS["funds"], "its own colour")
-	cell.set_values("4,700", "+10/h", "near", 0.94)
+	cell.set_values("4,700", "near", 0.94)
 	assert_eq(cell.bar_colour(), ResourceCell.NEAR)
-	cell.set_values("5,500", "+10/h", "full", 1.4)
+	cell.set_values("5,500", "full", 1.4)
 	assert_almost_eq(cell.bar_value(), 100.0, 0.01, "clamped")
 	assert_eq(cell.bar_colour(), ResourceCell.FULL)
 
-func test_the_widest_numbers_fit_their_tray_on_a_phone() -> void:
+func test_the_line_fills_from_the_start_edge_in_both_directions() -> void:
 	for lang in ["en", "ar"]:
 		TranslationServer.set_locale(lang)
 		var top: HudTop = add_child_autofree(HudTop.new())
 		top.size.x = 1080.0
-		top.cells["food"].set_values(Fmt.amount(lang, 42000), Loc.t("hud.rate", {"amount": Fmt.amount(lang, 1200)}), "normal", 0.5)
+		top.cells["food"].set_values("500", "normal", 0.5)
 		await wait_process_frames(3)
 		var cell: ResourceCell = top.cells["food"]
-		for label: Label in [cell._amount, cell._rate]:
-			var width := label.get_theme_font("font").get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, label.get_theme_font_size("font_size")).x
-			assert_lte(width, label.size.x, "%s %s" % [lang, label.text])
-			assert_gte(label.get_theme_font_size("font_size"), HudTheme.font(10.0))
+		var line := cell.line_rect()
+		var fill := cell.fill_rect()
+		assert_almost_eq(fill.size.x, line.size.x * 0.5, 1.0, lang)
+		if lang == "ar":
+			assert_almost_eq(fill.end.x, line.end.x, 1.0, "starts at the right in Arabic")
+		else:
+			assert_almost_eq(fill.position.x, line.position.x, 1.0, "starts at the left in English")
+
+func test_the_widest_numbers_fit_their_pill_on_a_phone() -> void:
+	for lang in ["en", "ar"]:
+		TranslationServer.set_locale(lang)
+		var top: HudTop = add_child_autofree(HudTop.new())
+		top.size.x = 1080.0
+		top.cells["food"].set_values(Fmt.amount(lang, 42000), "normal", 0.5)
+		await wait_process_frames(3)
+		var label: Label = top.cells["food"]._amount
+		var width := label.get_theme_font("font").get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, label.get_theme_font_size("font_size")).x
+		assert_lte(width, label.size.x, "%s %s" % [lang, label.text])
+		assert_gte(label.get_theme_font_size("font_size"), HudTheme.font(12.0))
 
 func test_the_top_bar_keeps_its_height_whatever_it_shows() -> void:
 	var top: HudTop = add_child_autofree(HudTop.new())

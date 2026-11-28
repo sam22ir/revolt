@@ -115,7 +115,7 @@ func test_arabic_texts_exist() -> void:
 		assert_ne(Loc.t(key), key, key)
 	TranslationServer.set_locale("en")
 
-func test_the_top_bar_trays_announce_a_tap() -> void:
+func test_the_top_bar_pills_announce_a_tap() -> void:
 	var top: HudTop = add_child_autofree(HudTop.new())
 	watch_signals(top)
 	(top.cells["funds"] as ResourceCell).pressed.emit()
