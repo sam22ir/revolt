@@ -249,7 +249,7 @@ Base screen, resources, buildings, upgrade timers, offline with local save.
 
 ### M5 — Algeria story and heroes
 - Done when: the first story chapters are playable, heroes can be recruited, leveled and assigned to marches, and the chapters have passed historian review.
-- **Status (M5):** code-complete, NOT accepted. Playable: 3 placeholder chapters, 6 role-only heroes, the `hero_hall` building, heroes on marches and rallies, shard drops. Still open: historian review (`docs/story-review.md`), Arabic review, a real-phone check. Recruitment draws with published odds and a pity counter are deferred; recruitment is deterministic for now (see `docs/server-dev.md`).
+- **Status (M5):** code-complete, NOT accepted. Playable: 3 placeholder chapters, 6 role-only heroes, the `hero_hall` building, heroes on marches and rallies, shard drops. Still open: historian review (`docs/story-review.md`), Arabic review, a real-phone check. Recruitment draws are built: published odds (70% common, 22% rare, 8% legendary, from `packages/rules/src/data/hero-progression.ts`) and a pity counter (the 10th draw after 9 commons is rare or better), drawn on the server (see `docs/server-dev.md`). Still open for draws: the monetisation review.
 
 ### M6 — Vietnam background
 - Done when: a new player can choose Vietnam, lands on a Vietnam server with its own buildings, units, heroes and first chapters, with no mixing with Algeria servers.

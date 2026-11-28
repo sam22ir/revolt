@@ -113,7 +113,7 @@ Shards: story chapter rewards, and a drop for the lead hero when a victorious ma
 
 Deviations and notes:
 
-- GDD §4.4 recruitment draws with published odds and a pity counter are NOT built. Recruitment is deterministic (shards plus support). Draws need server RNG, published odds and a monetisation review, so they are deferred (GDD §12).
+- GDD §4.4 recruitment draws are built. The `recruit` intent checks the hero hall (level 2) and the cost (200 funds), then draws with a server-seeded RNG (`recruitHero` in `packages/rules/src/hero-draw.ts`). Odds are published data (`HERO_DRAW_ODDS`), and pity forces a rare or better draw after `PITY_DRAWS - 1` commons in a row. The monetisation review is still open.
 - Chapter 1 asks for command post level 2 (60 s), not farm level 2: a producer cannot pass level 1 before the command post does.
 - All balance numbers are placeholders.
 - Story text is draft and flagged for historian review: see `docs/story-review.md`.
