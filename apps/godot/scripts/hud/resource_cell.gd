@@ -1,34 +1,42 @@
 class_name ResourceCell
 extends Control
-## One resource in the top bar: a tray that fills with the resource's own colour as its store does, the big icon standing out of its
-## start, the amount in bold and the `+rate/h` under it. Near the cap the fill turns amber; a full store turns gold and says "Full" in
-## place of the rate. Everything is laid out by hand, so no text changes the bar's height. A tap announces `pressed` (the resource
-## sheet opens); `pulse` bounces it when something lands in it.
+## One resource in the top bar: a slim dark pill with the icon at its start, the amount in bold, and a thin line under the amount
+## that fills with the resource's own colour as its store does. Near the cap the line turns amber; a full store turns the line and
+## the amount gold. The hourly rate is not shown here: the resource sheet a tap opens has it. Everything is laid out by hand, so no
+## text changes the bar's height. A tap announces `pressed`; `pulse` bounces it when something lands in it.
 
 signal pressed
 
 const COLOURS := {
-	"food": Color("7f8c2e"),
-	"materiel": Color("5a7380"),
-	"funds": Color("a5752a"),
-	"support": Color("a8503a"),
+	"food": Color("9aab3a"),
+	"materiel": Color("7c9aa8"),
+	"funds": Color("d39a3a"),
+	"support": Color("c8664a"),
 }
-const NEAR := Color("c9772a")
-const FULL := Color("c9922c")
+const NEAR := Color("e08a30")
+const FULL := Color("f0c060")
+const TRACK := Color(1.0, 1.0, 1.0, 0.14)
+const FACE := Color(0.06, 0.035, 0.016, 0.72)
 ## Mockup px.
-const HEIGHT := 44.0
-const ICON := 32.5
-## How far the tray starts inside the cell, so the icon stands out of it.
-const INSET := 7.0
-const AMOUNT_FONTS: Array[float] = [15.0, 14.0, 13.0, 12.0]
-const RATE_FONTS: Array[float] = [12.0, 11.0, 10.0]
+const HEIGHT := 30.0
+const ICON := 28.0
+const LINE := 3.0
+## Room kept at the far end of the pill, and under the line.
+const PAD := 7.0
+const FOOT := 4.0
+const AMOUNT_FONTS: Array[float] = [16.0, 15.0, 14.0, 13.0, 12.0]
 
-var _gauge := Gauge.new()
+var _face := Panel.new()
+var _track := Panel.new()
+var _clip := Control.new()
+var _fill := Panel.new()
+var _fill_box := StyleBoxFlat.new()
 var _icon: HudIcon
-var _amount := _text(AMOUNT_FONTS[0], HudTheme.BUTTON_TEXT)
-var _rate := _text(RATE_FONTS[0], HudTheme.TEXT)
+var _amount := _text(AMOUNT_FONTS[0])
 var _state := "normal"
 var _colour := Color.WHITE
+var _fraction := 0.0
+var _bar_colour := Color.WHITE
 
 var resource_id := ""
 var _pulse: Tween
@@ -41,10 +49,28 @@ func _init(resource_id_value := "food") -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	custom_minimum_size.y = HudTheme.px(HEIGHT)
 	_colour = COLOURS.get(resource_id, HudTheme.BRASS)
-	_gauge.layout_direction = Control.LAYOUT_DIRECTION_INHERITED
-	add_child(_gauge)
+	_bar_colour = _colour
+	var face := StyleBoxFlat.new()
+	face.bg_color = FACE
+	face.border_color = Color(HudTheme.BRASS, 0.6)
+	face.set_border_width_all(maxi(1, roundi(HudTheme.px(1.0))))
+	face.set_corner_radius_all(roundi(HudTheme.px(HEIGHT * 0.5)))
+	_face.add_theme_stylebox_override("panel", face)
+	var track := StyleBoxFlat.new()
+	track.bg_color = TRACK
+	track.set_corner_radius_all(roundi(HudTheme.px(LINE * 0.5)))
+	_track.add_theme_stylebox_override("panel", track)
+	_fill_box.bg_color = _colour
+	_fill_box.set_corner_radius_all(roundi(HudTheme.px(LINE * 0.5)))
+	_fill.add_theme_stylebox_override("panel", _fill_box)
+	_clip.clip_contents = true
+	_clip.add_child(_fill)
+	for part: Control in [_face, _track, _clip, _fill]:
+		part.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_face)
+	add_child(_track)
+	add_child(_clip)
 	add_child(_amount)
-	add_child(_rate)
 	_icon = HudIcon.new(resource_id, ICON)
 	add_child(_icon)
 	resized.connect(_layout)
@@ -54,34 +80,40 @@ func _notification(what: int) -> void:
 		# After the children have turned too: a child laid out before that is mirrored once more.
 		_layout.call_deferred()
 
-static func _text(font_size: float, colour: Color) -> Label:
-	var label := UiKit.label("", font_size, colour, true)
+static func _text(font_size: float) -> Label:
+	var label := UiKit.label("", font_size, HudTheme.BUTTON_TEXT, true)
 	label.add_theme_color_override("font_outline_color", HudTheme.BUTTON_INK)
 	label.add_theme_constant_override("outline_size", roundi(HudTheme.px(2.6)))
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.clip_text = true
 	return label
 
+## `x` measured from the start edge, mirrored in Arabic.
+func _at(x: float, width: float) -> float:
+	return size.x - x - width if is_layout_rtl() else x
+
 func _layout() -> void:
-	var rtl := is_layout_rtl()
-	var inset := HudTheme.px(INSET)
+	_face.position = Vector2.ZERO
+	_face.size = size
 	var icon := HudTheme.px(ICON)
-	_gauge.position = Vector2(0.0 if rtl else inset, 0.0)
-	_gauge.size = Vector2(size.x - inset, size.y)
 	_icon.size = Vector2.ONE * icon
-	_icon.position = Vector2(size.x - icon if rtl else 0.0, (size.y - HudTheme.px(2.0) - icon) * 0.5)
-	# The words have the room between the icon and the tray's far rim.
-	var start := icon + HudTheme.px(1.0)
-	var room := size.x - start - Gauge.RIM - HudTheme.px(1.0)
-	var x := size.x - start - room if rtl else start
-	var top := HudTheme.px(3.0)
-	var amount_h := HudTheme.px(20.0)
-	_amount.position = Vector2(x, top)
-	_amount.size = Vector2(room, amount_h)
-	_rate.position = Vector2(x, top + amount_h - HudTheme.px(2.0))
-	_rate.size = Vector2(room, HudTheme.px(17.0))
+	_icon.position = Vector2(_at(HudTheme.px(1.0), icon), (size.y - icon) * 0.5)
+	# The amount and the line share the room between the icon and the far end of the pill.
+	var start := icon + HudTheme.px(3.0)
+	var room := maxf(0.0, size.x - start - HudTheme.px(PAD))
+	var line := HudTheme.px(LINE)
+	var line_y := size.y - HudTheme.px(FOOT) - line
+	_amount.position = Vector2(_at(start, room), 0.0)
+	_amount.size = Vector2(room, line_y)
+	_track.position = Vector2(_at(start, room), line_y)
+	_track.size = Vector2(room, line)
+	var width := room * _fraction
+	# The fill grows from the start edge of the track, seen through the clip so its rounded ends never squash.
+	_clip.position = Vector2(_at(start, width), line_y)
+	_clip.size = Vector2(width, line)
+	_fill.position = Vector2(width - room if is_layout_rtl() else 0.0, 0.0)
+	_fill.size = Vector2(room, line)
 	_fit(_amount, AMOUNT_FONTS)
-	_fit(_rate, RATE_FONTS)
 
 ## The biggest of `sizes` at which the label's text fits its room.
 func _fit(label: Label, sizes: Array[float]) -> void:
@@ -110,17 +142,18 @@ func pulse() -> void:
 	_pulse.tween_property(self, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 ## `state` is "normal", "near" or "full" (HudModel.chips); `fraction` is how full the store is (0 to 1).
-func set_values(amount_text: String, rate_text: String, state: String, fraction := 0.0) -> void:
-	_gauge.set_fill(fraction, bar_colour_for(state))
-	var rate := Loc.t("hud.full") if state == "full" else rate_text
-	if amount_text == _amount.text and rate == _rate.text and state == _state:
+func set_values(amount_text: String, state: String, fraction := 0.0) -> void:
+	var to := clampf(fraction, 0.0, 1.0)
+	var colour := bar_colour_for(state)
+	if amount_text == _amount.text and state == _state and is_equal_approx(to, _fraction) and colour == _bar_colour:
 		return
+	_fraction = to
+	_bar_colour = colour
+	_fill_box.bg_color = colour
 	_state = state
 	_amount.text = amount_text
-	_rate.text = rate
-	_rate.add_theme_color_override("font_color", HudTheme.BUTTON_TEXT if state == "full" else HudTheme.TEXT)
-	_fit(_amount, AMOUNT_FONTS)
-	_fit(_rate, RATE_FONTS)
+	_amount.add_theme_color_override("font_color", FULL if state == "full" else HudTheme.BUTTON_TEXT)
+	_layout()
 
 func bar_colour_for(state: String) -> Color:
 	return FULL if state == "full" else (NEAR if state == "near" else _colour)
@@ -128,15 +161,22 @@ func bar_colour_for(state: String) -> Color:
 func amount_text() -> String:
 	return _amount.text
 
-func rate_text() -> String:
-	return _rate.text
+func amount_colour() -> Color:
+	return _amount.get_theme_color("font_color")
 
 func is_full() -> bool:
 	return _state == "full"
 
 ## The store's fill (0 to 100) and colour, for tests.
 func bar_value() -> float:
-	return _gauge.fraction * 100.0
+	return _fraction * 100.0
 
 func bar_colour() -> Color:
-	return _gauge.colour
+	return _bar_colour
+
+## The line's drawn fill, in px, for tests.
+func fill_rect() -> Rect2:
+	return Rect2(_clip.position, _clip.size)
+
+func line_rect() -> Rect2:
+	return Rect2(_track.position, _track.size)
