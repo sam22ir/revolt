@@ -1,6 +1,6 @@
 import { PASS_TIERS, PASS_XP_PER_TIER, passSeasonAt, PRODUCTS, SPEEDUP_DAILY_CAP_MS, SPEEDUP_TOKEN_MS, storageCap, utcDay } from "@revolt/rules";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import { noBilling } from "../src/billing/billing.ts";
+import { BillingUnavailable, noBilling } from "../src/billing/billing.ts";
 import { DAY, startServer, type Server } from "./harness.ts";
 import { create as createAlliance, join, player as allianceMember } from "./alliance-helpers.ts";
 import { editBase, getState } from "./map-helpers.ts";
@@ -196,6 +196,15 @@ describe("store", () => {
     const res = await server.request("POST", "/v1/store/redeem", { token: f.token, body: { sku: "pass_premium", provider: "local", receipt: "local-test:abcd" } });
     expect(res.status).toBe(503);
     expect(await res.json()).toEqual({ error: "billing_not_configured" });
+  });
+
+  test("when the store is down redeem answers 503 billing_unavailable and grants nothing", async () => {
+    server.billing = { kind: "revenuecat", configured: true, verify: async () => { throw new BillingUnavailable("down"); } };
+    const f = await fighter(server);
+    const res = await server.request("POST", "/v1/store/redeem", { token: f.token, body: { sku: "pass_premium", provider: "google", receipt: "some-play-purchase-token" } });
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: "billing_unavailable" });
+    expect(await sql(server, "SELECT id FROM purchases")).toEqual([]);
   });
 });
 
