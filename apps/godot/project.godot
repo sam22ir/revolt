@@ -26,7 +26,15 @@ theme/custom_font="res://fonts/IBMPlexSansArabic-Regular.ttf"
 locale/translations=PackedStringArray("res://locale/en.po", "res://locale/ar.po", "res://locale/fr.po")
 locale/fallback="en"
 
+[revolt]
+
+crash/sentry_dsn=""
+
 [rendering]
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
+
+[sentry]
+
+options/auto_init=false

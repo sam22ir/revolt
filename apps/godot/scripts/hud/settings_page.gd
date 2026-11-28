@@ -6,6 +6,8 @@ extends PageFrame
 
 signal language_selected(lang: String)
 signal sound_toggled(kind: String, on: bool)
+## The player turned crash reports on or off (Privacy, CrashReporting). Off by default.
+signal crash_reports_toggled(on: bool)
 
 const LANGS: Array[String] = ["en", "ar", "fr"]
 const SOUNDS: Array[String] = ["music", "effects"]
@@ -23,6 +25,10 @@ var _sound_labels := {}
 var _sound_switches := {}
 var _sound_on := {"music": true, "effects": true}
 var _about_labels := {}
+var _crash_switch := GameSwitch.new()
+var _crash_on := false
+## Asked before crash reports turn on: what is sent, and On or Off. A tap outside keeps them off.
+var _crash_dialog := KitDialog.new()
 var _tag := ""
 var _level := 0
 var _power := 0
@@ -33,6 +39,8 @@ func _init() -> void:
 	body.add_child(_language_section())
 	body.add_child(_sound_section())
 	body.add_child(_about_section())
+	add_child(_crash_dialog)
+	_crash_dialog.answered.connect(_on_crash_answer)
 	visible = false
 	set_language(Fmt.lang())
 
@@ -105,14 +113,45 @@ func _about_section() -> Control:
 	var inner := _section("settings.about", "info")
 	# The two names share a line, and the version sits at the end of the heading, so the page fits a phone without scrolling.
 	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", roundi(HudTheme.px(28)))
+	# Privacy carries the crash reports switch: turning it on first says what is sent (settings.analyticsNote).
 	for key: String in ABOUT:
 		var half := VBoxContainer.new()
-		half.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_about_labels[key] = _line(half, ABOUT[key], null)
+		var privacy: bool = key == "settings.privacy"
+		half.size_flags_horizontal = Control.SIZE_EXPAND_FILL if privacy else Control.SIZE_FILL
+		_about_labels[key] = _line(half, ABOUT[key], _crash_switch if privacy else null)
 		row.add_child(half)
 	inner.add_child(row)
+	_crash_switch.pressed.connect(_on_crash_pressed)
 	_version = UiKit.section_value(inner.get_parent(), "")
 	return inner.get_parent()
+
+func _on_crash_pressed() -> void:
+	if _crash_on:
+		_set_crash(false)
+		return
+	_crash_dialog.message.text = "%s\n\n%s" % [Loc.t("settings.analytics"), Loc.t("settings.analyticsNote")]
+	_crash_dialog.yes.text = Loc.t("settings.on")
+	_crash_dialog.no.text = Loc.t("settings.off")
+	_crash_dialog.visible = true
+
+func _on_crash_answer(yes: bool) -> void:
+	_crash_dialog.visible = false
+	if yes:
+		_set_crash(true)
+
+func _set_crash(on: bool) -> void:
+	_crash_on = on
+	_style_crash(true)
+	crash_reports_toggled.emit(on)
+
+func _style_crash(slide := false) -> void:
+	_crash_switch.set_on(_crash_on, Loc.t("settings.on" if _crash_on else "settings.off"), slide)
+
+## Shows the saved choice (Privacy.crash_reports_on) without emitting `crash_reports_toggled`.
+func set_crash_reports(on: bool) -> void:
+	_crash_on = on
+	_style_crash()
 
 ## One line of a section: an icon, a text and a control at the end. Returns its label.
 func _line(inner: VBoxContainer, icon_name: String, trailing: Control) -> Label:
@@ -170,6 +209,7 @@ func refresh() -> void:
 		_style_toggle(kind)
 	for key: String in _about_labels:
 		(_about_labels[key] as Label).text = Loc.t(key)
+	_style_crash()
 	var version := String(ProjectSettings.get_setting("application/config/version", ""))
 	_version.text = Loc.t("settings.version", {"version": version if version != "" else "0.1"})
 
@@ -184,3 +224,12 @@ func sound_on(kind: String) -> bool:
 
 func sound_toggle(kind: String) -> GameSwitch:
 	return _sound_switches[kind]
+
+func crash_toggle() -> GameSwitch:
+	return _crash_switch
+
+func crash_reports_on() -> bool:
+	return _crash_on
+
+func crash_dialog() -> KitDialog:
+	return _crash_dialog

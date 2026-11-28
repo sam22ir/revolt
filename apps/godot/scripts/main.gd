@@ -28,6 +28,7 @@ var _coords := Label.new()
 var _top := HudTop.new()
 var _bottom := HudBottom.new()
 var _settings := SettingsPage.new()
+var _billing := Billing.new()
 var _offline_badge := OfflineBadge.new()
 var _loading_layer := CanvasLayer.new()
 var _loaded := false
@@ -68,6 +69,8 @@ func _ready() -> void:
 	add_child(_loading_layer)
 	_api.base_url = Api.resolve_base_url()
 	add_child(_api)
+	# Crash reports only when the player turned them on in Settings (off by default).
+	CrashReporting.apply(Privacy.crash_reports_on())
 	_setup_sockets()
 	_setup_fps_debug()
 	add_child(_world)
@@ -113,6 +116,8 @@ func _start() -> void:
 	_session.refresh_alliance()
 	_session.load_wallet()
 	_session.load_missions()
+	# Play purchases need a session: bought-but-unredeemed ones are sent again once billing connects (Billing.reconcile).
+	_setup_billing()
 	var reply := await _retry_start(_api.get_json.bind("/v1/map"))
 	if not reply["ok"]:
 		_show_error()
@@ -638,6 +643,10 @@ func _build_hud() -> void:
 	_settings.theme = theme
 	_settings.back_pressed.connect(func() -> void: _show_screen(_home))
 	_settings.language_selected.connect(_apply_language)
+	_settings.set_crash_reports(Privacy.crash_reports_on())
+	_settings.crash_reports_toggled.connect(func(on: bool) -> void:
+		Privacy.set_crash_reports(on)
+		CrashReporting.apply(on))
 	_settings.offset_bottom = -NAV_HEIGHT
 	_hud_root.add_child(_settings)
 	# The tab bar's raised tabs stand over every page.
@@ -873,3 +882,14 @@ func _process(_delta: float) -> void:
 	_top.pill.update_model(HudModel.pill(_session.queue(), now, _screen, can_help), _session.background)
 	if _screen == "base":
 		_base.update(now, amounts)
+
+func _setup_billing() -> void:
+	if _billing.get_parent() != null:
+		return
+	add_child(_billing)
+	_billing.setup(_api)
+	# A granted purchase changes the wallet (tokens, resources) or the pass; the server's reply is the new truth.
+	_billing.redeemed.connect(func(outcome: int, _sku: String, _data: Variant) -> void:
+		if outcome == PurchaseFlow.Outcome.GRANTED:
+			_session.load_wallet()
+			_session.refresh())
