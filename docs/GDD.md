@@ -223,7 +223,7 @@ Details and conventions live in `CLAUDE.md`. Summary:
 | Auth | Guest account per device first; link a Google account to move devices. Self-hosted on Workers + D1: opaque guest tokens plus verified Google ID tokens (`jose`), chosen over Better Auth at M2 (see `docs/server-dev.md`); no paid auth service |
 | Tests | Vitest (rules, client logic, server); UI checked by eye in the dev server at phone size |
 | i18n | i18next |
-| Analytics/crashes | Firebase (free tier), milestone 7 |
+| Analytics/crashes | Sentry Godot SDK for crashes (free tier, opt-in), milestone 7; analytics later |
 | Payments | RevenueCat (free tier), milestone 7 |
 
 **Server owns all numbers** from milestone 2: the client sends intents (upgrade, train, march), the server validates them with the shared rules and returns the new state.
@@ -257,7 +257,7 @@ Base screen, resources, buildings, upgrade timers, offline with local save.
 
 ### M7 — Live features and release
 - Done when: events, leaderboards, battle pass and store work end to end; analytics and crash reporting are live; the app passes Google Play review.
-- **Status (M7):** code-complete, NOT accepted. Built: events (supply route, convoy hunt, two placeholder seasonal campaigns), four leaderboards, a 30-tier battle pass, store with speed-up tokens (daily cap, never the HQ), cosmetics and bundles, all behind fair-F2P rules and tests; billing, analytics and crash reporting behind interfaces with no-op/test implementations. Still open: real billing (Play Billing + RevenueCat), Firebase analytics/crash, Play review, a real-phone check, historian review of the seasonal campaign text (Vietnam siege campaign is a placeholder id), design pass on all placeholder numbers, equipped base skin art. See `docs/release.md`.
+- **Status (M7):** code-complete, NOT accepted. Built: events (supply route, convoy hunt, two placeholder seasonal campaigns), four leaderboards, a 30-tier battle pass, store with speed-up tokens (daily cap, never the HQ), cosmetics and bundles, all behind fair-F2P rules and tests; billing, analytics and crash reporting behind interfaces with no-op/test implementations. Billing (Play Billing plugin + RevenueCat verification on the Worker) and opt-in Sentry crash reporting are built but need accounts, plugins and a phone check. Still open: a Godot store screen, analytics, Play review, a real-phone check, historian review of the seasonal campaign text (Vietnam siege campaign is a placeholder id), design pass on all placeholder numbers, equipped base skin art. See `docs/release.md`.
 
 ---
 

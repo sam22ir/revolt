@@ -10,6 +10,18 @@ export class BillingNotConfigured extends Error {
   }
 }
 
+/** Thrown when the store is unreachable or failing right now. The API answers 503; the client keeps the purchase and retries. */
+export class BillingUnavailable extends Error {
+  constructor(detail: string) {
+    super(`billing_unavailable: ${detail}`);
+  }
+}
+
+/** Who is redeeming. Verifiers that talk to a store send only a hash of it. */
+export interface VerifyContext {
+  readonly accountId: string;
+}
+
 /**
  * Checks receipts. The Worker never trusts a client's word that something was bought: `POST /v1/store/redeem` grants
  * only what a verifier confirms, once per store transaction.
@@ -18,7 +30,7 @@ export interface BillingVerifier {
   readonly kind: "none" | "local" | "revenuecat";
   /** Whether `verify` can work at all in this deployment. */
   readonly configured: boolean;
-  verify(provider: string, sku: ProductSku, receipt: string): Promise<VerifyResult>;
+  verify(provider: string, sku: ProductSku, receipt: string, ctx: VerifyContext): Promise<VerifyResult>;
 }
 
 /** What a deployment without billing uses: the store is browse-only. */

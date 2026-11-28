@@ -158,7 +158,7 @@ About 80 MB download and ~10 s of tests per run; `pnpm godot:test` imports first
 ## Risks
 
 - Google sign-in (above).
-- RevenueCat and Firebase (M7) need Godot Android plugins; check availability before M7.
+- M7 plugins (decided 28 Nov 2026): the official Godot Play Billing plugin and Sentry's Godot SDK, both needing the Gradle build. Firebase is dropped. See `docs/release.md`.
 - Loss of the TS-only client tests: ~28 client test files cover logic that moves to GDScript or to the server. List which behaviors to re-cover before deleting them.
 - My ability to verify UI depends on the web export working; slice 0 proves this before anything else is built.
 
@@ -167,7 +167,7 @@ About 80 MB download and ~10 s of tests per run; `pnpm godot:test` imports first
 Set up 23 Nov 2026 for the real-phone checks.
 
 - **Toolchain:** the Android SDK (platform-tools, build-tools 35.0.1) is in `~/.local/share/android-sdk`; `~/Android` points to the external drive, which isn't always mounted. JDK 17, and a standard debug keystore in `~/.local/share/godot/keystores/`. The paths are set in the Godot editor settings, not in the repo.
-- **Build:** `pnpm godot:android` writes `apps/godot/build/android/revolt-debug.apk`: a debug APK, signed with the debug key, arm64 and armv7, package `com.revolt.game`. It uses the prebuilt template (no Gradle). The project enables ETC2/ASTC texture import, which Android requires.
+- **Build:** `pnpm godot:android` writes `apps/godot/build/android/revolt-debug.apk`: a debug APK, signed with the debug key, arm64 and armv7, package `com.revolt.game`. It now uses a Gradle build (Project > Install Android Build Template once per machine; `apps/godot/android/` is not in git). The project enables ETC2/ASTC texture import, which Android requires.
 - **Install and run against the mock server:** with USB debugging on and the phone connected, start `server-mock`, then:
   - `adb install -r apps/godot/build/android/revolt-debug.apk`
   - `adb reverse tcp:8787 tcp:8787`, so the app's `http://localhost:8787` reaches this machine.
