@@ -2,69 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "client",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "--filter",
-        "@revolt/client",
-        "dev",
-        "--port",
-        "5173",
-        "--strictPort"
-      ],
-      "port": 5173
-    },
-    {
-      "name": "client-mock",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "--filter",
-        "@revolt/client",
-        "dev",
-        "--port",
-        "4174",
-        "--strictPort"
-      ],
-      "port": 4174
-    },
-    {
-      "name": "client-mock-alt",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "--filter",
-        "@revolt/client",
-        "dev",
-        "--port",
-        "4173",
-        "--strictPort"
-      ],
-      "port": 4173
-    },
-    {
       "name": "server-mock",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": [
         "--filter",
         "@revolt/server",
         "dev:mock"
-      ],
-      "port": 8787
-    },
-    {
-      "name": "hud-client",
-      "runtimeExecutable": "sh",
-      "runtimeArgs": [
-        "-c",
-        "cd /home/saadi/game/.claude/worktrees/hud-restyle/apps/client && exec node_modules/.bin/vite --port 4174 --strictPort"
-      ],
-      "port": 4174
-    },
-    {
-      "name": "hud-server",
-      "runtimeExecutable": "sh",
-      "runtimeArgs": [
-        "-c",
-        "cd /home/saadi/game/.claude/worktrees/hud-restyle/apps/server && exec node_modules/.bin/wrangler dev --config wrangler.e2e.jsonc"
       ],
       "port": 8787
     },
