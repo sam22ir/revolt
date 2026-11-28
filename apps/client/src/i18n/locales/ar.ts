@@ -639,6 +639,7 @@ export const ar: LocaleShape = {
     note: {
       billing_unavailable: "الشراء غير متاح بعد في هذه النسخة.",
       cancelled: "أُلغيت عملية الشراء.",
+      granted: "تمّ الشراء. شكرًا لك!",
       unreachable: "تعذّر الوصول إلى الخادم. حاول مرة أخرى.",
     },
     slot: { base_skin: "مظهر القاعدة", banner: "الراية", march_skin: "مظهر المسيرات", hero_outfit: "زيّ البطل" },
