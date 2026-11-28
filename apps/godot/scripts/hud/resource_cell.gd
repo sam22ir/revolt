@@ -2,7 +2,10 @@ class_name ResourceCell
 extends Control
 ## One resource in the top bar: a tray that fills with the resource's own colour as its store does, the big icon standing out of its
 ## start, the amount in bold and the `+rate/h` under it. Near the cap the fill turns amber; a full store turns gold and says "Full" in
-## place of the rate. Everything is laid out by hand, so no text changes the bar's height.
+## place of the rate. Everything is laid out by hand, so no text changes the bar's height. A tap announces `pressed` (the resource
+## sheet opens); `pulse` bounces it when something lands in it.
+
+signal pressed
 
 const COLOURS := {
 	"food": Color("7f8c2e"),
@@ -27,8 +30,13 @@ var _rate := _text(RATE_FONTS[0], HudTheme.TEXT)
 var _state := "normal"
 var _colour := Color.WHITE
 
-func _init(resource_id := "food") -> void:
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
+var resource_id := ""
+var _pulse: Tween
+
+func _init(resource_id_value := "food") -> void:
+	resource_id = resource_id_value
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	gui_input.connect(_on_gui_input)
 	layout_direction = Control.LAYOUT_DIRECTION_LOCALE
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	custom_minimum_size.y = HudTheme.px(HEIGHT)
@@ -84,6 +92,22 @@ func _fit(label: Label, sizes: Array[float]) -> void:
 			if label.get_theme_font_size("font_size") != px:
 				label.add_theme_font_size_override("font_size", px)
 			return
+
+## A release inside the cell is a tap (a finger that slid off is not).
+func _on_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+		if Rect2(Vector2.ZERO, size).has_point(event.position):
+			pressed.emit()
+
+## A quick bounce, as a reward lands in this store.
+func pulse() -> void:
+	if _pulse != null and _pulse.is_valid():
+		_pulse.kill()
+	pivot_offset = size / 2.0
+	scale = Vector2.ONE
+	_pulse = create_tween()
+	_pulse.tween_property(self, "scale", Vector2.ONE * 1.14, 0.09).set_ease(Tween.EASE_OUT)
+	_pulse.tween_property(self, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 ## `state` is "normal", "near" or "full" (HudModel.chips); `fraction` is how full the store is (0 to 1).
 func set_values(amount_text: String, rate_text: String, state: String, fraction := 0.0) -> void:

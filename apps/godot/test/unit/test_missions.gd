@@ -127,6 +127,18 @@ func test_the_page_shows_the_quest_and_the_day_with_claim_buttons_only_for_done_
 	assert_eq(buttons.size(), 2, "the done quest and the done, unclaimed mission; an unfinished one has no button")
 	assert_eq(buttons.map(func(b: Button) -> bool: return b.disabled), [false, false])
 
+func test_claim_offers_the_reward_instead_of_claiming_straight_away() -> void:
+	var api := FakeApi.new()
+	var s := Session.new(api, Clock.new())
+	var screen: MissionsScreen = add_child_autofree(MissionsScreen.new())
+	screen.setup(s)
+	s.missions = _view(_quest(false), [_mission("daily_fight", 3, 3, true)])
+	s.missions_changed.emit()
+	watch_signals(screen)
+	_buttons(screen)[0].pressed.emit()
+	assert_signal_emitted_with_parameters(screen, "claim_requested", ["daily", "daily_fight", Loc.t("reward.missionDone"), Loc.t("mission.daily_fight", {"count": "3"}), MissionsModel.reward_items(_mission("daily_fight", 3, 3, true)["reward"], 30)])
+	assert_eq(api.calls.size(), 0, "nothing is sent until the popup's Collect")
+
 func test_a_vietnam_player_reads_their_own_building_name_and_arabic_works() -> void:
 	var s := Session.new(FakeApi.new(), Clock.new())
 	var screen: MissionsScreen = add_child_autofree(MissionsScreen.new())

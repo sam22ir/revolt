@@ -1825,6 +1825,57 @@ msgstr "Marches : {count}"
 msgid "hud.marchesNone"
 msgstr "Aucune marche"
 
+msgid "resourceSheet.stored"
+msgstr "{amount} / {cap}"
+
+msgid "resourceSheet.fullIn"
+msgstr "Plein dans {time}"
+
+msgid "resourceSheet.full"
+msgstr "Les réserves sont pleines : la production s'est arrêtée. Dépensez-en, ou améliorez le {building} pour avoir plus de place."
+
+msgid "resourceSheet.noProduction"
+msgstr "Rien ne produit encore cette ressource."
+
+msgid "resourceSheet.perHour"
+msgstr "Par heure"
+
+msgid "resourceSheet.source"
+msgstr "{building} (niveau {level})"
+
+msgid "resourceSheet.liberation"
+msgstr "Régions libérées"
+
+msgid "resourceSheet.lessons"
+msgstr "Leçons"
+
+msgid "resourceSheet.total"
+msgstr "Total"
+
+msgid "resourceSheet.percent"
+msgstr "+{amount} %"
+
+msgid "resourceSheet.storage"
+msgstr "La place en réserve vient du {building} (niveau {level})."
+
+msgid "resourceSheet.goTo"
+msgstr "Ouvrir : {building}"
+
+msgid "resourceSheet.moreRoom"
+msgstr "Plus de place"
+
+msgid "resourceSheet.use.food"
+msgstr "Nourrit les combattants : sert à former les troupes et à construire."
+
+msgid "resourceSheet.use.materiel"
+msgstr "Armes et outils : servent à former les troupes et à construire."
+
+msgid "resourceSheet.use.funds"
+msgstr "Paie les constructions et la formation des troupes."
+
+msgid "resourceSheet.use.support"
+msgstr "Le peuple derrière la lutte : nécessaire pour élever le {building}."
+
 msgid "account.button"
 msgstr "Compte"
 
@@ -2145,6 +2196,33 @@ msgstr "Rejoindre ou fonder une alliance"
 
 msgid "quest.first_hq"
 msgstr "Améliorer {building} au niveau {count}"
+
+msgid "reward.missionDone"
+msgstr "Mission accomplie !"
+
+msgid "reward.questDone"
+msgstr "Étape accomplie !"
+
+msgid "reward.collect"
+msgstr "Récupérer"
+
+msgid "reward.collecting"
+msgstr "Récupération…"
+
+msgid "reward.close"
+msgstr "Fermer"
+
+msgid "reward.overflow"
+msgstr "Vos réserves sont presque pleines : une partie ne rentrera pas. Améliorez le {building} pour avoir plus de place."
+
+msgid "reward.itemShards"
+msgstr "Fragments de héros"
+
+msgid "reward.itemTokens"
+msgstr "Accélérations"
+
+msgid "reward.itemPassXp"
+msgstr "XP de passe"
 
 msgid "reward.shards"
 msgstr "{count} fragments pour {hero}"

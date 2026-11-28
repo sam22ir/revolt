@@ -1825,6 +1825,57 @@ msgstr "Marches: {count}"
 msgid "hud.marchesNone"
 msgstr "No marches"
 
+msgid "resourceSheet.stored"
+msgstr "{amount} / {cap}"
+
+msgid "resourceSheet.fullIn"
+msgstr "Full in {time}"
+
+msgid "resourceSheet.full"
+msgstr "The stores are full: production has stopped. Spend some, or upgrade the {building} for more room."
+
+msgid "resourceSheet.noProduction"
+msgstr "Nothing produces this yet."
+
+msgid "resourceSheet.perHour"
+msgstr "Per hour"
+
+msgid "resourceSheet.source"
+msgstr "{building} (level {level})"
+
+msgid "resourceSheet.liberation"
+msgstr "Liberated regions"
+
+msgid "resourceSheet.lessons"
+msgstr "Lessons"
+
+msgid "resourceSheet.total"
+msgstr "Total"
+
+msgid "resourceSheet.percent"
+msgstr "+{amount}%"
+
+msgid "resourceSheet.storage"
+msgstr "Storage room comes from the {building} (level {level})."
+
+msgid "resourceSheet.goTo"
+msgstr "Go to {building}"
+
+msgid "resourceSheet.moreRoom"
+msgstr "More room"
+
+msgid "resourceSheet.use.food"
+msgstr "Feeds the fighters: spent on training troops and on building."
+
+msgid "resourceSheet.use.materiel"
+msgstr "Weapons and tools: spent on training troops and on building."
+
+msgid "resourceSheet.use.funds"
+msgstr "Pays for building and for training troops."
+
+msgid "resourceSheet.use.support"
+msgstr "The people behind the struggle: needed to raise the {building}."
+
 msgid "account.button"
 msgstr "Account"
 
@@ -2145,6 +2196,33 @@ msgstr "Join or found an alliance"
 
 msgid "quest.first_hq"
 msgstr "Upgrade {building} to level {count}"
+
+msgid "reward.missionDone"
+msgstr "Mission complete!"
+
+msgid "reward.questDone"
+msgstr "Step complete!"
+
+msgid "reward.collect"
+msgstr "Collect"
+
+msgid "reward.collecting"
+msgstr "Collecting…"
+
+msgid "reward.close"
+msgstr "Close"
+
+msgid "reward.overflow"
+msgstr "Your stores are nearly full: some of this will not fit. Upgrade the {building} for more room."
+
+msgid "reward.itemShards"
+msgstr "Hero shards"
+
+msgid "reward.itemTokens"
+msgstr "Speed-ups"
+
+msgid "reward.itemPassXp"
+msgstr "Pass XP"
 
 msgid "reward.shards"
 msgstr "{count} shards for {hero}"

@@ -1,16 +1,18 @@
 class_name MissionsScreen
 extends PageFrame
 ## The Missions page: the current beginner quest (its step in the chain, goal, progress and reward) above today's daily missions, each
-## with its progress, its reward and a Claim button once it is done, and when the daily missions reset. It draws MissionsModel from the Session's view
-## and sends claims through the Session; the server decides. Fetches the missions each time it opens. Back announces `closed`.
+## with its progress, its reward and a Claim button once it is done, and when the daily missions reset. It draws MissionsModel from the Session's view.
+## Claim announces `claim_requested` with what the reward is: the reward popup shows it and sends the claim through the Session on Collect
+## (the server decides). Fetches the missions each time it opens. Back announces `closed`.
 
 signal closed
+## A done row's Claim was pressed: `kind` "daily" or "quest", its id, the popup's title and subtitle (the goal), and the reward's items
+## (MissionsModel.reward_items).
+signal claim_requested(kind: String, id: String, title: String, subtitle: String, items: Array)
 
 var _session: Session
 var _key := ""
 var _now := 0
-## A refused claim's reason by "kind:id", shown under its row until the next draw from a fresh view.
-var _notes := {}
 
 func _init() -> void:
 	super("victory")
@@ -28,9 +30,7 @@ func _ready() -> void:
 ## Connects the screen to the session it shows.
 func setup(session: Session) -> void:
 	_session = session
-	session.missions_changed.connect(func() -> void:
-		_notes = {}
-		_render())
+	session.missions_changed.connect(_render)
 	_render()
 
 ## Call every frame while the screen shows, with the server time: the reset countdown follows it (redrawn once a minute).
@@ -45,7 +45,7 @@ func refresh() -> void:
 
 func _signature(view: Dictionary) -> String:
 	var minutes := MissionsModel.reset_in(view, _now) / 60000
-	return "|".join([TranslationServer.get_locale(), Loc.background_id, JSON.stringify(view.get("daily", [])), JSON.stringify(view.get("quest")), str(minutes), JSON.stringify(_notes)])
+	return "|".join([TranslationServer.get_locale(), Loc.background_id, JSON.stringify(view.get("daily", [])), JSON.stringify(view.get("quest")), str(minutes)])
 
 func _render() -> void:
 	if _session == null or not is_visible_in_tree():
@@ -87,7 +87,7 @@ func _quest_card(r: Dictionary, view: Dictionary) -> Control:
 	v.add_child(_line(goal_text(r), UiKit.BODY + 1.0, HudTheme.TEXT))
 	_add_progress(v, r)
 	v.add_child(_rewards(view["quest"].get("reward"), 0))
-	_add_claim(v, r, "quest")
+	_add_claim(v, r, "quest", MissionsModel.reward_items(view["quest"].get("reward"), 0))
 	return card
 
 func _done_card() -> Control:
@@ -110,7 +110,7 @@ func _daily_card(view: Dictionary) -> Control:
 		_add_progress(v, r)
 		var m: Dictionary = daily[i]
 		v.add_child(_rewards(m.get("reward"), int(m.get("passXp", 0))))
-		_add_claim(v, r, "daily")
+		_add_claim(v, r, "daily", MissionsModel.reward_items(m.get("reward"), int(m.get("passXp", 0))))
 	return card
 
 func _add_progress(v: VBoxContainer, r: Dictionary) -> void:
@@ -144,8 +144,7 @@ func _rewards(reward: Variant, pass_xp: int) -> Control:
 				chips.append(UiKit.stat_chip("power", Loc.t("missions.passXp", {"count": Fmt.amount(lang, item["amount"])})))
 	return UiKit.chips(chips)
 
-func _add_claim(v: VBoxContainer, r: Dictionary, kind: String) -> void:
-	var note_key := "%s:%s" % [kind, r["id"]]
+func _add_claim(v: VBoxContainer, r: Dictionary, kind: String, items: Array) -> void:
 	if r["state"] == "claimed":
 		v.add_child(UiKit.chips([UiKit.badge(Loc.t("missions.claimed"), Color("305561"))]))
 		return
@@ -154,23 +153,6 @@ func _add_claim(v: VBoxContainer, r: Dictionary, kind: String) -> void:
 		var button := UiKit.primary_button(Loc.t("missions.claim"))
 		button.focus_mode = Control.FOCUS_NONE
 		button.mouse_filter = Control.MOUSE_FILTER_PASS
-		button.pressed.connect(_on_claim.bind(button, kind, String(r["id"])))
+		var title := Loc.t("reward.questDone" if kind == "quest" else "reward.missionDone")
+		button.pressed.connect(func() -> void: claim_requested.emit(kind, String(r["id"]), title, goal_text(r), items))
 		v.add_child(button)
-	if _notes.has(note_key):
-		v.add_child(UiKit.warning(Loc.t("reason." + String(_notes[note_key]))))
-
-func _on_claim(button: Button, kind: String, id: String) -> void:
-	if _session == null:
-		return
-	button.disabled = true
-	var verdict: Dictionary = await _session.claim_mission(kind, id)
-	if verdict["reason"] == "" and not verdict["ok"]:
-		return
-	if verdict["ok"]:
-		_notes.erase("%s:%s" % [kind, id])
-	else:
-		# A failure with no reason of the game's own reads as "could not reach the server".
-		var reason := String(verdict["reason"])
-		_notes["%s:%s" % [kind, id]] = "unreachable" if reason == "error" else reason
-	_key = ""
-	_render()
