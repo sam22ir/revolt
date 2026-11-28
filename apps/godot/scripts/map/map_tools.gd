@@ -1,7 +1,8 @@
 class_name MapTools
 extends Control
 ## The map's own controls in the bottom corner at the reading end, above the nav bar: the minimap, the Find and My base buttons over it,
-## and an arrow at the screen's edge pointing to the player's base while it is out of view, with how far it is.
+## and an arrow at the screen's edge pointing to the player's base while it is out of view, with how far it is. Tapping the arrow
+## (or its distance) goes home, like My base (the Phaser arrow did too).
 
 signal jump(tile: Vector2i)
 signal find_pressed
@@ -16,6 +17,8 @@ var minimap := Minimap.new()
 var find_button := RoundButton.new("search", BUTTON)
 var home_button := RoundButton.new("base", BUTTON)
 var _distance := Label.new()
+## The tappable area over the arrow and its distance; hidden while there is no arrow.
+var arrow_button := Button.new()
 var _arrow: Dictionary = {}
 var _bottom := 0.0
 
@@ -34,12 +37,20 @@ func _init() -> void:
 	_distance.add_theme_color_override("font_outline_color", Color(0.15, 0.1, 0.07, 0.95))
 	_distance.add_theme_constant_override("outline_size", roundi(HudTheme.px(4)))
 	add_child(_distance)
+	arrow_button.flat = true
+	arrow_button.focus_mode = Control.FOCUS_NONE
+	for style in ["normal", "hover", "pressed", "focus", "disabled", "hover_pressed"]:
+		arrow_button.add_theme_stylebox_override(style, StyleBoxEmpty.new())
+	arrow_button.visible = false
+	arrow_button.pressed.connect(func() -> void: home_pressed.emit())
+	add_child(arrow_button)
 	refresh_language()
 
 func refresh_language() -> void:
 	# Icons only: two labels side by side would not fit over the minimap.
 	find_button.button().tooltip_text = Loc.t("map.findTitle")
 	home_button.button().tooltip_text = Loc.t("map.myBase")
+	arrow_button.tooltip_text = Loc.t("map.myBase")
 	minimap.tooltip_text = Loc.t("map.minimap")
 
 ## Places the corner: `bottom` is the room kept free under it (the nav bar), `rtl` puts it at the left.
@@ -78,11 +89,18 @@ func set_arrow(base_screen: Vector2, band: Rect2, tiles: int) -> void:
 		_distance.position = at - back - _distance.size / 2.0
 		var vp := get_viewport_rect().size
 		_distance.position = _distance.position.clamp(Vector2.ZERO, vp - _distance.size)
+		# A finger-sized area round the arrow's head, stretched over the distance.
+		var head := Rect2(at - Vector2.ONE * HudTheme.px(ARROW + 8.0), Vector2.ONE * HudTheme.px(2.0 * (ARROW + 8.0)))
+		var hit := head.merge(_distance.get_rect()).grow(HudTheme.px(6))
+		arrow_button.position = hit.position
+		arrow_button.size = hit.size
+	arrow_button.visible = not _arrow.is_empty()
 	queue_redraw()
 
 func clear_arrow() -> void:
 	_arrow = {}
 	_distance.visible = false
+	arrow_button.visible = false
 	queue_redraw()
 
 func _draw() -> void:
