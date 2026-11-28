@@ -28,6 +28,8 @@ signal help_changed
 signal alliance_id_changed(id: String)
 ## Today's missions or the quest chain changed (a fetch or a claim answered).
 signal missions_changed
+## The store view (GET /v1/store) arrived or the wardrobe changed.
+signal store_changed
 
 const MAX_REPORTS := 20
 const MAX_CHAT := 200
@@ -68,6 +70,8 @@ var _chat_open := false
 
 ## The speed-up wallet ({speedupTokens, usedTodayMs, dailyCapMs, at}), or {} until the server has said (unknown is not zero tokens).
 var wallet: Dictionary = {}
+## The last StoreView (StoreModel.is_view): offers, wardrobe and whether the server can check receipts; {} until it arrives.
+var store: Dictionary = {}
 var _wallet_now := -1
 var _speedup_pending := {}
 var _hero_pending := {}
@@ -328,9 +332,23 @@ func scout(body: Dictionary) -> Dictionary:
 	_take(result)
 	return result["data"] if result["ok"] and ForecastModel.is_view(result["data"]) else {}
 
-## Fetches `GET /v1/store` for the wallet (the catalog in the reply is not used). Taken through `apply`, like every reply.
+## Fetches `GET /v1/store`: the wallet is taken through `apply`, like every reply, and the whole view is kept for the Store page.
 func load_wallet() -> void:
-	_take(await api.get_json("/v1/store"))
+	var result: Dictionary = await api.get_json("/v1/store")
+	_take(result)
+	if result["ok"] and StoreModel.is_view(result["data"]):
+		store = result["data"]
+		store_changed.emit()
+
+## Wears an owned look in its slot, or empties the slot with "" (`POST /v1/cosmetics/equip`). The server's wardrobe replaces ours.
+func equip(slot: String, cosmetic: String) -> Dictionary:
+	var result: Dictionary = await api.post_json("/v1/cosmetics/equip", {"slot": slot, "cosmetic": null if cosmetic == "" else cosmetic})
+	var verdict := _take_verdict(result)
+	var data: Variant = result["data"]
+	if verdict["ok"] and data is Dictionary and data.get("cosmetics") is Dictionary and not store.is_empty():
+		store["cosmetics"] = data["cosmetics"]
+		store_changed.emit()
+	return verdict
 
 ## Spends one token on the running job of `kind` ("upgrade" or "training"). Returns the server's verdict like an intent; "" as
 ## the reason means nothing was sent (a press on this job is already out: one press spends one token). The wallet and the base

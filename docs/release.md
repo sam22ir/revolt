@@ -11,7 +11,7 @@ Built: the Worker's verifier (`apps/server/src/billing/revenuecat-billing.ts`) p
 5. `wrangler secret put REVENUECAT_SECRET` (the RevenueCat **secret** API key). For the internal test track only, set the var `BILLING_ALLOW_SANDBOX=1` so license-tester purchases count; never on the production Worker.
 6. Confirm the deployed Worker has no test verifier (`test/live-misc.test.ts` checks).
 7. Declare: no paid-only heroes, no loot boxes (no draws exist yet; if added, publish odds and a pity counter per GDD §8).
-8. Not built yet: a store screen in the Godot client. `Billing.buy(sku)` is ready for it; the catalog is `GET /v1/store` (sell only when `canRedeem` is true and `Billing.available()`).
+8. The Godot store page (`scripts/store/`, the round button in the base's bottom corner) sells only when `Billing.available()` and the server says `canRedeem`; otherwise it shows the offers with Buy off and says why.
 
 ## Crash reporting (Sentry)
 Built: `apps/godot/scripts/platform/crash_reporting.gd` starts Sentry's Godot SDK only when the player turned crash reports on (Settings > About > Privacy switch, which explains what is sent before turning on; off by default, saved in `user://settings.cfg`). Auto-init is off in `project.godot`; no user, account id or guest tag is attached and default PII stays off. Still to do by hand:

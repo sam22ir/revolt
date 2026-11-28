@@ -642,6 +642,7 @@ export const fr: LocaleShape = {
     note: {
       billing_unavailable: "L’achat n’est pas encore disponible dans cette version.",
       cancelled: "Achat annulé.",
+      granted: "Achat effectué. Merci !",
       unreachable: "Impossible de joindre le serveur. Réessayez.",
     },
     slot: { base_skin: "Aspect de la base", banner: "Bannière", march_skin: "Aspect des marches", hero_outfit: "Tenue de héros" },

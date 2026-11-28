@@ -637,6 +637,7 @@ export const en = {
     note: {
       billing_unavailable: "Buying is not available yet in this version.",
       cancelled: "Purchase cancelled.",
+      granted: "Purchase complete. Thank you!",
       unreachable: "Could not reach the server. Try again.",
     },
     slot: { base_skin: "Base look", banner: "Banner", march_skin: "March look", hero_outfit: "Hero outfit" },

@@ -42,6 +42,8 @@ var _missions_button := RoundButton.new("victory", 44.0)
 var _story_screen := StoryScreen.new()
 ## The base's Story button, above Missions; its dot says a chapter reward waits.
 var _story_button := RoundButton.new("info", 44.0)
+var _store_screen := StoreScreen.new()
+var _store_button := RoundButton.new("funds", 44.0)
 ## A reward being collected (missions and quests; any reward can use it), and the sheet a tapped resource counter opens.
 var _reward_popup := RewardPopup.new()
 var _resource_sheet := ResourceSheet.new()
@@ -422,6 +424,8 @@ func _show_screen(screen: String) -> void:
 	_missions_button.visible = screen == "base"
 	_story_screen.visible = screen == "story"
 	_story_button.visible = screen == "base"
+	_store_screen.visible = screen == "store"
+	_store_button.visible = screen == "base"
 	_settings.visible = screen == "settings"
 	# The tab bar is on every screen; the resource bar is not on Settings.
 	_top.visible = screen != "settings"
@@ -468,6 +472,8 @@ func _refit() -> void:
 	_missions_screen.offset_bottom = -NAV_HEIGHT
 	_story_screen.offset_top = top
 	_story_screen.offset_bottom = -NAV_HEIGHT
+	_store_screen.offset_top = top
+	_store_screen.offset_bottom = -NAV_HEIGHT
 	_place_missions_button()
 	_march_sheet.offset_top = top
 	_march_sheet.offset_bottom = -NAV_HEIGHT
@@ -533,6 +539,7 @@ func _build_hud() -> void:
 	# Under the ring and the card, so an open building card's backdrop covers it.
 	_hud_root.add_child(_missions_button)
 	_hud_root.add_child(_story_button)
+	_hud_root.add_child(_store_button)
 	_hud_root.add_child(_base.ring)
 	_base.card_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_base.card_layer.offset_bottom = -NAV_HEIGHT
@@ -581,6 +588,22 @@ func _build_hud() -> void:
 	_story_screen.claim_requested.connect(_offer_story_reward)
 	_hud_root.add_child(_story_screen)
 	_story_button.pressed.connect(func() -> void: _show_screen("story"))
+	# Store: a page opened from the round button in the base's other bottom corner; its back button goes home. Buying goes through Play (Billing).
+	_store_screen.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_store_screen.visible = false
+	_store_screen.setup(_session, _billing.available)
+	_store_screen.closed.connect(func() -> void: _show_screen(_home))
+	_store_screen.buy_requested.connect(func(sku: String) -> void:
+		_store_screen.set_note("")
+		_billing.buy(sku))
+	_store_screen.equip_requested.connect(func(slot: String, cosmetic: String) -> void: _session.equip(slot, cosmetic))
+	_billing.redeemed.connect(func(outcome: int, _sku: String, data: Variant) -> void:
+		_store_screen.set_note(StoreModel.redeemed_note(outcome, data)))
+	_billing.purchase_failed.connect(func(code: int) -> void:
+		_store_screen.set_note(StoreModel.failed_note(code))
+		_store_screen.refresh())
+	_hud_root.add_child(_store_screen)
+	_store_button.pressed.connect(func() -> void: _show_screen("store"))
 	_session.missions_changed.connect(_update_dots)
 	# Progress moves with play (an upgrade, a battle, a help): fetch again when the base changes, at most every 20 s.
 	_session.state_changed.connect(func() -> void:
@@ -747,6 +770,10 @@ func _place_missions_button() -> void:
 	var story_want := _story_button.get_combined_minimum_size()
 	_story_button.size = story_want
 	_story_button.position = Vector2(vp.x - side - story_want.x if rtl else side, _missions_button.position.y - side - story_want.y)
+	# Store sits in the other bottom corner, level with Missions (a third button above Story would cover the camp's labels).
+	var store_want := _store_button.get_combined_minimum_size()
+	_store_button.size = store_want
+	_store_button.position = Vector2(side if rtl else vp.x - side - store_want.x, _missions_button.position.y + want.y - store_want.y)
 
 ## "Offline — reconnecting…", centred over the tab bar, above the map's coordinates. It is outside the top box, so it never moves the base.
 func _build_offline_badge() -> void:
@@ -780,6 +807,8 @@ func _apply_language(lang: String) -> void:
 	_story_screen.refresh()
 	_story_button.set_label(Loc.t("nav.story"))
 	_story_button.place_dot(lang)
+	_store_screen.refresh()
+	_store_button.set_label(Loc.t("live.tab.store"))
 	_place_missions_button()
 	_tile_panel.refresh()
 	_find_sheet.refresh()

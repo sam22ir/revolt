@@ -1960,6 +1960,9 @@ msgstr "الشراء غير متاح بعد في هذه النسخة."
 msgid "live.note.cancelled"
 msgstr "أُلغيت عملية الشراء."
 
+msgid "live.note.granted"
+msgstr "تمّ الشراء. شكرًا لك!"
+
 msgid "live.note.unreachable"
 msgstr "تعذّر الوصول إلى الخادم. حاول مرة أخرى."
 

@@ -1960,6 +1960,9 @@ msgstr "L’achat n’est pas encore disponible dans cette version."
 msgid "live.note.cancelled"
 msgstr "Achat annulé."
 
+msgid "live.note.granted"
+msgstr "Achat effectué. Merci !"
+
 msgid "live.note.unreachable"
 msgstr "Impossible de joindre le serveur. Réessayez."
 
