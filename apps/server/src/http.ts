@@ -12,6 +12,7 @@ export const ERROR_CODES = [
   "upgrade_required",
   "forbidden",
   "billing_not_configured",
+  "billing_unavailable",
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 
@@ -27,6 +28,7 @@ const STATUS: Record<ErrorCode, number> = {
   upgrade_required: 426,
   forbidden: 403,
   billing_not_configured: 503,
+  billing_unavailable: 503,
 };
 
 export class HttpError extends Error {

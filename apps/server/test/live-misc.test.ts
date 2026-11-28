@@ -19,13 +19,16 @@ beforeEach(async () => {
 afterEach(() => server.dispose());
 
 describe("billing wiring", () => {
-  test("the deployed Worker has no test verifier: it cannot verify anything yet", async () => {
+  test("the deployed Worker has no test verifier: without the secret it cannot verify anything", async () => {
     const billing = productionDeps.billing(server.env);
-    expect(billing.kind).not.toBe("local");
+    expect(billing.kind).toBe("revenuecat");
     expect(billing.configured).toBe(false);
-    await expect(billing.verify("local", "pass_premium", "local-test:abcd")).rejects.toBeInstanceOf(BillingNotConfigured);
-    // Even with the secret present it refuses until RevenueCat verification is written (docs/release.md).
-    await expect(productionDeps.billing({ ...server.env, REVENUECAT_SECRET: "x" }).verify("google", "pass_premium", "r")).rejects.toBeInstanceOf(BillingNotConfigured);
+    await expect(billing.verify("local", "pass_premium", "local-test:abcd", { accountId: "a" })).rejects.toBeInstanceOf(BillingNotConfigured);
+    // With the secret it is RevenueCat, and it still refuses the test receipt without asking anyone.
+    const live = productionDeps.billing({ ...server.env, REVENUECAT_SECRET: "x" });
+    expect(live.kind).toBe("revenuecat");
+    expect(live.configured).toBe(true);
+    expect(await live.verify("local", "pass_premium", "local-test:abcd", { accountId: "a" })).toEqual({ ok: false });
   });
 
   test("no deployed entry module mentions the test verifier; only the e2e entry and tests do", () => {
@@ -37,9 +40,9 @@ describe("billing wiring", () => {
   });
 
   test("the test verifier accepts only its own receipt shape from its own provider", async () => {
-    expect(await localBilling.verify("local", "pass_premium", "local-test:abcd")).toEqual({ ok: true, txnId: "abcd" });
+    expect(await localBilling.verify("local", "pass_premium", "local-test:abcd", { accountId: "a" })).toEqual({ ok: true, txnId: "abcd" });
     for (const [p, r] of [["google", "local-test:abcd"], ["local", "local-test:ab"], ["local", "local-test:ab cd"], ["local", "abcd"], ["local", ""]] as const) {
-      expect(await localBilling.verify(p, "pass_premium", r)).toEqual({ ok: false });
+      expect(await localBilling.verify(p, "pass_premium", r, { accountId: "a" })).toEqual({ ok: false });
     }
   });
 

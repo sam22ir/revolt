@@ -20,6 +20,10 @@ export interface Env {
   readonly GUEST_LIMIT_PER_HOUR?: string;
   /** Secret for receipt checking (RevenueCat). Set with `wrangler secret put`; never in the repo. Unset: the store is browse-only. */
   readonly REVENUECAT_SECRET?: string;
+  /** "1" accepts Play sandbox (license tester) purchases. Only for the internal test track, never production. */
+  readonly BILLING_ALLOW_SANDBOX?: string;
+  /** Sentry DSN for server errors. Unset: errors are not reported. A DSN is not a secret, but keep it out of the repo. */
+  readonly SENTRY_DSN?: string;
 }
 
 export const DEFAULT_GUEST_LIMIT_PER_HOUR = 30;

@@ -16,7 +16,7 @@ import {
   type StoreView,
   type WalletView,
 } from "@revolt/rules";
-import { BillingNotConfigured } from "../billing/billing.ts";
+import { BillingNotConfigured, BillingUnavailable } from "../billing/billing.ts";
 import { hashToken } from "../auth/tokens.ts";
 import { runGrant } from "../db/grants.ts";
 import { takeGuestSlot } from "../db/guest-rate.ts";
@@ -65,9 +65,13 @@ export const postRedeem = async (ctx: Ctx): Promise<Response> => {
   if (!(await takeGuestSlot(db, await hashToken(`redeem:${account.id}`), ctx.now, REDEEM_PER_HOUR))) throw new HttpError("rate_limited");
   let verified;
   try {
-    verified = await ctx.deps.billing(ctx.env).verify(b.provider, b.sku, b.receipt);
+    verified = await ctx.deps.billing(ctx.env).verify(b.provider, b.sku, b.receipt, { accountId: account.id });
   } catch (e) {
     if (e instanceof BillingNotConfigured) throw new HttpError("billing_not_configured");
+    if (e instanceof BillingUnavailable) {
+      ctx.deps.crash.capture(e, { where: "redeem" });
+      throw new HttpError("billing_unavailable");
+    }
     throw e;
   }
   if (!verified.ok) return refuse(ctx, "bad_receipt");

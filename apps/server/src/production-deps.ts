@@ -14,7 +14,7 @@ export const productionDeps: Deps = {
   googleKeys: googleRemoteKeys(),
   map: durableMap,
   room: durableRoom,
-  billing: (env) => revenueCatBilling(env.REVENUECAT_SECRET),
+  billing: (env) => revenueCatBilling({ secret: env.REVENUECAT_SECRET, allowSandbox: env.BILLING_ALLOW_SANDBOX === "1" }),
   analytics: noAnalytics,
   crash: noCrashReporter,
 };
