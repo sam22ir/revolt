@@ -5,6 +5,8 @@ extends VBoxContainer
 ## Settings.
 
 signal chip_pressed
+## A resource tray was tapped (its id).
+signal resource_pressed(id: String)
 
 var cells := {}
 var chip := PlayerChip.new()
@@ -36,6 +38,7 @@ func _init() -> void:
 	rows.add_child(row)
 	for id: String in Balance.data()["resourceIds"]:
 		var cell := ResourceCell.new(id)
+		cell.pressed.connect(func() -> void: resource_pressed.emit(id))
 		row.add_child(cell)
 		cells[id] = cell
 	var strip := HBoxContainer.new()

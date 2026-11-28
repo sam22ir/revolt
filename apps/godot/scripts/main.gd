@@ -38,6 +38,9 @@ var _heroes_screen := HeroesScreen.new()
 var _missions_screen := MissionsScreen.new()
 ## The base's corner button that opens Missions; its dot says a reward waits.
 var _missions_button := RoundButton.new("victory", 44.0)
+## A reward being collected (missions and quests; any reward can use it), and the sheet a tapped resource counter opens.
+var _reward_popup := RewardPopup.new()
+var _resource_sheet := ResourceSheet.new()
 ## When missions were last fetched because the base changed (ticks ms), so a burst of state replies fetches once.
 var _missions_fetched_ms := -100000
 const MISSIONS_REFETCH_MS := 20000
@@ -640,12 +643,54 @@ func _build_hud() -> void:
 	# The tab bar's raised tabs stand over every page.
 	_hud_root.move_child(_bottom, -1)
 
+	# Over everything, the tab bar included: the resource sheet, then the reward popup (its rewards fly up to the counters).
+	_resource_sheet.theme = theme
+	_hud_root.add_child(_resource_sheet)
+	_top.resource_pressed.connect(_open_resource_sheet)
+	_resource_sheet.building_requested.connect(_go_to_building)
+	_reward_popup.theme = theme
+	_hud_root.add_child(_reward_popup)
+	_reward_popup.fly_target = func(item: Dictionary) -> Variant:
+		if item["kind"] != "resource" or not _top.cells.has(item["id"]) or not _top.is_visible_in_tree():
+			return null
+		return (_top.cells[item["id"]] as Control).get_global_rect().get_center()
+	_reward_popup.on_arrive = func(item: Dictionary) -> void:
+		if item["kind"] == "resource" and _top.cells.has(item["id"]):
+			_top.cells[item["id"]].pulse()
+	_missions_screen.claim_requested.connect(_offer_mission_reward)
+
 	_top.resized.connect(_refit)
 	get_viewport().size_changed.connect(_refit)
 
 ## A bottom button for a page opens it; tapping the open page's button again goes back to Base or Map.
 func _on_page_requested(page: String) -> void:
 	_show_screen(_home if _screen == page else page)
+
+## The reward popup for a done mission or quest; Collect claims it through the Session. It warns when a resource will not all fit.
+func _offer_mission_reward(kind: String, id: String, title: String, subtitle: String, items: Array) -> void:
+	var overflow := ""
+	if not _session.resources.is_empty() and _clock.is_synced():
+		var now := _clock.now_ms(Time.get_ticks_msec())
+		var amounts := ResourceDisplay.amounts(_session.resources, _session.levels, _session.last_updated, now, _session.liberations)
+		if RewardPopup.overflows(items, amounts, Balance.storage_cap(int(_session.levels["hq"]))):
+			overflow = ResourceSheetModel.STORAGE_BUILDING
+	_reward_popup.open(title, subtitle, items, _session.claim_mission.bind(kind, id), overflow)
+
+func _resource_model(id: String) -> Dictionary:
+	var now := _clock.now_ms(Time.get_ticks_msec())
+	var amounts := ResourceDisplay.amounts(_session.resources, _session.levels, _session.last_updated, now, _session.liberations)
+	return ResourceSheetModel.build(id, amounts, _session.levels, _session.liberations, now)
+
+func _open_resource_sheet(id: String) -> void:
+	if _session.resources.is_empty() or not _clock.is_synced() or _reward_popup.is_open():
+		return
+	_resource_sheet.open(id, _resource_model(id))
+
+## "Go to" on the resource sheet: the base, with that building's card open.
+func _go_to_building(building: String) -> void:
+	_resource_sheet.close()
+	_show_screen("base")
+	_base.open_card(building, "upgrade")
 
 ## The one-dot marks: unread chat or an open help request on Alliance, a report not yet opened on Reports.
 func _update_dots() -> void:
@@ -805,6 +850,8 @@ func _process(_delta: float) -> void:
 		_heroes_screen.tick(amounts)
 	if _missions_screen.is_visible_in_tree():
 		_missions_screen.tick(now)
+	if _resource_sheet.visible:
+		_resource_sheet.show_model(ResourceSheetModel.build(_resource_sheet.resource_id, amounts, _session.levels, _session.liberations, now))
 	if _tile_panel.visible and not _map.snapshot.is_empty():
 		var tile := _tile_panel.tile()
 		_tile_panel.update_view(_map.snapshot, _map.terrain_at_tile(tile.x, tile.y), String(_session.alliance["name"]) if _session.alliance is Dictionary else "", String(_session.alliance["myRank"]) if _session.alliance is Dictionary else "", now, _session.state.get("marches", []), _session.state)
